@@ -25,6 +25,8 @@ O `sparky` é o próprio compositor Wayland; não depende de nenhum outro. Fala 
 
 Toda janela comum entra no mosaico. Flutuam as que têm janela-mãe (diálogos), as de tamanho fixo e as do painel de configurações e do capturador. A borda da janela em foco usa a cor de destaque do tema, e o foco do teclado acompanha o ponteiro.
 
+Rodado num terminal virtual (ou pelo gerenciador de login), o `sparky` assume a placa de vídeo pela sessão do sistema (libseat), liga cada monitor conectado lado a lado da esquerda para a direita, acompanha monitor ligado e desligado em tempo real, lê teclado, mouse e touchpad pelo libinput (toque para clicar ligado) e desenha o cursor do tema `XCURSOR_THEME`. `Ctrl+Alt+F1…F12` troca de terminal virtual.
+
 Para testar dentro de outra sessão Wayland, o `sparky` abre numa janela:
 
 ```bash

@@ -10,6 +10,7 @@ impl Sparky {
             Action::Spawn(command) => spawn::spawn(&command, &self.socket_name),
             Action::CloseWindow => self.close_focused(),
             Action::Exit => self.loop_signal.stop(),
+            Action::SwitchTerminal(terminal) => self.switch_terminal(terminal),
             other => {
                 self.change_layout(other);
                 self.relayout();
@@ -37,7 +38,7 @@ impl Sparky {
             Action::RelativeWorkspace(step) => desktop.focus_relative(step),
             Action::PreviousWorkspace => desktop.focus_previous(),
             Action::CycleMonitor(step) => desktop.cycle_monitor(step),
-            Action::Spawn(_) | Action::CloseWindow | Action::Exit => {}
+            Action::Spawn(_) | Action::CloseWindow | Action::Exit | Action::SwitchTerminal(_) => {}
         }
     }
 

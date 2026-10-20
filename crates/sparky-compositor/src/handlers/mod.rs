@@ -1,6 +1,7 @@
 mod commit;
 mod compositor;
 mod decoration;
+mod dmabuf;
 mod layer_shell;
 mod seat;
 mod selection;

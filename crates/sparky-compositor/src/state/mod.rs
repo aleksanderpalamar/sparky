@@ -7,12 +7,15 @@ use std::time::Instant;
 
 use smithay::desktop::{PopupManager, Space, Window};
 use smithay::input::Seat;
+use smithay::input::pointer::CursorImageStatus;
+use smithay::wayland::dmabuf::DmabufGlobal;
 use smithay::input::keyboard::XkbConfig;
 use smithay::reexports::calloop::{EventLoop, LoopHandle, LoopSignal};
 use smithay::reexports::wayland_server::{Display, DisplayHandle};
 use sparky_tiling::{Desktop, Style};
 
 use crate::apps::Apps;
+use crate::backend::Backend;
 use crate::bindings::Bindings;
 use crate::bindings::defaults;
 use crate::input::keyboard_layout::KeyboardLayout;
@@ -41,6 +44,10 @@ pub struct Sparky {
     pub suppressed_keys: Vec<u32>,
     pub frames: Frames,
     pub colors: BorderColors,
+    pub backend: Backend,
+    pub cursor_status: CursorImageStatus,
+    pub dmabuf_global: Option<DmabufGlobal>,
+    pub needs_render: bool,
 }
 
 impl Sparky {
@@ -70,10 +77,17 @@ impl Sparky {
             suppressed_keys: Vec::new(),
             frames: Frames::default(),
             colors: BorderColors::from_palette(sparky_theme::current_palette()),
+            backend: Backend::Starting,
+            cursor_status: CursorImageStatus::default_named(),
+            dmabuf_global: None,
+            needs_render: true,
         })
     }
 
     pub fn after_dispatch(&mut self) {
+        if std::mem::take(&mut self.needs_render) {
+            self.render_pending();
+        }
         self.space.refresh();
         self.popups.cleanup();
         if let Err(error) = self.display_handle.flush_clients() {

@@ -29,6 +29,7 @@ impl Sparky {
             self.space.unmap_elem(&window);
         }
         self.update_keyboard_focus();
+        self.needs_render = true;
     }
 
     fn show(&mut self, window: Window, placement: &Placement) {

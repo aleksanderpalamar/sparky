@@ -1,9 +1,12 @@
 use smithay::backend::input::{
     AbsolutePositionEvent, Axis, AxisSource, ButtonState, Event, InputBackend, PointerAxisEvent, PointerButtonEvent,
+    PointerMotionEvent,
 };
 use smithay::input::pointer::{AxisFrame, ButtonEvent, MotionEvent};
 use smithay::utils::{Logical, Point, SERIAL_COUNTER};
 
+use crate::input::clamp::clamp;
+use crate::layout::outputs::rect_of;
 use crate::state::Sparky;
 
 const WHEEL_STEP: f64 = 15.0 / 120.0;
@@ -20,7 +23,24 @@ impl Sparky {
         self.move_pointer(position, event.time_msec());
     }
 
+    pub fn on_relative_motion<I: InputBackend>(&mut self, event: I::PointerMotionEvent) {
+        let Some(pointer) = self.seat.get_pointer() else {
+            return;
+        };
+        let moved = pointer.current_location() + event.delta();
+        let screens: Vec<_> = self
+            .space
+            .outputs()
+            .filter_map(|output| self.space.output_geometry(output))
+            .map(rect_of)
+            .collect();
+        if let Some((x, y)) = clamp(moved.x, moved.y, &screens) {
+            self.move_pointer((x, y).into(), event.time_msec());
+        }
+    }
+
     pub fn move_pointer(&mut self, position: Point<f64, Logical>, time: u32) {
+        self.needs_render = true;
         let Some(pointer) = self.seat.get_pointer() else {
             return;
         };

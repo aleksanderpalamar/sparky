@@ -15,5 +15,6 @@ pub enum Action {
     RelativeWorkspace(i32),
     PreviousWorkspace,
     CycleMonitor(i32),
+    SwitchTerminal(i32),
     Exit,
 }

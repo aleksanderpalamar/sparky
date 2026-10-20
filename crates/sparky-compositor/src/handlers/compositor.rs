@@ -21,6 +21,7 @@ impl CompositorHandler for Sparky {
 
     fn commit(&mut self, surface: &WlSurface) {
         on_commit_buffer_handler::<Self>(surface);
+        self.needs_render = true;
         if !is_sync_subsurface(surface) {
             let root = root_of(surface);
             if let Some((_, window)) = self.windows.find(|window| window.toplevel().is_some_and(|t| t.wl_surface() == &root)) {

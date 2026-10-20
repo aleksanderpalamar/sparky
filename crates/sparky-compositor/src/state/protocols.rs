@@ -1,6 +1,7 @@
 use smithay::input::SeatState;
 use smithay::reexports::wayland_server::DisplayHandle;
 use smithay::wayland::compositor::CompositorState;
+use smithay::wayland::dmabuf::DmabufState;
 use smithay::wayland::output::OutputManagerState;
 use smithay::wayland::selection::data_device::DataDeviceState;
 use smithay::wayland::selection::primary_selection::PrimarySelectionState;
@@ -25,6 +26,7 @@ pub struct Protocols {
     pub primary_selection: PrimarySelectionState,
     pub data_control: DataControlState,
     pub viewporter: ViewporterState,
+    pub dmabuf: DmabufState,
 }
 
 impl Protocols {
@@ -43,6 +45,7 @@ impl Protocols {
             primary_selection,
             data_control,
             viewporter: ViewporterState::new::<Sparky>(display),
+            dmabuf: DmabufState::new(),
         }
     }
 }

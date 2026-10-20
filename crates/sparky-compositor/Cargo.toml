@@ -17,12 +17,18 @@ sparky-theme.workspace = true
 sparky-tiling.workspace = true
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+xcursor = "0.3"
 
 [dependencies.smithay]
 version = "0.7"
 default-features = false
 features = [
+    "backend_drm",
     "backend_egl",
+    "backend_gbm",
+    "backend_libinput",
+    "backend_session_libseat",
+    "backend_udev",
     "backend_winit",
     "desktop",
     "renderer_gl",

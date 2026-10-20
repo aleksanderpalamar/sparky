@@ -1,7 +1,8 @@
 use smithay::backend::input::{Event, InputBackend, KeyState, KeyboardKeyEvent};
-use smithay::input::keyboard::FilterResult;
+use smithay::input::keyboard::{FilterResult, KeysymHandle, ModifiersState};
 use smithay::utils::SERIAL_COUNTER;
 
+use crate::backend::drm::vt;
 use crate::bindings::action::Action;
 use crate::bindings::mods_of;
 use crate::state::Sparky;
@@ -18,7 +19,7 @@ impl Sparky {
         let decision = keyboard.input(self, code, pressed, serial, time, |state, modifiers, handle| {
             let raw = handle.raw_code().raw();
             match pressed {
-                KeyState::Pressed => state.press(raw, modifiers, handle.raw_latin_sym_or_raw_current_sym()),
+                KeyState::Pressed => state.press(raw, modifiers, &handle),
                 KeyState::Released => state.release(raw),
             }
         });
@@ -27,13 +28,11 @@ impl Sparky {
         }
     }
 
-    fn press(
-        &mut self,
-        code: u32,
-        modifiers: &smithay::input::keyboard::ModifiersState,
-        sym: Option<smithay::input::keyboard::Keysym>,
-    ) -> FilterResult<Option<Action>> {
-        match self.bindings.find(mods_of(modifiers), code, sym).cloned() {
+    fn press(&mut self, code: u32, modifiers: &ModifiersState, handle: &KeysymHandle<'_>) -> FilterResult<Option<Action>> {
+        let terminal = vt::terminal_for(handle.modified_sym().raw()).map(Action::SwitchTerminal);
+        let sym = handle.raw_latin_sym_or_raw_current_sym();
+        let action = terminal.or_else(|| self.bindings.find(mods_of(modifiers), code, sym).cloned());
+        match action {
             Some(action) => {
                 self.suppressed_keys.push(code);
                 FilterResult::Intercept(Some(action))

@@ -9,13 +9,20 @@ use smithay::reexports::calloop::EventLoop;
 use smithay::reexports::winit::dpi::LogicalSize;
 use smithay::reexports::winit::platform::wayland::WindowAttributesExtWayland;
 use smithay::reexports::winit::window::Window as HostWindow;
-use smithay::utils::{Rectangle, Transform};
+use smithay::utils::{Physical, Rectangle, Size, Transform};
 
+use crate::backend::Backend;
 use crate::render::output::output_elements;
 use crate::state::Sparky;
 
 const REFRESH: i32 = 60_000;
 const APP_ID: &str = "sparky-nested";
+
+pub struct Nested {
+    pub graphics: WinitGraphicsBackend<GlesRenderer>,
+    pub output: Output,
+    pub damage: OutputDamageTracker,
+}
 
 pub fn init(event_loop: &mut EventLoop<'static, Sparky>, state: &mut Sparky) -> Result<(), Box<dyn std::error::Error>> {
     let attributes = HostWindow::default_attributes()
@@ -23,11 +30,25 @@ pub fn init(event_loop: &mut EventLoop<'static, Sparky>, state: &mut Sparky) -> 
         .with_title("Sparky")
         .with_name(APP_ID, APP_ID)
         .with_visible(true);
-    let (mut backend, winit) = winit::init_from_attributes::<GlesRenderer>(attributes)?;
-    let mode = Mode {
-        size: backend.window_size(),
-        refresh: REFRESH,
-    };
+    let (mut graphics, events) = winit::init_from_attributes::<GlesRenderer>(attributes)?;
+    let output = nested_output(state, graphics.window_size());
+    state.publish_formats(graphics.renderer());
+    let damage = OutputDamageTracker::from_output(&output);
+    state.backend = Backend::Nested(Box::new(Nested { graphics, output, damage }));
+    event_loop.handle().insert_source(events, |event, _, state| match event {
+        WinitEvent::Resized { size, .. } => state.resize_nested(size),
+        WinitEvent::Input(event) => state.process_input_event(event),
+        WinitEvent::Redraw => {
+            state.with_nested(redraw);
+        }
+        WinitEvent::CloseRequested => state.loop_signal.stop(),
+        WinitEvent::Focus(_) => {}
+    })?;
+    Ok(())
+}
+
+fn nested_output(state: &mut Sparky, size: Size<i32, Physical>) -> Output {
+    let mode = Mode { size, refresh: REFRESH };
     let output = Output::new(
         "winit".to_owned(),
         PhysicalProperties {
@@ -42,42 +63,45 @@ pub fn init(event_loop: &mut EventLoop<'static, Sparky>, state: &mut Sparky) -> 
     output.set_preferred(mode);
     state.space.map_output(&output, (0, 0));
     state.sync_outputs();
-    let mut damage = OutputDamageTracker::from_output(&output);
-    event_loop.handle().insert_source(winit, move |event, _, state| match event {
-        WinitEvent::Resized { size, .. } => {
-            output.change_current_state(Some(Mode { size, refresh: REFRESH }), None, None, None);
-            state.sync_outputs();
-            state.relayout();
-        }
-        WinitEvent::Input(event) => state.process_input_event(event),
-        WinitEvent::Redraw => redraw(state, &mut backend, &output, &mut damage),
-        WinitEvent::CloseRequested => state.loop_signal.stop(),
-        WinitEvent::Focus(_) => {}
-    })?;
-    Ok(())
+    output
 }
 
-fn redraw(state: &mut Sparky, backend: &mut WinitGraphicsBackend<GlesRenderer>, output: &Output, damage: &mut OutputDamageTracker) {
-    let size = backend.window_size();
+impl Sparky {
+    fn resize_nested(&mut self, size: Size<i32, Physical>) {
+        if let Backend::Nested(nested) = &self.backend {
+            nested
+                .output
+                .change_current_state(Some(Mode { size, refresh: REFRESH }), None, None, None);
+        }
+        self.sync_outputs();
+        self.relayout();
+    }
+}
+
+fn redraw(state: &mut Sparky, nested: &mut Nested) {
+    let size = nested.graphics.window_size();
     let clear = state.colors.background;
-    let rendered = match backend.bind() {
+    let rendered = match nested.graphics.bind() {
         Ok((renderer, mut framebuffer)) => {
-            let elements = output_elements(state, renderer, output);
-            damage.render_output(renderer, &mut framebuffer, 0, &elements, clear).is_ok()
+            let elements = output_elements(state, renderer, &nested.output);
+            nested
+                .damage
+                .render_output(renderer, &mut framebuffer, 0, &elements, clear)
+                .is_ok()
         }
         Err(error) => {
             tracing::warn!("sem framebuffer: {error}");
             false
         }
     };
-    if rendered && let Err(error) = backend.submit(Some(&[Rectangle::from_size(size)])) {
+    if rendered && let Err(error) = nested.graphics.submit(Some(&[Rectangle::from_size(size)])) {
         tracing::warn!("quadro não enviado: {error}");
     }
-    send_frames(state, output);
-    backend.window().request_redraw();
+    send_frames(state, &nested.output);
+    nested.graphics.window().request_redraw();
 }
 
-fn send_frames(state: &Sparky, output: &Output) {
+pub fn send_frames(state: &Sparky, output: &Output) {
     let time = state.start_time.elapsed();
     for window in state.space.elements() {
         window.send_frame(output, time, Some(Duration::ZERO), |_, _| Some(output.clone()));
