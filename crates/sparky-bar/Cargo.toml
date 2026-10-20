@@ -1,0 +1,20 @@
+[package]
+name = "sparky-bar"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "sparky-bar"
+path = "src/main.rs"
+
+[lib]
+name = "sparky_bar"
+path = "src/lib.rs"
+
+[dependencies]
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+iced = { version = "0.14", features = ["tokio"] }
+iced_layershell = "0.19.1"
+sparky-ipc.workspace = true
+sparky-theme.workspace = true
