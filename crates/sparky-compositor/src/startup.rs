@@ -23,6 +23,9 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     signals::stop_on_signals(&state.loop_handle)?;
     let commands = options.spawn;
     event_loop.handle().insert_idle(move |state| {
+        if state.is_real_session() {
+            state.start_session();
+        }
         for command in &commands {
             state.spawn(command);
         }

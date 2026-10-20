@@ -10,6 +10,7 @@ pub mod input;
 pub mod ipc;
 pub mod layout;
 pub mod render;
+pub mod session;
 pub mod signals;
 pub mod spawn;
 pub mod startup;

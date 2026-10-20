@@ -15,7 +15,7 @@ pub struct Apps {
 impl Apps {
     pub fn detect() -> Self {
         let configured = env::var("TERMINAL").ok();
-        Self::with(configured.as_deref(), in_path)
+        Self::with(configured.as_deref(), installed)
     }
 
     pub fn with(configured: Option<&str>, present: impl Fn(&str) -> bool) -> Self {
@@ -34,16 +34,33 @@ impl Apps {
     }
 }
 
-fn in_path(command: &str) -> bool {
+pub fn installed(program: &str) -> bool {
+    let location = Path::new(program);
+    if location.is_absolute() {
+        return location.is_file();
+    }
     let path = env::var("PATH").unwrap_or_default();
     path.split(':')
         .filter(|directory| !directory.is_empty())
-        .any(|directory| Path::new(directory).join(command).is_file())
+        .any(|directory| Path::new(directory).join(program).is_file())
 }
 
 #[cfg(test)]
 mod tests {
-    use super::Apps;
+    use super::{Apps, installed};
+
+    #[test]
+    fn caminho_absoluto_vale_se_o_arquivo_existe() {
+        let file = std::env::temp_dir().join(format!("sparky-instalado-{}", std::process::id()));
+        if std::fs::write(&file, b"").is_err() {
+            panic!("não deu para criar o arquivo de teste");
+        }
+        let found = installed(&file.to_string_lossy());
+        let removed = std::fs::remove_file(&file);
+        assert!(found);
+        assert!(removed.is_ok());
+        assert!(!installed(&file.to_string_lossy()));
+    }
 
     #[test]
     fn o_terminal_configurado_vence() {

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Sparky
+Comment=Ambiente de desktop Wayland feito para o teclado
+Exec=sparky
+TryExec=sparky
+Type=Application
+DesktopNames=sparky
