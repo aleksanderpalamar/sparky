@@ -9,6 +9,7 @@ use smithay::desktop::{PopupManager, Space, Window};
 use smithay::input::Seat;
 use smithay::input::pointer::CursorImageStatus;
 use smithay::wayland::dmabuf::DmabufGlobal;
+use smithay::xwayland::X11Wm;
 use smithay::input::keyboard::XkbConfig;
 use smithay::reexports::calloop::{EventLoop, LoopHandle, LoopSignal};
 use smithay::reexports::wayland_server::{Display, DisplayHandle};
@@ -48,6 +49,9 @@ pub struct Sparky {
     pub cursor_status: CursorImageStatus,
     pub dmabuf_global: Option<DmabufGlobal>,
     pub needs_render: bool,
+    pub xwm: Option<X11Wm>,
+    pub x_display: Option<u32>,
+    pub unmanaged: Vec<Window>,
 }
 
 impl Sparky {
@@ -81,6 +85,9 @@ impl Sparky {
             cursor_status: CursorImageStatus::default_named(),
             dmabuf_global: None,
             needs_render: true,
+            xwm: None,
+            x_display: None,
+            unmanaged: Vec::new(),
         })
     }
 

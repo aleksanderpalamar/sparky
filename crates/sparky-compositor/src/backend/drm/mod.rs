@@ -1,4 +1,3 @@
-pub mod arrow;
 mod connectors;
 pub mod crtcs;
 pub mod cursor;
@@ -19,6 +18,7 @@ use smithay::reexports::input::Libinput;
 use crate::backend::Backend;
 use crate::backend::drm::cursor::CursorImage;
 use crate::backend::drm::gpu::Gpu;
+use crate::cursor::CursorPixels;
 use crate::state::Sparky;
 
 pub struct Drm {
@@ -51,7 +51,7 @@ pub fn init(state: &mut Sparky) -> Result<(), Box<dyn std::error::Error>> {
         session,
         libinput,
         gpu,
-        cursor: CursorImage::load(),
+        cursor: CursorImage::from_pixels(&CursorPixels::load()),
         active: true,
     }));
     state.with_drm(|state, drm| state.scan_connectors(drm));

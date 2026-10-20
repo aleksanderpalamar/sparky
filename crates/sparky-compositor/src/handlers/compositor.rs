@@ -9,6 +9,7 @@ use smithay::{delegate_compositor, delegate_shm};
 
 use crate::state::Sparky;
 use crate::state::client::compositor_state_of;
+use crate::windows::surface::root_surface;
 
 impl CompositorHandler for Sparky {
     fn compositor_state(&mut self) -> &mut CompositorState {
@@ -24,7 +25,10 @@ impl CompositorHandler for Sparky {
         self.needs_render = true;
         if !is_sync_subsurface(surface) {
             let root = root_of(surface);
-            if let Some((_, window)) = self.windows.find(|window| window.toplevel().is_some_and(|t| t.wl_surface() == &root)) {
+            if let Some((_, window)) = self.windows.find(|window| root_surface(window).as_ref() == Some(&root)) {
+                window.on_commit();
+            }
+            for window in self.unmanaged.iter().filter(|window| root_surface(window).as_ref() == Some(&root)) {
                 window.on_commit();
             }
         }

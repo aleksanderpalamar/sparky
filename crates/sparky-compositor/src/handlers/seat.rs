@@ -3,13 +3,15 @@ use smithay::input::pointer::CursorImageStatus;
 use smithay::input::{Seat, SeatHandler, SeatState};
 use smithay::reexports::wayland_server::Resource;
 use smithay::reexports::wayland_server::protocol::wl_surface::WlSurface;
+use smithay::wayland::seat::WaylandFocus;
 use smithay::wayland::selection::data_device::set_data_device_focus;
 use smithay::wayland::selection::primary_selection::set_primary_focus;
 
+use crate::focus::KeyboardFocus;
 use crate::state::Sparky;
 
 impl SeatHandler for Sparky {
-    type KeyboardFocus = WlSurface;
+    type KeyboardFocus = KeyboardFocus;
     type PointerFocus = WlSurface;
     type TouchFocus = WlSurface;
 
@@ -22,9 +24,10 @@ impl SeatHandler for Sparky {
         self.needs_render = true;
     }
 
-    fn focus_changed(&mut self, seat: &Seat<Self>, focused: Option<&WlSurface>) {
+    fn focus_changed(&mut self, seat: &Seat<Self>, focused: Option<&KeyboardFocus>) {
         let display = &self.display_handle;
-        let client = focused.and_then(|surface| display.get_client(surface.id()).ok());
+        let surface = focused.and_then(|target| target.wl_surface());
+        let client = surface.and_then(|surface| display.get_client(surface.id()).ok());
         set_data_device_focus(display, seat, client.clone());
         set_primary_focus(display, seat, client);
     }

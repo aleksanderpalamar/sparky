@@ -34,4 +34,6 @@ features = [
     "renderer_gl",
     "use_system_lib",
     "wayland_frontend",
+    "x11rb_event_source",
+    "xwayland",
 ]

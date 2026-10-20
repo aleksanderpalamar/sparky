@@ -3,11 +3,12 @@ use sparky_tiling::WorkspaceId;
 use crate::bindings::action::Action;
 use crate::spawn;
 use crate::state::Sparky;
+use crate::windows::surface;
 
 impl Sparky {
     pub fn run(&mut self, action: Action) {
         match action {
-            Action::Spawn(command) => spawn::spawn(&command, &self.socket_name),
+            Action::Spawn(command) => spawn::spawn(&command, &self.socket_name, self.x_display),
             Action::CloseWindow => self.close_focused(),
             Action::Exit => self.loop_signal.stop(),
             Action::SwitchTerminal(terminal) => self.switch_terminal(terminal),
@@ -46,8 +47,8 @@ impl Sparky {
         let Some(id) = self.desktop.focused_window() else {
             return;
         };
-        if let Some(toplevel) = self.windows.get(id).and_then(|window| window.toplevel()) {
-            toplevel.send_close();
+        if let Some(window) = self.windows.get(id) {
+            surface::close(window);
         }
     }
 }

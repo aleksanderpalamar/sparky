@@ -1,12 +1,9 @@
 use smithay::desktop::Window;
-use smithay::reexports::wayland_protocols::xdg::shell::server::xdg_toplevel::State;
-use smithay::wayland::shell::xdg::ToplevelState;
-use sparky_tiling::{Fullscreen, Layer, Placement, WindowId};
+use sparky_tiling::{Placement, WindowId};
 
 use crate::render::border;
 use crate::state::{BORDER, Sparky};
-
-const TILED: [State; 4] = [State::TiledLeft, State::TiledRight, State::TiledTop, State::TiledBottom];
+use crate::windows::configure::configure;
 
 impl Sparky {
     pub fn relayout(&mut self) {
@@ -28,43 +25,16 @@ impl Sparky {
         for window in hidden {
             self.space.unmap_elem(&window);
         }
+        for window in &self.unmanaged {
+            self.space.raise_element(window, false);
+        }
         self.update_keyboard_focus();
         self.needs_render = true;
     }
 
     fn show(&mut self, window: Window, placement: &Placement) {
         let content = border::content(placement.frame, border::border_width(placement, BORDER));
-        configure(&window, placement, (content.width, content.height));
+        configure(&window, placement, content);
         self.space.map_element(window, (content.x, content.y), false);
     }
-}
-
-fn configure(window: &Window, placement: &Placement, size: (i32, i32)) {
-    let Some(toplevel) = window.toplevel() else {
-        return;
-    };
-    window.set_activated(placement.focused);
-    toplevel.with_pending_state(|state| {
-        state.size = Some(size.into());
-        mark(state, State::Fullscreen, placement.layer == Layer::Fullscreen(Fullscreen::Monitor));
-        mark(state, State::Maximized, placement.layer == Layer::Fullscreen(Fullscreen::Maximized));
-        for tiled in TILED {
-            mark(state, tiled, placement.layer == Layer::Tiled);
-        }
-    });
-    match toplevel.is_initial_configure_sent() {
-        true => {
-            toplevel.send_pending_configure();
-        }
-        false => {
-            toplevel.send_configure();
-        }
-    }
-}
-
-fn mark(state: &mut ToplevelState, flag: State, on: bool) {
-    match on {
-        true => state.states.set(flag),
-        false => state.states.unset(flag),
-    };
 }

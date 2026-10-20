@@ -35,6 +35,9 @@ where
         .partition(|placement| placement.layer == Layer::Fullscreen(Fullscreen::Monitor));
     let map = layer_map_for_output(output);
     let mut elements = layer_elements(&map, renderer, ShellLayer::Overlay, &target);
+    for window in state.unmanaged.iter().rev() {
+        elements.extend(surface(&state.space, window, renderer, &target));
+    }
     elements.extend(windows(state, renderer, &above, &target));
     elements.extend(layer_elements(&map, renderer, ShellLayer::Top, &target));
     elements.extend(windows(state, renderer, &below, &target));

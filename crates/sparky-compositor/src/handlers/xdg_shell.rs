@@ -18,15 +18,9 @@ impl XdgShellHandler for Sparky {
     }
 
     fn toplevel_destroyed(&mut self, surface: ToplevelSurface) {
-        let Some(id) = self.window_of(&surface) else {
-            return;
-        };
-        if let Some(window) = self.windows.remove(id) {
-            self.space.unmap_elem(&window);
+        if let Some(id) = self.window_of(&surface) {
+            self.forget_window(id);
         }
-        self.frames.forget(id);
-        self.desktop.remove_window(id);
-        self.relayout();
     }
 
     fn new_popup(&mut self, surface: PopupSurface, _positioner: PositionerState) {

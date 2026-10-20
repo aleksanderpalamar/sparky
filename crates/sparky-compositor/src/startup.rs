@@ -18,9 +18,13 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         false => drm::init(&mut state)?,
     }
     tracing::info!("sparky ouvindo em {:?}", state.socket_name);
-    for command in &options.spawn {
-        spawn::spawn(command, &state.socket_name);
-    }
+    state.start_xwayland();
+    let commands = options.spawn;
+    event_loop.handle().insert_idle(move |state| {
+        for command in &commands {
+            spawn::spawn(command, &state.socket_name, state.x_display);
+        }
+    });
     event_loop.run(None, &mut state, Sparky::after_dispatch)?;
     Ok(())
 }

@@ -1,4 +1,7 @@
-use smithay::wayland::selection::SelectionHandler;
+use std::os::unix::io::OwnedFd;
+
+use smithay::input::Seat;
+use smithay::wayland::selection::{SelectionHandler, SelectionSource, SelectionTarget};
 use smithay::wayland::selection::data_device::{ClientDndGrabHandler, DataDeviceHandler, DataDeviceState, ServerDndGrabHandler};
 use smithay::wayland::selection::primary_selection::{PrimarySelectionHandler, PrimarySelectionState};
 use smithay::wayland::selection::wlr_data_control::{DataControlHandler, DataControlState};
@@ -8,6 +11,14 @@ use crate::state::Sparky;
 
 impl SelectionHandler for Sparky {
     type SelectionUserData = ();
+
+    fn new_selection(&mut self, target: SelectionTarget, source: Option<SelectionSource>, _seat: Seat<Self>) {
+        self.wayland_selection_changed(target, source);
+    }
+
+    fn send_selection(&mut self, target: SelectionTarget, mime_type: String, fd: OwnedFd, _seat: Seat<Self>, _user_data: &()) {
+        self.send_wayland_selection_to_x11(target, mime_type, fd);
+    }
 }
 
 impl DataDeviceHandler for Sparky {

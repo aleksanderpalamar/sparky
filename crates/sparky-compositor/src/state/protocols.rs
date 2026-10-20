@@ -11,6 +11,7 @@ use smithay::wayland::shell::xdg::XdgShellState;
 use smithay::wayland::shell::xdg::decoration::XdgDecorationState;
 use smithay::wayland::shm::ShmState;
 use smithay::wayland::viewporter::ViewporterState;
+use smithay::wayland::xwayland_shell::XWaylandShellState;
 
 use crate::state::Sparky;
 
@@ -27,6 +28,7 @@ pub struct Protocols {
     pub data_control: DataControlState,
     pub viewporter: ViewporterState,
     pub dmabuf: DmabufState,
+    pub xwayland_shell: XWaylandShellState,
 }
 
 impl Protocols {
@@ -46,6 +48,7 @@ impl Protocols {
             data_control,
             viewporter: ViewporterState::new::<Sparky>(display),
             dmabuf: DmabufState::new(),
+            xwayland_shell: XWaylandShellState::new::<Sparky>(display),
         }
     }
 }

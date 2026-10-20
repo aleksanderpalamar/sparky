@@ -3,10 +3,10 @@ use smithay::output::Output;
 use smithay::reexports::wayland_server::protocol::wl_surface::WlSurface;
 use smithay::wayland::compositor::with_states;
 use smithay::wayland::shell::wlr_layer::LayerSurfaceData;
-use smithay::wayland::shell::xdg::{SurfaceCachedState, ToplevelSurface, XdgToplevelSurfaceData};
 
 use crate::state::{BORDER, Sparky};
-use crate::windows::rules::{self, Traits};
+use crate::windows::rules;
+use crate::windows::traits::traits_of;
 
 impl Sparky {
     pub fn commit_popup(&mut self, surface: &WlSurface) {
@@ -52,10 +52,7 @@ impl Sparky {
         if self.desktop.workspace_of(id).is_some() {
             return;
         }
-        let Some(toplevel) = window.toplevel().cloned() else {
-            return;
-        };
-        let opening = rules::opening(&traits_of(&toplevel), self.desktop.style(), BORDER);
+        let opening = rules::opening(&traits_of(window), self.desktop.style(), BORDER);
         self.desktop.add_window(id, opening);
         self.relayout();
     }
@@ -69,29 +66,5 @@ impl Sparky {
                     .is_some()
             })
             .cloned()
-    }
-}
-
-fn traits_of(toplevel: &ToplevelSurface) -> Traits {
-    let app_id = with_states(toplevel.wl_surface(), |states| {
-        states
-            .data_map
-            .get::<XdgToplevelSurfaceData>()
-            .and_then(|data| data.lock().ok().and_then(|data| data.app_id.clone()))
-            .unwrap_or_default()
-    });
-    let (min_size, max_size) = with_states(toplevel.wl_surface(), |states| {
-        let mut cached = states.cached_state.get::<SurfaceCachedState>();
-        let current = cached.current();
-        (
-            (current.min_size.w, current.min_size.h),
-            (current.max_size.w, current.max_size.h),
-        )
-    });
-    Traits {
-        app_id,
-        has_parent: toplevel.parent().is_some(),
-        min_size,
-        max_size,
     }
 }

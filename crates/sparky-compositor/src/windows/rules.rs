@@ -12,7 +12,7 @@ const FLOATING_APPS: [&str; 6] = [
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct Traits {
     pub app_id: String,
-    pub has_parent: bool,
+    pub dialog: bool,
     pub min_size: (i32, i32),
     pub max_size: (i32, i32),
 }
@@ -22,7 +22,7 @@ pub fn opening(traits: &Traits, style: Style, border: i32) -> Opening {
         let (width, height) = traits.min_size;
         return Opening::Floating(width + 2 * border, height + 2 * border);
     }
-    let floating = traits.has_parent || FLOATING_APPS.contains(&traits.app_id.as_str());
+    let floating = traits.dialog || FLOATING_APPS.contains(&traits.app_id.as_str());
     match floating {
         true => Opening::Floating(style.float_size.0, style.float_size.1),
         false => Opening::Tiled,
@@ -57,9 +57,9 @@ mod tests {
     }
 
     #[test]
-    fn janela_com_mae_e_dialogo_e_flutua() {
+    fn dialogo_flutua() {
         let dialogo = Traits {
-            has_parent: true,
+            dialog: true,
             ..janela("org.gnome.Nautilus")
         };
         assert_eq!(opening(&dialogo, Style::SPARKY, 2), Opening::Floating(875, 600));

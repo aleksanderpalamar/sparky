@@ -1,9 +1,10 @@
 use smithay::desktop::layer_map_for_output;
-use smithay::reexports::wayland_server::protocol::wl_surface::WlSurface;
 use smithay::utils::SERIAL_COUNTER;
 use smithay::wayland::shell::wlr_layer::{KeyboardInteractivity, Layer};
 
+use crate::focus::KeyboardFocus;
 use crate::state::Sparky;
+use crate::windows::surface::focus_target;
 
 impl Sparky {
     pub fn update_keyboard_focus(&mut self) {
@@ -16,13 +17,12 @@ impl Sparky {
         }
     }
 
-    fn focused_surface(&self) -> Option<WlSurface> {
+    fn focused_surface(&self) -> Option<KeyboardFocus> {
         let id = self.desktop.focused_window()?;
-        let window = self.windows.get(id)?;
-        Some(window.toplevel()?.wl_surface().clone())
+        self.windows.get(id).map(focus_target)
     }
 
-    fn exclusive_layer(&self) -> Option<WlSurface> {
+    fn exclusive_layer(&self) -> Option<KeyboardFocus> {
         self.space.outputs().find_map(|output| {
             let map = layer_map_for_output(output);
             map.layers()
@@ -31,7 +31,7 @@ impl Sparky {
                     matches!(state.layer, Layer::Top | Layer::Overlay)
                         && state.keyboard_interactivity == KeyboardInteractivity::Exclusive
                 })
-                .map(|layer| layer.wl_surface().clone())
+                .map(|layer| KeyboardFocus::Surface(layer.wl_surface().clone()))
         })
     }
 }
