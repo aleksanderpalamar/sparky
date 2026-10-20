@@ -1,0 +1,31 @@
+[package]
+name = "sparky-compositor"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "sparky"
+path = "src/main.rs"
+
+[lib]
+name = "sparky_compositor"
+path = "src/lib.rs"
+
+[dependencies]
+sparky-theme.workspace = true
+sparky-tiling.workspace = true
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dependencies.smithay]
+version = "0.7"
+default-features = false
+features = [
+    "backend_egl",
+    "backend_winit",
+    "desktop",
+    "renderer_gl",
+    "use_system_lib",
+    "wayland_frontend",
+]

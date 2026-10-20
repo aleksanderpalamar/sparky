@@ -10,3 +10,4 @@ authors = ["Aleksander Palamar <apalamardev@gmail.com>"]
 [workspace.dependencies]
 iced_core = "0.14"
 sparky-theme = { path = "crates/sparky-theme" }
+sparky-tiling = { path = "crates/sparky-tiling" }
