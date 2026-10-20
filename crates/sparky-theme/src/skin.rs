@@ -1,4 +1,5 @@
-use iced_core::Color;
+use iced_core::theme::Palette as IcedPalette;
+use iced_core::{Color, Theme};
 
 use crate::palette::{Mode, Palette};
 use crate::rgb::Rgb;
@@ -42,6 +43,20 @@ impl Skin {
     pub fn accent_fill(&self, alpha: f32) -> Color {
         with_alpha(self.accent, alpha)
     }
+
+    pub fn theme(&self) -> Theme {
+        Theme::custom(
+            "sparky",
+            IcedPalette {
+                background: self.background,
+                text: self.foreground,
+                primary: self.accent,
+                success: self.cyan,
+                warning: self.accent,
+                danger: self.urgent,
+            },
+        )
+    }
 }
 
 impl Default for Skin {
@@ -66,6 +81,16 @@ mod tests {
     use super::Skin;
     use crate::palette::Palette;
     use iced_core::Color;
+
+    #[test]
+    fn o_tema_do_iced_usa_as_cores_do_sparky() {
+        let skin = Skin::default();
+        let palette = skin.theme().palette();
+        assert_eq!(palette.background, skin.background);
+        assert_eq!(palette.text, skin.foreground);
+        assert_eq!(palette.primary, skin.accent);
+        assert_eq!(palette.danger, skin.urgent);
+    }
 
     #[test]
     fn converte_as_cores_da_paleta() {

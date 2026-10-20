@@ -19,3 +19,4 @@ iced_layershell = "0.19.1"
 sparky-ipc.workspace = true
 sparky-theme.workspace = true
 sparky-tiling.workspace = true
+sparky-xdg.workspace = true

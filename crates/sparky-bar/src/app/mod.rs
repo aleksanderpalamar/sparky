@@ -23,12 +23,11 @@ use sparky_theme::Skin;
 use crate::app::state::Bar;
 use crate::ports::workspaces::SparkyWorkspaces;
 use crate::ui::style::{FONT, HEIGHT, NAMESPACE, TEXT_SIZE};
-use crate::ui::theme;
 
 pub fn run() -> Result<(), iced_layershell::Error> {
     iced_layershell::build_pattern::daemon(boot, namespace, update::update, view::view)
         .subscription(subscription::subscription)
-        .theme(|bar: &Bar, _window| theme::theme(bar.skin()))
+        .theme(|bar: &Bar, _window| bar.skin().theme())
         .settings(settings())
         .run()
 }

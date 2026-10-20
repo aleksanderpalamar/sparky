@@ -15,3 +15,4 @@ sparky-config = { path = "crates/sparky-config" }
 sparky-ipc = { path = "crates/sparky-ipc" }
 sparky-theme = { path = "crates/sparky-theme" }
 sparky-tiling = { path = "crates/sparky-tiling" }
+sparky-xdg = { path = "crates/sparky-xdg" }

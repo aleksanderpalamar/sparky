@@ -4269,6 +4269,7 @@ dependencies = [
  "sparky-ipc",
  "sparky-theme",
  "sparky-tiling",
+ "sparky-xdg",
 ]
 
 [[package]]
@@ -4284,6 +4285,10 @@ version = "0.1.0"
 dependencies = [
  "serde",
 ]
+
+[[package]]
+name = "sparky-xdg"
+version = "0.1.0"
 
 [[package]]
 name = "spirv"

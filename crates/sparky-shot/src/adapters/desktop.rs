@@ -1,9 +1,10 @@
-use std::env;
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-use crate::domain::pictures::{FOLDER, pictures_dir};
+use sparky_xdg::{UserDir, UserDirs};
+
+use crate::domain::pictures::FOLDER;
 use crate::ports::{Clipboard, Notifier};
 
 const APP_NAME: &str = "Capturador de tela";
@@ -44,10 +45,8 @@ impl Notifier for NotifySend {
 }
 
 pub fn screenshot_dir() -> Result<PathBuf, String> {
-    let home = env::var("HOME").map_err(|_| "sem HOME".to_owned())?;
-    let config = env::var("XDG_CONFIG_HOME").unwrap_or_else(|_| format!("{home}/.config"));
-    let user_dirs = fs::read_to_string(Path::new(&config).join("user-dirs.dirs")).ok();
-    let directory = pictures_dir(user_dirs.as_deref(), &home).join(FOLDER);
+    let user_dirs = UserDirs::from_env().ok_or("sem HOME")?;
+    let directory = user_dirs.get(UserDir::Pictures).join(FOLDER);
     fs::create_dir_all(&directory).map_err(|error| format!("{}: {error}", directory.display()))?;
     Ok(directory)
 }
