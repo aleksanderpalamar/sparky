@@ -1,0 +1,21 @@
+[package]
+name = "sparky-shot"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "sparky-shot"
+path = "src/main.rs"
+
+[lib]
+name = "sparky_shot"
+path = "src/lib.rs"
+
+[dependencies]
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+iced = { version = "0.14", features = ["canvas", "tokio"] }
+iced_layershell = "0.19.1"
+sparky-ipc.workspace = true
+sparky-theme.workspace = true
+sparky-tiling.workspace = true

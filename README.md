@@ -13,6 +13,7 @@ O layout vem do [Omarchy](https://github.com/basecamp/omarchy): barra no topo co
 | `crates/sparky-tiling` | O mosaico: árvore dwindle, folgas, foco por direção, flutuantes, tela cheia, áreas de trabalho e monitores. Não depende de Wayland |
 | `crates/sparky-config` | O `sparky.toml`: esquema, padrões do sparky, ações e a tabela de atalhos padrão |
 | `crates/sparky-ipc` | Protocolo do IPC do sparky (JSON por linha num socket Unix), o cliente usado pela barra e pelos aplicativos, e o `sparky-msg` |
+| `crates/sparky-shot` | O capturador de tela (`sparky-shot`): seletor de modo, seleção de região pelo teclado ou mouse, PNG salvo e copiado |
 | `crates/sparky-theme` | Paleta de cores compartilhada pelos aplicativos, lida do `colors.toml` do tema |
 | `data/themes` | Temas no formato `colors.toml` |
 
@@ -100,6 +101,7 @@ sparky-msg workspaces          # lista as áreas de trabalho
 sparky-msg focus-workspace 3   # vai para a área 3
 sparky-msg subscribe           # avisa a cada mudança nas áreas
 sparky-msg reload              # relê o sparky.toml
+sparky-msg outputs             # lista os monitores e qual está em foco
 sparky-msg capture output tela.png                 # o monitor em foco
 sparky-msg capture window janela.png               # a janela em foco, sem a borda
 sparky-msg capture region 0 0 800 600 regiao.png   # região relativa ao monitor em foco
@@ -108,6 +110,19 @@ sparky-msg capture region 0 0 800 600 regiao.png   # região relativa ao monitor
 ## Captura de tela
 
 O próprio sparky desenha a área pedida numa textura fora da tela (as mesmas janelas e camadas da tela, sem o cursor) e grava o PNG. O pedido chega pelo IPC (`capture`), com o monitor inteiro, a janela em foco ou uma região relativa a um monitor; uma região que sai da tela é cortada na borda.
+
+O `sparky-shot` é o capturador que usa esse pedido:
+
+| Atalho | Comando | O que faz |
+|---|---|---|
+| `PRINT` | `sparky-shot region` | Abre a seleção de região no monitor em foco |
+| `SHIFT + PRINT` | `sparky-shot window` | Captura a janela em foco |
+| `CTRL + PRINT` | `sparky-shot output` | Captura o monitor em foco |
+| `SUPER + PRINT` | `sparky-shot` | Abre o seletor: `R` região, `J` janela, `M` monitor, `Tab` troca o atraso (nenhum, 3, 5 ou 10 s), `Esc` cancela |
+
+Na seleção de região, as setas movem a área 10 px (1 px com `CTRL`), `SHIFT` com as setas redimensiona, `A` pega a tela toda, `Enter` captura e `Esc` cancela. Arrastar com o mouse desenha uma área nova. O atraso conta depois da seleção, para dar tempo de abrir um menu.
+
+A imagem vai para `Capturas de tela` dentro da pasta de imagens (`XDG_PICTURES_DIR`, ou `~/Pictures`) com o nome `captura-AAAA-MM-DD_HH-MM-SS.png`, é copiada para a área de transferência pelo `wl-copy` e uma notificação avisa onde ficou (`notify-send`).
 
 ## Tema
 

@@ -8,6 +8,7 @@ pub enum Request {
     Subscribe,
     ReloadConfig,
     Capture { area: CaptureArea, path: String },
+    Outputs,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -31,6 +32,7 @@ pub enum CaptureArea {
 pub enum Reply {
     Done,
     Workspaces { workspaces: Vec<WorkspaceInfo> },
+    Outputs { outputs: Vec<OutputInfo> },
     Event { event: Event },
     Error { message: String },
 }
@@ -47,6 +49,16 @@ pub struct WorkspaceInfo {
     pub monitor: String,
     pub windows: usize,
     pub visible: bool,
+    pub focused: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct OutputInfo {
+    pub name: String,
+    pub x: i32,
+    pub y: i32,
+    pub width: i32,
+    pub height: i32,
     pub focused: bool,
 }
 
@@ -87,6 +99,26 @@ mod tests {
         })
         .unwrap_or_default();
         assert_eq!(json, r#"{"reply":"event","event":"workspaces_changed"}"#);
+    }
+
+    #[test]
+    fn a_lista_de_monitores_diz_qual_esta_em_foco() {
+        let reply = Reply::Outputs {
+            outputs: vec![super::OutputInfo {
+                name: "DP-1".to_owned(),
+                x: 1920,
+                y: 0,
+                width: 2560,
+                height: 1440,
+                focused: true,
+            }],
+        };
+        let json = serde_json::to_string(&reply).unwrap_or_default();
+        assert_eq!(
+            json,
+            r#"{"reply":"outputs","outputs":[{"name":"DP-1","x":1920,"y":0,"width":2560,"height":1440,"focused":true}]}"#
+        );
+        assert_eq!(serde_json::from_str::<Reply>(&json).ok(), Some(reply));
     }
 
     #[test]

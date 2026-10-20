@@ -16,7 +16,7 @@ impl std::fmt::Display for CommandError {
             CommandError::Missing => {
                 write!(
                     formatter,
-                    "uso: sparky-msg workspaces | focus-workspace <n> | subscribe | reload | capture output [monitor] <arquivo> | capture window <arquivo> | capture region <x> <y> <largura> <altura> <arquivo>"
+                    "uso: sparky-msg workspaces | outputs | focus-workspace <n> | subscribe | reload | capture output [monitor] <arquivo> | capture window <arquivo> | capture region <x> <y> <largura> <altura> <arquivo>"
                 )
             }
             CommandError::Unknown(name) => write!(formatter, "comando desconhecido: {name}"),
@@ -34,6 +34,7 @@ pub fn parse(arguments: &[String]) -> Result<Request, CommandError> {
         "workspaces" => Ok(Request::Workspaces),
         "subscribe" => Ok(Request::Subscribe),
         "reload" => Ok(Request::ReloadConfig),
+        "outputs" => Ok(Request::Outputs),
         "capture" => capture(&arguments[1..]),
         "focus-workspace" => workspace(arguments.get(1)),
         other => Err(CommandError::Unknown(other.to_owned())),
@@ -143,6 +144,7 @@ mod tests {
         assert_eq!(ler(&["subscribe"]), Ok(Request::Subscribe));
         assert_eq!(ler(&["focus-workspace", "4"]), Ok(Request::FocusWorkspace { id: 4 }));
         assert_eq!(ler(&["reload"]), Ok(Request::ReloadConfig));
+        assert_eq!(ler(&["outputs"]), Ok(Request::Outputs));
     }
 
     #[test]

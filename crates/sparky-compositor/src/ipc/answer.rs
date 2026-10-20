@@ -1,4 +1,4 @@
-use sparky_ipc::{Event, Reply, Request, WorkspaceInfo};
+use sparky_ipc::{Event, OutputInfo, Reply, Request, WorkspaceInfo};
 use sparky_tiling::WorkspaceId;
 
 use crate::ipc::connection::write_reply;
@@ -16,6 +16,9 @@ impl Sparky {
                 Reply::Done
             }
             Request::Subscribe => Reply::Done,
+            Request::Outputs => Reply::Outputs {
+                outputs: self.output_infos(),
+            },
             Request::Capture { area, path } => match self.capture(&area, std::path::Path::new(&path)) {
                 Ok(()) => Reply::Done,
                 Err(error) => Reply::Error {
@@ -44,6 +47,22 @@ impl Sparky {
             event: Event::WorkspacesChanged,
         };
         server.subscribers.retain(|subscriber| write_reply(subscriber, &event));
+    }
+
+    fn output_infos(&self) -> Vec<OutputInfo> {
+        let focused = self.desktop.focused_monitor().map(|monitor| monitor.name.clone());
+        self.desktop
+            .monitors()
+            .iter()
+            .map(|monitor| OutputInfo {
+                name: monitor.name.clone(),
+                x: monitor.screen.full.x,
+                y: monitor.screen.full.y,
+                width: monitor.screen.full.width,
+                height: monitor.screen.full.height,
+                focused: focused.as_deref() == Some(monitor.name.as_str()),
+            })
+            .collect()
     }
 
     fn workspace_infos(&self) -> Vec<WorkspaceInfo> {
