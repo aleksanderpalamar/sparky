@@ -1,0 +1,8 @@
+[package]
+name = "sparky-theme"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+iced_core.workspace = true
