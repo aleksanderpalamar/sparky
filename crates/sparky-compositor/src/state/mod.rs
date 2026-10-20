@@ -20,6 +20,7 @@ use crate::backend::Backend;
 use crate::bindings::Bindings;
 use crate::bindings::defaults;
 use crate::input::keyboard_layout::KeyboardLayout;
+use crate::ipc::server::IpcServer;
 use crate::render::colors::BorderColors;
 use crate::render::frames::Frames;
 use crate::state::protocols::Protocols;
@@ -52,6 +53,7 @@ pub struct Sparky {
     pub xwm: Option<X11Wm>,
     pub x_display: Option<u32>,
     pub unmanaged: Vec<Window>,
+    pub ipc: Option<IpcServer>,
 }
 
 impl Sparky {
@@ -88,6 +90,7 @@ impl Sparky {
             xwm: None,
             x_display: None,
             unmanaged: Vec::new(),
+            ipc: None,
         })
     }
 
@@ -95,6 +98,7 @@ impl Sparky {
         if std::mem::take(&mut self.needs_render) {
             self.render_pending();
         }
+        self.broadcast_changes();
         self.space.refresh();
         self.popups.cleanup();
         if let Err(error) = self.display_handle.flush_clients() {

@@ -7,6 +7,7 @@ pub mod cursor;
 pub mod focus;
 pub mod handlers;
 pub mod input;
+pub mod ipc;
 pub mod layout;
 pub mod render;
 pub mod spawn;

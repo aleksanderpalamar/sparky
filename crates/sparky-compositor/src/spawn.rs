@@ -1,23 +1,48 @@
-use std::ffi::OsStr;
+use std::ffi::OsString;
+use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::thread;
 
-pub fn spawn(command: &str, wayland_display: &OsStr, x_display: Option<u32>) {
+use crate::state::Sparky;
+
+pub struct Environment {
+    pub wayland_display: OsString,
+    pub x_display: Option<u32>,
+    pub ipc_socket: Option<PathBuf>,
+}
+
+impl Sparky {
+    pub fn child_environment(&self) -> Environment {
+        Environment {
+            wayland_display: self.socket_name.clone(),
+            x_display: self.x_display,
+            ipc_socket: self.ipc_path(),
+        }
+    }
+
+    pub fn spawn(&self, command: &str) {
+        spawn(command, &self.child_environment());
+    }
+}
+
+pub fn spawn(command: &str, environment: &Environment) {
     let mut process = Command::new("sh");
     process
         .arg("-c")
         .arg(command)
-        .env("WAYLAND_DISPLAY", wayland_display)
+        .env("WAYLAND_DISPLAY", &environment.wayland_display)
         .env("XDG_CURRENT_DESKTOP", "sparky")
         .env("XDG_SESSION_DESKTOP", "sparky")
         .env("XDG_SESSION_TYPE", "wayland")
         .stdin(Stdio::null());
-    match x_display {
+    match environment.x_display {
         Some(number) => process.env("DISPLAY", format!(":{number}")),
         None => process.env_remove("DISPLAY"),
     };
-    let child = process.spawn();
-    match child {
+    if let Some(path) = &environment.ipc_socket {
+        process.env(sparky_ipc::socket::VARIABLE, path);
+    }
+    match process.spawn() {
         Ok(mut child) => {
             thread::spawn(move || child.wait());
         }

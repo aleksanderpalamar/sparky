@@ -4,7 +4,6 @@ use tracing_subscriber::EnvFilter;
 
 use crate::backend::{drm, nested};
 use crate::cli::Options;
-use crate::spawn;
 use crate::state::Sparky;
 
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
@@ -18,11 +17,12 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         false => drm::init(&mut state)?,
     }
     tracing::info!("sparky ouvindo em {:?}", state.socket_name);
+    state.start_ipc();
     state.start_xwayland();
     let commands = options.spawn;
     event_loop.handle().insert_idle(move |state| {
         for command in &commands {
-            spawn::spawn(command, &state.socket_name, state.x_display);
+            state.spawn(command);
         }
     });
     event_loop.run(None, &mut state, Sparky::after_dispatch)?;

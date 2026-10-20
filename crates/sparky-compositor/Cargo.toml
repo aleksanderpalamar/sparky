@@ -13,6 +13,7 @@ name = "sparky_compositor"
 path = "src/lib.rs"
 
 [dependencies]
+sparky-ipc.workspace = true
 sparky-theme.workspace = true
 sparky-tiling.workspace = true
 tracing = "0.1"

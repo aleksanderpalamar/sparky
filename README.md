@@ -10,6 +10,7 @@ O layout vem do [Omarchy](https://github.com/basecamp/omarchy): barra no topo co
 |---|---|
 | `crates/sparky-compositor` | O compositor Wayland (binário `sparky`), feito com a biblioteca Smithay: protocolos, janelas, bordas, teclado e ponteiro |
 | `crates/sparky-tiling` | O mosaico: árvore dwindle, folgas, foco por direção, flutuantes, tela cheia, áreas de trabalho e monitores. Não depende de Wayland |
+| `crates/sparky-ipc` | Protocolo do IPC do sparky (JSON por linha num socket Unix), o cliente usado pela barra e pelos aplicativos, e o `sparky-msg` |
 | `crates/sparky-theme` | Paleta de cores compartilhada pelos aplicativos, lida do `colors.toml` do tema |
 | `data/themes` | Temas no formato `colors.toml` |
 
@@ -36,6 +37,16 @@ cargo run -p sparky-compositor -- --spawn kitty
 ```
 
 `--spawn` pode se repetir e abre cada comando já dentro do sparky. O layout do teclado vem do `/etc/vconsole.conf` ou, no Debian, do `/etc/default/keyboard`.
+
+## IPC
+
+O sparky abre um socket em `$XDG_RUNTIME_DIR/sparky-<WAYLAND_DISPLAY>.sock` e exporta o caminho em `SPARKY_SOCKET` para os programas que abre. Cada pedido e cada resposta é uma linha de JSON.
+
+```bash
+sparky-msg workspaces          # lista as áreas de trabalho
+sparky-msg focus-workspace 3   # vai para a área 3
+sparky-msg subscribe           # avisa a cada mudança nas áreas
+```
 
 ## Tema
 
