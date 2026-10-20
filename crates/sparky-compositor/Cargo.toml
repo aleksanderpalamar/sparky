@@ -15,6 +15,7 @@ path = "src/lib.rs"
 [dependencies]
 calloop = { version = "0.14", features = ["signals"] }
 libc = "0.2"
+png = "0.17"
 sparky-config.workspace = true
 sparky-ipc.workspace = true
 sparky-theme.workspace = true

@@ -16,6 +16,12 @@ impl Sparky {
                 Reply::Done
             }
             Request::Subscribe => Reply::Done,
+            Request::Capture { area, path } => match self.capture(&area, std::path::Path::new(&path)) {
+                Ok(()) => Reply::Done,
+                Err(error) => Reply::Error {
+                    message: error.to_string(),
+                },
+            },
             Request::ReloadConfig => match self.reload_config() {
                 Ok(()) => Reply::Done,
                 Err(error) => Reply::Error {

@@ -2,6 +2,7 @@ pub mod actions;
 pub mod apps;
 pub mod backend;
 pub mod bindings;
+pub mod capture;
 pub mod cli;
 pub mod config;
 pub mod cursor;

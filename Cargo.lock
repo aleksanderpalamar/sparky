@@ -4171,6 +4171,7 @@ version = "0.1.0"
 dependencies = [
  "calloop 0.14.5",
  "libc",
+ "png 0.17.16",
  "smithay",
  "sparky-config",
  "sparky-ipc",

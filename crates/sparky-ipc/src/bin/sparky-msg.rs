@@ -1,7 +1,7 @@
 use std::process::ExitCode;
 
 use sparky_ipc::codec::encode;
-use sparky_ipc::command::{parse, succeeded};
+use sparky_ipc::command::{parse, succeeded, with_absolute_path};
 use sparky_ipc::{Client, Reply, Request};
 
 fn main() -> ExitCode {
@@ -18,6 +18,8 @@ fn main() -> ExitCode {
 
 fn run(arguments: &[String]) -> Result<bool, String> {
     let request = parse(arguments).map_err(|error| error.to_string())?;
+    let directory = std::env::current_dir().map_err(|error| error.to_string())?;
+    let request = with_absolute_path(request, &directory);
     let mut client = Client::from_env().map_err(|error| error.to_string())?;
     if request == Request::Subscribe {
         let events = client.subscribe().map_err(|error| error.to_string())?;

@@ -7,6 +7,23 @@ pub enum Request {
     FocusWorkspace { id: u32 },
     Subscribe,
     ReloadConfig,
+    Capture { area: CaptureArea, path: String },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum CaptureArea {
+    Output {
+        output: Option<String>,
+    },
+    Window,
+    Region {
+        output: Option<String>,
+        x: i32,
+        y: i32,
+        width: i32,
+        height: i32,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -41,6 +58,20 @@ mod tests {
     fn o_pedido_vira_json_com_o_nome_em_minusculas() {
         let json = serde_json::to_string(&Request::FocusWorkspace { id: 3 }).unwrap_or_default();
         assert_eq!(json, r#"{"request":"focus_workspace","id":3}"#);
+    }
+
+    #[test]
+    fn a_captura_leva_a_area_e_o_caminho() {
+        let request = super::Request::Capture {
+            area: super::CaptureArea::Region { output: None, x: 1, y: 2, width: 3, height: 4 },
+            path: "/tmp/a.png".to_owned(),
+        };
+        let json = serde_json::to_string(&request).unwrap_or_default();
+        assert_eq!(
+            json,
+            r#"{"request":"capture","area":{"kind":"region","output":null,"x":1,"y":2,"width":3,"height":4},"path":"/tmp/a.png"}"#
+        );
+        assert_eq!(serde_json::from_str::<super::Request>(&json).ok(), Some(request));
     }
 
     #[test]

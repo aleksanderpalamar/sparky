@@ -80,6 +80,14 @@ impl Rect {
         )
     }
 
+    pub fn intersection(&self, other: &Rect) -> Option<Rect> {
+        let left = self.x.max(other.x);
+        let top = self.y.max(other.y);
+        let right = self.right().min(other.right());
+        let bottom = self.bottom().min(other.bottom());
+        (right > left && bottom > top).then(|| Rect::new(left, top, right - left, bottom - top))
+    }
+
     pub fn contains(&self, x: i32, y: i32) -> bool {
         x >= self.x && x < self.right() && y >= self.y && y < self.bottom()
     }
@@ -139,6 +147,13 @@ mod tests {
     #[test]
     fn centralizar_maior_que_a_caixa_ocupa_a_caixa() {
         assert_eq!(Rect::new(0, 0, 100, 100).centered(400, 400), Rect::new(0, 0, 100, 100));
+    }
+
+    #[test]
+    fn a_intersecao_e_a_parte_comum() {
+        let tela = Rect::new(0, 0, 1920, 1080);
+        assert_eq!(tela.intersection(&Rect::new(1800, 1000, 300, 300)), Some(Rect::new(1800, 1000, 120, 80)));
+        assert_eq!(tela.intersection(&Rect::new(1920, 0, 10, 10)), None);
     }
 
     #[test]

@@ -65,6 +65,22 @@ impl Sparky {
         }
     }
 
+    pub fn with_renderer<T>(&mut self, use_renderer: impl FnOnce(&mut Sparky, &mut GlesRenderer) -> T) -> Option<T> {
+        match mem::replace(&mut self.backend, Backend::Starting) {
+            Backend::Nested(mut nested) => {
+                let result = use_renderer(self, nested.graphics.renderer());
+                self.backend = Backend::Nested(nested);
+                Some(result)
+            }
+            Backend::Drm(mut drm) => {
+                let result = use_renderer(self, &mut drm.gpu.renderer);
+                self.backend = Backend::Drm(drm);
+                Some(result)
+            }
+            Backend::Starting => None,
+        }
+    }
+
     pub fn publish_formats(&mut self, renderer: &GlesRenderer) {
         self.protocols.shm.update_formats(renderer.shm_formats());
         let formats = renderer.dmabuf_formats();

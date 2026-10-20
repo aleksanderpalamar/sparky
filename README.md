@@ -100,7 +100,14 @@ sparky-msg workspaces          # lista as áreas de trabalho
 sparky-msg focus-workspace 3   # vai para a área 3
 sparky-msg subscribe           # avisa a cada mudança nas áreas
 sparky-msg reload              # relê o sparky.toml
+sparky-msg capture output tela.png                 # o monitor em foco
+sparky-msg capture window janela.png               # a janela em foco, sem a borda
+sparky-msg capture region 0 0 800 600 regiao.png   # região relativa ao monitor em foco
 ```
+
+## Captura de tela
+
+O próprio sparky desenha a área pedida numa textura fora da tela (as mesmas janelas e camadas da tela, sem o cursor) e grava o PNG. O pedido chega pelo IPC (`capture`), com o monitor inteiro, a janela em foco ou uma região relativa a um monitor; uma região que sai da tela é cortada na borda.
 
 ## Tema
 
