@@ -14,6 +14,8 @@ O layout vem do [Omarchy](https://github.com/basecamp/omarchy): barra no topo co
 | `crates/sparky-config` | O `sparky.toml`: esquema, padrões do sparky, ações e a tabela de atalhos padrão |
 | `crates/sparky-ipc` | Protocolo do IPC do sparky (JSON por linha num socket Unix), o cliente usado pela barra e pelos aplicativos, e o `sparky-msg` |
 | `crates/sparky-shot` | O capturador de tela (`sparky-shot`): seletor de modo, seleção de região pelo teclado ou mouse, PNG salvo e copiado |
+| `crates/sparky-files` | O gerenciador de arquivos (`sparky-files`): lista navegável pelo teclado, lugares, filtro, copiar, recortar, colar, renomear, criar e lixeira |
+| `crates/sparky-xdg` | As pastas do usuário (`user-dirs.dirs`: Documentos, Imagens, Downloads...) usadas pelos aplicativos |
 | `crates/sparky-theme` | Paleta de cores compartilhada pelos aplicativos, lida do `colors.toml` do tema |
 | `data/themes` | Temas no formato `colors.toml` |
 
@@ -123,6 +125,29 @@ O `sparky-shot` é o capturador que usa esse pedido:
 Na seleção de região, as setas movem a área 10 px (1 px com `CTRL`), `SHIFT` com as setas redimensiona, `A` pega a tela toda, `Enter` captura e `Esc` cancela. Arrastar com o mouse desenha uma área nova. O atraso conta depois da seleção, para dar tempo de abrir um menu.
 
 A imagem vai para `Capturas de tela` dentro da pasta de imagens (`XDG_PICTURES_DIR`, ou `~/Pictures`) com o nome `captura-AAAA-MM-DD_HH-MM-SS.png`, é copiada para a área de transferência pelo `wl-copy` e uma notificação avisa onde ficou (`notify-send`).
+
+## Arquivos
+
+O `sparky-files` abre pelo `SUPER + SHIFT + F` (ou `sparky-files <pasta>`). À esquerda ficam os lugares (pasta pessoal e as pastas do `user-dirs.dirs` que existem); no centro, a pasta atual com pastas primeiro, tamanho e data. A lista se atualiza sozinha quando a pasta muda.
+
+| Tecla | Ação |
+|---|---|
+| `j` `k` ou setas | Desce e sobe |
+| `Enter`, `l` ou `→` | Abre a pasta ou o arquivo (no aplicativo padrão, pelo `xdg-open`) |
+| `h`, `Backspace`, `←` ou `ALT + ↑` | Volta para a pasta de cima, com a de origem selecionada |
+| `g` / `G`, `Home` / `End`, `PageUp` / `PageDown` | Começo, fim e páginas |
+| `1` a `9` | Vai para o lugar com esse número |
+| `/` | Filtra pelo nome enquanto digita; `Enter` fixa, `Esc` limpa |
+| `.` ou `CTRL + H` | Mostra ou esconde os ocultos |
+| `Espaço` | Marca o item e desce; as ações valem para os marcados ou, sem marcas, para o selecionado |
+| `y` / `x` / `p` (ou `CTRL + C` / `X` / `V`) | Copia, recorta e cola; colar na mesma pasta cria `nome (cópia).ext` |
+| `r` ou `F2` | Renomeia, já com o nome sem a extensão selecionado |
+| `a` | Cria: `nome/` vira pasta, sem a barra vira arquivo vazio |
+| `d` ou `Delete` | Manda para a lixeira (`~/.local/share/Trash`, com o `.trashinfo`), depois de confirmar com `Enter` |
+| `F5` ou `CTRL + R` | Relê a pasta |
+| `q` ou `CTRL + Q` | Fecha |
+
+Com o mouse, um clique seleciona, dois cliques abrem e a roda rola a lista.
 
 ## Tema
 

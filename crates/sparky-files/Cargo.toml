@@ -1,0 +1,22 @@
+[package]
+name = "sparky-files"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "sparky-files"
+path = "src/main.rs"
+
+[lib]
+name = "sparky_files"
+path = "src/lib.rs"
+
+[dependencies]
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+iced = { version = "0.14", features = ["tokio"] }
+sparky-theme.workspace = true
+sparky-xdg.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

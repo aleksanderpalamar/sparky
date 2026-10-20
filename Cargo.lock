@@ -4252,6 +4252,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "sparky-files"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "iced",
+ "sparky-theme",
+ "sparky-xdg",
+ "tempfile",
+]
+
+[[package]]
 name = "sparky-ipc"
 version = "0.1.0"
 dependencies = [
