@@ -6,6 +6,7 @@ members = ["crates/*"]
 version = "0.1.0"
 edition = "2024"
 authors = ["Aleksander Palamar <apalamardev@gmail.com>"]
+license = "GPL-3.0-or-later"
 
 [workspace.dependencies]
 iced_core = "0.14"

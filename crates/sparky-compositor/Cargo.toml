@@ -1,8 +1,10 @@
 [package]
 name = "sparky-compositor"
+description = "Ambiente de desktop Wayland em Rust, com compositor próprio em mosaico e feito para o teclado"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
+license.workspace = true
 
 [[bin]]
 name = "sparky"
@@ -42,3 +44,90 @@ features = [
     "x11rb_event_source",
     "xwayland",
 ]
+
+[dev-dependencies]
+toml = "0.8"
+
+[package.metadata.deb]
+name = "sparky"
+maintainer = "Aleksander Palamar <apalamardev@gmail.com>"
+copyright = "2026, Aleksander Palamar <apalamardev@gmail.com>"
+license-file = ["../../LICENSE", "0"]
+extended-description = """\
+Sparky é um ambiente de desktop Wayland com compositor próprio: janelas em \
+mosaico (dwindle), áreas de trabalho por monitor, XWayland, barra com áreas, \
+relógio e bandeja, e três aplicativos nativos (arquivos, capturador de tela e \
+configurações). Tudo tem atalho de teclado."""
+section = "x11"
+priority = "optional"
+depends = "libseat1, libinput10, libxkbcommon0, libgbm1, libdrm2, libudev1, libegl1, libgles2, libwayland-client0, libwayland-server0, libwayland-egl1, xwayland, xkb-data, wl-clipboard, libnotify-bin, xdg-utils"
+recommends = "mako-notifier, fuzzel, foot | kitty, policykit-1-gnome | mate-polkit | lxpolkit, xdg-desktop-portal-gtk, libvulkan1"
+assets = [
+    ["target/release/sparky", "usr/bin/", "755"],
+    ["target/release/sparky-bar", "usr/bin/", "755"],
+    ["target/release/sparky-msg", "usr/bin/", "755"],
+    ["target/release/sparky-shot", "usr/bin/", "755"],
+    ["target/release/sparky-files", "usr/bin/", "755"],
+    ["target/release/sparky-settings", "usr/bin/", "755"],
+    ["../../data/session/sparky.desktop", "usr/share/wayland-sessions/", "644"],
+    ["../../data/portals/sparky-portals.conf", "usr/share/xdg-desktop-portal/", "644"],
+    ["../../data/applications/sparky-files.desktop", "usr/share/applications/", "644"],
+    ["../../data/applications/sparky-settings.desktop", "usr/share/applications/", "644"],
+    ["../../data/applications/sparky-shot.desktop", "usr/share/applications/", "644"],
+    ["../../data/applications/sparky-mimeapps.list", "usr/share/applications/", "644"],
+    ["../../data/themes/tokyo-night/colors.toml", "usr/share/sparky/themes/tokyo-night/", "644"],
+    ["../../data/themes/tokyo-night/LICENSE", "usr/share/sparky/themes/tokyo-night/", "644"],
+    ["../../data/config/sparky.toml", "usr/share/sparky/", "644"],
+    ["../../README.md", "usr/share/doc/sparky/", "644"],
+]
+
+[package.metadata.generate-rpm]
+name = "sparky"
+summary = "Ambiente de desktop Wayland em Rust feito para o teclado"
+license = "GPL-3.0-or-later"
+auto-req = "disabled"
+assets = [
+    { source = "target/release/sparky", dest = "/usr/bin/sparky", mode = "755" },
+    { source = "target/release/sparky-bar", dest = "/usr/bin/sparky-bar", mode = "755" },
+    { source = "target/release/sparky-msg", dest = "/usr/bin/sparky-msg", mode = "755" },
+    { source = "target/release/sparky-shot", dest = "/usr/bin/sparky-shot", mode = "755" },
+    { source = "target/release/sparky-files", dest = "/usr/bin/sparky-files", mode = "755" },
+    { source = "target/release/sparky-settings", dest = "/usr/bin/sparky-settings", mode = "755" },
+    { source = "../../data/session/sparky.desktop", dest = "/usr/share/wayland-sessions/sparky.desktop", mode = "644" },
+    { source = "../../data/portals/sparky-portals.conf", dest = "/usr/share/xdg-desktop-portal/sparky-portals.conf", mode = "644" },
+    { source = "../../data/applications/sparky-files.desktop", dest = "/usr/share/applications/sparky-files.desktop", mode = "644" },
+    { source = "../../data/applications/sparky-settings.desktop", dest = "/usr/share/applications/sparky-settings.desktop", mode = "644" },
+    { source = "../../data/applications/sparky-shot.desktop", dest = "/usr/share/applications/sparky-shot.desktop", mode = "644" },
+    { source = "../../data/applications/sparky-mimeapps.list", dest = "/usr/share/applications/sparky-mimeapps.list", mode = "644" },
+    { source = "../../data/themes/tokyo-night/colors.toml", dest = "/usr/share/sparky/themes/tokyo-night/colors.toml", mode = "644" },
+    { source = "../../data/themes/tokyo-night/LICENSE", dest = "/usr/share/sparky/themes/tokyo-night/LICENSE", mode = "644", doc = true },
+    { source = "../../data/config/sparky.toml", dest = "/usr/share/sparky/sparky.toml", mode = "644" },
+    { source = "../../README.md", dest = "/usr/share/doc/sparky/README.md", mode = "644", doc = true },
+    { source = "../../LICENSE", dest = "/usr/share/licenses/sparky/LICENSE", mode = "644", doc = true },
+]
+
+[package.metadata.generate-rpm.requires]
+libseat = "*"
+libinput = "*"
+libxkbcommon = "*"
+mesa-libgbm = "*"
+libdrm = "*"
+systemd-libs = "*"
+libglvnd-egl = "*"
+libglvnd-gles = "*"
+libwayland-client = "*"
+libwayland-server = "*"
+libwayland-egl = "*"
+xorg-x11-server-Xwayland = "*"
+xkeyboard-config = "*"
+wl-clipboard = "*"
+libnotify = "*"
+xdg-utils = "*"
+
+[package.metadata.generate-rpm.recommends]
+mako = "*"
+fuzzel = "*"
+foot = "*"
+polkit-gnome = "*"
+xdg-desktop-portal-gtk = "*"
+vulkan-loader = "*"

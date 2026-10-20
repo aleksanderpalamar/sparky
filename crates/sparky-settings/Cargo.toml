@@ -3,6 +3,7 @@ name = "sparky-settings"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
+license.workspace = true
 
 [[bin]]
 name = "sparky-settings"

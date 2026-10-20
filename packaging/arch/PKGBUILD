@@ -1,0 +1,70 @@
+
+pkgname=sparky
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Ambiente de desktop Wayland em Rust, com compositor próprio em mosaico e feito para o teclado'
+arch=('x86_64')
+license=('GPL-3.0-or-later')
+depends=(
+  'gcc-libs'
+  'glibc'
+  'libdrm'
+  'libglvnd'
+  'libinput'
+  'libnotify'
+  'libxkbcommon'
+  'mesa'
+  'seatd'
+  'systemd-libs'
+  'wayland'
+  'wl-clipboard'
+  'xdg-utils'
+  'xkeyboard-config'
+  'xorg-xwayland'
+)
+makedepends=('cargo' 'git')
+optdepends=(
+  'mako: notificações da sessão'
+  'fuzzel: lançador padrão do SUPER + ESPAÇO'
+  'foot: terminal'
+  'kitty: terminal'
+  'polkit-gnome: agente de autenticação'
+  'xdg-desktop-portal-gtk: portais para os aplicativos'
+  'vulkan-icd-loader: renderização por Vulkan nos aplicativos'
+)
+source=("$pkgname::git+file://$(realpath "$startdir/../..")")
+sha256sums=('SKIP')
+
+prepare() {
+  cd "$pkgname"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  cd "$pkgname"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
+  cargo build --frozen --release --workspace
+}
+
+check() {
+  cd "$pkgname"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo test --frozen --release --workspace
+}
+
+package() {
+  cd "$pkgname"
+  local binary
+  for binary in sparky sparky-bar sparky-msg sparky-shot sparky-files sparky-settings; do
+    install -Dm755 "target/release/$binary" -t "$pkgdir/usr/bin"
+  done
+  install -Dm644 data/session/sparky.desktop -t "$pkgdir/usr/share/wayland-sessions"
+  install -Dm644 data/portals/sparky-portals.conf -t "$pkgdir/usr/share/xdg-desktop-portal"
+  install -Dm644 data/applications/* -t "$pkgdir/usr/share/applications"
+  install -Dm644 data/themes/tokyo-night/colors.toml data/themes/tokyo-night/LICENSE -t "$pkgdir/usr/share/sparky/themes/tokyo-night"
+  install -Dm644 data/config/sparky.toml -t "$pkgdir/usr/share/sparky"
+  install -Dm644 README.md -t "$pkgdir/usr/share/doc/$pkgname"
+  install -Dm644 LICENSE -t "$pkgdir/usr/share/licenses/$pkgname"
+}

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Capturador de tela
+Comment=Captura uma região, uma janela ou o monitor
+Exec=sparky-shot
+Icon=camera-photo
+Terminal=false
+Categories=Utility;
+OnlyShowIn=sparky;
+Keywords=captura;print;tela;screenshot;

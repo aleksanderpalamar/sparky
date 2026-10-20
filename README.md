@@ -176,6 +176,20 @@ As cores saem do primeiro arquivo que existir:
 
 Sem nenhum dos dois, vale o Tokyo Night embutido.
 
+## Pacotes
+
+O `packaging/build.sh` gera os três formatos em `packaging/out/`:
+
+```bash
+packaging/build.sh           # .deb, .rpm e pacman
+packaging/build.sh deb       # só um deles: deb, rpm ou pacman
+```
+
+- `.deb` e `.rpm` são compilados com `cargo zigbuild` contra a glibc 2.36, para rodar no Debian 12+, Ubuntu 24.04+ e Fedora 40+; o script para se algum binário pedir uma glibc mais nova. Precisam de `zig`, `cargo-zigbuild`, `cargo-deb` e `cargo-generate-rpm`.
+- O pacote do pacman sai do `packaging/arch/PKGBUILD`, que compila o que está commitado no repositório com `makepkg`.
+
+Os três instalam os binários em `/usr/bin`, a sessão em `/usr/share/wayland-sessions` (aparece no SDDM e no GDM), o tema e o `sparky.toml` de exemplo em `/usr/share/sparky`, as entradas dos aplicativos e o `sparky-mimeapps.list`, que faz as pastas abrirem no `sparky-files` dentro da sessão.
+
 ## Desenvolvimento
 
 ```bash
@@ -186,3 +200,7 @@ cargo clippy --all-targets
 ## Créditos
 
 O tema Tokyo Night (`data/themes/tokyo-night/colors.toml`) e o layout vêm do Omarchy, © David Heinemeier Hansson, licença MIT.
+
+## Licença
+
+GPL-3.0-or-later. O texto está em `LICENSE`.

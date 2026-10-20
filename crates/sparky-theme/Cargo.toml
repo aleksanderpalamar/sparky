@@ -3,6 +3,7 @@ name = "sparky-theme"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
+license.workspace = true
 
 [dependencies]
 iced_core.workspace = true

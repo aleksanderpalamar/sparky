@@ -3,6 +3,7 @@ name = "sparky-ui"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
+license.workspace = true
 
 [dependencies]
 iced = "0.14"
