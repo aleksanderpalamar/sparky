@@ -8,7 +8,7 @@ use smithay::xwayland::xwm::{Reorder, ResizeEdge, XwmId};
 use smithay::xwayland::{X11Surface, X11Wm, XwmHandler};
 use sparky_tiling::Fullscreen;
 
-use crate::state::{BORDER, Sparky};
+use crate::state::Sparky;
 use crate::windows::rules;
 use crate::windows::traits::traits_of;
 
@@ -35,7 +35,7 @@ impl XwmHandler for Sparky {
             return;
         }
         let window = Window::new_x11_window(x11);
-        let opening = rules::opening(&traits_of(&window), self.desktop.style(), BORDER);
+        let opening = rules::opening(&traits_of(&window), self.desktop.style(), self.border());
         let id = self.windows.insert(window);
         self.desktop.add_window(id, opening);
         self.relayout();

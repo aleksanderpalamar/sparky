@@ -5,6 +5,7 @@ use crate::geometry::Rect;
 use crate::ids::WindowId;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize), serde(rename_all = "lowercase"))]
 pub enum Fullscreen {
     Monitor,
     Maximized,

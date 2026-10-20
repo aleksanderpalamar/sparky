@@ -1,16 +1,16 @@
+use sparky_config::Action;
 use sparky_tiling::WorkspaceId;
 
-use crate::bindings::action::Action;
 use crate::state::Sparky;
 use crate::windows::surface;
 
 impl Sparky {
     pub fn run(&mut self, action: Action) {
         match action {
-            Action::Spawn(command) => self.spawn(&command),
+            Action::Spawn { command } => self.spawn(&command),
             Action::CloseWindow => self.close_focused(),
             Action::Exit => self.loop_signal.stop(),
-            Action::SwitchTerminal(terminal) => self.switch_terminal(terminal),
+            Action::SwitchTerminal { terminal } => self.switch_terminal(terminal),
             other => {
                 self.change_layout(other);
                 self.relayout();
@@ -22,23 +22,23 @@ impl Sparky {
         let desktop = &mut self.desktop;
         match action {
             Action::ToggleFloating => desktop.toggle_floating(),
-            Action::Fullscreen(mode) => desktop.toggle_fullscreen(mode),
+            Action::Fullscreen { mode } => desktop.toggle_fullscreen(mode),
             Action::ToggleSplit => desktop.toggle_split(),
-            Action::Focus(direction) => {
+            Action::Focus { direction } => {
                 desktop.focus_direction(direction);
             }
-            Action::Swap(direction) => desktop.swap_direction(direction),
-            Action::Resize(width, height) => desktop.resize_focused((width, height)),
-            Action::Workspace(workspace) => desktop.focus_workspace(WorkspaceId(workspace)),
+            Action::Swap { direction } => desktop.swap_direction(direction),
+            Action::Resize { width, height } => desktop.resize_focused((width, height)),
+            Action::Workspace { workspace } => desktop.focus_workspace(WorkspaceId(workspace)),
             Action::MoveToWorkspace { workspace, follow } => {
                 if let Some(window) = desktop.focused_window() {
                     desktop.move_to_workspace(window, WorkspaceId(workspace), follow);
                 }
             }
-            Action::RelativeWorkspace(step) => desktop.focus_relative(step),
+            Action::RelativeWorkspace { step } => desktop.focus_relative(step),
             Action::PreviousWorkspace => desktop.focus_previous(),
-            Action::CycleMonitor(step) => desktop.cycle_monitor(step),
-            Action::Spawn(_) | Action::CloseWindow | Action::Exit | Action::SwitchTerminal(_) => {}
+            Action::CycleMonitor { step } => desktop.cycle_monitor(step),
+            Action::Spawn { .. } | Action::CloseWindow | Action::Exit | Action::SwitchTerminal { .. } => {}
         }
     }
 

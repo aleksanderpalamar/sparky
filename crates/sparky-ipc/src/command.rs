@@ -1,4 +1,4 @@
-use crate::message::Request;
+use crate::message::{Reply, Request};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CommandError {
@@ -10,7 +10,9 @@ pub enum CommandError {
 impl std::fmt::Display for CommandError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            CommandError::Missing => write!(formatter, "uso: sparky-msg workspaces | focus-workspace <n> | subscribe"),
+            CommandError::Missing => {
+                write!(formatter, "uso: sparky-msg workspaces | focus-workspace <n> | subscribe | reload")
+            }
             CommandError::Unknown(name) => write!(formatter, "comando desconhecido: {name}"),
             CommandError::InvalidWorkspace(value) => write!(formatter, "área inválida: {value}"),
         }
@@ -24,9 +26,14 @@ pub fn parse(arguments: &[String]) -> Result<Request, CommandError> {
     match name.as_str() {
         "workspaces" => Ok(Request::Workspaces),
         "subscribe" => Ok(Request::Subscribe),
+        "reload" => Ok(Request::ReloadConfig),
         "focus-workspace" => workspace(arguments.get(1)),
         other => Err(CommandError::Unknown(other.to_owned())),
     }
+}
+
+pub fn succeeded(reply: &Reply) -> bool {
+    !matches!(reply, Reply::Error { .. })
 }
 
 fn workspace(value: Option<&String>) -> Result<Request, CommandError> {
@@ -39,8 +46,14 @@ fn workspace(value: Option<&String>) -> Result<Request, CommandError> {
 
 #[cfg(test)]
 mod tests {
-    use super::{CommandError, parse};
-    use crate::message::Request;
+    use super::{CommandError, parse, succeeded};
+    use crate::message::{Reply, Request};
+
+    #[test]
+    fn resposta_de_erro_e_falha_para_o_script() {
+        assert!(succeeded(&Reply::Done));
+        assert!(!succeeded(&Reply::Error { message: "x".to_owned() }));
+    }
 
     fn ler(argumentos: &[&str]) -> Result<Request, CommandError> {
         let argumentos: Vec<String> = argumentos.iter().map(|a| (*a).to_owned()).collect();
@@ -52,6 +65,7 @@ mod tests {
         assert_eq!(ler(&["workspaces"]), Ok(Request::Workspaces));
         assert_eq!(ler(&["subscribe"]), Ok(Request::Subscribe));
         assert_eq!(ler(&["focus-workspace", "4"]), Ok(Request::FocusWorkspace { id: 4 }));
+        assert_eq!(ler(&["reload"]), Ok(Request::ReloadConfig));
     }
 
     #[test]

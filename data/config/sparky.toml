@@ -1,0 +1,19 @@
+autostart = []
+
+[general]
+gaps_inner = 5
+gaps_outer = 10
+border = 2
+float_width = 875
+float_height = 600
+default_binds = true
+
+[input]
+repeat_rate = 40
+repeat_delay = 250
+
+[apps]
+launcher = "fuzzel"
+files = "sparky-files"
+settings = "sparky-settings"
+screenshot = "sparky-shot"

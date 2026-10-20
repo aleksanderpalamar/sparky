@@ -1,0 +1,10 @@
+[package]
+name = "sparky-config"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+serde.workspace = true
+sparky-tiling = { workspace = true, features = ["serde"] }
+toml = "0.8"

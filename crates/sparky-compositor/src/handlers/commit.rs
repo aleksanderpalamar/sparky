@@ -4,7 +4,7 @@ use smithay::reexports::wayland_server::protocol::wl_surface::WlSurface;
 use smithay::wayland::compositor::with_states;
 use smithay::wayland::shell::wlr_layer::LayerSurfaceData;
 
-use crate::state::{BORDER, Sparky};
+use crate::state::Sparky;
 use crate::windows::rules;
 use crate::windows::traits::traits_of;
 
@@ -52,7 +52,7 @@ impl Sparky {
         if self.desktop.workspace_of(id).is_some() {
             return;
         }
-        let opening = rules::opening(&traits_of(window), self.desktop.style(), BORDER);
+        let opening = rules::opening(&traits_of(window), self.desktop.style(), self.border());
         self.desktop.add_window(id, opening);
         self.relayout();
     }

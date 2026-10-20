@@ -26,7 +26,8 @@ impl Sparky {
         let environment = self.child_environment();
         spawn_program(ACTIVATION, &activation_arguments(&environment.variables()), &environment);
         let autostart = autostart::commands(&autostart_files::from_system(), DESKTOP, installed);
-        for command in components::components(installed).into_iter().chain(autostart) {
+        let extra = self.config.autostart.clone();
+        for command in components::components(installed).into_iter().chain(autostart).chain(extra) {
             tracing::info!("sessão abre {command}");
             spawn(&command, &environment);
         }

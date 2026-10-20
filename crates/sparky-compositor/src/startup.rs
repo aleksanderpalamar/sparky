@@ -21,6 +21,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     state.start_ipc();
     state.start_xwayland();
     signals::stop_on_signals(&state.loop_handle)?;
+    state.watch_config();
     let commands = options.spawn;
     event_loop.handle().insert_idle(move |state| {
         if state.is_real_session() {

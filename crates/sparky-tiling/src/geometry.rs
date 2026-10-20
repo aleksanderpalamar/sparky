@@ -13,6 +13,7 @@ pub enum Arrangement {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize), serde(rename_all = "lowercase"))]
 pub enum Direction {
     Left,
     Right,

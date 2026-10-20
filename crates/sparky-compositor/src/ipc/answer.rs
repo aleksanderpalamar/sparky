@@ -16,6 +16,12 @@ impl Sparky {
                 Reply::Done
             }
             Request::Subscribe => Reply::Done,
+            Request::ReloadConfig => match self.reload_config() {
+                Ok(()) => Reply::Done,
+                Err(error) => Reply::Error {
+                    message: error.to_string(),
+                },
+            },
         }
     }
 

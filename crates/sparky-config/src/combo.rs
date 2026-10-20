@@ -40,6 +40,20 @@ impl Combo {
     }
 }
 
+pub fn same_keys(first: &str, second: &str) -> bool {
+    match (Combo::parse(first), Combo::parse(second)) {
+        (Ok(first), Ok(second)) => first.mods == second.mods && same_key(&first.key, &second.key),
+        _ => first == second,
+    }
+}
+
+fn same_key(first: &KeySpec, second: &KeySpec) -> bool {
+    match (first, second) {
+        (KeySpec::Name(first), KeySpec::Name(second)) => first.eq_ignore_ascii_case(second),
+        _ => first == second,
+    }
+}
+
 fn apply_modifier(mods: &mut Mods, name: &str) -> Result<(), ComboError> {
     match name.to_ascii_uppercase().as_str() {
         "SUPER" | "LOGO" | "WIN" => mods.logo = true,
@@ -62,7 +76,15 @@ fn key_spec(key: &str) -> Result<KeySpec, ComboError> {
 
 #[cfg(test)]
 mod tests {
-    use super::{Combo, ComboError, KeySpec, Mods};
+    use super::{Combo, ComboError, KeySpec, Mods, same_keys};
+
+    #[test]
+    fn mesma_combinacao_escrita_de_outro_jeito() {
+        assert!(same_keys("SUPER + SHIFT + f", "shift + super + F"));
+        assert!(same_keys("SUPER + code:10", "LOGO + code:10"));
+        assert!(!same_keys("SUPER + F", "SUPER + SHIFT + F"));
+        assert!(!same_keys("SUPER + code:10", "SUPER + code:11"));
+    }
 
     #[test]
     fn le_modificadores_e_tecla() {

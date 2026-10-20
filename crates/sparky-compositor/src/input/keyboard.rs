@@ -3,7 +3,7 @@ use smithay::input::keyboard::{FilterResult, KeysymHandle, ModifiersState};
 use smithay::utils::SERIAL_COUNTER;
 
 use crate::backend::drm::vt;
-use crate::bindings::action::Action;
+use sparky_config::Action;
 use crate::bindings::mods_of;
 use crate::state::Sparky;
 
@@ -29,7 +29,7 @@ impl Sparky {
     }
 
     fn press(&mut self, code: u32, modifiers: &ModifiersState, handle: &KeysymHandle<'_>) -> FilterResult<Option<Action>> {
-        let terminal = vt::terminal_for(handle.modified_sym().raw()).map(Action::SwitchTerminal);
+        let terminal = vt::terminal_for(handle.modified_sym().raw()).map(|terminal| Action::SwitchTerminal { terminal });
         let sym = handle.raw_latin_sym_or_raw_current_sym();
         let action = terminal.or_else(|| self.bindings.find(mods_of(modifiers), code, sym).cloned());
         match action {

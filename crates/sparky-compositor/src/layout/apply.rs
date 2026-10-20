@@ -2,7 +2,7 @@ use smithay::desktop::Window;
 use sparky_tiling::{Placement, WindowId};
 
 use crate::render::border;
-use crate::state::{BORDER, Sparky};
+use crate::state::Sparky;
 use crate::windows::configure::configure;
 
 impl Sparky {
@@ -33,7 +33,7 @@ impl Sparky {
     }
 
     fn show(&mut self, window: Window, placement: &Placement) {
-        let content = border::content(placement.frame, border::border_width(placement, BORDER));
+        let content = border::content(placement.frame, border::border_width(placement, self.border()));
         configure(&window, placement, content);
         self.space.map_element(window, (content.x, content.y), false);
     }

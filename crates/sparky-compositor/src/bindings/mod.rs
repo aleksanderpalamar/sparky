@@ -1,11 +1,6 @@
-pub mod action;
-pub mod combo;
-pub mod defaults;
-
 use smithay::input::keyboard::{Keysym, ModifiersState, xkb};
-
-use crate::bindings::action::Action;
-use crate::bindings::combo::{Combo, KeySpec, Mods};
+use sparky_config::combo::{Combo, KeySpec, Mods};
+use sparky_config::{Action, Bind};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Key {
@@ -26,10 +21,10 @@ pub struct Bindings {
 }
 
 impl Bindings {
-    pub fn new(specs: Vec<(String, Action)>) -> Self {
-        let entries = specs
+    pub fn new(binds: Vec<Bind>) -> Self {
+        let entries = binds
             .into_iter()
-            .filter_map(|(keys, action)| binding(&keys, action))
+            .filter_map(|bind| binding(&bind.keys, bind.action))
             .collect();
         Self { entries }
     }
@@ -93,16 +88,22 @@ fn resolve(spec: &KeySpec) -> Option<Key> {
 #[cfg(test)]
 mod tests {
     use super::Bindings;
-    use crate::bindings::action::Action;
-    use crate::bindings::combo::Mods;
     use smithay::input::keyboard::{Keysym, xkb};
+    use sparky_config::combo::Mods;
+    use sparky_config::{Action, Bind};
+
+    fn abrir(command: &str) -> Action {
+        Action::Spawn {
+            command: command.to_owned(),
+        }
+    }
 
     fn tabela() -> Bindings {
         Bindings::new(vec![
-            ("SUPER + RETURN".to_owned(), Action::Spawn("kitty".to_owned())),
-            ("SUPER + SHIFT + F".to_owned(), Action::Spawn("sparky-files".to_owned())),
-            ("SUPER + code:10".to_owned(), Action::Workspace(1)),
-            ("SUPER + TECLA_QUE_NAO_EXISTE".to_owned(), Action::Exit),
+            Bind::new("SUPER + RETURN", abrir("kitty")),
+            Bind::new("SUPER + SHIFT + F", abrir("sparky-files")),
+            Bind::new("SUPER + code:10", Action::Workspace { workspace: 1 }),
+            Bind::new("SUPER + TECLA_QUE_NAO_EXISTE", Action::Exit),
         ])
     }
 
@@ -119,7 +120,7 @@ mod tests {
 
     #[test]
     fn acha_pela_tecla_e_pelos_modificadores() {
-        assert_eq!(tabela().find(super_(), 36, sym("Return")), Some(&Action::Spawn("kitty".to_owned())));
+        assert_eq!(tabela().find(super_(), 36, sym("Return")), Some(&abrir("kitty")));
     }
 
     #[test]
@@ -130,13 +131,13 @@ mod tests {
         };
         assert_eq!(
             tabela().find(mods, 41, sym("f")),
-            Some(&Action::Spawn("sparky-files".to_owned()))
+            Some(&abrir("sparky-files"))
         );
     }
 
     #[test]
     fn atalho_por_codigo_ignora_o_simbolo() {
-        assert_eq!(tabela().find(super_(), 10, sym("exclam")), Some(&Action::Workspace(1)));
+        assert_eq!(tabela().find(super_(), 10, sym("exclam")), Some(&Action::Workspace { workspace: 1 }));
     }
 
     #[test]

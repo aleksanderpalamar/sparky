@@ -9,7 +9,7 @@ use sparky_tiling::{Fullscreen, Layer, Placement, Rect};
 
 use crate::render::border;
 use crate::render::elements::SparkyElement;
-use crate::state::{BORDER, Sparky};
+use crate::state::Sparky;
 
 struct Target {
     origin: Point<i32, Logical>,
@@ -67,7 +67,7 @@ where
             continue;
         };
         elements.extend(surface(&state.space, &window, renderer, target));
-        let width = border::border_width(placement, BORDER);
+        let width = border::border_width(placement, state.border());
         let frame = relative(placement.frame, target.origin);
         let color = state.colors.for_focus(placement.focused);
         let edges = state.frames.elements(placement.window, frame, width, color, target.scale);

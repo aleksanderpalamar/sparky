@@ -2,36 +2,19 @@ use std::env;
 use std::path::Path;
 
 const TERMINALS: [&str; 5] = ["kitty", "alacritty", "foot", "ghostty", "wezterm"];
+const LAST_RESORT: &str = "xterm";
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Apps {
-    pub terminal: String,
-    pub launcher: String,
-    pub files: String,
-    pub settings: String,
-    pub screenshot: String,
+pub fn terminal(configured: Option<&str>, environment: Option<&str>, present: impl Fn(&str) -> bool) -> String {
+    let filled = |value: Option<&str>| value.map(str::trim).filter(|value| !value.is_empty()).map(str::to_owned);
+    filled(configured)
+        .or_else(|| filled(environment))
+        .or_else(|| TERMINALS.iter().find(|name| present(name)).map(|name| (*name).to_owned()))
+        .unwrap_or_else(|| LAST_RESORT.to_owned())
 }
 
-impl Apps {
-    pub fn detect() -> Self {
-        let configured = env::var("TERMINAL").ok();
-        Self::with(configured.as_deref(), installed)
-    }
-
-    pub fn with(configured: Option<&str>, present: impl Fn(&str) -> bool) -> Self {
-        let configured = configured.map(str::trim).filter(|value| !value.is_empty());
-        let terminal = configured
-            .map(str::to_owned)
-            .or_else(|| TERMINALS.iter().find(|name| present(name)).map(|name| (*name).to_owned()))
-            .unwrap_or_else(|| "xterm".to_owned());
-        Self {
-            terminal,
-            launcher: "fuzzel".to_owned(),
-            files: "sparky-files".to_owned(),
-            settings: "sparky-settings".to_owned(),
-            screenshot: "sparky-shot".to_owned(),
-        }
-    }
+pub fn detected_terminal(configured: Option<&str>) -> String {
+    let environment = env::var("TERMINAL").ok();
+    terminal(configured, environment.as_deref(), installed)
 }
 
 pub fn installed(program: &str) -> bool {
@@ -47,7 +30,7 @@ pub fn installed(program: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::{Apps, installed};
+    use super::{installed, terminal};
 
     #[test]
     fn caminho_absoluto_vale_se_o_arquivo_existe() {
@@ -63,18 +46,23 @@ mod tests {
     }
 
     #[test]
-    fn o_terminal_configurado_vence() {
-        assert_eq!(Apps::with(Some("foot"), |_| true).terminal, "foot");
+    fn a_configuracao_vence_a_variavel_terminal() {
+        assert_eq!(terminal(Some("foot"), Some("alacritty"), |_| true), "foot");
     }
 
     #[test]
-    fn sem_configuracao_usa_o_primeiro_terminal_instalado() {
-        assert_eq!(Apps::with(None, |name| name == "foot" || name == "wezterm").terminal, "foot");
-        assert_eq!(Apps::with(Some("  "), |name| name == "kitty").terminal, "kitty");
+    fn sem_configuracao_vale_a_variavel_terminal() {
+        assert_eq!(terminal(None, Some("alacritty"), |_| true), "alacritty");
+        assert_eq!(terminal(Some(" "), Some("alacritty"), |_| true), "alacritty");
+    }
+
+    #[test]
+    fn sem_nada_usa_o_primeiro_terminal_instalado() {
+        assert_eq!(terminal(None, None, |name| name == "foot" || name == "wezterm"), "foot");
     }
 
     #[test]
     fn sem_terminal_nenhum_cai_no_xterm() {
-        assert_eq!(Apps::with(None, |_| false).terminal, "xterm");
+        assert_eq!(terminal(None, None, |_| false), "xterm");
     }
 }

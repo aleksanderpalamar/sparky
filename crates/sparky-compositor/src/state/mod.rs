@@ -3,32 +3,26 @@ pub mod listener;
 pub mod protocols;
 
 use std::ffi::OsString;
-use std::time::Instant;
+use std::time::{Instant, SystemTime};
 
 use smithay::desktop::{PopupManager, Space, Window};
 use smithay::input::Seat;
 use smithay::input::pointer::CursorImageStatus;
 use smithay::wayland::dmabuf::DmabufGlobal;
 use smithay::xwayland::X11Wm;
-use smithay::input::keyboard::XkbConfig;
 use smithay::reexports::calloop::{EventLoop, LoopHandle, LoopSignal, RegistrationToken};
 use smithay::reexports::wayland_server::{Display, DisplayHandle};
-use sparky_tiling::{Desktop, Style};
+use sparky_config::Config;
+use sparky_tiling::Desktop;
 
-use crate::apps::Apps;
 use crate::backend::Backend;
 use crate::bindings::Bindings;
-use crate::bindings::defaults;
-use crate::input::keyboard_layout::KeyboardLayout;
+use crate::config::{self, keyboard};
 use crate::ipc::server::IpcServer;
 use crate::render::colors::BorderColors;
 use crate::render::frames::Frames;
 use crate::state::protocols::Protocols;
 use crate::windows::registry::Registry;
-
-pub const BORDER: i32 = 2;
-const REPEAT_DELAY: i32 = 250;
-const REPEAT_RATE: i32 = 40;
 
 pub struct Sparky {
     pub display_handle: DisplayHandle,
@@ -55,6 +49,8 @@ pub struct Sparky {
     pub unmanaged: Vec<Window>,
     pub ipc: Option<IpcServer>,
     pub xwayland_source: Option<RegistrationToken>,
+    pub config: Config,
+    pub config_stamp: Option<SystemTime>,
 }
 
 impl Sparky {
@@ -62,12 +58,13 @@ impl Sparky {
         let display_handle = display.handle();
         let mut protocols = Protocols::new(&display_handle);
         let mut seat = protocols.seat.new_wl_seat(&display_handle, "seat0");
-        let layout = KeyboardLayout::from_system(|path| std::fs::read_to_string(path).ok());
-        seat.add_keyboard(xkb_config(&layout), REPEAT_DELAY, REPEAT_RATE)?;
+        let (config, config_stamp) = config::initial();
+        let layout = config::keyboard_for(&config);
+        let input = &config.input;
+        seat.add_keyboard(keyboard::xkb_config(&layout), input.repeat_delay, input.repeat_rate)?;
         seat.add_pointer();
         let loop_handle = event_loop.handle();
         let socket_name = listener::listen(display, &loop_handle)?;
-        let apps = Apps::detect();
         Ok(Self {
             display_handle,
             loop_handle,
@@ -78,9 +75,9 @@ impl Sparky {
             seat,
             space: Space::default(),
             popups: PopupManager::default(),
-            desktop: Desktop::new(Style::SPARKY),
+            desktop: Desktop::new(config.general.style()),
             windows: Registry::default(),
-            bindings: Bindings::new(defaults::sparky(&apps)),
+            bindings: config::bindings_for(&config),
             suppressed_keys: Vec::new(),
             frames: Frames::default(),
             colors: BorderColors::from_palette(sparky_theme::current_palette()),
@@ -93,6 +90,8 @@ impl Sparky {
             unmanaged: Vec::new(),
             ipc: None,
             xwayland_source: None,
+            config,
+            config_stamp,
         })
     }
 
@@ -106,15 +105,5 @@ impl Sparky {
         if let Err(error) = self.display_handle.flush_clients() {
             tracing::warn!("falha ao enviar aos clientes: {error}");
         }
-    }
-}
-
-fn xkb_config(layout: &KeyboardLayout) -> XkbConfig<'_> {
-    XkbConfig {
-        layout: &layout.layout,
-        variant: &layout.variant,
-        model: &layout.model,
-        options: Some(layout.options.clone()).filter(|options| !options.is_empty()),
-        ..XkbConfig::default()
     }
 }

@@ -6,6 +6,7 @@ pub enum Request {
     Workspaces,
     FocusWorkspace { id: u32 },
     Subscribe,
+    ReloadConfig,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -40,6 +41,12 @@ mod tests {
     fn o_pedido_vira_json_com_o_nome_em_minusculas() {
         let json = serde_json::to_string(&Request::FocusWorkspace { id: 3 }).unwrap_or_default();
         assert_eq!(json, r#"{"request":"focus_workspace","id":3}"#);
+    }
+
+    #[test]
+    fn recarregar_a_configuracao_e_um_pedido_sem_campos() {
+        let json = serde_json::to_string(&Request::ReloadConfig).unwrap_or_default();
+        assert_eq!(json, r#"{"request":"reload_config"}"#);
     }
 
     #[test]

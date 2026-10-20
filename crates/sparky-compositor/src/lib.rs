@@ -3,6 +3,7 @@ pub mod apps;
 pub mod backend;
 pub mod bindings;
 pub mod cli;
+pub mod config;
 pub mod cursor;
 pub mod focus;
 pub mod handlers;
