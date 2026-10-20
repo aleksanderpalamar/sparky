@@ -1,14 +1,14 @@
 use std::sync::Arc;
 
-use iced::futures::{SinkExt, Stream};
 use iced::futures::channel::mpsc::Sender;
+use iced::futures::{SinkExt, Stream};
 use system_tray::client::Client;
 use tokio::sync::broadcast::error::RecvError;
 
 use crate::adapters::tray_events::{changes, item_of};
 use crate::app::message::Message;
 use crate::app::tray_state::TrayClient;
-use crate::domain::tray::TrayChange;
+use crate::domain::tray::{TrayChange, TrayItem};
 
 pub fn tray_events() -> impl Stream<Item = Message> {
     iced::stream::channel(64, async |mut output| {
@@ -31,7 +31,7 @@ pub fn tray_events() -> impl Stream<Item = Message> {
         loop {
             match events.recv().await {
                 Ok(event) => {
-                    if !forward(&mut output, changes(event)).await {
+                    if !forward(&mut output, changes(event, |address| current_item(&client, address))).await {
                         return;
                     }
                 }
@@ -60,4 +60,11 @@ fn current_items(client: &Client) -> Vec<TrayChange> {
         .iter()
         .map(|(address, (item, menu))| TrayChange::Added(item_of(address.clone(), item.clone(), menu.as_ref())))
         .collect()
+}
+
+fn current_item(client: &Client, address: &str) -> Option<TrayItem> {
+    let items = client.items();
+    let items = items.lock().ok()?;
+    let (item, menu) = items.get(address)?;
+    Some(item_of(address.to_owned(), item.clone(), menu.as_ref()))
 }

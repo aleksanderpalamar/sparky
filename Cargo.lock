@@ -4149,6 +4149,7 @@ dependencies = [
  "chrono",
  "iced",
  "iced_layershell",
+ "iced_runtime",
  "sparky-ipc",
  "sparky-theme",
  "system-tray",

@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
 use iced::window;
-use system_tray::client::Client;
 
 use crate::domain::tray::{Tray, TrayChange};
+use crate::ports::tray::TrayCommands;
 
 #[derive(Debug, Clone)]
-pub struct TrayClient(pub Arc<Client>);
+pub struct TrayClient(pub Arc<dyn TrayCommands>);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OpenMenu {
@@ -26,13 +26,16 @@ impl TrayState {
         &self.tray
     }
 
-    pub fn apply(&mut self, change: TrayChange) {
-        if let TrayChange::Removed(address) = &change
-            && self.menu.as_ref().is_some_and(|menu| &menu.address == address)
-        {
-            self.menu = None;
-        }
+    pub fn apply(&mut self, change: TrayChange) -> Option<OpenMenu> {
         self.tray.apply(change);
+        let invalid = self
+            .menu
+            .as_ref()
+            .is_some_and(|menu| self.tray.item(&menu.address).is_none_or(|item| item.menu.is_empty()));
+        match invalid {
+            true => self.menu.take(),
+            false => None,
+        }
     }
 
     pub fn client(&self) -> Option<TrayClient> {
@@ -59,7 +62,7 @@ impl TrayState {
 #[cfg(test)]
 mod tests {
     use super::{OpenMenu, TrayState};
-    use crate::domain::tray::{TrayChange, TrayIcon, TrayItem};
+    use crate::domain::tray::{PrimaryAction, TrayChange, TrayIcon, TrayItem};
     use iced::window;
 
     fn item(address: &str) -> TrayItem {
@@ -67,6 +70,7 @@ mod tests {
             address: address.to_owned(),
             title: String::new(),
             icon: TrayIcon::Missing,
+            primary_action: PrimaryAction::Activate,
             menu_path: None,
             menu: Vec::new(),
         }

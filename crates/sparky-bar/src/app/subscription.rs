@@ -24,10 +24,9 @@ pub fn subscription(_bar: &Bar) -> Subscription<Message> {
 
 fn close_on_escape(event: keyboard::Event) -> Option<Message> {
     match event {
-        keyboard::Event::KeyPressed {
-            key: keyboard::Key::Named(keyboard::key::Named::Escape),
-            ..
-        } => Some(Message::CloseMenu),
+        keyboard::Event::KeyPressed { key: keyboard::Key::Named(keyboard::key::Named::Escape), .. } => {
+            Some(Message::CloseMenu)
+        }
         _ => None,
     }
 }
@@ -54,5 +53,42 @@ fn forward_changes(sender: &UnboundedSender<()>) {
             }
         }
         thread::sleep(RECONNECT_DELAY);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use iced::keyboard::{self, Key, Location, Modifiers, key};
+
+    use super::close_on_escape;
+    use crate::app::tray_test_support::{bar, messages, opened, removes};
+    use crate::app::update::update;
+
+    fn pressed(named: key::Named, code: key::Code) -> keyboard::Event {
+        keyboard::Event::KeyPressed {
+            key: Key::Named(named),
+            modified_key: Key::Named(named),
+            physical_key: key::Physical::Code(code),
+            location: Location::Standard,
+            modifiers: Modifiers::empty(),
+            text: None,
+            repeat: false,
+        }
+    }
+
+    #[test]
+    fn escape_percorre_o_tratador_e_fecha_a_superficie_do_menu() {
+        let mut bar = bar();
+        let window = opened(&mut bar, ":1.1");
+        let event = pressed(key::Named::Escape, key::Code::Escape);
+        let output = close_on_escape(event).map(|message| messages(update(&mut bar, message))).unwrap_or_default();
+        assert!(removes(&output, window));
+        assert!(bar.tray().menu().is_none());
+    }
+
+    #[test]
+    fn outras_teclas_e_modificadores_nao_fecham_o_menu() {
+        assert!(close_on_escape(pressed(key::Named::Enter, key::Code::Enter)).is_none());
+        assert!(close_on_escape(keyboard::Event::ModifiersChanged(Modifiers::SHIFT)).is_none());
     }
 }

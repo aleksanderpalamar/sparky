@@ -7,6 +7,13 @@ pub mod tray_subscription;
 pub mod update;
 pub mod view;
 
+#[cfg(test)]
+mod tray_actions_tests;
+#[cfg(test)]
+mod tray_activation_tests;
+#[cfg(test)]
+mod tray_test_support;
+
 use std::sync::Arc;
 
 use iced_layershell::reexport::{Anchor, KeyboardInteractivity, Layer};

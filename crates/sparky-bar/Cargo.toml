@@ -20,3 +20,6 @@ sparky-ipc.workspace = true
 sparky-theme.workspace = true
 system-tray = "0.8"
 tokio = { version = "1", features = ["sync"] }
+
+[dev-dependencies]
+iced_runtime = "0.14"

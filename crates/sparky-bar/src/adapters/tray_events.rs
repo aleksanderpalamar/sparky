@@ -5,14 +5,17 @@ use system_tray::menu::{MenuItem, MenuType, TrayMenu};
 use crate::adapters::icons;
 use crate::domain::label::menu_label;
 use crate::domain::pixmap::{argb_to_rgba, best_size};
-use crate::domain::tray::{MenuEntry, TrayChange, TrayIcon, TrayItem};
+use crate::domain::tray::{MenuEntry, PrimaryAction, TrayChange, TrayIcon, TrayItem};
 
 const ICON_SIZE: i32 = 22;
 
-pub fn changes(event: Event) -> Vec<TrayChange> {
+pub fn changes(event: Event, snapshot: impl FnOnce(&str) -> Option<TrayItem>) -> Vec<TrayChange> {
     match event {
         Event::Add(address, item) => vec![TrayChange::Added(item_of(address, *item, None))],
         Event::Remove(address) => vec![TrayChange::Removed(address)],
+        Event::Update(address, UpdateEvent::MenuDiff(_)) => {
+            snapshot(&address).map(|item| TrayChange::Menu { address, menu: item.menu }).into_iter().collect()
+        }
         Event::Update(address, update) => update_of(address, update).into_iter().collect(),
     }
 }
@@ -22,6 +25,10 @@ pub fn item_of(address: String, item: StatusNotifierItem, menu: Option<&TrayMenu
     TrayItem {
         title: item.title.clone().filter(|title| !title.is_empty()).unwrap_or(item.id),
         icon,
+        primary_action: match item.item_is_menu {
+            true => PrimaryAction::Menu,
+            false => PrimaryAction::Activate,
+        },
         menu_path: item.menu,
         menu: menu.map(|menu| entries(&menu.submenus)).unwrap_or_default(),
         address,
@@ -30,27 +37,19 @@ pub fn item_of(address: String, item: StatusNotifierItem, menu: Option<&TrayMenu
 
 fn update_of(address: String, update: UpdateEvent) -> Option<TrayChange> {
     match update {
-        UpdateEvent::Icon { icon_name, icon_pixmap } => Some(TrayChange::Icon {
-            icon: icon_of(icon_name.as_deref(), None, icon_pixmap.as_deref()),
-            address,
-        }),
+        UpdateEvent::Icon { icon_name, icon_pixmap } => {
+            Some(TrayChange::Icon { icon: icon_of(icon_name.as_deref(), None, icon_pixmap.as_deref()), address })
+        }
         UpdateEvent::Title(Some(title)) => Some(TrayChange::Title { address, title }),
-        UpdateEvent::Menu(menu) => Some(TrayChange::Menu {
-            menu: entries(&menu.submenus),
-            address,
-        }),
+        UpdateEvent::Menu(menu) => Some(TrayChange::Menu { menu: entries(&menu.submenus), address }),
         _ => None,
     }
 }
 
 fn icon_of(name: Option<&str>, theme_path: Option<&str>, pixmaps: Option<&[IconPixmap]>) -> TrayIcon {
-    let named = name
-        .filter(|name| !name.is_empty())
-        .and_then(|name| icons::resolve(name, theme_path))
-        .map(TrayIcon::File);
-    named
-        .or_else(|| pixmaps.and_then(pixels_of))
-        .unwrap_or(TrayIcon::Missing)
+    let named =
+        name.filter(|name| !name.is_empty()).and_then(|name| icons::resolve(name, theme_path)).map(TrayIcon::File);
+    named.or_else(|| pixmaps.and_then(pixels_of)).unwrap_or(TrayIcon::Missing)
 }
 
 fn pixels_of(pixmaps: &[IconPixmap]) -> Option<TrayIcon> {

@@ -8,6 +8,18 @@ pub enum TrayIcon {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TrayRequest {
+    Activate { address: String },
+    Select { address: String, menu_path: String, entry: i32 },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PrimaryAction {
+    Activate,
+    Menu,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MenuEntry {
     pub id: i32,
     pub label: String,
@@ -20,6 +32,7 @@ pub struct TrayItem {
     pub address: String,
     pub title: String,
     pub icon: TrayIcon,
+    pub primary_action: PrimaryAction,
     pub menu_path: Option<String>,
     pub menu: Vec<MenuEntry>,
 }
@@ -73,13 +86,14 @@ impl Tray {
 
 #[cfg(test)]
 mod tests {
-    use super::{MenuEntry, Tray, TrayChange, TrayIcon, TrayItem};
+    use super::{MenuEntry, PrimaryAction, Tray, TrayChange, TrayIcon, TrayItem};
 
     fn item(address: &str) -> TrayItem {
         TrayItem {
             address: address.to_owned(),
             title: address.to_owned(),
             icon: TrayIcon::Missing,
+            primary_action: PrimaryAction::Activate,
             menu_path: None,
             menu: Vec::new(),
         }
