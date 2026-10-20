@@ -1,0 +1,25 @@
+[package]
+name = "sparky-settings"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "sparky-settings"
+path = "src/main.rs"
+
+[lib]
+name = "sparky_settings"
+path = "src/lib.rs"
+
+[dependencies]
+iced = { version = "0.14", features = ["tokio"] }
+sparky-config.workspace = true
+sparky-ipc.workspace = true
+sparky-theme.workspace = true
+sparky-tiling.workspace = true
+sparky-ui.workspace = true
+sparky-xdg.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

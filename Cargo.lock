@@ -4273,6 +4273,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "sparky-settings"
+version = "0.1.0"
+dependencies = [
+ "iced",
+ "sparky-config",
+ "sparky-ipc",
+ "sparky-theme",
+ "sparky-tiling",
+ "sparky-ui",
+ "sparky-xdg",
+ "tempfile",
+]
+
+[[package]]
 name = "sparky-shot"
 version = "0.1.0"
 dependencies = [

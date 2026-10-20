@@ -16,6 +16,8 @@ O layout vem do [Omarchy](https://github.com/basecamp/omarchy): barra no topo co
 | `crates/sparky-shot` | O capturador de tela (`sparky-shot`): seletor de modo, seleção de região pelo teclado ou mouse, PNG salvo e copiado |
 | `crates/sparky-files` | O gerenciador de arquivos (`sparky-files`): lista navegável pelo teclado, lugares, filtro, copiar, recortar, colar, renomear, criar e lixeira |
 | `crates/sparky-xdg` | As pastas do usuário (`user-dirs.dirs`: Documentos, Imagens, Downloads...) usadas pelos aplicativos |
+| `crates/sparky-settings` | O painel de configurações (`sparky-settings`): edita o `sparky.toml` e aplica na hora pelo IPC |
+| `crates/sparky-ui` | Peças comuns dos aplicativos iced: teclas, prompt, estilos, lateral numerada, rolagem e janela |
 | `crates/sparky-theme` | Paleta de cores compartilhada pelos aplicativos, lida do `colors.toml` do tema |
 | `data/themes` | Temas no formato `colors.toml` |
 
@@ -148,6 +150,22 @@ O `sparky-files` abre pelo `SUPER + SHIFT + F` (ou `sparky-files <pasta>`). À e
 | `q` ou `CTRL + Q` | Fecha |
 
 Com o mouse, um clique seleciona, dois cliques abrem e a roda rola a lista.
+
+## Configurações
+
+O `sparky-settings` abre pelo `SUPER + ALT + ESPAÇO`. Cada mudança é gravada no `~/.config/sparky/sparky.toml` na hora, só na chave mexida (os comentários do arquivo ficam), e o sparky recarrega pelo IPC. Se o sparky não estiver rodando, a mudança vale quando ele iniciar.
+
+| Seção | O que muda |
+|---|---|
+| Aparência | Folgas, espessura da borda, tamanho das janelas flutuantes e os atalhos padrão |
+| Teclado | Layout, variante e opções do XKB (conferidos com o `evdev.lst` antes de gravar) e a repetição das teclas |
+| Aplicativos | Terminal, lançador, arquivos, configurações e capturador que os atalhos abrem |
+| Inicialização | Comandos rodados quando a sessão começa |
+| Atalhos | Lista dos atalhos em uso, com o que cada um faz |
+| Monitores | Monitores que o sparky está usando |
+| Sobre | Versão do sparky, sistema, kernel e onde fica a configuração |
+
+`Tab` e `SHIFT + Tab` (ou `1` a `7`) trocam de seção, `j`/`k` escolhem o item, `h`/`l` diminuem e aumentam números ou ligam e desligam, `Enter` edita um texto ou um número, `d` remove um comando da inicialização, `Esc` desiste da edição e `q` fecha. O mouse também funciona: `−`/`+`, clique no valor para editar e clique duplo na inicialização.
 
 ## Tema
 
