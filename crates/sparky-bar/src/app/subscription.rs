@@ -3,11 +3,12 @@ use std::time::Duration;
 
 use iced::futures::channel::mpsc::{UnboundedSender, unbounded};
 use iced::futures::{SinkExt, Stream, StreamExt};
-use iced::{Subscription, time};
+use iced::{Subscription, keyboard, time};
 use sparky_ipc::Client;
 
 use crate::app::message::Message;
 use crate::app::state::Bar;
+use crate::app::tray_subscription::tray_events;
 
 const RECONNECT_DELAY: Duration = Duration::from_secs(1);
 const CLOCK_INTERVAL: Duration = Duration::from_secs(1);
@@ -15,8 +16,20 @@ const CLOCK_INTERVAL: Duration = Duration::from_secs(1);
 pub fn subscription(_bar: &Bar) -> Subscription<Message> {
     Subscription::batch([
         Subscription::run(sparky_events),
+        Subscription::run(tray_events),
         time::every(CLOCK_INTERVAL).map(|_| Message::Tick),
+        keyboard::listen().filter_map(close_on_escape),
     ])
+}
+
+fn close_on_escape(event: keyboard::Event) -> Option<Message> {
+    match event {
+        keyboard::Event::KeyPressed {
+            key: keyboard::Key::Named(keyboard::key::Named::Escape),
+            ..
+        } => Some(Message::CloseMenu),
+        _ => None,
+    }
 }
 
 fn sparky_events() -> impl Stream<Item = Message> {

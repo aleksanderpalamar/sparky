@@ -1,6 +1,9 @@
 pub mod message;
 pub mod state;
 pub mod subscription;
+pub mod tray_actions;
+pub mod tray_state;
+pub mod tray_subscription;
 pub mod update;
 pub mod view;
 

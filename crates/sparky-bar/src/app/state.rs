@@ -4,6 +4,7 @@ use chrono::NaiveDateTime;
 use sparky_ipc::IpcError;
 use sparky_theme::Skin;
 
+use crate::app::tray_state::TrayState;
 use crate::domain::clock::{self, ClockFormat};
 use crate::domain::slots::{self, Slot};
 use crate::ports::workspaces::Workspaces;
@@ -14,6 +15,7 @@ pub struct Bar {
     slots: Vec<Slot>,
     clock_format: ClockFormat,
     now: NaiveDateTime,
+    tray: TrayState,
 }
 
 impl Bar {
@@ -24,6 +26,7 @@ impl Bar {
             slots: slots::slots(&[]),
             clock_format: ClockFormat::default(),
             now,
+            tray: TrayState::default(),
         };
         bar.refresh_workspaces();
         bar
@@ -35,6 +38,14 @@ impl Bar {
 
     pub fn slots(&self) -> &[Slot] {
         &self.slots
+    }
+
+    pub fn tray(&self) -> &TrayState {
+        &self.tray
+    }
+
+    pub fn tray_mut(&mut self) -> &mut TrayState {
+        &mut self.tray
     }
 
     pub fn clock(&self) -> String {

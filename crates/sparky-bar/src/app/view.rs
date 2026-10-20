@@ -4,16 +4,26 @@ use iced::{Alignment, Element, Length};
 use crate::app::message::Message;
 use crate::app::state::Bar;
 use crate::ui::clock::clock;
+use crate::ui::menu::menu;
+use crate::ui::tray::tray;
 use crate::ui::workspaces::workspaces;
 
-pub fn view(bar: &Bar, _window: iced::window::Id) -> Element<'_, Message> {
+pub fn view(bar: &Bar, window: iced::window::Id) -> Element<'_, Message> {
+    let open = bar.tray().menu().filter(|menu| menu.window == window);
+    match open.and_then(|menu| bar.tray().tray().item(&menu.address)) {
+        Some(item) => menu(bar.skin(), &item.menu),
+        None => strip(bar),
+    }
+}
+
+fn strip(bar: &Bar) -> Element<'_, Message> {
     let skin = bar.skin();
     let left = container(workspaces(skin, bar.slots(), Message::FocusWorkspace))
         .width(Length::Fill)
         .height(Length::Fill)
         .align_x(Alignment::Start);
     let center = clock(skin, bar.clock(), Message::ToggleClock);
-    let right = container(row![])
+    let right = container(tray(skin, bar.tray().tray().items()))
         .width(Length::Fill)
         .height(Length::Fill)
         .align_x(Alignment::End);
