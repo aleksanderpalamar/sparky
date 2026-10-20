@@ -18,7 +18,7 @@ pub fn view(files: &Files) -> Element<'_, Message> {
     container(column![body, status::status(files)])
         .width(Length::Fill)
         .height(Length::Fill)
-        .style(move |_| style::window(skin))
+        .style(move |_| sparky_ui::style::window(skin))
         .into()
 }
 

@@ -4,10 +4,10 @@ use iced::{Element, Length};
 use sparky_theme::Skin;
 
 use crate::app::message::Message;
-use crate::app::prompt::PROMPT;
 use crate::app::state::{Files, Mode, Notice};
 use crate::domain::wording::{items, summary};
-use crate::view::style::{self, PADDING, SMALL_TEXT, SPACING, STATUS_HEIGHT, TEXT_SIZE};
+use sparky_ui::prompt::PROMPT;
+use sparky_ui::style::{self, PADDING, SMALL_TEXT, SPACING, STATUS_HEIGHT, TEXT_SIZE};
 
 const HINTS: &str = "Enter abrir · h voltar · / filtrar · a criar · r renomear · y copiar · x recortar · p colar · d lixeira";
 const PROMPT_WIDTH: f32 = 420.0;

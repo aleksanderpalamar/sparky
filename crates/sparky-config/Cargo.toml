@@ -8,3 +8,4 @@ authors.workspace = true
 serde.workspace = true
 sparky-tiling = { workspace = true, features = ["serde"] }
 toml = "0.8"
+toml_edit = "0.22"

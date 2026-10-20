@@ -1,0 +1,9 @@
+[package]
+name = "sparky-ui"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+iced = "0.14"
+sparky-theme.workspace = true

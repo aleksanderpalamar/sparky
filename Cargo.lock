@@ -4249,6 +4249,7 @@ dependencies = [
  "serde",
  "sparky-tiling",
  "toml",
+ "toml_edit 0.22.27",
 ]
 
 [[package]]
@@ -4258,6 +4259,7 @@ dependencies = [
  "chrono",
  "iced",
  "sparky-theme",
+ "sparky-ui",
  "sparky-xdg",
  "tempfile",
 ]
@@ -4295,6 +4297,14 @@ name = "sparky-tiling"
 version = "0.1.0"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "sparky-ui"
+version = "0.1.0"
+dependencies = [
+ "iced",
+ "sparky-theme",
 ]
 
 [[package]]

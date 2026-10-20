@@ -2,6 +2,7 @@ pub mod action;
 pub mod binds;
 pub mod combo;
 pub mod defaults;
+pub mod edit;
 pub mod load;
 pub mod schema;
 
@@ -9,5 +10,6 @@ pub mod schema;
 mod schema_tests;
 
 pub use action::{Action, Bind};
+pub use edit::Editor;
 pub use load::{ConfigError, parse, path};
 pub use schema::{Apps, Config, General, Input};

@@ -16,6 +16,7 @@ path = "src/lib.rs"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 iced = { version = "0.14", features = ["tokio"] }
 sparky-theme.workspace = true
+sparky-ui.workspace = true
 sparky-xdg.workspace = true
 
 [dev-dependencies]

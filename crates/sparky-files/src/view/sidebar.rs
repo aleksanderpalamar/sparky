@@ -4,15 +4,12 @@ use iced::{Element, Length};
 
 use crate::app::message::Message;
 use crate::app::state::Files;
-use crate::view::style::{self, Highlight, PADDING, SIDEBAR_WIDTH, SMALL_TEXT, SPACING, TEXT_SIZE};
+use sparky_ui::style::{self, Highlight, PADDING, SIDEBAR_WIDTH, SMALL_TEXT, SPACING, TEXT_SIZE};
 
 pub fn sidebar(files: &Files) -> Element<'_, Message> {
     let skin = files.skin;
     let places = files.places.iter().enumerate().map(|(index, place)| {
-        let highlight = match place.path == files.location {
-            true => Highlight::Selected,
-            false => Highlight::Plain,
-        };
+        let highlight = Highlight::when(place.path == files.location);
         let line = row![
             text((index + 1).to_string()).size(SMALL_TEXT).color(skin.accent).width(18),
             text(place.label).size(TEXT_SIZE),
@@ -22,7 +19,7 @@ pub fn sidebar(files: &Files) -> Element<'_, Message> {
         button(line)
             .width(Length::Fill)
             .on_press(Message::Place(index))
-            .style(move |_, status| style::place(skin, highlight, status))
+            .style(move |_, status| style::entry(skin, highlight, status))
             .into()
     });
     let content = column![

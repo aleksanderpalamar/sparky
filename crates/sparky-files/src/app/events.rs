@@ -1,8 +1,8 @@
 use std::time::Duration;
 
 use iced::event::{self, Event, Status};
-use iced::keyboard::{self, Key, key::Named};
 use iced::{Subscription, time, window};
+use sparky_ui::press::{Press, press};
 
 use crate::app::message::Message;
 use crate::app::state::Files;
@@ -17,13 +17,9 @@ pub fn subscription(_files: &Files) -> Subscription<Message> {
     ])
 }
 
-pub fn keyboard_message(event: Event, status: Status, _window: window::Id) -> Option<Message> {
-    let Event::Keyboard(keyboard::Event::KeyPressed { key, modifiers, .. }) = event else {
-        return None;
-    };
-    match (&key, status) {
-        (Key::Named(Named::Escape), _) => Some(Message::Escape),
-        (_, Status::Ignored) => Some(Message::Key(key, modifiers)),
-        (_, Status::Captured) => None,
-    }
+fn keyboard_message(event: Event, status: Status, _window: window::Id) -> Option<Message> {
+    press(event, status).map(|press| match press {
+        Press::Escape => Message::Escape,
+        Press::Key(key, modifiers) => Message::Key(key, modifiers),
+    })
 }

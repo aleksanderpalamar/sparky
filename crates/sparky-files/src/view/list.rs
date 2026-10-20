@@ -7,7 +7,8 @@ use crate::app::message::Message;
 use crate::app::state::Files;
 use crate::domain::entry::Entry;
 use crate::view::labels::{self, Tone};
-use crate::view::style::{self, DATE_WIDTH, Highlight, PADDING, ROW_HEIGHT, SIZE_WIDTH, SMALL_TEXT, SPACING, TEXT_SIZE};
+use crate::view::style::{DATE_WIDTH, ROW_HEIGHT, SIZE_WIDTH};
+use sparky_ui::style::{self, Highlight, PADDING, SMALL_TEXT, SPACING, TEXT_SIZE};
 
 const WHEEL_LINES: f32 = 3.0;
 
@@ -16,10 +17,7 @@ pub fn list(files: &Files) -> Element<'_, Message> {
     let top = range.start;
     let rows = range.filter_map(|index| {
         let entry = files.listing.get(index)?;
-        let highlight = match index == files.listing.cursor() {
-            true => Highlight::Selected,
-            false => Highlight::Plain,
-        };
+        let highlight = Highlight::when(index == files.listing.cursor());
         Some(entry_row(files, entry, index - top, highlight))
     });
     let body: Element<'_, Message> = match files.listing.is_empty() {

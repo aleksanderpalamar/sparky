@@ -4,15 +4,13 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
-use iced::event::{Event, Status};
 use iced::keyboard::key::Named;
-use iced::keyboard::{self, Key, Location, Modifiers};
+use iced::keyboard::{Key, Modifiers};
 use sparky_theme::Skin;
 use tempfile::TempDir;
 
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::local_disk::LocalDisk;
-use crate::app::events::keyboard_message;
 use crate::app::message::Message;
 use crate::app::state::{Files, Mode, Notice, Services, Setup};
 use crate::app::update::update;
@@ -155,27 +153,4 @@ fn marcar_com_espaco_e_copiar_leva_todos_os_marcados() {
     cena.tecla("y");
     assert_eq!(cena.files.clip.as_ref().map(|clip| clip.paths().len()), Some(2));
     assert_eq!(cena.files.listing.marked_count(), 0);
-}
-
-fn tecla_pressionada(key: Key) -> Event {
-    Event::Keyboard(keyboard::Event::KeyPressed {
-        key: key.clone(),
-        modified_key: key,
-        physical_key: keyboard::key::Physical::Unidentified(keyboard::key::NativeCode::Unidentified),
-        location: Location::Standard,
-        modifiers: Modifiers::empty(),
-        text: None,
-        repeat: false,
-    })
-}
-
-#[test]
-fn esc_chega_mesmo_com_a_caixa_de_texto_em_foco_e_o_resto_nao() {
-    let window = iced::window::Id::unique();
-    let esc = keyboard_message(tecla_pressionada(Key::Named(Named::Escape)), Status::Captured, window);
-    let letra = keyboard_message(tecla_pressionada(Key::Character("j".into())), Status::Captured, window);
-    let livre = keyboard_message(tecla_pressionada(Key::Character("j".into())), Status::Ignored, window);
-    assert!(matches!(esc, Some(Message::Escape)));
-    assert!(letra.is_none());
-    assert!(matches!(livre, Some(Message::Key(..))));
 }

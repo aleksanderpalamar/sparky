@@ -3,9 +3,9 @@ use iced::keyboard::{Key, Modifiers};
 
 use crate::app::keys::{self, Command};
 use crate::app::message::Message;
-use crate::app::prompt;
 use crate::app::state::{Files, Mode};
 use crate::view::style::rows_for;
+use sparky_ui::prompt;
 
 pub fn update(files: &mut Files, message: Message) -> Task<Message> {
     match message {
@@ -73,7 +73,7 @@ fn run(files: &mut Files, command: Command) -> Task<Message> {
             files.begin_create();
             prompt::focus()
         }
-        Command::Rename => files.begin_rename().map_or_else(Task::none, prompt::select_stem),
+        Command::Rename => files.begin_rename().map_or_else(Task::none, prompt::select),
         Command::Quit => iced::exit(),
         other => {
             act(files, other);
