@@ -4,7 +4,7 @@ use iced::{Element, Length};
 use sparky_theme::Skin;
 
 use crate::app::message::Message;
-use crate::app::state::{Files, Mode, Notice};
+use crate::app::state::{Files, Mode};
 use crate::domain::wording::{items, summary};
 use sparky_ui::prompt::PROMPT;
 use sparky_ui::style::{self, PADDING, SMALL_TEXT, SPACING, STATUS_HEIGHT, TEXT_SIZE};
@@ -41,8 +41,7 @@ pub fn question(names: &[String]) -> String {
 fn browsing(files: &Files) -> Element<'_, Message> {
     let skin = files.skin;
     let left = match &files.notice {
-        Some(Notice::Info(message)) => text(message.clone()).color(skin.foreground),
-        Some(Notice::Error(message)) => text(message.clone()).color(skin.urgent),
+        Some(notice) => text(notice.text().to_owned()).color(notice.color(skin)),
         None => text(summary(files.listing.len(), files.listing.marked_count(), files.clip.as_ref())).color(skin.foreground),
     };
     row![left.size(TEXT_SIZE).width(Length::Fill), hint(skin, HINTS)]

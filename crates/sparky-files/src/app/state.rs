@@ -3,11 +3,12 @@ use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
 use sparky_theme::Skin;
+use sparky_ui::notice::Notice;
+use sparky_ui::viewport::Viewport;
 
 use crate::domain::clip::Clip;
 use crate::domain::listing::Listing;
-use crate::domain::places::{Place, display};
-use crate::domain::viewport::Viewport;
+use crate::domain::places::Place;
 use crate::ports::{Disk, Opener};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -17,12 +18,6 @@ pub enum Mode {
     Rename(String),
     Create,
     ConfirmTrash(Vec<String>),
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Notice {
-    Info(String),
-    Error(String),
 }
 
 pub struct Services {
@@ -74,7 +69,7 @@ impl Files {
     }
 
     pub fn shown(&self, path: &Path) -> String {
-        display(path, &self.home)
+        sparky_xdg::tilde(path, &self.home)
     }
 
     pub fn chosen_paths(&self) -> Vec<PathBuf> {

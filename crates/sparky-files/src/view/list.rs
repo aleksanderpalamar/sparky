@@ -1,6 +1,6 @@
 use iced::alignment::{Horizontal, Vertical};
 use iced::widget::{Column, column, container, mouse_area, row, text};
-use iced::{Color, Element, Length, mouse};
+use iced::{Color, Element, Length};
 use sparky_theme::Skin;
 
 use crate::app::message::Message;
@@ -9,8 +9,7 @@ use crate::domain::entry::Entry;
 use crate::view::labels::{self, Tone};
 use crate::view::style::{DATE_WIDTH, ROW_HEIGHT, SIZE_WIDTH};
 use sparky_ui::style::{self, Highlight, PADDING, SMALL_TEXT, SPACING, TEXT_SIZE};
-
-const WHEEL_LINES: f32 = 3.0;
+use sparky_ui::wheel;
 
 pub fn list(files: &Files) -> Element<'_, Message> {
     let range = files.viewport.range(files.listing.len());
@@ -24,7 +23,7 @@ pub fn list(files: &Files) -> Element<'_, Message> {
         true => empty(files.skin),
         false => Column::with_children(rows).into(),
     };
-    let area = mouse_area(container(body).width(Length::Fill).height(Length::Fill)).on_scroll(scrolled);
+    let area = mouse_area(container(body).width(Length::Fill).height(Length::Fill)).on_scroll(|delta| Message::Scrolled(wheel::rows(delta, ROW_HEIGHT)));
     column![titles(files.skin), area].width(Length::Fill).height(Length::Fill).into()
 }
 
@@ -79,12 +78,4 @@ fn tone_color(skin: Skin, tone: Tone) -> Color {
         Tone::Hidden => skin.dark_foreground,
         Tone::Marked => skin.cyan,
     }
-}
-
-fn scrolled(delta: mouse::ScrollDelta) -> Message {
-    let lines = match delta {
-        mouse::ScrollDelta::Lines { y, .. } => y * WHEEL_LINES,
-        mouse::ScrollDelta::Pixels { y, .. } => y / ROW_HEIGHT,
-    };
-    Message::Scrolled(-lines.round() as isize)
 }

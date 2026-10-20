@@ -5,7 +5,6 @@ pub mod naming;
 pub mod places;
 pub mod size;
 pub mod trash_info;
-pub mod viewport;
 pub mod wording;
 
 #[cfg(test)]

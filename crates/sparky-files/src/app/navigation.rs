@@ -1,9 +1,10 @@
 use std::path::{Path, PathBuf};
 
+use sparky_ui::viewport::Viewport;
+
 use crate::app::state::{Files, Mode};
 use crate::domain::entry::Kind;
 use crate::domain::listing::Listing;
-use crate::domain::viewport::Viewport;
 
 impl Files {
     pub fn go(&mut self, path: PathBuf) -> bool {

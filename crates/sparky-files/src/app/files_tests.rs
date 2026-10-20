@@ -7,12 +7,13 @@ use std::rc::Rc;
 use iced::keyboard::key::Named;
 use iced::keyboard::{Key, Modifiers};
 use sparky_theme::Skin;
+use sparky_ui::notice::Notice;
 use tempfile::TempDir;
 
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::local_disk::LocalDisk;
 use crate::app::message::Message;
-use crate::app::state::{Files, Mode, Notice, Services, Setup};
+use crate::app::state::{Files, Mode, Services, Setup};
 use crate::app::update::update;
 use crate::ports::Opener;
 
