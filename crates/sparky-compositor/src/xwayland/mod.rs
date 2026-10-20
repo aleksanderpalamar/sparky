@@ -39,8 +39,16 @@ impl Sparky {
                 state.x_display = None;
             }
         });
-        if let Err(error) = inserted {
-            tracing::warn!("o XWayland ficou sem fonte de eventos: {error}");
+        match inserted {
+            Ok(token) => self.xwayland_source = Some(token),
+            Err(error) => tracing::warn!("o XWayland ficou sem fonte de eventos: {error}"),
+        }
+    }
+
+    pub fn stop_xwayland(&mut self) {
+        self.xwm = None;
+        if let Some(token) = self.xwayland_source.take() {
+            self.loop_handle.remove(token);
         }
     }
 

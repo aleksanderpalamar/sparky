@@ -11,7 +11,7 @@ use smithay::input::pointer::CursorImageStatus;
 use smithay::wayland::dmabuf::DmabufGlobal;
 use smithay::xwayland::X11Wm;
 use smithay::input::keyboard::XkbConfig;
-use smithay::reexports::calloop::{EventLoop, LoopHandle, LoopSignal};
+use smithay::reexports::calloop::{EventLoop, LoopHandle, LoopSignal, RegistrationToken};
 use smithay::reexports::wayland_server::{Display, DisplayHandle};
 use sparky_tiling::{Desktop, Style};
 
@@ -54,6 +54,7 @@ pub struct Sparky {
     pub x_display: Option<u32>,
     pub unmanaged: Vec<Window>,
     pub ipc: Option<IpcServer>,
+    pub xwayland_source: Option<RegistrationToken>,
 }
 
 impl Sparky {
@@ -91,6 +92,7 @@ impl Sparky {
             x_display: None,
             unmanaged: Vec::new(),
             ipc: None,
+            xwayland_source: None,
         })
     }
 

@@ -13,6 +13,8 @@ name = "sparky_compositor"
 path = "src/lib.rs"
 
 [dependencies]
+calloop = { version = "0.14", features = ["signals"] }
+libc = "0.2"
 sparky-ipc.workspace = true
 sparky-theme.workspace = true
 sparky-tiling.workspace = true

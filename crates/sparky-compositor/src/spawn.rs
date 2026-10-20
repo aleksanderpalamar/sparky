@@ -1,7 +1,8 @@
 use std::ffi::OsString;
+use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
-use std::thread;
+use std::{io, ptr, thread};
 
 use crate::state::Sparky;
 
@@ -25,6 +26,18 @@ impl Sparky {
     }
 }
 
+fn unblock_signals() -> io::Result<()> {
+    let mut empty = std::mem::MaybeUninit::<libc::sigset_t>::uninit();
+    let result = unsafe {
+        libc::sigemptyset(empty.as_mut_ptr());
+        libc::pthread_sigmask(libc::SIG_SETMASK, empty.as_ptr(), ptr::null_mut())
+    };
+    match result {
+        0 => Ok(()),
+        code => Err(io::Error::from_raw_os_error(code)),
+    }
+}
+
 pub fn spawn(command: &str, environment: &Environment) {
     let mut process = Command::new("sh");
     process
@@ -41,6 +54,9 @@ pub fn spawn(command: &str, environment: &Environment) {
     };
     if let Some(path) = &environment.ipc_socket {
         process.env(sparky_ipc::socket::VARIABLE, path);
+    }
+    unsafe {
+        process.pre_exec(unblock_signals);
     }
     match process.spawn() {
         Ok(mut child) => {
