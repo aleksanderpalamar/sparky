@@ -13,7 +13,8 @@ usage() {
 }
 
 compile() {
-  cargo zigbuild --release --locked --workspace --target "$target.$glibc"
+  RUSTFLAGS="-C link-arg=-Wl,--allow-shlib-undefined" \
+    cargo zigbuild --release --locked --workspace --target "$target.$glibc"
 }
 
 newest_glibc() {
@@ -24,6 +25,10 @@ check_glibc() {
   local binary newest
   for binary in "${binaries[@]}"; do
     newest="$(newest_glibc "$root/target/$target/release/$binary")"
+    if [[ -z "$newest" ]]; then
+      echo "$binary não foi compilado" >&2
+      return 1
+    fi
     if [[ "$(printf '%s\n%s\n' "$newest" "$glibc" | sort -V | tail -1)" != "$glibc" ]]; then
       echo "$binary pede glibc $newest, acima de $glibc" >&2
       return 1
@@ -52,10 +57,21 @@ main() {
   mkdir -p "$out"
   cd "$root"
   case "${1:-todos}" in
-    deb) portable && deb ;;
-    rpm) portable && rpm ;;
+    deb)
+      portable
+      deb
+      ;;
+    rpm)
+      portable
+      rpm
+      ;;
     pacman) pacman ;;
-    todos) portable && deb && rpm && pacman ;;
+    todos)
+      portable
+      deb
+      rpm
+      pacman
+      ;;
     *) usage ;;
   esac
 }
