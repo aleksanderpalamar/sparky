@@ -8,6 +8,7 @@ pub mod users;
 pub mod passwd;
 pub mod media;
 pub mod volumes;
+pub mod icons;
 pub mod themes;
 
 #[cfg(test)]
@@ -80,6 +81,7 @@ pub enum Request {
     SetSystemLayout(String),
     MountVolume(String),
     UnmountVolume(String),
+    SetIconTheme(String),
 }
 
 impl Request {
@@ -95,6 +97,9 @@ impl Request {
             Request::SetLocale(locale) => ("localectl", vec!["set-locale".to_owned(), format!("LANG={locale}")]),
             Request::SetConsoleKeymap(keymap) => ("localectl", vec!["set-keymap".to_owned(), keymap.clone()]),
             Request::SetSystemLayout(layout) => ("localectl", vec!["set-x11-keymap".to_owned(), layout.clone()]),
+            Request::SetIconTheme(name) => {
+                ("gsettings", vec!["set".to_owned(), "org.gnome.desktop.interface".to_owned(), "icon-theme".to_owned(), name.clone()])
+            }
             Request::MountVolume(path) => ("udisksctl", vec!["mount".to_owned(), "-b".to_owned(), path.clone()]),
             Request::UnmountVolume(path) => ("udisksctl", vec!["unmount".to_owned(), "-b".to_owned(), path.clone()]),
         }

@@ -1,6 +1,6 @@
 
 pkgname=sparky
-pkgver=0.16.0
+pkgver=0.17.0
 pkgrel=1
 pkgdesc='Ambiente de desktop Wayland em Rust, com compositor próprio em mosaico e feito para o teclado'
 arch=('x86_64')
@@ -33,6 +33,13 @@ optdepends=(
   'xdg-desktop-portal-gtk: portais para os aplicativos'
   'xdg-desktop-portal-wlr: captura e compartilhamento de tela pelos portais'
   'vulkan-icd-loader: renderização por Vulkan nos aplicativos'
+  'ttf-jetbrains-mono-nerd: fonte da barra, das abas e dos aplicativos'
+  'ttf-liberation: fontes com e sem serifa'
+  'noto-fonts: letras dos outros idiomas'
+  'noto-fonts-emoji: emoji'
+  'noto-fonts-cjk: chinês, japonês e coreano'
+  'woff2-font-awesome: ícones em forma de letra'
+  'yaru-icon-theme: ícones de cada tema (AUR)'
 )
 source=("$pkgname::git+file://$(realpath "$startdir/../..")")
 sha256sums=('SKIP')
@@ -66,7 +73,10 @@ package() {
   install -Dm644 data/portals/sparky-portals.conf -t "$pkgdir/usr/share/xdg-desktop-portal"
   install -Dm644 data/portals/sparky-keyring.portal -t "$pkgdir/usr/share/xdg-desktop-portal/portals"
   install -Dm644 data/applications/* -t "$pkgdir/usr/share/applications"
-  install -Dm644 data/themes/tokyo-night/colors.toml data/themes/tokyo-night/LICENSE -t "$pkgdir/usr/share/sparky/themes/tokyo-night"
+  local file
+  for file in data/themes/*/*; do
+    install -Dm644 "$file" "$pkgdir/usr/share/sparky/${file#data/}"
+  done
   install -Dm644 data/config/sparky.toml -t "$pkgdir/usr/share/sparky"
   install -Dm644 README.md -t "$pkgdir/usr/share/doc/$pkgname"
   install -Dm644 LICENSE -t "$pkgdir/usr/share/licenses/$pkgname"

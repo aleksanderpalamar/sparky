@@ -40,10 +40,33 @@ fn binarios_do(formato: &str) -> BTreeSet<String> {
         .collect()
 }
 
+fn expandir(origem: &str) -> Vec<String> {
+    let base = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let mut caminhos = vec![PathBuf::new()];
+    for parte in origem.split('/') {
+        caminhos = caminhos
+            .into_iter()
+            .flat_map(|caminho| match parte {
+                "*" => fs::read_dir(base.join(&caminho)).into_iter().flatten().flatten().map(|item| caminho.join(item.file_name())).collect(),
+                _ => vec![caminho.join(parte)],
+            })
+            .collect();
+    }
+    caminhos.into_iter().filter(|caminho| base.join(caminho).is_file()).map(|caminho| caminho.to_string_lossy().into_owned()).collect()
+}
+
 fn dados_do(formato: &str) -> BTreeSet<String> {
     origens(formato)
         .iter()
+        .flat_map(|origem| expandir(origem))
         .filter_map(|origem| origem.strip_prefix("../../data/").map(str::to_owned))
+        .collect()
+}
+
+fn padroes_que_cobrem(arquivo: &str) -> Vec<String> {
+    let partes: Vec<&str> = arquivo.split('/').collect();
+    (1..partes.len())
+        .map(|fixas| format!("data/{}/{}*", partes[..fixas].join("/"), "*/".repeat(partes.len() - fixas - 1)))
         .collect()
 }
 
@@ -115,8 +138,7 @@ fn o_pkgbuild_instala_todo_arquivo_de_data() {
     arquivos_de_dados(&base, &base, &mut presentes);
     let texto = pkgbuild();
     for arquivo in presentes {
-        let pasta = Path::new(&arquivo).parent().map(|pasta| format!("data/{}/*", pasta.display()));
-        let citado = texto.contains(&format!("data/{arquivo}")) || pasta.is_some_and(|pasta| texto.contains(&pasta));
+        let citado = texto.contains(&format!("data/{arquivo}")) || padroes_que_cobrem(&arquivo).iter().any(|padrao| texto.contains(padrao.as_str()));
         assert!(citado, "o PKGBUILD não instala data/{arquivo}");
     }
 }
@@ -125,7 +147,9 @@ fn o_pkgbuild_instala_todo_arquivo_de_data() {
 fn as_origens_que_nao_sao_binarios_existem() {
     let crate_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     for origem in origens("deb").into_iter().chain(origens("generate-rpm")) {
-        if !origem.starts_with("target/") {
+        if origem.contains('*') {
+            assert!(!expandir(&origem).is_empty(), "{origem} não acha nenhum arquivo");
+        } else if !origem.starts_with("target/") {
             assert!(crate_dir.join(&origem).is_file(), "{origem} não existe");
         }
     }

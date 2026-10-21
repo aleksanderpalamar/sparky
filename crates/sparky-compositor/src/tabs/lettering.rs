@@ -97,11 +97,13 @@ pub fn pixel(color: [f32; 4], coverage: f32) -> [u8; 4] {
     [channel(color[0]), channel(color[1]), channel(color[2]), (alpha * 255.0).round() as u8]
 }
 
+const FAMILIES: [Family<'static>; 2] = [Family::Name(sparky_theme::FONT_FAMILY), Family::Monospace];
+
 fn load() -> Option<Fonts> {
     let mut database = Database::new();
     database.load_system_fonts();
     let face = |weight: Weight| {
-        let query = Query { families: &[Family::Monospace], weight, ..Query::default() };
+        let query = Query { families: &FAMILIES, weight, ..Query::default() };
         let id = database.query(&query)?;
         database
             .with_face_data(id, |data, index| FontVec::try_from_vec_and_index(data.to_vec(), index).ok())
@@ -143,6 +145,11 @@ fn draw(font: &FontVec, text: &str, size: (i32, i32), color: [f32; 4]) -> Vec<u8
 #[cfg(test)]
 mod tests {
     use super::pixel;
+
+    #[test]
+    fn as_abas_preferem_a_fonte_do_sparky_e_caem_na_monoespacada() {
+        assert_eq!(super::FAMILIES, [fontdb::Family::Name("JetBrainsMono Nerd Font"), fontdb::Family::Monospace]);
+    }
 
     #[test]
     fn a_cor_sai_pre_multiplicada_pela_cobertura() {

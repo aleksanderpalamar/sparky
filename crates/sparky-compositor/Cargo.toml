@@ -64,7 +64,7 @@ configurações). Tudo tem atalho de teclado."""
 section = "x11"
 priority = "optional"
 depends = "libseat1, libinput10, libxkbcommon0, libgbm1, libdrm2, libudev1, libegl1, libgles2, libwayland-client0, libwayland-server0, libwayland-egl1, xwayland, xkb-data, wl-clipboard, libnotify-bin, xdg-utils"
-recommends = "mako-notifier, swaylock, foot | kitty, policykit-1-gnome | mate-polkit | lxpolkit, xdg-desktop-portal-gtk, xdg-desktop-portal-wlr, libvulkan1, udisks2"
+recommends = "mako-notifier, swaylock, foot | kitty, policykit-1-gnome | mate-polkit | lxpolkit, xdg-desktop-portal-gtk, xdg-desktop-portal-wlr, libvulkan1, udisks2, fonts-jetbrains-mono, fonts-liberation, fonts-noto-core, fonts-noto-color-emoji, fonts-noto-cjk, fonts-font-awesome, yaru-theme-icon"
 assets = [
     ["target/release/sparky", "usr/bin/", "755"],
     ["target/release/sparky-bar", "usr/bin/", "755"],
@@ -82,8 +82,7 @@ assets = [
     ["../../data/applications/sparky-settings.desktop", "usr/share/applications/", "644"],
     ["../../data/applications/sparky-shot.desktop", "usr/share/applications/", "644"],
     ["../../data/applications/sparky-mimeapps.list", "usr/share/applications/", "644"],
-    ["../../data/themes/tokyo-night/colors.toml", "usr/share/sparky/themes/tokyo-night/", "644"],
-    ["../../data/themes/tokyo-night/LICENSE", "usr/share/sparky/themes/tokyo-night/", "644"],
+    ["../../data/themes/*/*", "usr/share/sparky/themes/", "644"],
     ["../../data/config/sparky.toml", "usr/share/sparky/", "644"],
     ["../../README.md", "usr/share/doc/sparky/", "644"],
 ]
@@ -110,8 +109,7 @@ assets = [
     { source = "../../data/applications/sparky-settings.desktop", dest = "/usr/share/applications/sparky-settings.desktop", mode = "644" },
     { source = "../../data/applications/sparky-shot.desktop", dest = "/usr/share/applications/sparky-shot.desktop", mode = "644" },
     { source = "../../data/applications/sparky-mimeapps.list", dest = "/usr/share/applications/sparky-mimeapps.list", mode = "644" },
-    { source = "../../data/themes/tokyo-night/colors.toml", dest = "/usr/share/sparky/themes/tokyo-night/colors.toml", mode = "644" },
-    { source = "../../data/themes/tokyo-night/LICENSE", dest = "/usr/share/sparky/themes/tokyo-night/LICENSE", mode = "644", doc = true },
+    { source = "../../data/themes/*/*", dest = "/usr/share/sparky/themes/", mode = "644" },
     { source = "../../data/config/sparky.toml", dest = "/usr/share/sparky/sparky.toml", mode = "644" },
     { source = "../../README.md", dest = "/usr/share/doc/sparky/README.md", mode = "644", doc = true },
     { source = "../../LICENSE", dest = "/usr/share/licenses/sparky/LICENSE", mode = "644", doc = true },
@@ -144,3 +142,10 @@ polkit-gnome = "*"
 xdg-desktop-portal-gtk = "*"
 xdg-desktop-portal-wlr = "*"
 vulkan-loader = "*"
+jetbrains-mono-fonts = "*"
+liberation-fonts = "*"
+google-noto-sans-fonts = "*"
+google-noto-color-emoji-fonts = "*"
+google-noto-sans-cjk-fonts = "*"
+fontawesome-fonts-all = "*"
+yaru-icon-theme = "*"

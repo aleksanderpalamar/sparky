@@ -1,7 +1,7 @@
 use iced::Font;
 
 pub const NAMESPACE: &str = "sparky-bar";
-pub const FONT: Font = Font::MONOSPACE;
+pub const FONT: Font = sparky_ui::style::FONT;
 pub const HEIGHT: u32 = 26;
 pub const TEXT_SIZE: f32 = 12.0;
 pub const SLOT_WIDTH: f32 = 26.0;

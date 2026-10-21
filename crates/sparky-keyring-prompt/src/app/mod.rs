@@ -124,6 +124,7 @@ fn settings(mode: Mode) -> Settings {
             ..LayerShellSettings::default()
         },
         antialiasing: true,
+        default_font: sparky_ui::style::FONT,
         ..Settings::default()
     }
 }

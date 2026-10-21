@@ -10,14 +10,20 @@ use crate::app::test_support::{Comandos, Sparky, enter, painel_com};
 use crate::app::update::update;
 use crate::domain::section::Section;
 use crate::domain::system::themes::Theme;
+use crate::ports::fake::FakeCommands;
 use crate::ports::fake_themes::FakeThemes;
 
+const ICONES: &str = "gsettings set org.gnome.desktop.interface icon-theme Yaru-blue";
+
 fn painel() -> (Settings, Rc<FakeThemes>, Comandos) {
-    let commands = Comandos::default();
+    painel_com_tema(None, Comandos::default())
+}
+
+fn painel_com_tema(icones: Option<&str>, commands: Comandos) -> (Settings, Rc<FakeThemes>, Comandos) {
     let (mut settings, _) = painel_com(None, Sparky::default(), commands.clone());
     let store = Rc::new(FakeThemes::default());
     let theme = Theme::parse("azul", "accent = \"#010203\"").unwrap_or_else(|_| Theme::builtin());
-    store.catalog.borrow_mut().themes.push(theme);
+    store.catalog.borrow_mut().themes.push(theme.with_icons(icones.map(str::to_owned)));
     settings.services.themes = Box::new(store.clone());
     settings.reload_system();
     settings.go(Section::Themes);
@@ -73,4 +79,23 @@ fn evento_de_paleta_tambem_atualiza_a_marca_em_uso() {
     let rows = settings.themes.rows();
     assert_eq!(rows[0].control, crate::domain::system::Control::Toggle(false));
     assert_eq!(rows[1].control, crate::domain::system::Control::Toggle(true));
+}
+
+#[test]
+fn aplicar_um_tema_com_icones_troca_os_icones_pelo_gsettings() {
+    let commands = Comandos(Rc::new(FakeCommands::new().accepting(ICONES)));
+    let (mut settings, store, commands) = painel_com_tema(Some("Yaru-blue"), commands);
+    enter(&mut settings);
+    assert_eq!(*store.applied.borrow(), ["azul"]);
+    assert!(commands.0.calls().iter().any(|call| call == ICONES));
+    assert_eq!(settings.notice, Some(Notice::Info("Paleta azul aplicada com os ícones Yaru-blue.".to_owned())));
+}
+
+#[test]
+fn sem_gsettings_a_paleta_fica_e_o_aviso_explica_os_icones() {
+    let (mut settings, store, _) = painel_com_tema(Some("Yaru-blue"), Comandos::default());
+    enter(&mut settings);
+    assert_eq!(*store.applied.borrow(), ["azul"]);
+    assert_eq!(settings.context.skin, Skin::new(store.catalog.borrow().current));
+    assert!(matches!(&settings.notice, Some(Notice::Error(text)) if text.starts_with("Paleta azul aplicada, mas os ícones Yaru-blue não:")));
 }

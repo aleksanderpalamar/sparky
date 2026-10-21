@@ -10,6 +10,7 @@ pub struct Theme {
     pub name: String,
     contents: String,
     palette: Palette,
+    icons: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -37,6 +38,7 @@ impl Theme {
             name: "tokyo-night".to_owned(),
             contents: include_str!("../../../../../data/themes/tokyo-night/colors.toml").to_owned(),
             palette: Palette::TOKYO_NIGHT,
+            icons: None,
         }
     }
 
@@ -58,7 +60,7 @@ impl Theme {
         if !found {
             return Err(InvalidTheme::Empty);
         }
-        Ok(Self { name: name.to_owned(), contents: contents.to_owned(), palette: Palette::from_colors(contents) })
+        Ok(Self { name: name.to_owned(), contents: contents.to_owned(), palette: Palette::from_colors(contents), icons: None })
     }
 
     pub fn palette(&self) -> Palette {
@@ -67,6 +69,15 @@ impl Theme {
 
     pub fn contents(&self) -> &str {
         &self.contents
+    }
+
+    pub fn with_icons(mut self, icons: Option<String>) -> Self {
+        self.icons = icons;
+        self
+    }
+
+    pub fn icons(&self) -> Option<&str> {
+        self.icons.as_deref()
     }
 }
 

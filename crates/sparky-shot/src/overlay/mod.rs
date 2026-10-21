@@ -103,6 +103,7 @@ fn settings() -> Settings {
             start_mode: StartMode::Active,
             ..LayerShellSettings::default()
         },
+        default_font: sparky_ui::style::FONT,
         ..Settings::default()
     }
 }

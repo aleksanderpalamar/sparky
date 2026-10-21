@@ -21,6 +21,7 @@ pub fn run() -> iced::Result {
     iced::application(boot::boot, update::update, view::view)
         .title(view::title)
         .subscription(events::subscription)
+        .default_font(sparky_ui::style::FONT)
         .theme(|files: &Files| files.skin.theme())
         .window(sparky_ui::window::settings(style::APPLICATION_ID, Size::new(style::WINDOW_WIDTH, style::WINDOW_HEIGHT)))
         .run()

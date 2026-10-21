@@ -1,7 +1,7 @@
 use sparky_theme::{Palette, Rgb};
 
 use crate::domain::system::themes::{Catalog, Theme, Themes};
-use crate::domain::system::{Change, Control, RowId};
+use crate::domain::system::{Change, Control, Request, RowId};
 use crate::domain::value::Step;
 
 #[test]
@@ -39,4 +39,18 @@ fn falhas_de_catalogo_sao_somente_leitura() {
     assert_eq!(themes.rows()[0].control, Control::Reading);
     assert_eq!(themes.rows()[0].value, "sem permissão");
     assert_eq!(themes.request(RowId::Theme(0), Change::Activate), None);
+}
+
+#[test]
+fn o_tema_leva_o_nome_dos_icones() {
+    let tema = Theme::builtin().with_icons(Some("Yaru-blue".to_owned()));
+    assert_eq!(tema.icons(), Some("Yaru-blue"));
+    assert_eq!(Theme::builtin().icons(), None);
+}
+
+#[test]
+fn trocar_os_icones_vai_pelo_gsettings() {
+    let pedido = Request::SetIconTheme("Yaru-blue".to_owned());
+    let argumentos = ["set", "org.gnome.desktop.interface", "icon-theme", "Yaru-blue"].map(str::to_owned).to_vec();
+    assert_eq!(pedido.command(), ("gsettings", argumentos));
 }

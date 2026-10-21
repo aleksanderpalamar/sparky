@@ -8,6 +8,8 @@ pub use palette::{Mode, Palette};
 pub use rgb::Rgb;
 pub use skin::Skin;
 
+pub const FONT_FAMILY: &str = "JetBrainsMono Nerd Font";
+
 pub fn current_palette() -> Palette {
     Palette::load(
         |path| std::fs::read_to_string(path).ok(),

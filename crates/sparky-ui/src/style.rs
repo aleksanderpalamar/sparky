@@ -1,7 +1,8 @@
 use iced::widget::{button, container, text_input};
-use iced::{Background, Border, Color, Theme};
+use iced::{Background, Border, Color, Font, Theme};
 use sparky_theme::Skin;
 
+pub const FONT: Font = Font::with_name(sparky_theme::FONT_FAMILY);
 pub const TEXT_SIZE: f32 = 14.0;
 pub const SMALL_TEXT: f32 = 12.0;
 pub const TITLE_SIZE: f32 = 16.0;
@@ -84,7 +85,9 @@ mod tests {
     use iced::widget::{button, text_input};
     use sparky_theme::Skin;
 
-    use super::{Highlight, entry, input, row};
+    use iced::font::Family;
+
+    use super::{FONT, Highlight, entry, input, row};
 
     #[test]
     fn o_destaque_vem_da_selecao() {
@@ -99,6 +102,11 @@ mod tests {
         assert_eq!(row(skin, Highlight::Selected).border.radius, reto);
         assert_eq!(entry(skin, Highlight::Selected, button::Status::Active).border.radius, reto);
         assert_eq!(entry(skin, Highlight::Plain, button::Status::Hovered).border.radius, reto);
+    }
+
+    #[test]
+    fn os_aplicativos_usam_a_fonte_do_sparky() {
+        assert_eq!(FONT.family, Family::Name("JetBrainsMono Nerd Font"));
     }
 
     #[test]
