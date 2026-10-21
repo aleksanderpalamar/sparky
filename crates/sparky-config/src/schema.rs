@@ -15,7 +15,7 @@ pub struct Config {
     pub output: Vec<OutputRule>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct General {
     pub gaps_inner: i32,
@@ -24,6 +24,7 @@ pub struct General {
     pub float_width: i32,
     pub float_height: i32,
     pub default_binds: bool,
+    pub wallpaper: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -56,6 +57,7 @@ impl General {
         float_width: Style::SPARKY.float_size.0,
         float_height: Style::SPARKY.float_size.1,
         default_binds: true,
+        wallpaper: None,
     };
 
     pub fn style(&self) -> Style {

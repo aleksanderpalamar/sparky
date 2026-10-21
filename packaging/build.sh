@@ -43,10 +43,12 @@ portable() {
 
 deb() {
   cargo deb --package sparky-compositor --no-build --target "$target" --output "$out"
+  cargo deb --package sparky-compositor --no-build --target "$target" --output "$out" --variant wallpapers
 }
 
 rpm() {
   cargo generate-rpm --package crates/sparky-compositor --target "$target" --output "$out"
+  cargo generate-rpm --package crates/sparky-compositor --target "$target" --output "$out" --variant wallpapers
 }
 
 pacman() {

@@ -93,7 +93,7 @@ name = "DP-1"
 scale = 1.5
 ```
 
-Um `[[bind]]` com a mesma combinação de um atalho padrão substitui o padrão; `default_binds = false` descarta todos os padrões. Ações: `spawn` (`command`), `close-window`, `toggle-floating`, `fullscreen` (`mode` = `monitor` ou `maximized`), `toggle-split`, `focus` e `swap` (`direction` = `left`, `right`, `up`, `down`), `resize` (`width`, `height`), `workspace` (`workspace`), `move-to-workspace` (`workspace`, `follow`), `relative-workspace` (`step`), `previous-workspace`, `cycle-monitor` (`step`), `exit`. Cada `[[output]]` dá a escala de um monitor pelo nome (`sparky-msg outputs` lista os nomes), de 0.5 a 4, inclusive fracionada como 1.25 ou 1.5; sem regra vale 1. Os aplicativos recebem a escala pelo fractional-scale-v1 e desenham nítidos nela, e ao mudar a escala os monitores se reposicionam lado a lado. Sem `layout` em `[input]`, vale o teclado do sistema. Sem `terminal` em `[apps]`, vale `$TERMINAL` ou o primeiro terminal instalado.
+Um `[[bind]]` com a mesma combinação de um atalho padrão substitui o padrão; `default_binds = false` descarta todos os padrões. Ações: `spawn` (`command`), `close-window`, `toggle-floating`, `fullscreen` (`mode` = `monitor` ou `maximized`), `toggle-split`, `focus` e `swap` (`direction` = `left`, `right`, `up`, `down`), `resize` (`width`, `height`), `workspace` (`workspace`), `move-to-workspace` (`workspace`, `follow`), `relative-workspace` (`step`), `previous-workspace`, `cycle-monitor` (`step`), `exit`. Cada `[[output]]` dá a escala de um monitor pelo nome (`sparky-msg outputs` lista os nomes), de 0.5 a 4, inclusive fracionada como 1.25 ou 1.5; sem regra vale 1. Os aplicativos recebem a escala pelo fractional-scale-v1 e desenham nítidos nela, e ao mudar a escala os monitores se reposicionam lado a lado. Sem `layout` em `[input]`, vale o teclado do sistema. Sem `terminal` em `[apps]`, vale `$TERMINAL` ou o primeiro terminal instalado. `wallpaper` em `[general]` é o caminho da imagem de fundo (`~/` vale a pasta pessoal); `wallpaper = ""` deixa só a cor do tema, e sem a chave vale o primeiro papel de parede do Tokyo Night, se o pacote `sparky-wallpapers` estiver instalado.
 
 ## Sessão
 
@@ -190,7 +190,7 @@ O `sparky-settings` abre pelo `SUPER + ALT + ESPAÇO`. As mudanças de configura
 
 | Seção | O que muda |
 |---|---|
-| Aparência | Folgas, espessura da borda, tamanho das janelas flutuantes e os atalhos padrão |
+| Aparência | Folgas, espessura da borda, tamanho das janelas flutuantes, os atalhos padrão e o papel de parede |
 | Teclado | Layout, variante e opções do XKB (conferidos com o `evdev.lst` antes de gravar) e a repetição das teclas |
 | Aplicativos | Terminal, lançador, arquivos, configurações, capturador e bloqueio de tela que os atalhos abrem |
 | Inicialização | Comandos rodados quando a sessão começa |
@@ -227,7 +227,13 @@ A seção Temas lista paletas em `$XDG_DATA_HOME/sparky/themes/<nome>/colors.tom
 
 O sparky traz 22 temas: catppuccin, catppuccin-latte, ethereal, everforest, flexoki-light, gruvbox, hackerman, kanagawa, last-horizon, lumon, lupine, matte-black, miasma, nord, osaka-jade, retro-82, ristretto, rose-pine, solitude, tokyo-night, vantablack e white. Além do `colors.toml`, cada tema pode ter um `icons.theme` com o nome do tema de ícones que combina com ele (os temas do sparky usam as cores do Yaru, como `Yaru-blue` e `Yaru-sage`).
 
-`j`/`k` escolhem a paleta; `Enter` ou clique aplica. As cores são gravadas por substituição atômica em `~/.config/sparky/colors.toml` (respeitando `XDG_CONFIG_HOME`). Se o tema tiver `icons.theme`, o painel também troca o tema de ícones: grava `gtk-icon-theme-name` no `settings.ini` do GTK 3 e do GTK 4 (as outras chaves ficam) e roda `gsettings set org.gnome.desktop.interface icon-theme`. Esse ajuste é do GTK, então vale também fora do sparky. O painel atualiza imediatamente; compositor, barra, lançador, arquivos e capturador verificam as cores a cada segundo, preservando janelas, seleção e edições abertas. A seção não depende de Hyprland ou hypr-theme e não gerencia papel de parede nem temas de aplicativos externos.
+`j`/`k` escolhem a paleta; `Enter` ou clique aplica. As cores são gravadas por substituição atômica em `~/.config/sparky/colors.toml` (respeitando `XDG_CONFIG_HOME`). Se o tema tiver `icons.theme`, o painel também troca o tema de ícones: grava `gtk-icon-theme-name` no `settings.ini` do GTK 3 e do GTK 4 (as outras chaves ficam) e roda `gsettings set org.gnome.desktop.interface icon-theme`. Esse ajuste é do GTK, então vale também fora do sparky. O painel atualiza imediatamente; compositor, barra, lançador, arquivos e capturador verificam as cores a cada segundo, preservando janelas, seleção e edições abertas. A seção não depende de Hyprland ou hypr-theme e não gerencia temas de aplicativos externos.
+
+### Papel de parede
+
+O compositor desenha o papel de parede atrás de tudo em cada monitor, recortado para cobrir a tela sem distorcer, no tamanho em pixels do monitor (a escala conta). A imagem (JPEG, PNG ou WebP) é carregada fora do laço do compositor; até ficar pronta, vale a cor de fundo do tema. Uma mudança no `sparky.toml` troca o papel de parede na hora.
+
+Os papéis de parede de cada tema ficam em `$XDG_DATA_HOME/sparky/wallpapers/<tema>/` (os do usuário vêm primeiro) e em `$SPARKY_PATH/wallpapers/<tema>/`, onde o pacote `sparky-wallpapers` instala 67 imagens dos 22 temas, em ordem de nome. Aplicar um tema no painel escolhe o primeiro papel de parede dele. A linha **Papel de parede**, no topo da seção Temas, mostra qual está em uso (`2 de 3 · 2-b.webp`) e `h`/`l` ou `Enter` passam para o anterior ou o próximo; a escolha vai para `wallpaper` no `sparky.toml`. Em Aparência dá para digitar qualquer caminho.
 
 ### Fontes
 
@@ -244,6 +250,7 @@ packaging/build.sh deb       # só um deles: deb, rpm ou pacman
 
 - `.deb` e `.rpm` são compilados com `cargo zigbuild` contra a glibc 2.36, para rodar no Debian 12+, Ubuntu 24.04+ e Fedora 40+; o script para se algum binário pedir uma glibc mais nova. Precisam de `zig`, `cargo-zigbuild`, `cargo-deb` e `cargo-generate-rpm`.
 - O pacote do pacman sai do `packaging/arch/PKGBUILD`, que compila o que está commitado no repositório com `makepkg`.
+- Os papéis de parede saem num pacote à parte, `sparky-wallpapers` (variante `wallpapers` do `cargo-deb` e do `cargo-generate-rpm`, e pacote dividido no PKGBUILD), para o `sparky` continuar leve.
 
 Os três instalam os binários em `/usr/bin`, a sessão em `/usr/share/wayland-sessions` (aparece no SDDM e no GDM), os temas e o `sparky.toml` de exemplo em `/usr/share/sparky`, as entradas dos aplicativos e o `sparky-mimeapps.list`, que faz as pastas abrirem no `sparky-files` dentro da sessão.
 
@@ -258,7 +265,7 @@ cargo clippy --all-targets
 
 ## Créditos
 
-Os temas de `data/themes` (paletas e nomes dos temas de ícones) e o layout vêm do Omarchy, © David Heinemeier Hansson, licença MIT; a licença acompanha cada tema.
+Os temas de `data/themes` (paletas e nomes dos temas de ícones), os papéis de parede de `data/wallpapers` e o layout vêm do Omarchy, © David Heinemeier Hansson, licença MIT; a licença acompanha cada tema. O repositório do Omarchy não informa a autoria das imagens.
 
 ## Licença
 

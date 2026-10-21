@@ -6,7 +6,7 @@ use sparky_ui::notice::Notice;
 
 use crate::app::message::Message;
 use crate::app::state::{Mode, Settings};
-use crate::app::test_support::{Comandos, Sparky, enter, painel_com};
+use crate::app::test_support::{Comandos, Sparky, enter, painel_com, salvo, tecla};
 use crate::app::update::update;
 use crate::domain::section::Section;
 use crate::domain::system::themes::Theme;
@@ -98,4 +98,41 @@ fn sem_gsettings_a_paleta_fica_e_o_aviso_explica_os_icones() {
     assert_eq!(*store.applied.borrow(), ["azul"]);
     assert_eq!(settings.context.skin, Skin::new(store.catalog.borrow().current));
     assert!(matches!(&settings.notice, Some(Notice::Error(text)) if text.starts_with("Paleta azul aplicada, mas os ícones Yaru-blue não:")));
+}
+
+fn painel_com_fundos() -> (Settings, crate::app::test_support::Arquivo, Rc<FakeThemes>) {
+    let (mut settings, arquivo) = painel_com(None, Sparky::default(), Comandos::default());
+    let store = Rc::new(FakeThemes::default());
+    let fundos = ["/w/azul/1-a.jpg", "/w/azul/2-b.jpg"].map(std::path::PathBuf::from).to_vec();
+    let theme = Theme::parse("azul", "accent = \"#010203\"").unwrap_or_else(|_| Theme::builtin());
+    store.catalog.borrow_mut().themes.push(theme.with_wallpapers(fundos));
+    settings.services.themes = Box::new(store.clone());
+    settings.reload_system();
+    settings.go(Section::Themes);
+    settings.point(1);
+    (settings, arquivo, store)
+}
+
+#[test]
+fn aplicar_um_tema_com_fundos_escolhe_o_primeiro() {
+    let (mut settings, arquivo, store) = painel_com_fundos();
+    enter(&mut settings);
+    assert_eq!(*store.applied.borrow(), ["azul"]);
+    assert!(salvo(&arquivo).contains("wallpaper = \"/w/azul/1-a.jpg\""));
+    assert_eq!(settings.config.general.wallpaper.as_deref(), Some("/w/azul/1-a.jpg"));
+    assert_eq!(settings.notice, Some(Notice::Info("Paleta azul aplicada.".to_owned())));
+}
+
+#[test]
+fn a_linha_do_papel_de_parede_troca_entre_os_fundos_do_tema() {
+    let (mut settings, arquivo, _) = painel_com_fundos();
+    enter(&mut settings);
+    settings.point(0);
+    assert_eq!(settings.system_rows()[0].value, "1 de 2 · 1-a.jpg");
+    tecla(&mut settings, "l");
+    assert_eq!(settings.config.general.wallpaper.as_deref(), Some("/w/azul/2-b.jpg"));
+    assert!(salvo(&arquivo).contains("wallpaper = \"/w/azul/2-b.jpg\""));
+    assert_eq!(settings.system_rows()[0].value, "2 de 2 · 2-b.jpg");
+    enter(&mut settings);
+    assert_eq!(settings.config.general.wallpaper.as_deref(), Some("/w/azul/1-a.jpg"));
 }

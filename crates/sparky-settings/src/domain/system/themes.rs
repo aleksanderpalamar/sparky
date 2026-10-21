@@ -1,4 +1,5 @@
 use std::fmt;
+use std::path::PathBuf;
 
 use sparky_theme::{Mode, Palette, Rgb, colors_file};
 
@@ -11,6 +12,7 @@ pub struct Theme {
     contents: String,
     palette: Palette,
     icons: Option<String>,
+    wallpapers: Vec<PathBuf>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -39,6 +41,7 @@ impl Theme {
             contents: include_str!("../../../../../data/themes/tokyo-night/colors.toml").to_owned(),
             palette: Palette::TOKYO_NIGHT,
             icons: None,
+            wallpapers: Vec::new(),
         }
     }
 
@@ -60,7 +63,7 @@ impl Theme {
         if !found {
             return Err(InvalidTheme::Empty);
         }
-        Ok(Self { name: name.to_owned(), contents: contents.to_owned(), palette: Palette::from_colors(contents), icons: None })
+        Ok(Self { name: name.to_owned(), contents: contents.to_owned(), palette: Palette::from_colors(contents), icons: None, wallpapers: Vec::new() })
     }
 
     pub fn palette(&self) -> Palette {
@@ -78,6 +81,15 @@ impl Theme {
 
     pub fn icons(&self) -> Option<&str> {
         self.icons.as_deref()
+    }
+
+    pub fn with_wallpapers(mut self, wallpapers: Vec<PathBuf>) -> Self {
+        self.wallpapers = wallpapers;
+        self
+    }
+
+    pub fn wallpapers(&self) -> &[PathBuf] {
+        &self.wallpapers
     }
 }
 

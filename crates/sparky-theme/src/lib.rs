@@ -3,6 +3,7 @@ pub mod locations;
 pub mod palette;
 pub mod rgb;
 pub mod skin;
+pub mod wallpapers;
 
 pub use palette::{Mode, Palette};
 pub use rgb::Rgb;

@@ -20,7 +20,7 @@ impl Settings {
             Section::DateTime => self.datetime.rows(),
             Section::Region => self.region.rows(),
             Section::Media => self.media.rows(),
-            Section::Themes => self.themes.rows(),
+            Section::Themes => self.theme_rows(),
             _ => Vec::new(),
         }
     }

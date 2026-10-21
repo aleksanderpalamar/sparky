@@ -66,7 +66,9 @@ class BuildPackagesTest(unittest.TestCase):
     def test_rpm_localiza_manifesto_do_crate_a_partir_de_outra_pasta(self):
         result = self.run_rpm()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual([command[0] for command in self.commands()], ["zigbuild", "generate-rpm"])
+        self.assertEqual([command[0] for command in self.commands()], ["zigbuild", "generate-rpm", "generate-rpm"])
+        self.assertIn("--variant", self.commands()[2])
+        self.assertEqual(self.commands()[2][self.commands()[2].index("--variant") + 1], "wallpapers")
 
     def test_compilacao_recusada_impede_geracao_do_rpm(self):
         self.environment["SPARKY_COMPILE_EXIT"] = "17"

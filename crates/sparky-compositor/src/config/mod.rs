@@ -54,6 +54,7 @@ impl Sparky {
             true => self.apply_output_scales(),
             false => self.relayout(),
         }
+        self.refresh_wallpaper();
     }
 
     fn apply_keyboard(&mut self, config: &Config) {

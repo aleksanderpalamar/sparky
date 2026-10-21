@@ -22,6 +22,7 @@ impl Sparky {
         for name in gone {
             self.desktop.remove_monitor(&name);
         }
+        self.refresh_wallpaper();
     }
 
     fn sync_output(&mut self, output: &Output) {

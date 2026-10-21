@@ -19,6 +19,7 @@ pub enum Field {
     Settings,
     Screenshot,
     Locker,
+    Wallpaper,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -41,13 +42,14 @@ pub enum Kind {
     Text(Blank),
 }
 
-const APPEARANCE: [Field; 6] = [
+const APPEARANCE: [Field; 7] = [
     Field::GapsInner,
     Field::GapsOuter,
     Field::Border,
     Field::FloatWidth,
     Field::FloatHeight,
     Field::DefaultBinds,
+    Field::Wallpaper,
 ];
 const KEYBOARD: [Field; 5] = [Field::Layout, Field::Variant, Field::Options, Field::RepeatRate, Field::RepeatDelay];
 const APPS: [Field; 6] = [
@@ -83,7 +85,7 @@ impl Field {
             Field::RepeatRate => bounds(1, 100, 5),
             Field::RepeatDelay => bounds(100, 1000, 25),
             Field::DefaultBinds => Kind::Flag,
-            Field::Layout | Field::Variant | Field::Options | Field::Terminal => Kind::Text(Blank::Allowed),
+            Field::Layout | Field::Variant | Field::Options | Field::Terminal | Field::Wallpaper => Kind::Text(Blank::Allowed),
             Field::Launcher | Field::Files | Field::Settings | Field::Screenshot | Field::Locker => Kind::Text(Blank::Refused),
         }
     }
@@ -107,6 +109,7 @@ impl Field {
             Field::Settings => ("apps", "settings"),
             Field::Screenshot => ("apps", "screenshot"),
             Field::Locker => ("apps", "locker"),
+            Field::Wallpaper => ("general", "wallpaper"),
         }
     }
 }
@@ -118,7 +121,9 @@ mod tests {
 
     #[test]
     fn so_as_secoes_de_configuracao_tem_campos() {
-        assert_eq!(Field::of(Section::Appearance).len(), 6);
+        assert_eq!(Field::of(Section::Appearance).len(), 7);
+        assert_eq!(Field::Wallpaper.place(), ("general", "wallpaper"));
+        assert_eq!(Field::Wallpaper.kind(), Kind::Text(Blank::Allowed));
         assert_eq!(Field::of(Section::Keyboard)[0], Field::Layout);
         assert!(Field::of(Section::About).is_empty());
     }

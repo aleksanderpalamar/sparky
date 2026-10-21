@@ -21,5 +21,6 @@ pub mod spawn;
 pub mod startup;
 pub mod tabs;
 pub mod state;
+pub mod wallpaper;
 pub mod windows;
 pub mod xwayland;

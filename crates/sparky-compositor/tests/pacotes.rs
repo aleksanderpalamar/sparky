@@ -21,8 +21,16 @@ fn metadados(formato: &str) -> Value {
     manifesto["package"]["metadata"][formato].clone()
 }
 
+fn variante(formato: &str) -> Value {
+    metadados(formato)["variants"]["wallpapers"].clone()
+}
+
 fn origens(formato: &str) -> Vec<String> {
-    let assets = metadados(formato)["assets"].as_array().cloned().unwrap_or_default();
+    origens_de(&metadados(formato))
+}
+
+fn origens_de(metadados: &Value) -> Vec<String> {
+    let assets = metadados.get("assets").and_then(Value::as_array).cloned().unwrap_or_default();
     assets
         .iter()
         .filter_map(|asset| match asset {
@@ -56,7 +64,11 @@ fn expandir(origem: &str) -> Vec<String> {
 }
 
 fn dados_do(formato: &str) -> BTreeSet<String> {
-    origens(formato)
+    dados_de(origens(formato))
+}
+
+fn dados_de(origens: Vec<String>) -> BTreeSet<String> {
+    origens
         .iter()
         .flat_map(|origem| expandir(origem))
         .filter_map(|origem| origem.strip_prefix("../../data/").map(str::to_owned))
@@ -122,13 +134,34 @@ fn o_pkgbuild_instala_os_mesmos_binarios() {
     assert_eq!(instalados, binarios_do_workspace());
 }
 
-#[test]
-fn todo_arquivo_de_data_vai_no_deb_e_no_rpm() {
+fn dados_presentes() -> (BTreeSet<String>, BTreeSet<String>) {
     let base = raiz().join("data");
     let mut presentes = BTreeSet::new();
     arquivos_de_dados(&base, &base, &mut presentes);
-    assert_eq!(dados_do("deb"), presentes);
-    assert_eq!(dados_do("generate-rpm"), presentes);
+    presentes.into_iter().partition(|arquivo| !arquivo.starts_with("wallpapers/"))
+}
+
+#[test]
+fn todo_arquivo_de_data_vai_no_deb_e_no_rpm() {
+    let (sistema, _) = dados_presentes();
+    assert_eq!(dados_do("deb"), sistema);
+    assert_eq!(dados_do("generate-rpm"), sistema);
+}
+
+#[test]
+fn os_papeis_de_parede_vao_num_pacote_proprio() {
+    let (_, papeis) = dados_presentes();
+    assert!(papeis.len() > 20);
+    for formato in ["deb", "generate-rpm"] {
+        let pacote = variante(formato);
+        assert_eq!(pacote["name"].as_str(), Some("sparky-wallpapers"), "{formato}");
+        assert_eq!(dados_de(origens_de(&pacote)), papeis, "{formato}");
+    }
+    let texto = pkgbuild();
+    let funcao = texto.split("package_sparky-wallpapers()").nth(1).unwrap_or_default();
+    assert!(texto.contains("pkgname=(sparky sparky-wallpapers)"));
+    assert!(funcao.contains("data/wallpapers/*/*"));
+    assert!(!texto.split("package_sparky-wallpapers()").next().unwrap_or_default().contains("data/wallpapers"));
 }
 
 #[test]

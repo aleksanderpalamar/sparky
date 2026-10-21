@@ -4,7 +4,7 @@ use std::fs;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
-use sparky_theme::{Palette, locations};
+use sparky_theme::{Palette, locations, wallpapers};
 
 use crate::domain::system::icons::{icon_theme_of, with_icon_theme};
 use crate::domain::system::themes::{Catalog, Theme};
@@ -15,15 +15,21 @@ pub struct ThemeFiles {
     target: PathBuf,
     default_colors: PathBuf,
     gtk: Vec<PathBuf>,
+    wallpapers: Vec<PathBuf>,
 }
 
 impl ThemeFiles {
     pub fn new(roots: Vec<PathBuf>, target: PathBuf, default_colors: PathBuf) -> Self {
-        Self { roots, target, default_colors, gtk: Vec::new() }
+        Self { roots, target, default_colors, gtk: Vec::new(), wallpapers: Vec::new() }
     }
 
     pub fn with_gtk(mut self, gtk: Vec<PathBuf>) -> Self {
         self.gtk = gtk;
+        self
+    }
+
+    pub fn with_wallpapers(mut self, roots: Vec<PathBuf>) -> Self {
+        self.wallpapers = roots;
         self
     }
 
@@ -41,6 +47,7 @@ impl ThemeFiles {
             system.join("tokyo-night/colors.toml"),
         )
         .with_gtk(vec![config_home.join("gtk-3.0"), config_home.join("gtk-4.0")])
+        .with_wallpapers(wallpapers::roots_from_env())
     }
 
     fn catalog(&self) -> io::Result<BTreeMap<String, Theme>> {
@@ -57,7 +64,8 @@ impl ThemeFiles {
                 let name = entry.file_name().to_string_lossy().into_owned();
                 let Ok(theme) = Theme::parse(&name, &contents) else { continue };
                 let icons = fs::read_to_string(entry.path().join("icons.theme")).ok().as_deref().and_then(icon_theme_of);
-                themes.entry(name).or_insert(theme.with_icons(icons));
+                let found = wallpapers::of_theme(&self.wallpapers, &name);
+                themes.entry(name).or_insert(theme.with_icons(icons).with_wallpapers(found));
             }
         }
         themes.entry("tokyo-night".to_owned()).or_insert_with(Theme::builtin);

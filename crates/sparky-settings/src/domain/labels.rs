@@ -20,6 +20,7 @@ impl Field {
             Field::Settings => "Configurações",
             Field::Screenshot => "Capturador de tela",
             Field::Locker => "Bloqueio de tela",
+            Field::Wallpaper => "Papel de parede",
         }
     }
 
@@ -41,6 +42,7 @@ impl Field {
             Field::Settings => "SUPER + ALT + ESPAÇO",
             Field::Screenshot => "PRINT e as variações",
             Field::Locker => "SUPER + CTRL + L; precisa falar ext-session-lock, como swaylock ou hyprlock",
+            Field::Wallpaper => "caminho da imagem; vazio usa o do tema padrão; a seção Temas troca entre os do tema",
         }
     }
 }

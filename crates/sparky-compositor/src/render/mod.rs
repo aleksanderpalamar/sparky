@@ -6,3 +6,4 @@ pub mod frames;
 pub mod lock;
 pub mod output;
 pub mod tabs;
+pub mod wallpaper;

@@ -128,3 +128,18 @@ fn os_temas_do_pacote_sao_validos_e_trazem_icones() -> std::io::Result<()> {
     }
     Ok(())
 }
+
+#[test]
+fn os_fundos_do_tema_vem_das_pastas_de_papeis_de_parede() -> std::io::Result<()> {
+    let dir = tempfile::tempdir()?;
+    let system = dir.path().join("sistema");
+    let papeis = dir.path().join("papeis");
+    fs::create_dir_all(system.join("azul"))?;
+    fs::create_dir_all(papeis.join("azul"))?;
+    fs::write(system.join("azul/colors.toml"), "accent = \"#010203\"")?;
+    fs::write(papeis.join("azul/1-lago.webp"), "x")?;
+    let store = ThemeFiles::new(vec![system], dir.path().join("cfg/colors.toml"), dir.path().join("padrao/colors.toml")).with_wallpapers(vec![papeis.clone()]);
+    let catalog = store.load()?;
+    assert_eq!(catalog.themes[0].wallpapers(), &[papeis.join("azul/1-lago.webp")]);
+    Ok(())
+}

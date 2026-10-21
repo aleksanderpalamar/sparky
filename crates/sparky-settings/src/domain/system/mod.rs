@@ -10,6 +10,7 @@ pub mod media;
 pub mod volumes;
 pub mod icons;
 pub mod themes;
+pub mod wallpaper;
 
 #[cfg(test)]
 mod datetime_tests;
@@ -23,6 +24,8 @@ mod users_tests;
 mod media_tests;
 #[cfg(test)]
 mod themes_tests;
+#[cfg(test)]
+mod wallpaper_tests;
 
 use crate::domain::value::Step;
 use crate::ports::commands::{CommandError, CommandRunner};
@@ -52,6 +55,7 @@ pub enum RowId {
     MediaStatus,
     Theme(usize),
     ThemeStatus,
+    Wallpaper,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

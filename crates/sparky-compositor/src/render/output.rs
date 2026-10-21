@@ -12,6 +12,7 @@ use crate::render::border;
 use crate::render::elements::SparkyElement;
 use crate::render::lock::lock_elements;
 use crate::render::tabs::tab_elements;
+use crate::render::wallpaper::wallpaper_element;
 use crate::state::Sparky;
 
 struct Target {
@@ -50,6 +51,7 @@ where
     elements.extend(windows(state, renderer, &below, &bars, &target));
     elements.extend(layer_elements(&map, renderer, ShellLayer::Bottom, &target));
     elements.extend(layer_elements(&map, renderer, ShellLayer::Background, &target));
+    elements.extend(wallpaper_element(state, renderer, output, geometry.size));
     elements
 }
 

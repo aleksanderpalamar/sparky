@@ -23,6 +23,7 @@ use crate::render::colors::BorderColors;
 use crate::render::frames::Frames;
 use crate::lock::Lock;
 use crate::tabs::lettering::Lettering;
+use crate::wallpaper::Wallpaper;
 use crate::tabs::paint::TabPaint;
 use crate::state::protocols::Protocols;
 use crate::windows::registry::Registry;
@@ -45,6 +46,7 @@ pub struct Sparky {
     pub tab_paint: TabPaint,
     pub lettering: Lettering,
     pub lock: Lock,
+    pub wallpaper: Wallpaper,
     pub colors: BorderColors,
     pub backend: Backend,
     pub cursor_status: CursorImageStatus,
@@ -71,6 +73,7 @@ impl Sparky {
         seat.add_pointer();
         let loop_handle = event_loop.handle();
         let socket_name = listener::listen(display, &loop_handle)?;
+        let wallpaper = Wallpaper::new(&loop_handle);
         Ok(Self {
             display_handle,
             loop_handle,
@@ -89,6 +92,7 @@ impl Sparky {
             tab_paint: TabPaint::default(),
             lettering: Lettering::default(),
             lock: Lock::default(),
+            wallpaper,
             colors: BorderColors::from_palette(sparky_theme::current_palette()),
             backend: Backend::Starting,
             cursor_status: CursorImageStatus::default_named(),

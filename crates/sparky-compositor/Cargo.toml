@@ -18,6 +18,7 @@ path = "src/lib.rs"
 ab_glyph = "0.2"
 calloop = { version = "0.14", features = ["signals"] }
 fontdb = "0.23"
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
 libc = "0.2"
 png = "0.17"
 sparky-config.workspace = true
@@ -49,6 +50,7 @@ features = [
 ]
 
 [dev-dependencies]
+tempfile = "3"
 toml = "0.8"
 
 [package.metadata.deb]
@@ -85,6 +87,15 @@ assets = [
     ["../../data/themes/*/*", "usr/share/sparky/themes/", "644"],
     ["../../data/config/sparky.toml", "usr/share/sparky/", "644"],
     ["../../README.md", "usr/share/doc/sparky/", "644"],
+]
+
+[package.metadata.deb.variants.wallpapers]
+name = "sparky-wallpapers"
+extended-description = "Papéis de parede dos temas do sparky, em /usr/share/sparky/wallpapers/<tema>."
+depends = "sparky"
+recommends = ""
+assets = [
+    ["../../data/wallpapers/*/*", "usr/share/sparky/wallpapers/", "644"],
 ]
 
 [package.metadata.generate-rpm]
@@ -149,3 +160,12 @@ google-noto-color-emoji-fonts = "*"
 google-noto-sans-cjk-fonts = "*"
 fontawesome-fonts-all = "*"
 yaru-icon-theme = "*"
+
+[package.metadata.generate-rpm.variants.wallpapers]
+name = "sparky-wallpapers"
+summary = "Papéis de parede dos temas do sparky"
+assets = [
+    { source = "../../data/wallpapers/*/*", dest = "/usr/share/sparky/wallpapers/", mode = "644" },
+]
+requires = { sparky = "*" }
+recommends = {}

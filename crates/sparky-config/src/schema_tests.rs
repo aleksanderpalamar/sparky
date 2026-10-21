@@ -128,3 +128,12 @@ fn o_locker_padrao_e_o_swaylock_e_pode_trocar() {
     let Ok(config) = parse("[apps]\nlocker = \"hyprlock\"\n") else { panic!("deveria ler o locker") };
     assert_eq!(config.apps.locker, "hyprlock");
 }
+
+#[test]
+fn o_papel_de_parede_e_opcional_no_general() {
+    assert_eq!(Config::default().general.wallpaper, None);
+    let Ok(config) = parse("[general]\nwallpaper = \"~/Imagens/fundo.webp\"\n") else {
+        panic!("o sparky.toml com papel de parede deveria ser aceito");
+    };
+    assert_eq!(config.general.wallpaper.as_deref(), Some("~/Imagens/fundo.webp"));
+}

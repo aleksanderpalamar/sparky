@@ -1,6 +1,7 @@
 
-pkgname=sparky
-pkgver=0.17.0
+pkgbase=sparky
+pkgname=(sparky sparky-wallpapers)
+pkgver=0.18.0
 pkgrel=1
 pkgdesc='Ambiente de desktop Wayland em Rust, com compositor próprio em mosaico e feito para o teclado'
 arch=('x86_64')
@@ -41,30 +42,30 @@ optdepends=(
   'woff2-font-awesome: ícones em forma de letra'
   'yaru-icon-theme: ícones de cada tema (AUR)'
 )
-source=("$pkgname::git+file://$(realpath "$startdir/../..")")
+source=("$pkgbase::git+file://$(realpath "$startdir/../..")")
 sha256sums=('SKIP')
 
 prepare() {
-  cd "$pkgname"
+  cd "$pkgbase"
   export RUSTUP_TOOLCHAIN=stable
   cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
 }
 
 build() {
-  cd "$pkgname"
+  cd "$pkgbase"
   export RUSTUP_TOOLCHAIN=stable
   export CARGO_TARGET_DIR=target
   cargo build --frozen --release --workspace
 }
 
 check() {
-  cd "$pkgname"
+  cd "$pkgbase"
   export RUSTUP_TOOLCHAIN=stable
   cargo test --frozen --release --workspace
 }
 
-package() {
-  cd "$pkgname"
+package_sparky() {
+  cd "$pkgbase"
   local binary
   for binary in sparky sparky-bar sparky-msg sparky-shot sparky-files sparky-settings sparky-launcher sparky-keyring sparky-keyring-prompt; do
     install -Dm755 "target/release/$binary" -t "$pkgdir/usr/bin"
@@ -80,4 +81,16 @@ package() {
   install -Dm644 data/config/sparky.toml -t "$pkgdir/usr/share/sparky"
   install -Dm644 README.md -t "$pkgdir/usr/share/doc/$pkgname"
   install -Dm644 LICENSE -t "$pkgdir/usr/share/licenses/$pkgname"
+}
+
+package_sparky-wallpapers() {
+  pkgdesc='Papéis de parede dos temas do sparky'
+  arch=('any')
+  depends=('sparky')
+  optdepends=()
+  cd "$pkgbase"
+  local file
+  for file in data/wallpapers/*/*; do
+    install -Dm644 "$file" "$pkgdir/usr/share/sparky/${file#data/}"
+  done
 }
