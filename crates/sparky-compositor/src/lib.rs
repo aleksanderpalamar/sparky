@@ -12,6 +12,7 @@ pub mod handlers;
 pub mod input;
 pub mod ipc;
 pub mod layout;
+pub mod lock;
 pub mod render;
 pub mod screencopy;
 pub mod session;

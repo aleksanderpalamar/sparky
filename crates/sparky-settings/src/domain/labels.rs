@@ -19,6 +19,7 @@ impl Field {
             Field::Files => "Gerenciador de arquivos",
             Field::Settings => "Configurações",
             Field::Screenshot => "Capturador de tela",
+            Field::Locker => "Bloqueio de tela",
         }
     }
 
@@ -39,6 +40,7 @@ impl Field {
             Field::Files => "SUPER + SHIFT + F",
             Field::Settings => "SUPER + ALT + ESPAÇO",
             Field::Screenshot => "PRINT e as variações",
+            Field::Locker => "SUPER + CTRL + L; precisa falar ext-session-lock, como swaylock ou hyprlock",
         }
     }
 }

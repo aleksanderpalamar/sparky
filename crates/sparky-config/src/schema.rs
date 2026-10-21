@@ -45,6 +45,7 @@ pub struct Apps {
     pub files: String,
     pub settings: String,
     pub screenshot: String,
+    pub locker: String,
 }
 
 impl General {
@@ -99,6 +100,7 @@ impl Default for Apps {
             files: "sparky-files".to_owned(),
             settings: "sparky-settings".to_owned(),
             screenshot: "sparky-shot".to_owned(),
+            locker: "swaylock".to_owned(),
         }
     }
 }

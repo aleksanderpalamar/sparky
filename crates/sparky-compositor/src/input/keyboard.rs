@@ -31,7 +31,11 @@ impl Sparky {
     fn press(&mut self, code: u32, modifiers: &ModifiersState, handle: &KeysymHandle<'_>) -> FilterResult<Option<Action>> {
         let terminal = vt::terminal_for(handle.modified_sym().raw()).map(|terminal| Action::SwitchTerminal { terminal });
         let sym = handle.raw_latin_sym_or_raw_current_sym();
-        let action = terminal.or_else(|| self.bindings.find(mods_of(modifiers), code, sym).cloned());
+        let binding = match self.lock.is_locked() {
+            true => None,
+            false => self.bindings.find(mods_of(modifiers), code, sym).cloned(),
+        };
+        let action = terminal.or(binding);
         match action {
             Some(action) => {
                 self.suppressed_keys.push(code);

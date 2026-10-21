@@ -86,3 +86,8 @@ fn as_abas_andam_por_tab_por_ctrl_com_seta_e_pelo_numero() {
 fn print_captura_uma_regiao() {
     assert_eq!(acao("PRINT"), Some(Action::Spawn { command: "sparky-shot region".to_owned() }));
 }
+
+#[test]
+fn super_ctrl_l_bloqueia_a_sessao_com_o_locker() {
+    assert_eq!(acao("SUPER + CTRL + L"), Some(Action::Spawn { command: "swaylock".to_owned() }));
+}

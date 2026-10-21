@@ -29,6 +29,7 @@ fn applications(apps: &Apps, terminal: &str) -> Vec<Bind> {
         bind("SHIFT + PRINT", spawn(&format!("{} window", apps.screenshot))),
         bind("CTRL + PRINT", spawn(&format!("{} output", apps.screenshot))),
         bind("SUPER + PRINT", spawn(&apps.screenshot)),
+        bind("SUPER + CTRL + L", spawn(&apps.locker)),
         bind("SUPER + SHIFT + ESCAPE", Action::Exit),
     ]
 }

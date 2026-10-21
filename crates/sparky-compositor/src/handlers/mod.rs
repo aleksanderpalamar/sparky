@@ -6,6 +6,7 @@ mod fractional_scale;
 mod layer_shell;
 mod pointer;
 mod seat;
+mod session_lock;
 mod selection;
 mod xdg_shell;
 

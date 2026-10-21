@@ -10,6 +10,7 @@ use smithay::wayland::relative_pointer::RelativePointerManagerState;
 use smithay::wayland::selection::data_device::DataDeviceState;
 use smithay::wayland::selection::primary_selection::PrimarySelectionState;
 use smithay::wayland::selection::wlr_data_control::DataControlState;
+use smithay::wayland::session_lock::SessionLockManagerState;
 use smithay::wayland::shell::wlr_layer::WlrLayerShellState;
 use smithay::wayland::shell::xdg::XdgShellState;
 use smithay::wayland::shell::xdg::decoration::XdgDecorationState;
@@ -39,6 +40,7 @@ pub struct Protocols {
     pub pointer_constraints: PointerConstraintsState,
     pub fractional_scale: FractionalScaleManagerState,
     pub screencopy: ScreencopyState,
+    pub session_lock: SessionLockManagerState,
 }
 
 impl Protocols {
@@ -64,6 +66,7 @@ impl Protocols {
             pointer_constraints: PointerConstraintsState::new::<Sparky>(display),
             fractional_scale: FractionalScaleManagerState::new::<Sparky>(display),
             screencopy: ScreencopyState::new::<Sparky>(display),
+            session_lock: SessionLockManagerState::new::<Sparky, _>(display, |_| true),
         }
     }
 }

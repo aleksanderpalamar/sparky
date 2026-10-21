@@ -116,3 +116,10 @@ fn le_as_acoes_de_grupo_com_os_campos() {
     let acoes: Vec<Action> = config.bind.into_iter().map(|bind| bind.action).collect();
     assert_eq!(acoes, [Action::MoveIntoGroup { direction: Direction::Left }, Action::SelectInGroup { index: 2 }]);
 }
+
+#[test]
+fn o_locker_padrao_e_o_swaylock_e_pode_trocar() {
+    assert_eq!(Config::default().apps.locker, "swaylock");
+    let Ok(config) = parse("[apps]\nlocker = \"hyprlock\"\n") else { panic!("deveria ler o locker") };
+    assert_eq!(config.apps.locker, "hyprlock");
+}

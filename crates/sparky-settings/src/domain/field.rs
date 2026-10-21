@@ -18,6 +18,7 @@ pub enum Field {
     Files,
     Settings,
     Screenshot,
+    Locker,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -49,7 +50,14 @@ const APPEARANCE: [Field; 6] = [
     Field::DefaultBinds,
 ];
 const KEYBOARD: [Field; 5] = [Field::Layout, Field::Variant, Field::Options, Field::RepeatRate, Field::RepeatDelay];
-const APPS: [Field; 5] = [Field::Terminal, Field::Launcher, Field::Files, Field::Settings, Field::Screenshot];
+const APPS: [Field; 6] = [
+    Field::Terminal,
+    Field::Launcher,
+    Field::Files,
+    Field::Settings,
+    Field::Screenshot,
+    Field::Locker,
+];
 
 const fn bounds(min: i32, max: i32, step: i32) -> Kind {
     Kind::Number(Bounds { min, max, step })
@@ -76,7 +84,7 @@ impl Field {
             Field::RepeatDelay => bounds(100, 1000, 25),
             Field::DefaultBinds => Kind::Flag,
             Field::Layout | Field::Variant | Field::Options | Field::Terminal => Kind::Text(Blank::Allowed),
-            Field::Launcher | Field::Files | Field::Settings | Field::Screenshot => Kind::Text(Blank::Refused),
+            Field::Launcher | Field::Files | Field::Settings | Field::Screenshot | Field::Locker => Kind::Text(Blank::Refused),
         }
     }
 
@@ -98,6 +106,7 @@ impl Field {
             Field::Files => ("apps", "files"),
             Field::Settings => ("apps", "settings"),
             Field::Screenshot => ("apps", "screenshot"),
+            Field::Locker => ("apps", "locker"),
         }
     }
 }

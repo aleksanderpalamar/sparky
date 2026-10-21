@@ -10,6 +10,7 @@ use sparky_tiling::{Fullscreen, Layer, Placement, Rect};
 
 use crate::render::border;
 use crate::render::elements::SparkyElement;
+use crate::render::lock::lock_elements;
 use crate::render::tabs::tab_elements;
 use crate::state::Sparky;
 
@@ -30,6 +31,9 @@ where
         origin: geometry.loc,
         scale: Scale::from(output.current_scale().fractional_scale()),
     };
+    if state.lock.is_locked() {
+        return lock_elements(state, renderer, output, target.scale);
+    }
     let placements = placements_on(state, &output.name());
     let bars = tabs_on(state, &output.name());
     let (above, below): (Vec<&Placement>, Vec<&Placement>) = placements
