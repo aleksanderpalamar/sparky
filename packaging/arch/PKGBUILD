@@ -30,6 +30,7 @@ optdepends=(
   'kitty: terminal'
   'polkit-gnome: agente de autenticação'
   'xdg-desktop-portal-gtk: portais para os aplicativos'
+  'xdg-desktop-portal-wlr: captura e compartilhamento de tela pelos portais'
   'vulkan-icd-loader: renderização por Vulkan nos aplicativos'
 )
 source=("$pkgname::git+file://$(realpath "$startdir/../..")")

@@ -44,3 +44,10 @@ fn os_portais_seguem_o_nome_do_desktop() {
     assert!(portais.is_file(), "falta {}", portais.display());
     assert_eq!(valor(&ler(&format!("portals/{DESKTOP}-portals.conf")), "default").as_deref(), Some("gtk"));
 }
+
+#[test]
+fn compartilhar_e_capturar_a_tela_vao_pelo_portal_wlr() {
+    let portais = ler(&format!("portals/{DESKTOP}-portals.conf"));
+    assert_eq!(valor(&portais, "org.freedesktop.impl.portal.ScreenCast").as_deref(), Some("wlr"));
+    assert_eq!(valor(&portais, "org.freedesktop.impl.portal.Screenshot").as_deref(), Some("wlr"));
+}
