@@ -96,7 +96,7 @@ impl Default for Apps {
     fn default() -> Self {
         Self {
             terminal: None,
-            launcher: "fuzzel".to_owned(),
+            launcher: "sparky-launcher".to_owned(),
             files: "sparky-files".to_owned(),
             settings: "sparky-settings".to_owned(),
             screenshot: "sparky-shot".to_owned(),

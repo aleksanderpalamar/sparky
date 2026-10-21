@@ -1,5 +1,6 @@
 use std::env;
-use std::path::Path;
+
+use sparky_xdg::programs::installed;
 
 const TERMINALS: [&str; 5] = ["kitty", "alacritty", "foot", "ghostty", "wezterm"];
 const LAST_RESORT: &str = "xterm";
@@ -17,33 +18,9 @@ pub fn detected_terminal(configured: Option<&str>) -> String {
     terminal(configured, environment.as_deref(), installed)
 }
 
-pub fn installed(program: &str) -> bool {
-    let location = Path::new(program);
-    if location.is_absolute() {
-        return location.is_file();
-    }
-    let path = env::var("PATH").unwrap_or_default();
-    path.split(':')
-        .filter(|directory| !directory.is_empty())
-        .any(|directory| Path::new(directory).join(program).is_file())
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{installed, terminal};
-
-    #[test]
-    fn caminho_absoluto_vale_se_o_arquivo_existe() {
-        let file = std::env::temp_dir().join(format!("sparky-instalado-{}", std::process::id()));
-        if std::fs::write(&file, b"").is_err() {
-            panic!("não deu para criar o arquivo de teste");
-        }
-        let found = installed(&file.to_string_lossy());
-        let removed = std::fs::remove_file(&file);
-        assert!(found);
-        assert!(removed.is_ok());
-        assert!(!installed(&file.to_string_lossy()));
-    }
+    use super::terminal;
 
     #[test]
     fn a_configuracao_vence_a_variavel_terminal() {

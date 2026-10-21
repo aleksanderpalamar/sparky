@@ -13,7 +13,7 @@ repeat_rate = 40
 repeat_delay = 250
 
 [apps]
-launcher = "fuzzel"
+launcher = "sparky-launcher"
 files = "sparky-files"
 settings = "sparky-settings"
 screenshot = "sparky-shot"

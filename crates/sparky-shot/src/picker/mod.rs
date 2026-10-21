@@ -6,12 +6,12 @@ use iced_layershell::reexport::{Anchor, KeyboardInteractivity, Layer};
 use iced_layershell::settings::{LayerShellSettings, Settings, StartMode};
 use iced_layershell::to_layer_message;
 use sparky_theme::Skin;
+use sparky_ui::surface::transparent;
 
 use crate::domain::delay::Delay;
 use crate::domain::mode::Mode;
 use crate::picker::keys::{Command, command};
 use crate::slot::Slot;
-use crate::surface::transparent;
 
 const NAMESPACE: &str = "sparky-shot-picker";
 const SIZE: (u32, u32) = (320, 258);

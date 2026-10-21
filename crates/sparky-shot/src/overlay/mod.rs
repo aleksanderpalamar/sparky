@@ -7,13 +7,13 @@ use iced_layershell::reexport::{Anchor, KeyboardInteractivity, Layer};
 use iced_layershell::settings::{LayerShellSettings, Settings, StartMode};
 use iced_layershell::to_layer_message;
 use sparky_theme::Skin;
+use sparky_ui::surface::transparent;
 use sparky_tiling::Rect;
 
 use crate::domain::selection::Selection;
 use crate::overlay::keys::{Command, command};
 use crate::overlay::painter::Painter;
 use crate::slot::Slot;
-use crate::surface::transparent;
 
 pub const NAMESPACE: &str = "sparky-shot";
 

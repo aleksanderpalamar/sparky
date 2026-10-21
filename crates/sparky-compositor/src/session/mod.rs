@@ -6,7 +6,7 @@ pub mod environment;
 #[cfg(test)]
 mod autostart_tests;
 
-use crate::apps::installed;
+use sparky_xdg::programs::installed;
 use crate::backend::Backend;
 use crate::session::environment::{DESKTOP, activation_arguments};
 use crate::spawn::{spawn, spawn_program};

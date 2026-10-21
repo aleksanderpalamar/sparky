@@ -23,8 +23,5 @@ pub fn commands(directories: &[Vec<Candidate>], desktop: &str, present: impl Fn(
 }
 
 fn wanted(entry: &DesktopEntry, desktop: &str, present: &impl Fn(&str) -> bool) -> bool {
-    let shown = entry.only_show_in.is_empty() || entry.only_show_in.iter().any(|name| name == desktop);
-    let excluded = entry.not_show_in.iter().any(|name| name == desktop);
-    let installed = entry.try_exec.as_deref().is_none_or(present);
-    entry.enabled && !entry.hidden && shown && !excluded && installed
+    entry.enabled && entry.shown_in(desktop) && entry.installed(present)
 }

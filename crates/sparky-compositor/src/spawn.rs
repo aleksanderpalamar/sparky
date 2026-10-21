@@ -2,6 +2,7 @@ use std::os::unix::process::CommandExt;
 use std::process::{Command, Stdio};
 use std::{io, ptr, thread};
 
+use crate::apps::detected_terminal;
 use crate::session::environment::Environment;
 use crate::state::Sparky;
 
@@ -11,6 +12,7 @@ impl Sparky {
             wayland_display: self.socket_name.clone(),
             x_display: self.x_display,
             ipc_socket: self.ipc_path(),
+            terminal: detected_terminal(self.config.apps.terminal.as_deref()),
         }
     }
 

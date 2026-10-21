@@ -1,4 +1,5 @@
 pub mod desktop_entry;
+pub mod programs;
 pub mod tilde;
 pub mod user_dirs;
 

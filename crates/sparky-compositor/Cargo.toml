@@ -64,7 +64,7 @@ configurações). Tudo tem atalho de teclado."""
 section = "x11"
 priority = "optional"
 depends = "libseat1, libinput10, libxkbcommon0, libgbm1, libdrm2, libudev1, libegl1, libgles2, libwayland-client0, libwayland-server0, libwayland-egl1, xwayland, xkb-data, wl-clipboard, libnotify-bin, xdg-utils"
-recommends = "mako-notifier, fuzzel, swaylock, foot | kitty, policykit-1-gnome | mate-polkit | lxpolkit, xdg-desktop-portal-gtk, xdg-desktop-portal-wlr, libvulkan1"
+recommends = "mako-notifier, swaylock, foot | kitty, policykit-1-gnome | mate-polkit | lxpolkit, xdg-desktop-portal-gtk, xdg-desktop-portal-wlr, libvulkan1"
 assets = [
     ["target/release/sparky", "usr/bin/", "755"],
     ["target/release/sparky-bar", "usr/bin/", "755"],
@@ -72,6 +72,7 @@ assets = [
     ["target/release/sparky-shot", "usr/bin/", "755"],
     ["target/release/sparky-files", "usr/bin/", "755"],
     ["target/release/sparky-settings", "usr/bin/", "755"],
+    ["target/release/sparky-launcher", "usr/bin/", "755"],
     ["../../data/session/sparky.desktop", "usr/share/wayland-sessions/", "644"],
     ["../../data/portals/sparky-portals.conf", "usr/share/xdg-desktop-portal/", "644"],
     ["../../data/applications/sparky-files.desktop", "usr/share/applications/", "644"],
@@ -96,6 +97,7 @@ assets = [
     { source = "target/release/sparky-shot", dest = "/usr/bin/sparky-shot", mode = "755" },
     { source = "target/release/sparky-files", dest = "/usr/bin/sparky-files", mode = "755" },
     { source = "target/release/sparky-settings", dest = "/usr/bin/sparky-settings", mode = "755" },
+    { source = "target/release/sparky-launcher", dest = "/usr/bin/sparky-launcher", mode = "755" },
     { source = "../../data/session/sparky.desktop", dest = "/usr/share/wayland-sessions/sparky.desktop", mode = "644" },
     { source = "../../data/portals/sparky-portals.conf", dest = "/usr/share/xdg-desktop-portal/sparky-portals.conf", mode = "644" },
     { source = "../../data/applications/sparky-files.desktop", dest = "/usr/share/applications/sparky-files.desktop", mode = "644" },
@@ -129,7 +131,6 @@ xdg-utils = "*"
 
 [package.metadata.generate-rpm.recommends]
 mako = "*"
-fuzzel = "*"
 swaylock = "*"
 foot = "*"
 polkit-gnome = "*"

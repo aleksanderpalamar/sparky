@@ -7,6 +7,7 @@ pub struct Environment {
     pub wayland_display: OsString,
     pub x_display: Option<u32>,
     pub ipc_socket: Option<PathBuf>,
+    pub terminal: String,
 }
 
 impl Environment {
@@ -16,6 +17,7 @@ impl Environment {
             pair("XDG_CURRENT_DESKTOP", DESKTOP),
             pair("XDG_SESSION_DESKTOP", DESKTOP),
             pair("XDG_SESSION_TYPE", "wayland"),
+            pair("TERMINAL", self.terminal.as_str()),
         ];
         if let Some(number) = self.x_display {
             variables.push(pair("DISPLAY", format!(":{number}")));
@@ -47,6 +49,7 @@ mod tests {
             wayland_display: "wayland-1".into(),
             x_display: Some(0),
             ipc_socket: Some(PathBuf::from("/run/user/1000/sparky-wayland-1.sock")),
+            terminal: "foot".to_owned(),
         }
     }
 
@@ -57,6 +60,7 @@ mod tests {
         assert!(variables.contains(&("XDG_CURRENT_DESKTOP".to_owned(), "sparky".to_owned())));
         assert!(variables.contains(&("DISPLAY".to_owned(), ":0".to_owned())));
         assert!(variables.contains(&("SPARKY_SOCKET".to_owned(), "/run/user/1000/sparky-wayland-1.sock".to_owned())));
+        assert!(variables.contains(&("TERMINAL".to_owned(), "foot".to_owned())));
     }
 
     #[test]

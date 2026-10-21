@@ -15,9 +15,10 @@ O layout vem do [Omarchy](https://github.com/basecamp/omarchy): barra no topo co
 | `crates/sparky-ipc` | Protocolo do IPC do sparky (JSON por linha num socket Unix), o cliente usado pela barra e pelos aplicativos, e o `sparky-msg` |
 | `crates/sparky-shot` | O capturador de tela (`sparky-shot`): seletor de modo, seleção de região pelo teclado ou mouse, PNG salvo e copiado |
 | `crates/sparky-files` | O gerenciador de arquivos (`sparky-files`): lista navegável pelo teclado, lugares, filtro, copiar, recortar, colar, renomear, criar e lixeira |
-| `crates/sparky-xdg` | As pastas do usuário (`user-dirs.dirs`: Documentos, Imagens, Downloads...) usadas pelos aplicativos |
+| `crates/sparky-xdg` | Convenções XDG compartilhadas: pastas do usuário (`user-dirs.dirs`), leitura de `.desktop` (nome no idioma, `OnlyShowIn`, `Exec`) e busca de programas no `PATH` |
 | `crates/sparky-settings` | O painel de configurações (`sparky-settings`): edita o `sparky.toml` e aplica na hora pelo IPC |
 | `crates/sparky-ui` | Peças comuns dos aplicativos iced: teclas, prompt, estilos, lateral numerada, rolagem e janela |
+| `crates/sparky-launcher` | O lançador de aplicativos (`sparky-launcher`): busca nos `.desktop` instalados e abre pelo teclado |
 | `crates/sparky-theme` | Paleta de cores compartilhada pelos aplicativos, lida do `colors.toml` do tema |
 | `data/themes` | Temas no formato `colors.toml` |
 
@@ -142,6 +143,10 @@ Na seleção de região, as setas movem a área 10 px (1 px com `CTRL`), `SHIFT`
 
 A imagem vai para `Capturas de tela` dentro da pasta de imagens (`XDG_PICTURES_DIR`, ou `~/Pictures`) com o nome `captura-AAAA-MM-DD_HH-MM-SS.png`, é copiada para a área de transferência pelo `wl-copy` e uma notificação avisa onde ficou (`notify-send`).
 
+## Lançador
+
+O `sparky-launcher` abre pelo `SUPER + ESPAÇO`: uma caixa no centro da tela com a busca já focada e a lista dos aplicativos instalados, com o nome no idioma do sistema. Digitar filtra (começo do nome primeiro, depois começo de palavra, trecho do nome, palavras-chave e descrição, e por fim as letras na ordem, como `ffx` para Firefox); setas, `Tab`/`SHIFT + Tab` ou `CTRL + N`/`P` (ou `J`/`K`) escolhem; `Enter` abre e `Esc` fecha. O clique também abre. A lista vem dos `.desktop` de `~/.local/share/applications` e das pastas de `XDG_DATA_DIRS` (Flatpak incluso), respeitando `NoDisplay`, `Hidden`, `OnlyShowIn`/`NotShowIn` e `TryExec`; aplicativos de terminal abrem no terminal escolhido, que o sparky passa aos programas em `TERMINAL`.
+
 ## Arquivos
 
 O `sparky-files` abre pelo `SUPER + SHIFT + F` (ou `sparky-files <pasta>`). À esquerda ficam os lugares (pasta pessoal e as pastas do `user-dirs.dirs` que existem); no centro, a pasta atual com pastas primeiro, tamanho e data. A lista se atualiza sozinha quando a pasta muda.
@@ -173,7 +178,7 @@ O `sparky-settings` abre pelo `SUPER + ALT + ESPAÇO`. Cada mudança é gravada 
 |---|---|
 | Aparência | Folgas, espessura da borda, tamanho das janelas flutuantes e os atalhos padrão |
 | Teclado | Layout, variante e opções do XKB (conferidos com o `evdev.lst` antes de gravar) e a repetição das teclas |
-| Aplicativos | Terminal, lançador, arquivos, configurações e capturador que os atalhos abrem |
+| Aplicativos | Terminal, lançador, arquivos, configurações, capturador e bloqueio de tela que os atalhos abrem |
 | Inicialização | Comandos rodados quando a sessão começa |
 | Atalhos | Lista dos atalhos em uso, com o que cada um faz |
 | Monitores | Monitores que o sparky está usando |

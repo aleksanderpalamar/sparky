@@ -8,7 +8,7 @@ fn le_cada_tipo_de_campo_da_configuracao() {
     let config = Config::default();
     assert_eq!(read(Field::GapsOuter, &config), Value::Number(10));
     assert_eq!(read(Field::DefaultBinds, &config), Value::Flag(true));
-    assert_eq!(read(Field::Launcher, &config), Value::Text("fuzzel".to_owned()));
+    assert_eq!(read(Field::Launcher, &config), Value::Text("sparky-launcher".to_owned()));
     assert_eq!(read(Field::Layout, &config), Value::Text(String::new()));
 }
 

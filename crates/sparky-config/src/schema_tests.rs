@@ -118,6 +118,11 @@ fn le_as_acoes_de_grupo_com_os_campos() {
 }
 
 #[test]
+fn o_lancador_padrao_e_o_do_sparky() {
+    assert_eq!(Config::default().apps.launcher, "sparky-launcher");
+}
+
+#[test]
 fn o_locker_padrao_e_o_swaylock_e_pode_trocar() {
     assert_eq!(Config::default().apps.locker, "swaylock");
     let Ok(config) = parse("[apps]\nlocker = \"hyprlock\"\n") else { panic!("deveria ler o locker") };

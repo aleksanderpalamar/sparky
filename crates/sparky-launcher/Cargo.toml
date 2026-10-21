@@ -1,0 +1,21 @@
+[package]
+name = "sparky-launcher"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "sparky-launcher"
+path = "src/main.rs"
+
+[lib]
+name = "sparky_launcher"
+path = "src/lib.rs"
+
+[dependencies]
+iced = { version = "0.14", features = ["tokio"] }
+iced_layershell = "0.19.1"
+sparky-theme.workspace = true
+sparky-ui.workspace = true
+sparky-xdg.workspace = true
