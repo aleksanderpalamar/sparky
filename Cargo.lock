@@ -4239,6 +4239,7 @@ dependencies = [
  "sparky-ipc",
  "sparky-theme",
  "sparky-tiling",
+ "sparky-xdg",
  "toml",
  "tracing",
  "tracing-subscriber",

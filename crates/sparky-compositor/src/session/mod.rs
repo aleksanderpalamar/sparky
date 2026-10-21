@@ -1,13 +1,10 @@
 pub mod autostart;
 pub mod autostart_files;
 pub mod components;
-pub mod desktop_entry;
 pub mod environment;
 
 #[cfg(test)]
 mod autostart_tests;
-#[cfg(test)]
-mod desktop_entry_tests;
 
 use crate::apps::installed;
 use crate::backend::Backend;

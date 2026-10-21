@@ -1,4 +1,4 @@
-use crate::session::autostart::{Candidate, command_of, commands};
+use crate::session::autostart::{Candidate, commands};
 
 fn arquivo(name: &str, contents: &str) -> Candidate {
     Candidate {
@@ -13,13 +13,6 @@ fn entrada(exec: &str, extra: &str) -> String {
 
 fn tudo_instalado(_: &str) -> bool {
     true
-}
-
-#[test]
-fn tira_os_codigos_de_campo_do_exec() {
-    assert_eq!(command_of("firefox %U"), "firefox");
-    assert_eq!(command_of("app --file=%f --name %c"), "app --file= --name");
-    assert_eq!(command_of("echo 100%%"), "echo 100%");
 }
 
 #[test]

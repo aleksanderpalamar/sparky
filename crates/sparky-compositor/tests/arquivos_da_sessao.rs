@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
 
-use sparky_compositor::session::desktop_entry::DesktopEntry;
+use sparky_xdg::desktop_entry::DesktopEntry;
 use sparky_compositor::session::environment::DESKTOP;
 
 fn raiz() -> PathBuf {

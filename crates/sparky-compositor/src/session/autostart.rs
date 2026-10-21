@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use crate::session::desktop_entry::DesktopEntry;
+use sparky_xdg::desktop_entry::{DesktopEntry, command_of};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Candidate {
@@ -20,21 +20,6 @@ pub fn commands(directories: &[Vec<Candidate>], desktop: &str, present: impl Fn(
         .filter_map(|entry| entry.exec.map(|exec| command_of(&exec)))
         .filter(|command| !command.is_empty())
         .collect()
-}
-
-pub fn command_of(exec: &str) -> String {
-    let mut command = String::with_capacity(exec.len());
-    let mut characters = exec.chars();
-    while let Some(character) = characters.next() {
-        if character != '%' {
-            command.push(character);
-            continue;
-        }
-        if characters.next() == Some('%') {
-            command.push('%');
-        }
-    }
-    command.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
 fn wanted(entry: &DesktopEntry, desktop: &str, present: &impl Fn(&str) -> bool) -> bool {

@@ -57,3 +57,18 @@ fn list(value: Option<String>) -> Vec<String> {
         })
         .unwrap_or_default()
 }
+
+pub fn command_of(exec: &str) -> String {
+    let mut command = String::with_capacity(exec.len());
+    let mut characters = exec.chars();
+    while let Some(character) = characters.next() {
+        if character != '%' {
+            command.push(character);
+            continue;
+        }
+        if characters.next() == Some('%') {
+            command.push('%');
+        }
+    }
+    command.split_whitespace().collect::<Vec<_>>().join(" ")
+}

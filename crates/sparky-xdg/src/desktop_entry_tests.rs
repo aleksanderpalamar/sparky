@@ -1,4 +1,4 @@
-use crate::session::desktop_entry::DesktopEntry;
+use crate::desktop_entry::{DesktopEntry, command_of};
 
 const NM_APPLET: &str = "[Desktop Entry]
 Name=Network
@@ -62,4 +62,11 @@ fn ignora_comentarios_e_linhas_soltas() {
         panic!("deveria ler a entrada");
     };
     assert_eq!(entry.exec.as_deref(), Some("x"));
+}
+
+#[test]
+fn tira_os_codigos_de_campo_do_exec() {
+    assert_eq!(command_of("firefox %U"), "firefox");
+    assert_eq!(command_of("app --file=%f --name %c"), "app --file= --name");
+    assert_eq!(command_of("echo 100%%"), "echo 100%");
 }
