@@ -1,3 +1,4 @@
+mod dmabuf;
 pub mod drm;
 pub mod host_cursor;
 pub mod nested;
@@ -82,10 +83,11 @@ impl Sparky {
         }
     }
 
-    pub fn publish_formats(&mut self, renderer: &GlesRenderer) {
+    pub fn publish_formats(&mut self, renderer: &GlesRenderer, device: Option<libc::dev_t>) -> std::io::Result<()> {
         self.protocols.shm.update_formats(renderer.shm_formats());
         let formats = renderer.dmabuf_formats();
-        let global = self.protocols.dmabuf.create_global::<Sparky>(&self.display_handle, formats);
+        let global = dmabuf::publish::<Sparky>(&self.display_handle, &mut self.protocols.dmabuf, device, formats)?;
         self.dmabuf_global = Some(global);
+        Ok(())
     }
 }

@@ -12,6 +12,7 @@ use smithay::reexports::winit::window::Window as HostWindow;
 use smithay::utils::{Physical, Rectangle, Size, Transform};
 
 use crate::backend::Backend;
+use crate::backend::dmabuf::render_device;
 use crate::backend::host_cursor::{HostCursor, host_cursor};
 use crate::render::output::output_elements;
 use crate::state::Sparky;
@@ -34,7 +35,8 @@ pub fn init(event_loop: &mut EventLoop<'static, Sparky>, state: &mut Sparky) -> 
         .with_visible(true);
     let (mut graphics, events) = winit::init_from_attributes::<GlesRenderer>(attributes)?;
     let output = nested_output(state, graphics.window_size());
-    state.publish_formats(graphics.renderer());
+    let device = render_device(graphics.renderer());
+    state.publish_formats(graphics.renderer(), device)?;
     let damage = OutputDamageTracker::from_output(&output);
     state.backend = Backend::Nested(Box::new(Nested { graphics, output, damage, cursor: None }));
     event_loop.handle().insert_source(events, |event, _, state| match event {

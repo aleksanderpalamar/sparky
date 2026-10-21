@@ -42,7 +42,7 @@ pub fn init(state: &mut Sparky) -> Result<(), Box<dyn std::error::Error>> {
     let (node, path) = find_gpu(&seat)?;
     tracing::info!("placa de vídeo: {}", path.display());
     let gpu = Gpu::open(&mut session, node, &path, &state.loop_handle)?;
-    state.publish_formats(&gpu.renderer);
+    state.publish_formats(&gpu.renderer, Some(gpu.node.dev_id()))?;
     let libinput = session::start_input(&session, &seat, &state.loop_handle)?;
     session::watch_session(notifier, &state.loop_handle)?;
     session::watch_devices(&seat, &state.loop_handle)?;
