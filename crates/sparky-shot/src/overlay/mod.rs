@@ -20,6 +20,7 @@ pub const NAMESPACE: &str = "sparky-shot";
 #[to_layer_message]
 #[derive(Debug, Clone)]
 pub enum Message {
+    Palette(sparky_theme::Palette),
     Pressed(i32, i32),
     Moved(i32, i32),
     Released(i32, i32),
@@ -41,7 +42,11 @@ pub fn select(width: i32, height: i32) -> Option<Rect> {
         result: shared.clone(),
     };
     let ran = iced_layershell::application(boot, || NAMESPACE.to_owned(), update, view)
-        .subscription(|_| keyboard::listen().filter_map(key_message))
+        .subscription(|_| iced::Subscription::batch([
+            keyboard::listen().filter_map(key_message),
+            sparky_ui::palette::subscription().map(Message::Palette),
+        ]))
+        .theme(|overlay: &Overlay| overlay.skin.theme())
         .style(transparent)
         .settings(settings())
         .run();
@@ -55,6 +60,7 @@ pub fn select(width: i32, height: i32) -> Option<Rect> {
 fn update(overlay: &mut Overlay, message: Message) -> Task<Message> {
     let selection = &mut overlay.selection;
     match message {
+        Message::Palette(palette) => overlay.skin = Skin::new(palette),
         Message::Pressed(x, y) => selection.press(x, y),
         Message::Moved(x, y) => selection.drag(x, y),
         Message::Released(x, y) => selection.release(x, y),

@@ -13,6 +13,8 @@ mod tray_actions_tests;
 mod tray_activation_tests;
 #[cfg(test)]
 mod tray_test_support;
+#[cfg(test)]
+mod palette_tests;
 
 use std::sync::Arc;
 

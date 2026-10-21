@@ -11,6 +11,7 @@ const POLL: Duration = Duration::from_secs(2);
 
 pub fn subscription(_files: &Files) -> Subscription<Message> {
     Subscription::batch([
+        sparky_ui::palette::subscription().map(Message::Palette),
         event::listen_with(keyboard_message),
         window::resize_events().map(|(_, size)| Message::Resized(size)),
         time::every(POLL).map(|_| Message::Tick),

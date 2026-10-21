@@ -3,7 +3,7 @@ pub mod state;
 pub mod view;
 
 use iced::event::{self, Event, Status};
-use iced::{Task, window};
+use iced::{Subscription, Task, window};
 use iced_layershell::reexport::{Anchor, KeyboardInteractivity, Layer};
 use iced_layershell::settings::{LayerShellSettings, Settings, StartMode};
 use iced_layershell::to_layer_message;
@@ -24,6 +24,7 @@ const SIZE: (u32, u32) = (640, 440);
 #[to_layer_message]
 #[derive(Debug, Clone)]
 pub enum Message {
+    Palette(sparky_theme::Palette),
     Typed(String),
     Submit,
     Step(isize),
@@ -38,7 +39,10 @@ pub fn run() -> Result<(), iced_layershell::Error> {
         (launcher, prompt::focus())
     };
     iced_layershell::application(boot, || NAMESPACE.to_owned(), update, view::view)
-        .subscription(|_| event::listen_with(keyboard_message))
+        .subscription(|_| Subscription::batch([
+            event::listen_with(keyboard_message),
+            sparky_ui::palette::subscription().map(Message::Palette),
+        ]))
         .theme(|launcher: &Launcher| launcher.skin.theme())
         .style(transparent)
         .settings(settings())
@@ -47,6 +51,7 @@ pub fn run() -> Result<(), iced_layershell::Error> {
 
 fn update(launcher: &mut Launcher, message: Message) -> Task<Message> {
     match message {
+        Message::Palette(palette) => launcher.skin = Skin::new(palette),
         Message::Typed(text) => launcher.type_query(text),
         Message::Step(delta) => launcher.step(delta),
         Message::Submit => return start(launcher.chosen()),

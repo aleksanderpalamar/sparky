@@ -6,6 +6,7 @@ use crate::app::tray_actions;
 
 pub fn update(bar: &mut Bar, message: Message) -> Task<Message> {
     match message {
+        Message::Palette(palette) => bar.apply_palette(palette),
         Message::WorkspacesChanged => bar.refresh_workspaces(),
         Message::Tick => bar.tick(chrono::Local::now().naive_local()),
         Message::FocusWorkspace(id) => report(bar.focus(id)),

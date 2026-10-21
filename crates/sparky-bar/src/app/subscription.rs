@@ -15,6 +15,7 @@ const CLOCK_INTERVAL: Duration = Duration::from_secs(1);
 
 pub fn subscription(_bar: &Bar) -> Subscription<Message> {
     Subscription::batch([
+        sparky_ui::palette::subscription().map(Message::Palette),
         Subscription::run(sparky_events),
         Subscription::run(tray_events),
         time::every(CLOCK_INTERVAL).map(|_| Message::Tick),

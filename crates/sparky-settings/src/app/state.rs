@@ -17,6 +17,8 @@ use crate::domain::system::power::Power;
 use crate::domain::system::region::Region;
 use crate::domain::system::users::User;
 use crate::domain::system::media::Media;
+use crate::domain::system::themes::Themes;
+use crate::ports::themes::ThemeStore;
 use crate::ports::commands::CommandRunner;
 use crate::ports::{Compositor, CompositorError, Store};
 
@@ -49,6 +51,7 @@ pub struct Services {
     pub store: Box<dyn Store>,
     pub compositor: Box<dyn Compositor>,
     pub commands: Box<dyn CommandRunner>,
+    pub themes: Box<dyn ThemeStore>,
 }
 
 pub struct Context {
@@ -73,6 +76,7 @@ pub struct Settings {
     pub region: Region,
     pub users: Vec<User>,
     pub media: Media,
+    pub themes: Themes,
     pub list: Viewport,
     pub context: Context,
     pub services: Services,
@@ -94,6 +98,7 @@ impl Settings {
             region: Region::default(),
             users: Vec::new(),
             media: Media::default(),
+            themes: Themes::default(),
             list: Viewport::new(context.rows),
             context,
             services,

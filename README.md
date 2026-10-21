@@ -187,6 +187,7 @@ O `sparky-settings` abre pelo `SUPER + ALT + ESPAÇO`. As mudanças de configura
 | Região e idioma | Idioma, teclado do console e layout padrão do sistema (`localectl`) |
 | Usuários | Consulta de contas, identificadores, grupos e sessões (`getent` e `loginctl`) |
 | Mídia | Volumes externos, montagem e desmontagem (`lsblk` e `udisksctl`) |
+| Temas | Catálogo e aplicação de paletas nativas do Sparky |
 | Sobre | Versão do sparky, sistema, kernel e onde fica a configuração |
 
 `Tab` e `SHIFT + Tab` (ou `1` a `9`) trocam de seção, `j`/`k` escolhem o item, `h`/`l` diminuem e aumentam números ou ligam e desligam, `Enter` edita um texto ou um número, `d` remove um comando da inicialização, `Esc` desiste da edição e `q` fecha. O mouse também funciona: `−`/`+`, clique no valor para editar e clique duplo na inicialização.
@@ -207,6 +208,10 @@ As cores saem do primeiro arquivo que existir:
 2. `$SPARKY_PATH/themes/tokyo-night/colors.toml` (`SPARKY_PATH` é `/usr/share/sparky` quando instalado)
 
 Sem nenhum dos dois, vale o Tokyo Night embutido.
+
+A seção Temas lista paletas em `$XDG_DATA_HOME/sparky/themes/<nome>/colors.toml` (por padrão `~/.local/share/sparky/themes`) e em `$SPARKY_PATH/themes` (por padrão `/usr/share/sparky/themes`). O usuário tem prioridade sobre nomes iguais do sistema; Tokyo Night permanece disponível. Arquivos sem cores reconhecidas ou com cores inválidas são ignorados.
+
+`j`/`k` escolhem a paleta; `Enter` ou clique aplica. As cores são gravadas por substituição atômica em `~/.config/sparky/colors.toml` (respeitando `XDG_CONFIG_HOME`). O painel atualiza imediatamente; compositor, barra, lançador, arquivos e capturador verificam as cores a cada segundo, preservando janelas, seleção e edições abertas. A seção gerencia somente paletas do Sparky; não depende de Hyprland ou hypr-theme e não gerencia papel de parede nem temas de aplicativos externos.
 
 ## Pacotes
 

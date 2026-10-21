@@ -25,6 +25,15 @@ impl BorderColors {
             false => self.inactive,
         }
     }
+
+    pub fn update(&mut self, palette: Palette) -> bool {
+        let next = Self::from_palette(palette);
+        if *self == next {
+            return false;
+        }
+        *self = next;
+        true
+    }
 }
 
 fn opaque(rgb: Rgb) -> Color32F {
@@ -52,5 +61,15 @@ mod tests {
     fn a_borda_inativa_e_cinza_translucida() {
         let colors = BorderColors::from_palette(Palette::TOKYO_NIGHT);
         assert_eq!(colors.for_focus(false).a(), 0xaa as f32 / 255.0);
+    }
+
+    #[test]
+    fn trocar_paleta_so_pede_redesenho_quando_as_cores_mudam() {
+        let mut colors = BorderColors::from_palette(Palette::TOKYO_NIGHT);
+        assert!(!colors.update(Palette::TOKYO_NIGHT));
+        let palette = Palette::from_colors("accent = \"#010203\"\nbackground = \"#040506\"");
+        assert!(colors.update(palette));
+        assert_eq!(colors, BorderColors::from_palette(palette));
+        assert!(!colors.update(palette));
     }
 }

@@ -12,11 +12,12 @@ pub enum Section {
     Region,
     Users,
     Media,
+    Themes,
     About,
 }
 
 impl Section {
-    pub const ALL: [Section; 12] = [
+    pub const ALL: [Section; 13] = [
         Section::Appearance,
         Section::Keyboard,
         Section::Apps,
@@ -28,6 +29,7 @@ impl Section {
         Section::Region,
         Section::Users,
         Section::Media,
+        Section::Themes,
         Section::About,
     ];
 
@@ -44,6 +46,7 @@ impl Section {
             Section::Region => "Região e idioma",
             Section::Users => "Usuários",
             Section::Media => "Mídia",
+            Section::Themes => "Temas",
             Section::About => "Sobre",
         }
     }
@@ -61,6 +64,7 @@ impl Section {
             Section::Region => "Idioma e teclados padrão do sistema",
             Section::Users => "Contas, grupos e sessões abertas",
             Section::Media => "Montagem e desmontagem de volumes externos",
+            Section::Themes => "Paletas nativas de cores do Sparky",
             Section::About => "O sistema e o sparky",
         }
     }
@@ -101,8 +105,9 @@ mod tests {
         assert_eq!(Section::nth(8), Some(Section::Region));
         assert_eq!(Section::nth(9), Some(Section::Users));
         assert_eq!(Section::nth(10), Some(Section::Media));
-        assert_eq!(Section::nth(11), Some(Section::About));
-        assert_eq!(Section::nth(12), None);
+        assert_eq!(Section::nth(11), Some(Section::Themes));
+        assert_eq!(Section::nth(12), Some(Section::About));
+        assert_eq!(Section::nth(13), None);
         assert_eq!(Section::Monitors.index(), 5);
     }
 }

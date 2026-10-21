@@ -25,6 +25,7 @@ pub struct Choice {
 #[to_layer_message]
 #[derive(Debug, Clone)]
 pub enum Message {
+    Palette(sparky_theme::Palette),
     Key(Command),
 }
 
@@ -43,7 +44,11 @@ pub fn choose() -> Option<Choice> {
         result: shared.clone(),
     };
     let ran = iced_layershell::application(boot, || NAMESPACE.to_owned(), update, view)
-        .subscription(|_| keyboard::listen().filter_map(key_message))
+        .subscription(|_| iced::Subscription::batch([
+            keyboard::listen().filter_map(key_message),
+            sparky_ui::palette::subscription().map(Message::Palette),
+        ]))
+        .theme(|picker: &Picker| picker.skin.theme())
         .style(transparent)
         .settings(settings())
         .run();
@@ -56,6 +61,10 @@ pub fn choose() -> Option<Choice> {
 
 fn update(picker: &mut Picker, message: Message) -> Task<Message> {
     match message {
+        Message::Palette(palette) => {
+            picker.skin = Skin::new(palette);
+            Task::none()
+        }
         Message::Key(Command::Pick(mode)) => {
             picker.result.put(Choice { mode, delay: picker.delay });
             iced::exit()

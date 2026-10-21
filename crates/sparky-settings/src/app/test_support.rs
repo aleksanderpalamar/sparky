@@ -15,6 +15,7 @@ use crate::domain::about::About;
 use crate::domain::keymaps::Keymaps;
 use crate::ports::commands::{CommandError, CommandRunner};
 use crate::ports::fake::FakeCommands;
+use crate::ports::fake_themes::FakeThemes;
 use crate::ports::{Compositor, CompositorError, Store};
 
 #[derive(Clone, Default)]
@@ -72,7 +73,10 @@ pub fn painel(conteudo: Option<&str>, sparky: Sparky) -> (Settings, Arquivo) {
 
 pub fn painel_com(conteudo: Option<&str>, sparky: Sparky, comandos: Comandos) -> (Settings, Arquivo) {
     let arquivo = Arquivo(Rc::new(RefCell::new(conteudo.map(str::to_owned))));
-    let services = Services { store: Box::new(arquivo.clone()), compositor: Box::new(sparky), commands: Box::new(comandos) };
+    let services = Services {
+        store: Box::new(arquivo.clone()), compositor: Box::new(sparky), commands: Box::new(comandos),
+        themes: Box::new(Rc::new(FakeThemes::default())),
+    };
     let context = Context { home: PathBuf::from("/h"), about: About::default(), keymaps: Keymaps::parse(REGRAS), skin: Skin::default(), rows: 10 };
     (Settings::new(services, context), arquivo)
 }

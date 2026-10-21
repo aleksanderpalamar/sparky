@@ -36,6 +36,10 @@ impl Bar {
         &self.skin
     }
 
+    pub fn apply_palette(&mut self, palette: sparky_theme::Palette) {
+        self.skin = Skin::new(palette);
+    }
+
     pub fn slots(&self) -> &[Slot] {
         &self.slots
     }

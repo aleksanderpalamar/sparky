@@ -7,6 +7,7 @@ use crate::app::state::Settings;
 
 pub fn subscription(_settings: &Settings) -> Subscription<Message> {
     Subscription::batch([
+        sparky_ui::palette::subscription().map(Message::Palette),
         event::listen_with(keyboard_message),
         window::resize_events().map(|(_, size)| Message::Resized(size)),
     ])

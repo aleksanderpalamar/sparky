@@ -6,11 +6,12 @@ use crate::domain::system::power::Power;
 use crate::domain::system::region::Region;
 use crate::domain::system::users;
 use crate::domain::system::media::Media;
+use crate::domain::system::themes::Themes;
 use crate::domain::system::{Change, Control, Request, Row, RowId, perform};
 
 impl Settings {
     pub fn is_system(&self) -> bool {
-        matches!(self.section, Section::Power | Section::DateTime | Section::Region | Section::Media)
+        matches!(self.section, Section::Power | Section::DateTime | Section::Region | Section::Media | Section::Themes)
     }
 
     pub fn system_rows(&self) -> Vec<Row> {
@@ -19,6 +20,7 @@ impl Settings {
             Section::DateTime => self.datetime.rows(),
             Section::Region => self.region.rows(),
             Section::Media => self.media.rows(),
+            Section::Themes => self.themes.rows(),
             _ => Vec::new(),
         }
     }
@@ -29,6 +31,7 @@ impl Settings {
         self.region = Region::load(self.services.commands.as_ref());
         self.users = users::load(self.services.commands.as_ref());
         self.media = Media::load(self.services.commands.as_ref());
+        self.themes = Themes::load(self.services.themes.as_ref());
         self.move_focus(0);
     }
 
@@ -46,6 +49,9 @@ impl Settings {
     }
 
     pub fn change_system(&mut self, change: Change) {
+        if self.section == Section::Themes {
+            return self.change_theme(change);
+        }
         let Some(row) = self.system_rows().into_iter().nth(self.focus) else {
             return;
         };

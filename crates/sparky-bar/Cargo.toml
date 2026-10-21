@@ -19,6 +19,7 @@ iced = { version = "0.14", features = ["image", "svg", "tokio"] }
 iced_layershell = "0.19.1"
 sparky-ipc.workspace = true
 sparky-theme.workspace = true
+sparky-ui.workspace = true
 system-tray = "0.8"
 tokio = { version = "1", features = ["sync"] }
 

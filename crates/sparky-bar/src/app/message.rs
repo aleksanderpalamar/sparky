@@ -6,6 +6,7 @@ use crate::domain::tray::TrayChange;
 #[to_layer_message(multi)]
 #[derive(Debug, Clone)]
 pub enum Message {
+    Palette(sparky_theme::Palette),
     WorkspacesChanged,
     Tick,
     FocusWorkspace(u32),

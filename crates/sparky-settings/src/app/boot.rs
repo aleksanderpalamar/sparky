@@ -6,6 +6,7 @@ use crate::adapters::commands::RealCommands;
 use crate::adapters::config_file::ConfigFile;
 use crate::adapters::sparky_ipc::SparkyIpc;
 use crate::adapters::system;
+use crate::adapters::theme_files::ThemeFiles;
 use crate::app::state::{Context, Services, Settings};
 use crate::view::style::{WINDOW_HEIGHT, rows_for};
 
@@ -14,6 +15,7 @@ pub fn boot() -> Settings {
         store: Box::new(ConfigFile::from_env()),
         compositor: Box::new(SparkyIpc),
         commands: Box::new(RealCommands),
+        themes: Box::new(ThemeFiles::from_env()),
     };
     let context = Context {
         home: std::env::var("HOME").map(PathBuf::from).unwrap_or_default(),

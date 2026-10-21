@@ -26,6 +26,7 @@ pub fn update(settings: &mut Settings, message: Message) -> Task<Message> {
 
 fn apply(settings: &mut Settings, message: Message) {
     match message {
+        Message::Palette(palette) => settings.observe_palette(palette),
         Message::Escape => settings.escape(),
         Message::Typed(text) => settings.input = text,
         Message::Submit => settings.submit(),

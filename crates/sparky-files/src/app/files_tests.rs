@@ -33,6 +33,23 @@ struct Cena {
     abertos: Abertos,
 }
 
+#[test]
+fn evento_de_paleta_preserva_uma_renomeacao_em_andamento() {
+    let mut cena = Cena::nova();
+    cena.tecla("G");
+    cena.tecla("r");
+    cena.mandar(Message::Typed("novo.txt".to_owned()));
+    let mode = cena.files.mode.clone();
+    let selected = cena.selecionado();
+    let palette = sparky_theme::Palette::from_colors("accent = \"#010203\"");
+    cena.mandar(Message::Palette(palette));
+    assert_eq!(cena.files.skin, Skin::new(palette));
+    assert_eq!(cena.files.mode, mode);
+    assert_eq!(cena.files.input, "novo.txt");
+    assert_eq!(cena.selecionado(), selected);
+    assert!(cena.work().join("a.txt").exists());
+}
+
 impl Cena {
     fn nova() -> Self {
         let Ok(dir) = tempfile::tempdir() else { panic!("sem pasta temporária") };

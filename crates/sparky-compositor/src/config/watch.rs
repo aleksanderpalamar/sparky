@@ -15,6 +15,9 @@ impl Sparky {
             {
                 tracing::warn!("{error}; a configuração anterior continua valendo");
             }
+            if state.colors.update(sparky_theme::current_palette()) {
+                state.needs_render = true;
+            }
             TimeoutAction::ToDuration(INTERVAL)
         });
         if let Err(error) = watching {

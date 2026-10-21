@@ -8,6 +8,7 @@ pub mod users;
 pub mod passwd;
 pub mod media;
 pub mod volumes;
+pub mod themes;
 
 #[cfg(test)]
 mod datetime_tests;
@@ -19,6 +20,8 @@ mod region_tests;
 mod users_tests;
 #[cfg(test)]
 mod media_tests;
+#[cfg(test)]
+mod themes_tests;
 
 use crate::domain::value::Step;
 use crate::ports::commands::{CommandError, CommandRunner};
@@ -46,6 +49,8 @@ pub enum RowId {
     SystemLayout,
     Volume(usize),
     MediaStatus,
+    Theme(usize),
+    ThemeStatus,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

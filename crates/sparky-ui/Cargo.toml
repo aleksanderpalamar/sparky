@@ -6,5 +6,5 @@ authors.workspace = true
 license.workspace = true
 
 [dependencies]
-iced = "0.14"
+iced = { version = "0.14", features = ["tokio"] }
 sparky-theme.workspace = true

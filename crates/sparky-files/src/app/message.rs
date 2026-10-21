@@ -3,6 +3,7 @@ use iced::keyboard::{Key, Modifiers};
 
 #[derive(Debug, Clone)]
 pub enum Message {
+    Palette(sparky_theme::Palette),
     Key(Key, Modifiers),
     Escape,
     Typed(String),

@@ -6,6 +6,7 @@ use crate::domain::value::Step;
 
 #[derive(Debug, Clone)]
 pub enum Message {
+    Palette(sparky_theme::Palette),
     Key(Key, Modifiers),
     Escape,
     Typed(String),

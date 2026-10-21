@@ -6,6 +6,7 @@ pub mod keys;
 pub mod message;
 pub mod state;
 pub mod system;
+pub mod themes;
 pub mod update;
 
 #[cfg(test)]
@@ -18,6 +19,8 @@ mod region_tests;
 mod users_tests;
 #[cfg(test)]
 mod media_tests;
+#[cfg(test)]
+mod themes_tests;
 #[cfg(test)]
 mod system_tests;
 #[cfg(test)]

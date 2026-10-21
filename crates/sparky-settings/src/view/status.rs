@@ -42,6 +42,7 @@ pub fn hints(section: Section, mode: Mode) -> &'static str {
         (Mode::Browse, Section::Region) => "j/k escolhe · Enter edita · h/l escolhe opção · F5 atualiza · Tab troca de seção",
         (Mode::Browse, Section::Users) => "j/k escolhe conta · F5 atualiza · Tab troca de seção",
         (Mode::Browse, Section::Media) => "j/k escolhe volume · Enter alterna · h desmonta · l monta · F5 atualiza",
+        (Mode::Browse, Section::Themes) => "j/k escolhe paleta · Enter aplica · F5 atualiza · Tab troca de seção",
         (Mode::Browse, Section::About) => "Tab troca de seção · q fecha",
     }
 }

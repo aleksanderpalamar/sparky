@@ -17,12 +17,10 @@ path = "src/lib.rs"
 iced = { version = "0.14", features = ["tokio"] }
 serde.workspace = true
 serde_json.workspace = true
+tempfile = "3"
 sparky-config.workspace = true
 sparky-ipc.workspace = true
 sparky-theme.workspace = true
 sparky-tiling.workspace = true
 sparky-ui.workspace = true
 sparky-xdg.workspace = true
-
-[dev-dependencies]
-tempfile = "3"

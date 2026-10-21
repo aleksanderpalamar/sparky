@@ -9,6 +9,7 @@ use sparky_ui::prompt;
 
 pub fn update(files: &mut Files, message: Message) -> Task<Message> {
     match message {
+        Message::Palette(palette) => files.skin = sparky_theme::Skin::new(palette),
         Message::Scrolled(lines) => files.viewport.scroll(lines, files.listing.len()),
         Message::Resized(size) => {
             let (cursor, len) = (files.listing.cursor(), files.listing.len());
@@ -43,7 +44,7 @@ fn apply(files: &mut Files, message: Message) {
             files.open_selected();
         }
         Message::Place(index) => files.place(index),
-        Message::Key(..) | Message::Scrolled(_) | Message::Resized(_) | Message::Tick => {}
+        Message::Key(..) | Message::Scrolled(_) | Message::Resized(_) | Message::Tick | Message::Palette(_) => {}
     }
 }
 

@@ -1,4 +1,5 @@
 pub mod notice;
+pub mod palette;
 pub mod press;
 pub mod sidebar;
 pub mod prompt;

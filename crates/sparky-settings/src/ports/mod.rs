@@ -1,6 +1,9 @@
 pub mod commands;
+pub mod themes;
 #[cfg(test)]
 pub mod fake;
+#[cfg(test)]
+pub mod fake_themes;
 
 use std::fmt;
 use std::io;
