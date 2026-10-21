@@ -124,6 +124,8 @@ sparky-msg outputs             # lista os monitores e qual está em foco
 sparky-msg capture output tela.png                 # o monitor em foco
 sparky-msg capture window janela.png               # a janela em foco, sem a borda
 sparky-msg capture region 0 0 800 600 regiao.png   # região relativa ao monitor em foco
+sparky-msg session lock        # o mesmo que as opções do menu do sistema:
+sparky-msg session suspend     #   lock, suspend, logout, reboot e poweroff
 ```
 
 ## Captura de tela
@@ -148,6 +150,20 @@ A imagem vai para `Capturas de tela` dentro da pasta de imagens (`XDG_PICTURES_D
 ## Lançador
 
 O `sparky-launcher` abre pelo `SUPER + ESPAÇO`: uma caixa no centro da tela com a busca já focada e a lista dos aplicativos instalados, com o nome no idioma do sistema. Digitar filtra (começo do nome primeiro, depois começo de palavra, trecho do nome, palavras-chave e descrição, e por fim as letras na ordem, como `ffx` para Firefox); setas, `Tab`/`SHIFT + Tab` ou `CTRL + N`/`P` (ou `J`/`K`) escolhem; `Enter` abre e `Esc` fecha. O clique também abre. A lista vem dos `.desktop` de `~/.local/share/applications` e das pastas de `XDG_DATA_DIRS` (Flatpak incluso), respeitando `NoDisplay`, `Hidden`, `OnlyShowIn`/`NotShowIn` e `TryExec`; aplicativos de terminal abrem no terminal escolhido, que o sparky passa aos programas em `TERMINAL`.
+
+### Menu do sistema
+
+`SUPER + ESC` abre o `sparky-launcher --system` (o `system_menu` de `[apps]`), com as mesmas teclas do lançador e cinco opções nesta ordem:
+
+| Opção | O que faz |
+|---|---|
+| Bloquear | Abre o locker de `[apps]`, se a tela ainda não estiver bloqueada |
+| Suspender | Bloqueia e suspende (`systemctl suspend`) assim que a tela trancar; se o locker não trancar em 5 segundos, suspende mesmo assim |
+| Sair da sessão | Pede para todas as janelas fecharem e encerra o sparky quando a última fechar |
+| Reiniciar | Fecha as janelas do mesmo jeito e roda `systemctl reboot` |
+| Desligar | Fecha as janelas do mesmo jeito e roda `systemctl poweroff` |
+
+Sair, Reiniciar e Desligar esperam os aplicativos fecharem sozinhos, como o hyprshutdown: nenhum é encerrado à força. Se depois de 8 segundos alguma janela continuar aberta (um aplicativo perguntando se quer salvar, por exemplo), o pedido é cancelado e uma notificação avisa quantas faltam; `SUPER + SHIFT + ESC` continua saindo na hora. Com o sparky aninhado em outra sessão, Suspender, Reiniciar e Desligar são recusados, para um teste nunca desligar a máquina; Bloquear e Sair funcionam.
 
 ## Chaveiro
 

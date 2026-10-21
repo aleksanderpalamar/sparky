@@ -2,6 +2,7 @@ use sparky_theme::Skin;
 use sparky_ui::viewport::Viewport;
 
 use crate::domain::app::App;
+use crate::domain::mode::Mode;
 use crate::domain::search::rank;
 
 pub const VISIBLE: usize = 8;
@@ -12,15 +13,16 @@ pub struct Launcher {
     pub cursor: usize,
     pub list: Viewport,
     pub skin: Skin,
+    pub mode: Mode,
 }
 
 impl Launcher {
-    pub fn new(apps: Vec<App>, skin: Skin) -> Self {
-        Self { apps, query: String::new(), cursor: 0, list: Viewport::new(VISIBLE), skin }
+    pub fn new(apps: Vec<App>, skin: Skin, mode: Mode) -> Self {
+        Self { apps, query: String::new(), cursor: 0, list: Viewport::new(VISIBLE), skin, mode }
     }
 
     pub fn results(&self) -> Vec<&App> {
-        rank(&self.apps, &self.query)
+        rank(&self.apps, &self.query, self.mode.order())
     }
 
     pub fn type_query(&mut self, text: String) {
@@ -48,6 +50,7 @@ impl Launcher {
 mod tests {
     use super::{Launcher, VISIBLE};
     use crate::domain::app::{App, Runs};
+    use crate::domain::mode::Mode;
     use sparky_theme::Skin;
 
     fn lancador(nomes: &[&str]) -> Launcher {
@@ -62,7 +65,7 @@ mod tests {
                 runs: Runs::Directly,
             })
             .collect();
-        Launcher::new(apps, Skin::default())
+        Launcher::new(apps, Skin::default(), Mode::Apps)
     }
 
     #[test]

@@ -1,5 +1,5 @@
 use crate::domain::app::{App, Runs};
-use crate::domain::search::rank;
+use crate::domain::search::{Order, rank};
 
 fn app(name: &str, keywords: &[&str]) -> App {
     App {
@@ -22,7 +22,7 @@ fn catalogo() -> Vec<App> {
 }
 
 fn nomes(apps: &[App], query: &str) -> Vec<String> {
-    rank(apps, query).into_iter().map(|found| found.name.clone()).collect()
+    rank(apps, query, Order::ByName).into_iter().map(|found| found.name.clone()).collect()
 }
 
 #[test]
@@ -49,4 +49,11 @@ fn letras_na_ordem_acham_mesmo_separadas() {
 #[test]
 fn busca_sem_resultado_fica_vazia() {
     assert!(nomes(&catalogo(), "xyz").is_empty());
+}
+
+#[test]
+fn na_ordem_da_lista_o_empate_mantem_a_ordem_dada() {
+    let lista = vec![app("Sair", &[]), app("Bloquear", &[]), app("Desligar", &[])];
+    let achados: Vec<String> = rank(&lista, "", Order::AsListed).into_iter().map(|found| found.name.clone()).collect();
+    assert_eq!(achados, ["Sair", "Bloquear", "Desligar"]);
 }

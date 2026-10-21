@@ -91,3 +91,9 @@ fn print_captura_uma_regiao() {
 fn super_ctrl_l_bloqueia_a_sessao_com_o_locker() {
     assert_eq!(acao("SUPER + CTRL + L"), Some(Action::Spawn { command: "swaylock".to_owned() }));
 }
+
+#[test]
+fn super_esc_abre_o_menu_do_sistema() {
+    assert_eq!(acao("SUPER + ESCAPE"), Some(Action::Spawn { command: "sparky-launcher --system".to_owned() }));
+    assert_eq!(acao("SUPER + SHIFT + ESCAPE"), Some(Action::Exit));
+}

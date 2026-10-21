@@ -23,6 +23,7 @@ use crate::render::colors::BorderColors;
 use crate::render::frames::Frames;
 use crate::lock::Lock;
 use crate::tabs::lettering::Lettering;
+use crate::session::departure::Farewell;
 use crate::wallpaper::Wallpaper;
 use crate::tabs::paint::TabPaint;
 use crate::state::protocols::Protocols;
@@ -47,6 +48,7 @@ pub struct Sparky {
     pub lettering: Lettering,
     pub lock: Lock,
     pub wallpaper: Wallpaper,
+    pub departure: Option<Farewell>,
     pub colors: BorderColors,
     pub backend: Backend,
     pub cursor_status: CursorImageStatus,
@@ -93,6 +95,7 @@ impl Sparky {
             lettering: Lettering::default(),
             lock: Lock::default(),
             wallpaper,
+            departure: None,
             colors: BorderColors::from_palette(sparky_theme::current_palette()),
             backend: Backend::Starting,
             cursor_status: CursorImageStatus::default_named(),

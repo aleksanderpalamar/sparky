@@ -9,6 +9,30 @@ pub enum Request {
     ReloadConfig,
     Capture { area: CaptureArea, path: String },
     Outputs,
+    Session { action: SessionAction },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SessionAction {
+    Lock,
+    Suspend,
+    Logout,
+    Reboot,
+    Poweroff,
+}
+
+impl SessionAction {
+    pub fn named(name: &str) -> Option<Self> {
+        match name {
+            "lock" => Some(SessionAction::Lock),
+            "suspend" => Some(SessionAction::Suspend),
+            "logout" => Some(SessionAction::Logout),
+            "reboot" => Some(SessionAction::Reboot),
+            "poweroff" => Some(SessionAction::Poweroff),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -134,5 +158,16 @@ mod tests {
         };
         let json = serde_json::to_string(&reply).unwrap_or_default();
         assert_eq!(serde_json::from_str::<Reply>(&json).ok(), Some(reply));
+    }
+
+    #[test]
+    fn o_pedido_de_sessao_leva_a_acao_pelo_nome() {
+        use super::{Request, SessionAction};
+        let pedido = Request::Session { action: SessionAction::Poweroff };
+        let json = serde_json::to_string(&pedido).unwrap_or_default();
+        assert_eq!(json, r#"{"request":"session","action":"poweroff"}"#);
+        assert_eq!(serde_json::from_str::<Request>(&json).ok(), Some(pedido));
+        assert_eq!(SessionAction::named("suspend"), Some(SessionAction::Suspend));
+        assert_eq!(SessionAction::named("voar"), None);
     }
 }

@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::message::{CaptureArea, Reply, Request};
+use crate::message::{CaptureArea, Reply, Request, SessionAction};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CommandError {
@@ -16,7 +16,7 @@ impl std::fmt::Display for CommandError {
             CommandError::Missing => {
                 write!(
                     formatter,
-                    "uso: sparky-msg workspaces | outputs | focus-workspace <n> | subscribe | reload | capture output [monitor] <arquivo> | capture window <arquivo> | capture region <x> <y> <largura> <altura> <arquivo>"
+                    "uso: sparky-msg workspaces | outputs | focus-workspace <n> | subscribe | reload | capture output [monitor] <arquivo> | capture window <arquivo> | capture region <x> <y> <largura> <altura> <arquivo> | session lock|suspend|logout|reboot|poweroff"
                 )
             }
             CommandError::Unknown(name) => write!(formatter, "comando desconhecido: {name}"),
@@ -37,8 +37,15 @@ pub fn parse(arguments: &[String]) -> Result<Request, CommandError> {
         "outputs" => Ok(Request::Outputs),
         "capture" => capture(&arguments[1..]),
         "focus-workspace" => workspace(arguments.get(1)),
+        "session" => session(arguments.get(1)),
         other => Err(CommandError::Unknown(other.to_owned())),
     }
+}
+
+fn session(name: Option<&String>) -> Result<Request, CommandError> {
+    let name = name.ok_or(CommandError::Missing)?;
+    let action = SessionAction::named(name).ok_or_else(|| CommandError::Unknown(name.clone()))?;
+    Ok(Request::Session { action })
 }
 
 pub fn with_absolute_path(request: Request, directory: &Path) -> Request {
@@ -145,6 +152,19 @@ mod tests {
         assert_eq!(ler(&["focus-workspace", "4"]), Ok(Request::FocusWorkspace { id: 4 }));
         assert_eq!(ler(&["reload"]), Ok(Request::ReloadConfig));
         assert_eq!(ler(&["outputs"]), Ok(Request::Outputs));
+    }
+
+    #[test]
+    fn le_as_acoes_de_sessao() {
+        use crate::message::SessionAction;
+        let sessao = |action: SessionAction| Ok(Request::Session { action });
+        assert_eq!(ler(&["session", "lock"]), sessao(SessionAction::Lock));
+        assert_eq!(ler(&["session", "suspend"]), sessao(SessionAction::Suspend));
+        assert_eq!(ler(&["session", "logout"]), sessao(SessionAction::Logout));
+        assert_eq!(ler(&["session", "reboot"]), sessao(SessionAction::Reboot));
+        assert_eq!(ler(&["session", "poweroff"]), sessao(SessionAction::Poweroff));
+        assert_eq!(ler(&["session"]), Err(CommandError::Missing));
+        assert_eq!(ler(&["session", "voar"]), Err(CommandError::Unknown("voar".to_owned())));
     }
 
     #[test]

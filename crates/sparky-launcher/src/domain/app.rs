@@ -1,9 +1,11 @@
+use sparky_ipc::SessionAction;
 use sparky_xdg::desktop_entry::{DesktopEntry, command_of, list_of};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Runs {
     Directly,
     InTerminal,
+    Session(SessionAction),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -45,9 +47,10 @@ pub fn app_of(id: &str, entry: &DesktopEntry, locale: &str, desktop: &str) -> Op
     })
 }
 
-pub fn command_line(app: &App, terminal: &str) -> String {
+pub fn command_line(app: &App, terminal: &str) -> Option<String> {
     match app.runs {
-        Runs::Directly => app.command.clone(),
-        Runs::InTerminal => format!("{terminal} -e {}", app.command),
+        Runs::Directly => Some(app.command.clone()),
+        Runs::InTerminal => Some(format!("{terminal} -e {}", app.command)),
+        Runs::Session(_) => None,
     }
 }

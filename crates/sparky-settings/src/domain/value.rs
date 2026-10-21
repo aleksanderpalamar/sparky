@@ -119,6 +119,7 @@ fn required(field: Field, config: &mut Config) -> Option<&mut String> {
         Field::Settings => Some(&mut config.apps.settings),
         Field::Screenshot => Some(&mut config.apps.screenshot),
         Field::Locker => Some(&mut config.apps.locker),
+        Field::SystemMenu => Some(&mut config.apps.system_menu),
         _ => None,
     }
 }

@@ -19,6 +19,7 @@ pub enum Field {
     Settings,
     Screenshot,
     Locker,
+    SystemMenu,
     Wallpaper,
 }
 
@@ -52,13 +53,14 @@ const APPEARANCE: [Field; 7] = [
     Field::Wallpaper,
 ];
 const KEYBOARD: [Field; 5] = [Field::Layout, Field::Variant, Field::Options, Field::RepeatRate, Field::RepeatDelay];
-const APPS: [Field; 6] = [
+const APPS: [Field; 7] = [
     Field::Terminal,
     Field::Launcher,
     Field::Files,
     Field::Settings,
     Field::Screenshot,
     Field::Locker,
+    Field::SystemMenu,
 ];
 
 const fn bounds(min: i32, max: i32, step: i32) -> Kind {
@@ -86,7 +88,7 @@ impl Field {
             Field::RepeatDelay => bounds(100, 1000, 25),
             Field::DefaultBinds => Kind::Flag,
             Field::Layout | Field::Variant | Field::Options | Field::Terminal | Field::Wallpaper => Kind::Text(Blank::Allowed),
-            Field::Launcher | Field::Files | Field::Settings | Field::Screenshot | Field::Locker => Kind::Text(Blank::Refused),
+            Field::Launcher | Field::Files | Field::Settings | Field::Screenshot | Field::Locker | Field::SystemMenu => Kind::Text(Blank::Refused),
         }
     }
 
@@ -109,6 +111,7 @@ impl Field {
             Field::Settings => ("apps", "settings"),
             Field::Screenshot => ("apps", "screenshot"),
             Field::Locker => ("apps", "locker"),
+            Field::SystemMenu => ("apps", "system_menu"),
             Field::Wallpaper => ("general", "wallpaper"),
         }
     }
@@ -132,6 +135,13 @@ mod tests {
     fn apps_obrigatorios_nao_aceitam_vazio_e_o_terminal_aceita() {
         assert_eq!(Field::Launcher.kind(), Kind::Text(Blank::Refused));
         assert_eq!(Field::Terminal.kind(), Kind::Text(Blank::Allowed));
+    }
+
+    #[test]
+    fn o_menu_do_sistema_fica_nos_aplicativos() {
+        assert!(Field::of(Section::Apps).contains(&Field::SystemMenu));
+        assert_eq!(Field::SystemMenu.place(), ("apps", "system_menu"));
+        assert_eq!(Field::SystemMenu.kind(), Kind::Text(Blank::Refused));
     }
 
     #[test]

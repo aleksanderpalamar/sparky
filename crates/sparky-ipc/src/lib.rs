@@ -7,4 +7,4 @@ pub mod socket;
 
 pub use client::{Client, Events};
 pub use error::IpcError;
-pub use message::{CaptureArea, Event, OutputInfo, Reply, Request, WorkspaceInfo};
+pub use message::{CaptureArea, Event, OutputInfo, Reply, Request, SessionAction, WorkspaceInfo};

@@ -137,3 +137,12 @@ fn o_papel_de_parede_e_opcional_no_general() {
     };
     assert_eq!(config.general.wallpaper.as_deref(), Some("~/Imagens/fundo.webp"));
 }
+
+#[test]
+fn o_menu_do_sistema_padrao_e_o_lancador_no_modo_sistema() {
+    assert_eq!(Config::default().apps.system_menu, "sparky-launcher --system");
+    let Ok(config) = parse("[apps]\nsystem_menu = \"wlogout\"\n") else {
+        panic!("system_menu deveria ser aceito");
+    };
+    assert_eq!(config.apps.system_menu, "wlogout");
+}

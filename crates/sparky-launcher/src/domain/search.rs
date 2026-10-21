@@ -1,13 +1,26 @@
 use crate::domain::app::App;
 
-pub fn rank<'a>(apps: &'a [App], query: &str) -> Vec<&'a App> {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Order {
+    ByName,
+    AsListed,
+}
+
+pub fn rank<'a>(apps: &'a [App], query: &str, order: Order) -> Vec<&'a App> {
     let wanted = query.trim().to_lowercase();
     let mut found: Vec<(u8, String, &App)> = apps
         .iter()
-        .filter_map(|app| score(app, &wanted).map(|score| (score, app.name.to_lowercase(), app)))
+        .filter_map(|app| score(app, &wanted).map(|score| (score, tiebreak(app, order), app)))
         .collect();
     found.sort_by(|left, right| (left.0, &left.1).cmp(&(right.0, &right.1)));
     found.into_iter().map(|(_, _, app)| app).collect()
+}
+
+fn tiebreak(app: &App, order: Order) -> String {
+    match order {
+        Order::ByName => app.name.to_lowercase(),
+        Order::AsListed => String::new(),
+    }
 }
 
 fn score(app: &App, wanted: &str) -> Option<u8> {

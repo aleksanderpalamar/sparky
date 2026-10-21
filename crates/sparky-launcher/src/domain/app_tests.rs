@@ -43,6 +43,8 @@ fn app_de_terminal_abre_no_terminal_escolhido() {
         command: "htop".to_owned(),
         runs: Runs::InTerminal,
     };
-    assert_eq!(command_line(&app, "foot"), "foot -e htop");
-    assert_eq!(command_line(&App { runs: Runs::Directly, ..app }, "foot"), "htop");
+    assert_eq!(command_line(&app, "foot").as_deref(), Some("foot -e htop"));
+    assert_eq!(command_line(&App { runs: Runs::Directly, ..app.clone() }, "foot").as_deref(), Some("htop"));
+    let sessao = App { runs: Runs::Session(sparky_ipc::SessionAction::Lock), ..app };
+    assert_eq!(command_line(&sessao, "foot"), None);
 }

@@ -23,6 +23,7 @@ fn applications(apps: &Apps, terminal: &str) -> Vec<Bind> {
     vec![
         bind("SUPER + RETURN", spawn(terminal)),
         bind("SUPER + SPACE", spawn(&apps.launcher)),
+        bind("SUPER + ESCAPE", spawn(&apps.system_menu)),
         bind("SUPER + SHIFT + F", spawn(&apps.files)),
         bind("SUPER + ALT + SPACE", spawn(&apps.settings)),
         bind("PRINT", spawn(&format!("{} region", apps.screenshot))),

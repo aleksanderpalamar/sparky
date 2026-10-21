@@ -25,6 +25,7 @@ impl Sparky {
                     message: error.to_string(),
                 },
             },
+            Request::Session { action } => self.session_request(action),
             Request::ReloadConfig => match self.reload_config() {
                 Ok(()) => Reply::Done,
                 Err(error) => Reply::Error {

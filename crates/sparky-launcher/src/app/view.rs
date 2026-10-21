@@ -13,7 +13,7 @@ const SEARCH_SIZE: f32 = 16.0;
 
 pub fn view(launcher: &Launcher) -> Element<'_, Message> {
     let skin = launcher.skin;
-    let search = text_input("Buscar aplicativo", &launcher.query)
+    let search = text_input(launcher.mode.placeholder(), &launcher.query)
         .id(PROMPT)
         .on_input(Message::Typed)
         .on_submit(Message::Submit)

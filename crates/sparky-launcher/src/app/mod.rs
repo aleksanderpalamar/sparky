@@ -17,9 +17,10 @@ use crate::adapters::launch::launch;
 use crate::app::keys::movement;
 use crate::app::state::Launcher;
 use crate::domain::app::App;
+use crate::domain::mode::Mode;
+use crate::domain::system::entries;
 
 const NAMESPACE: &str = "sparky-launcher";
-const SIZE: (u32, u32) = (640, 440);
 
 #[to_layer_message]
 #[derive(Debug, Clone)]
@@ -32,10 +33,13 @@ pub enum Message {
     Close,
 }
 
-pub fn run() -> Result<(), iced_layershell::Error> {
-    let apps = installed_apps();
+pub fn run(mode: Mode) -> Result<(), iced_layershell::Error> {
+    let apps = match mode {
+        Mode::Apps => installed_apps(),
+        Mode::System => entries(),
+    };
     let boot = move || {
-        let launcher = Launcher::new(apps.clone(), Skin::new(sparky_theme::current_palette()));
+        let launcher = Launcher::new(apps.clone(), Skin::new(sparky_theme::current_palette()), mode);
         (launcher, prompt::focus())
     };
     iced_layershell::application(boot, || NAMESPACE.to_owned(), update, view::view)
@@ -45,7 +49,7 @@ pub fn run() -> Result<(), iced_layershell::Error> {
         ]))
         .theme(|launcher: &Launcher| launcher.skin.theme())
         .style(transparent)
-        .settings(settings())
+        .settings(settings(mode))
         .run()
 }
 
@@ -79,13 +83,13 @@ fn keyboard_message(event: Event, status: Status, _window: window::Id) -> Option
     }
 }
 
-fn settings() -> Settings {
+fn settings(mode: Mode) -> Settings {
     Settings {
         layer_settings: LayerShellSettings {
             anchor: Anchor::empty(),
             layer: Layer::Overlay,
             exclusive_zone: 0,
-            size: Some(SIZE),
+            size: Some(mode.size()),
             keyboard_interactivity: KeyboardInteractivity::Exclusive,
             start_mode: StartMode::Active,
             ..LayerShellSettings::default()

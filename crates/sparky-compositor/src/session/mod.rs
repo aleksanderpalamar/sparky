@@ -1,10 +1,14 @@
 pub mod autostart;
 pub mod autostart_files;
 pub mod components;
+pub mod departure;
+pub mod leaving;
 pub mod environment;
 
 #[cfg(test)]
 mod autostart_tests;
+#[cfg(test)]
+mod departure_tests;
 
 use sparky_xdg::programs::installed;
 use crate::backend::Backend;
