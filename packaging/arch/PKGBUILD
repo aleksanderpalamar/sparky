@@ -1,6 +1,6 @@
 
 pkgname=sparky
-pkgver=0.15.1
+pkgver=0.16.0
 pkgrel=1
 pkgdesc='Ambiente de desktop Wayland em Rust, com compositor próprio em mosaico e feito para o teclado'
 arch=('x86_64')
@@ -59,11 +59,12 @@ check() {
 package() {
   cd "$pkgname"
   local binary
-  for binary in sparky sparky-bar sparky-msg sparky-shot sparky-files sparky-settings sparky-launcher; do
+  for binary in sparky sparky-bar sparky-msg sparky-shot sparky-files sparky-settings sparky-launcher sparky-keyring sparky-keyring-prompt; do
     install -Dm755 "target/release/$binary" -t "$pkgdir/usr/bin"
   done
   install -Dm644 data/session/sparky.desktop -t "$pkgdir/usr/share/wayland-sessions"
   install -Dm644 data/portals/sparky-portals.conf -t "$pkgdir/usr/share/xdg-desktop-portal"
+  install -Dm644 data/portals/sparky-keyring.portal -t "$pkgdir/usr/share/xdg-desktop-portal/portals"
   install -Dm644 data/applications/* -t "$pkgdir/usr/share/applications"
   install -Dm644 data/themes/tokyo-night/colors.toml data/themes/tokyo-night/LICENSE -t "$pkgdir/usr/share/sparky/themes/tokyo-night"
   install -Dm644 data/config/sparky.toml -t "$pkgdir/usr/share/sparky"

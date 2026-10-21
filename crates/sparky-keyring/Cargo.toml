@@ -1,0 +1,31 @@
+[package]
+name = "sparky-keyring"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "sparky-keyring"
+path = "src/main.rs"
+
+[lib]
+name = "sparky_keyring"
+path = "src/lib.rs"
+
+[dependencies]
+argon2 = "0.5"
+base64 = "0.22"
+chacha20poly1305 = "0.10"
+getrandom = "0.3"
+serde.workspace = true
+serde_json.workspace = true
+sha2 = "0.10"
+tokio = { version = "1", features = ["io-util", "macros", "net", "rt", "sync", "time"] }
+zbus = { version = "5", default-features = false, features = ["tokio"] }
+zeroize = { version = "1", features = ["std"] }
+
+[dev-dependencies]
+futures-util = "0.3"
+zbus = { version = "5", default-features = false, features = ["p2p", "tokio"] }
+tempfile = "3"

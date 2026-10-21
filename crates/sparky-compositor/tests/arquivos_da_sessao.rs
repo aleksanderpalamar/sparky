@@ -51,3 +51,12 @@ fn compartilhar_e_capturar_a_tela_vao_pelo_portal_wlr() {
     assert_eq!(valor(&portais, "org.freedesktop.impl.portal.ScreenCast").as_deref(), Some("wlr"));
     assert_eq!(valor(&portais, "org.freedesktop.impl.portal.Screenshot").as_deref(), Some("wlr"));
 }
+
+#[test]
+fn os_segredos_dos_aplicativos_isolados_vao_para_o_sparky_keyring() {
+    let portais = ler(&format!("portals/{DESKTOP}-portals.conf"));
+    assert_eq!(valor(&portais, "org.freedesktop.impl.portal.Secret").as_deref(), Some("sparky-keyring"));
+    let portal = ler("portals/sparky-keyring.portal");
+    assert_eq!(valor(&portal, "DBusName").as_deref(), Some("org.freedesktop.secrets"));
+    assert_eq!(valor(&portal, "Interfaces").as_deref(), Some("org.freedesktop.impl.portal.Secret"));
+}

@@ -1,3 +1,4 @@
+pub const KEYRING: &str = "sparky-keyring";
 pub const BAR: &str = "sparky-bar";
 pub const NOTIFICATIONS: &str = "mako";
 pub const POLKIT_AGENTS: [&str; 6] = [
@@ -11,7 +12,7 @@ pub const POLKIT_AGENTS: [&str; 6] = [
 
 pub fn components(installed: impl Fn(&str) -> bool) -> Vec<String> {
     let polkit = POLKIT_AGENTS.iter().copied().find(|agent| installed(agent));
-    [Some(BAR), Some(NOTIFICATIONS), polkit]
+    [Some(KEYRING), Some(BAR), Some(NOTIFICATIONS), polkit]
         .into_iter()
         .flatten()
         .filter(|program| installed(program))
@@ -21,7 +22,7 @@ pub fn components(installed: impl Fn(&str) -> bool) -> Vec<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{BAR, NOTIFICATIONS, components};
+    use super::{BAR, KEYRING, NOTIFICATIONS, components};
 
     #[test]
     fn sobe_a_barra_as_notificacoes_e_um_agente_polkit() {
@@ -30,6 +31,12 @@ mod tests {
             components(|programa| instalados.contains(&programa)),
             vec!["sparky-bar", "mako", "/usr/libexec/polkit-gnome-authentication-agent-1"]
         );
+    }
+
+    #[test]
+    fn o_chaveiro_sobe_antes_dos_outros_para_atender_os_aplicativos() {
+        let instalados = [KEYRING, BAR, NOTIFICATIONS];
+        assert_eq!(components(|programa| instalados.contains(&programa)), vec!["sparky-keyring", "sparky-bar", "mako"]);
     }
 
     #[test]
