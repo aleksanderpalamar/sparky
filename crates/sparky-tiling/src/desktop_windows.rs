@@ -140,7 +140,7 @@ impl Desktop {
         self.entries.get_mut(&id)
     }
 
-    fn with_focused(&mut self, change: impl FnOnce(&mut Entry, WindowId, Screen, (i32, i32))) {
+    pub(crate) fn with_focused(&mut self, change: impl FnOnce(&mut Entry, WindowId, Screen, (i32, i32))) {
         let (Some(window), Some((_, _, screen))) = (self.focused_window(), self.focused_target()) else {
             return;
         };
@@ -150,7 +150,7 @@ impl Desktop {
         }
     }
 
-    fn neighbor_of_focused(&self, direction: Direction) -> Option<WindowId> {
+    pub(crate) fn neighbor_of_focused(&self, direction: Direction) -> Option<WindowId> {
         let focused = self.focused_window()?;
         let monitor = self.focused_monitor()?;
         let entry = self.entries.get(&self.shown(monitor))?;

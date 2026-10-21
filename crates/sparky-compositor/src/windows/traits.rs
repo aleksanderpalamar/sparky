@@ -6,6 +6,19 @@ use smithay::xwayland::xwm::WmWindowType;
 
 use crate::windows::rules::Traits;
 
+pub fn title_of(window: &Window) -> String {
+    match window.underlying_surface() {
+        WindowSurface::Wayland(toplevel) => with_states(toplevel.wl_surface(), |states| {
+            states
+                .data_map
+                .get::<XdgToplevelSurfaceData>()
+                .and_then(|data| data.lock().ok().and_then(|data| data.title.clone()))
+                .unwrap_or_default()
+        }),
+        WindowSurface::X11(x11) => x11.title(),
+    }
+}
+
 pub fn traits_of(window: &Window) -> Traits {
     match window.underlying_surface() {
         WindowSurface::Wayland(toplevel) => wayland_traits(toplevel),

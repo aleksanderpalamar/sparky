@@ -2,6 +2,7 @@ use crate::dwindle::Dwindle;
 use crate::focus::FocusHistory;
 use crate::gaps::Gaps;
 use crate::geometry::Rect;
+use crate::groups::Groups;
 use crate::ids::WindowId;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -34,10 +35,11 @@ pub struct Screen {
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Workspace {
-    tiled: Dwindle,
-    floating: Vec<(WindowId, Rect)>,
-    fullscreen: Option<(WindowId, Fullscreen)>,
-    focus: FocusHistory,
+    pub(crate) tiled: Dwindle,
+    pub(crate) floating: Vec<(WindowId, Rect)>,
+    pub(crate) fullscreen: Option<(WindowId, Fullscreen)>,
+    pub(crate) focus: FocusHistory,
+    pub(crate) groups: Groups,
 }
 
 impl Workspace {
@@ -46,7 +48,7 @@ impl Workspace {
     }
 
     pub fn contains(&self, window: WindowId) -> bool {
-        self.tiled.contains(window) || self.is_floating(window)
+        self.tiled.contains(window) || self.is_floating(window) || self.groups.of(window).is_some()
     }
 
     pub fn is_floating(&self, window: WindowId) -> bool {
@@ -55,7 +57,8 @@ impl Workspace {
 
     pub fn windows(&self) -> Vec<WindowId> {
         let floating = self.floating.iter().map(|(window, _)| *window);
-        self.tiled.windows().into_iter().chain(floating).collect()
+        let hidden = self.hidden_members();
+        self.tiled.windows().into_iter().chain(hidden).chain(floating).collect()
     }
 
     pub fn focused(&self) -> Option<WindowId> {
@@ -63,6 +66,7 @@ impl Workspace {
     }
 
     pub fn focus(&mut self, window: WindowId) {
+        self.show_member(window);
         if self.contains(window) {
             self.focus.touch(window);
         }
@@ -70,6 +74,10 @@ impl Workspace {
 
     pub fn add_tiled(&mut self, window: WindowId, area: Rect) {
         let target = self.focused().filter(|focused| self.tiled.contains(*focused));
+        if let Some(leaf) = target.filter(|leaf| self.groups.of(*leaf).is_some()) {
+            self.join(leaf, window);
+            return;
+        }
         self.tiled.insert(window, target, area);
         self.focus.touch(window);
     }
@@ -82,7 +90,7 @@ impl Workspace {
     }
 
     pub fn remove(&mut self, window: WindowId) -> bool {
-        let tiled = self.tiled.remove(window);
+        let tiled = self.detach(window);
         let before = self.floating.len();
         self.floating.retain(|(known, _)| *known != window);
         if self.fullscreen.is_some_and(|(known, _)| known == window) {
@@ -93,7 +101,7 @@ impl Workspace {
     }
 
     pub fn toggle_floating(&mut self, window: WindowId, area: Rect, size: (i32, i32)) {
-        if self.tiled.remove(window) {
+        if self.detach(window) {
             self.floating.push((window, area.centered(size.0, size.1)));
             return;
         }
@@ -158,7 +166,7 @@ impl Workspace {
             .tiled
             .layout(screen.area)
             .into_iter()
-            .map(|(window, tile)| place(window, gaps.apply(tile, screen.area), Layer::Tiled));
+            .map(|(window, tile)| place(window, self.framed(window, gaps.apply(tile, screen.area)), Layer::Tiled));
         let floating = self.floating.iter().map(|(window, frame)| place(*window, *frame, Layer::Floating));
         let mut placements: Vec<Placement> = tiled.chain(floating).collect();
         if let Some((window, mode)) = self.fullscreen {

@@ -20,6 +20,12 @@ pub fn describe(action: &Action) -> String {
         Action::PreviousWorkspace => "Volta para a última área usada".to_owned(),
         Action::ToggleScratchpad => "Mostra ou esconde o rascunho".to_owned(),
         Action::MoveToScratchpad => "Manda a janela para o rascunho".to_owned(),
+        Action::ToggleGroup => "Agrupa a janela ou desfaz o grupo".to_owned(),
+        Action::LeaveGroup => "Tira a janela do grupo".to_owned(),
+        Action::MoveIntoGroup { direction } => format!("Põe a janela no grupo {}", towards(*direction)),
+        Action::CycleGroup { step } if *step > 0 => "Próxima janela do grupo".to_owned(),
+        Action::CycleGroup { .. } => "Janela anterior do grupo".to_owned(),
+        Action::SelectInGroup { index } => format!("Mostra a janela {index} do grupo"),
         Action::CycleMonitor { step } if *step > 0 => "Próximo monitor".to_owned(),
         Action::CycleMonitor { .. } => "Monitor anterior".to_owned(),
         Action::SwitchTerminal { terminal } => format!("Vai para o terminal virtual {terminal}"),
@@ -55,6 +61,13 @@ mod tests {
         assert_eq!(describe(&Action::Focus { direction: Direction::Left }), "Foca a janela à esquerda");
         assert_eq!(describe(&Action::Resize { width: 50, height: 0 }), "Redimensiona (+50, 0)");
         assert_eq!(describe(&Action::RelativeWorkspace { step: -1 }), "Área anterior");
+    }
+
+    #[test]
+    fn descreve_os_grupos() {
+        assert_eq!(describe(&Action::MoveIntoGroup { direction: Direction::Right }), "Põe a janela no grupo à direita");
+        assert_eq!(describe(&Action::CycleGroup { step: -1 }), "Janela anterior do grupo");
+        assert_eq!(describe(&Action::SelectInGroup { index: 3 }), "Mostra a janela 3 do grupo");
     }
 
     #[test]

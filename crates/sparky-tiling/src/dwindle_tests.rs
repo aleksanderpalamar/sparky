@@ -163,3 +163,16 @@ fn sem_divisao_no_eixo_o_tamanho_nao_muda() {
     dwindle.resize(janela(1), 0, 200, TELA);
     assert_eq!(caixa(&dwindle, 1), Rect::new(0, 0, 960, 1080));
 }
+
+#[test]
+fn trocar_a_folha_poe_a_janela_nova_no_mesmo_quadro() {
+    let area = Rect::new(0, 0, 1000, 500);
+    let mut dwindle = Dwindle::default();
+    dwindle.insert(WindowId(1), None, area);
+    dwindle.insert(WindowId(2), Some(WindowId(1)), area);
+    let antes = dwindle.layout(area);
+    assert!(dwindle.replace(WindowId(2), WindowId(9)));
+    assert_eq!(dwindle.layout(area), vec![(WindowId(1), antes[0].1), (WindowId(9), antes[1].1)]);
+    assert!(!dwindle.replace(WindowId(2), WindowId(5)));
+    assert!(!dwindle.replace(WindowId(1), WindowId(9)));
+}

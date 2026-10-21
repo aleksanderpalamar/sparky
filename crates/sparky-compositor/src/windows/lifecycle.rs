@@ -8,6 +8,7 @@ impl Sparky {
             self.space.unmap_elem(&window);
         }
         self.frames.forget(id);
+        self.tab_paint.forget(id);
         self.desktop.remove_window(id);
         self.relayout();
     }

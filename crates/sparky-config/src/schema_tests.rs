@@ -106,3 +106,13 @@ fn le_as_acoes_do_rascunho_pelo_nome() {
     let acoes: Vec<Action> = config.bind.into_iter().map(|bind| bind.action).collect();
     assert_eq!(acoes, [Action::ToggleScratchpad, Action::MoveToScratchpad]);
 }
+
+#[test]
+fn le_as_acoes_de_grupo_com_os_campos() {
+    let contents = "[[bind]]\nkeys = \"SUPER + Z\"\naction = \"move-into-group\"\ndirection = \"left\"\n\n[[bind]]\nkeys = \"SUPER + X\"\naction = \"select-in-group\"\nindex = 2\n";
+    let Ok(config) = parse(contents) else {
+        panic!("as ações de grupo deveriam ser aceitas");
+    };
+    let acoes: Vec<Action> = config.bind.into_iter().map(|bind| bind.action).collect();
+    assert_eq!(acoes, [Action::MoveIntoGroup { direction: Direction::Left }, Action::SelectInGroup { index: 2 }]);
+}

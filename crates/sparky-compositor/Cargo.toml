@@ -15,7 +15,9 @@ name = "sparky_compositor"
 path = "src/lib.rs"
 
 [dependencies]
+ab_glyph = "0.2"
 calloop = { version = "0.14", features = ["signals"] }
+fontdb = "0.23"
 libc = "0.2"
 png = "0.17"
 sparky-config.workspace = true

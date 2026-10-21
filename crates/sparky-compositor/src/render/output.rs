@@ -5,10 +5,12 @@ use smithay::desktop::{LayerMap, Window, layer_map_for_output};
 use smithay::output::Output;
 use smithay::utils::{Logical, Point, Scale};
 use smithay::wayland::shell::wlr_layer::Layer as ShellLayer;
+use sparky_tiling::workspace_groups::Tabs;
 use sparky_tiling::{Fullscreen, Layer, Placement, Rect};
 
 use crate::render::border;
 use crate::render::elements::SparkyElement;
+use crate::render::tabs::tab_elements;
 use crate::state::Sparky;
 
 struct Target {
@@ -19,7 +21,7 @@ struct Target {
 pub fn output_elements<R>(state: &mut Sparky, renderer: &mut R, output: &Output) -> Vec<SparkyElement<R>>
 where
     R: Renderer + ImportAll + ImportMem,
-    R::TextureId: Clone + Texture + 'static,
+    R::TextureId: Clone + Texture + Send + 'static,
 {
     let Some(geometry) = state.space.output_geometry(output) else {
         return Vec::new();
@@ -29,6 +31,7 @@ where
         scale: Scale::from(output.current_scale().fractional_scale()),
     };
     let placements = placements_on(state, &output.name());
+    let bars = tabs_on(state, &output.name());
     let (above, below): (Vec<&Placement>, Vec<&Placement>) = placements
         .iter()
         .rev()
@@ -38,9 +41,9 @@ where
     for window in state.unmanaged.iter().rev() {
         elements.extend(surface(&state.space, window, renderer, &target));
     }
-    elements.extend(windows(state, renderer, &above, &target));
+    elements.extend(windows(state, renderer, &above, &bars, &target));
     elements.extend(layer_elements(&map, renderer, ShellLayer::Top, &target));
-    elements.extend(windows(state, renderer, &below, &target));
+    elements.extend(windows(state, renderer, &below, &bars, &target));
     elements.extend(layer_elements(&map, renderer, ShellLayer::Bottom, &target));
     elements.extend(layer_elements(&map, renderer, ShellLayer::Background, &target));
     elements
@@ -56,10 +59,26 @@ fn placements_on(state: &Sparky, output: &str) -> Vec<Placement> {
         .unwrap_or_default()
 }
 
-fn windows<R>(state: &mut Sparky, renderer: &mut R, placements: &[&Placement], target: &Target) -> Vec<SparkyElement<R>>
+fn tabs_on(state: &Sparky, output: &str) -> Vec<Tabs> {
+    state
+        .desktop
+        .tabs()
+        .into_iter()
+        .find(|(name, _)| name == output)
+        .map(|(_, tabs)| tabs)
+        .unwrap_or_default()
+}
+
+fn windows<R>(
+    state: &mut Sparky,
+    renderer: &mut R,
+    placements: &[&Placement],
+    bars: &[Tabs],
+    target: &Target,
+) -> Vec<SparkyElement<R>>
 where
     R: Renderer + ImportAll + ImportMem,
-    R::TextureId: Clone + Texture + 'static,
+    R::TextureId: Clone + Texture + Send + 'static,
 {
     let mut elements = Vec::new();
     for placement in placements {
@@ -72,6 +91,11 @@ where
         let color = state.colors.for_focus(placement.focused);
         let edges = state.frames.elements(placement.window, frame, width, color, target.scale);
         elements.extend(edges.into_iter().map(SparkyElement::Solid));
+        let bar = bars.iter().find(|bar| bar.members.get(bar.active) == Some(&placement.window));
+        if let Some(bar) = bar {
+            let area = relative(bar.frame, target.origin);
+            elements.extend(tab_elements(state, renderer, bar, area, target.scale));
+        }
     }
     elements
 }
@@ -84,7 +108,7 @@ fn surface<R>(
 ) -> Vec<SparkyElement<R>>
 where
     R: Renderer + ImportAll + ImportMem,
-    R::TextureId: Clone + Texture + 'static,
+    R::TextureId: Clone + Texture + Send + 'static,
 {
     let Some(location) = space.element_location(window) else {
         return Vec::new();
@@ -96,7 +120,7 @@ where
 fn layer_elements<R>(map: &LayerMap, renderer: &mut R, layer: ShellLayer, target: &Target) -> Vec<SparkyElement<R>>
 where
     R: Renderer + ImportAll + ImportMem,
-    R::TextureId: Clone + Texture + 'static,
+    R::TextureId: Clone + Texture + Send + 'static,
 {
     map.layers_on(layer)
         .rev()

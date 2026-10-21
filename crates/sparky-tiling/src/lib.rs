@@ -1,4 +1,5 @@
 pub mod desktop;
+mod desktop_groups;
 mod desktop_scratchpad;
 mod desktop_windows;
 mod desktop_workspaces;
@@ -8,11 +9,15 @@ pub mod dwindle;
 pub mod focus;
 pub mod gaps;
 pub mod geometry;
+pub mod groups;
 pub mod ids;
 pub mod neighbor;
 mod node;
 pub mod workspace;
+pub mod workspace_groups;
 
+#[cfg(test)]
+mod desktop_group_tests;
 #[cfg(test)]
 mod desktop_scratchpad_tests;
 #[cfg(test)]
@@ -25,6 +30,8 @@ mod drag_session_tests;
 mod drag_tests;
 #[cfg(test)]
 mod dwindle_tests;
+#[cfg(test)]
+mod groups_tests;
 #[cfg(test)]
 mod workspace_tests;
 

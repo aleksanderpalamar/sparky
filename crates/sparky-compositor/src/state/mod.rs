@@ -21,6 +21,8 @@ use crate::config::{self, keyboard};
 use crate::ipc::server::IpcServer;
 use crate::render::colors::BorderColors;
 use crate::render::frames::Frames;
+use crate::tabs::lettering::Lettering;
+use crate::tabs::paint::TabPaint;
 use crate::state::protocols::Protocols;
 use crate::windows::registry::Registry;
 
@@ -39,6 +41,8 @@ pub struct Sparky {
     pub bindings: Bindings,
     pub suppressed_keys: Vec<u32>,
     pub frames: Frames,
+    pub tab_paint: TabPaint,
+    pub lettering: Lettering,
     pub colors: BorderColors,
     pub backend: Backend,
     pub cursor_status: CursorImageStatus,
@@ -80,6 +84,8 @@ impl Sparky {
             bindings: config::bindings_for(&config),
             suppressed_keys: Vec::new(),
             frames: Frames::default(),
+            tab_paint: TabPaint::default(),
+            lettering: Lettering::default(),
             colors: BorderColors::from_palette(sparky_theme::current_palette()),
             backend: Backend::Starting,
             cursor_status: CursorImageStatus::default_named(),

@@ -76,6 +76,16 @@ impl Dwindle {
         true
     }
 
+    pub fn replace(&mut self, old: WindowId, new: WindowId) -> bool {
+        if !self.contains(old) || self.contains(new) {
+            return false;
+        }
+        if let Some(root) = self.root.as_mut() {
+            root.swap(old, new);
+        }
+        true
+    }
+
     pub fn resize(&mut self, window: WindowId, delta_x: i32, delta_y: i32, area: Rect) {
         let Some(root) = self.root.as_mut() else {
             return;

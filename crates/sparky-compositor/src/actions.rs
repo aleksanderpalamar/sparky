@@ -38,6 +38,11 @@ impl Sparky {
             Action::RelativeWorkspace { step } => desktop.focus_relative(step),
             Action::PreviousWorkspace => desktop.focus_previous(),
             Action::ToggleScratchpad => desktop.toggle_scratchpad(),
+            Action::ToggleGroup => desktop.toggle_group(),
+            Action::LeaveGroup => desktop.leave_group(),
+            Action::MoveIntoGroup { direction } => desktop.move_into_group(direction),
+            Action::CycleGroup { step } => desktop.cycle_group(step),
+            Action::SelectInGroup { index } => desktop.select_in_group(index.saturating_sub(1)),
             Action::MoveToScratchpad => {
                 if let Some(window) = desktop.focused_window() {
                     desktop.move_to_scratchpad(window);

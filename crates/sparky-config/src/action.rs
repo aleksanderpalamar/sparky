@@ -37,6 +37,17 @@ pub enum Action {
     PreviousWorkspace,
     ToggleScratchpad,
     MoveToScratchpad,
+    ToggleGroup,
+    LeaveGroup,
+    MoveIntoGroup {
+        direction: Direction,
+    },
+    CycleGroup {
+        step: i32,
+    },
+    SelectInGroup {
+        index: usize,
+    },
     CycleMonitor {
         step: i32,
     },
