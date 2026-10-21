@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use sparky_tiling::{Gaps, Style};
 
 use crate::action::Bind;
+use crate::output::OutputRule;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -11,6 +12,7 @@ pub struct Config {
     pub apps: Apps,
     pub autostart: Vec<String>,
     pub bind: Vec<Bind>,
+    pub output: Vec<OutputRule>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

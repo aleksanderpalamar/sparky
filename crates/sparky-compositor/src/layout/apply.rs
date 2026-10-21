@@ -29,6 +29,7 @@ impl Sparky {
             self.space.raise_element(window, false);
         }
         self.update_keyboard_focus();
+        self.publish_scales();
         self.needs_render = true;
     }
 

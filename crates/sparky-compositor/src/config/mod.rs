@@ -48,8 +48,12 @@ impl Sparky {
         if config.input != self.config.input {
             self.apply_keyboard(&config);
         }
+        let outputs_changed = config.output != self.config.output;
         self.config = config;
-        self.relayout();
+        match outputs_changed {
+            true => self.apply_output_scales(),
+            false => self.relayout(),
+        }
     }
 
     fn apply_keyboard(&mut self, config: &Config) {

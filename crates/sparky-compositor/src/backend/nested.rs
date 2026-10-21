@@ -61,7 +61,8 @@ fn nested_output(state: &mut Sparky, size: Size<i32, Physical>) -> Output {
         },
     );
     let _global = output.create_global::<Sparky>(&state.display_handle);
-    output.change_current_state(Some(mode), Some(Transform::Flipped180), None, Some((0, 0).into()));
+    let scale = state.configured_scale(&output.name());
+    output.change_current_state(Some(mode), Some(Transform::Flipped180), Some(scale), Some((0, 0).into()));
     output.set_preferred(mode);
     state.space.map_output(&output, (0, 0));
     state.sync_outputs();

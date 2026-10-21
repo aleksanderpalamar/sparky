@@ -3,6 +3,7 @@ use smithay::reexports::wayland_server::DisplayHandle;
 use smithay::wayland::compositor::CompositorState;
 use smithay::wayland::cursor_shape::CursorShapeManagerState;
 use smithay::wayland::dmabuf::DmabufState;
+use smithay::wayland::fractional_scale::FractionalScaleManagerState;
 use smithay::wayland::output::OutputManagerState;
 use smithay::wayland::pointer_constraints::PointerConstraintsState;
 use smithay::wayland::relative_pointer::RelativePointerManagerState;
@@ -35,6 +36,7 @@ pub struct Protocols {
     pub cursor_shape: CursorShapeManagerState,
     pub relative_pointer: RelativePointerManagerState,
     pub pointer_constraints: PointerConstraintsState,
+    pub fractional_scale: FractionalScaleManagerState,
 }
 
 impl Protocols {
@@ -58,6 +60,7 @@ impl Protocols {
             cursor_shape: CursorShapeManagerState::new::<Sparky>(display),
             relative_pointer: RelativePointerManagerState::new::<Sparky>(display),
             pointer_constraints: PointerConstraintsState::new::<Sparky>(display),
+            fractional_scale: FractionalScaleManagerState::new::<Sparky>(display),
         }
     }
 }

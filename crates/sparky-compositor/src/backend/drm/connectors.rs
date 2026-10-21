@@ -90,7 +90,8 @@ impl Sparky {
         let position = placement::next_position(&existing);
         let wl_mode = WlMode::from(mode);
         output.set_preferred(wl_mode);
-        output.change_current_state(Some(wl_mode), None, None, Some(position.into()));
+        let scale = self.configured_scale(&output.name());
+        output.change_current_state(Some(wl_mode), None, Some(scale), Some(position.into()));
         self.space.map_output(&output, position);
         output
     }

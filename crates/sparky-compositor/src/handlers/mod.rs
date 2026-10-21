@@ -2,6 +2,7 @@ mod commit;
 mod compositor;
 mod decoration;
 mod dmabuf;
+mod fractional_scale;
 mod layer_shell;
 mod pointer;
 mod seat;
