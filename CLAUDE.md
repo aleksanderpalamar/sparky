@@ -76,3 +76,19 @@ Antes de considerar uma alteração concluída:
 3. Os testes existentes devem continuar passando.
 4. Novos comportamentos devem possuir testes quando aplicável.
 5. O código deve permanecer simples, legível e consistente com a arquitetura existente.
+
+## Versionamento de pacotes
+
+O versionamento dos pacotes deve seguir a especificação Semantic Versioning 2.0.0 (SemVer), utilizando o formato `MAJOR.MINOR.PATCH`.
+
+**MAJOR:** deve ser incrementada quando houver alterações incompatíveis com versões anteriores, independentemente da quantidade ou importância das funcionalidades implementadas.
+
+**MINOR:** deve ser incrementada quando novas funcionalidades ou melhorias forem introduzidas sem comprometer a compatibilidade com versões anteriores.
+
+**PATCH:** deve ser incrementada exclusivamente para correções de bugs que preservem a compatibilidade com versões anteriores.
+
+Ao incrementar MAJOR, os números MINOR e PATCH devem ser redefinidos para zero. Ao incrementar MINOR, PATCH deve ser redefinido para zero.
+
+Versões anteriores à `1.0.0` são consideradas em desenvolvimento inicial e não possuem garantia de estabilidade da API pública.
+
+A definição da versão deve considerar a natureza e o impacto das alterações, nunca apenas sua quantidade ou complexidade.
