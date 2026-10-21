@@ -11,6 +11,8 @@ use crate::domain::about::About;
 use crate::domain::field::Field;
 use crate::domain::keymaps::Keymaps;
 use crate::domain::section::Section;
+use crate::domain::system::power::Power;
+use crate::ports::commands::CommandRunner;
 use crate::ports::{Compositor, CompositorError, Store};
 
 #[derive(Debug, Clone)]
@@ -40,6 +42,7 @@ pub enum Mode {
 pub struct Services {
     pub store: Box<dyn Store>,
     pub compositor: Box<dyn Compositor>,
+    pub commands: Box<dyn CommandRunner>,
 }
 
 pub struct Context {
@@ -59,6 +62,7 @@ pub struct Settings {
     pub input: String,
     pub notice: Option<Notice>,
     pub outputs: Result<Vec<OutputInfo>, CompositorError>,
+    pub power: Power,
     pub list: Viewport,
     pub context: Context,
     pub services: Services,
@@ -75,6 +79,7 @@ impl Settings {
             input: String::new(),
             notice: None,
             outputs: Ok(Vec::new()),
+            power: Power::default(),
             list: Viewport::new(context.rows),
             context,
             services,
@@ -85,6 +90,7 @@ impl Settings {
 
     pub fn reload(&mut self) {
         self.outputs = self.services.compositor.outputs();
+        self.reload_system();
         match self.services.store.load() {
             Ok(contents) => self.read(contents.as_deref().unwrap_or_default()),
             Err(error) => self.broken(format!("não deu para ler o sparky.toml: {error}")),

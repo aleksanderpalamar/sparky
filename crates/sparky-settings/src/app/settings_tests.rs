@@ -1,85 +1,12 @@
-use std::cell::{Cell, RefCell};
-use std::io;
-use std::path::PathBuf;
-use std::rc::Rc;
-
 use iced::keyboard::key::Named;
 use iced::keyboard::{Key, Modifiers};
-use sparky_ipc::OutputInfo;
-use sparky_theme::Skin;
 use sparky_ui::notice::Notice;
 
 use crate::app::message::Message;
-use crate::app::state::{Context, Mode, Services, Settings, Source};
+use crate::app::state::{Mode, Source};
+use crate::app::test_support::{Sparky, digitar, enter, painel, salvo, tecla};
 use crate::app::update::update;
-use crate::domain::about::About;
-use crate::domain::keymaps::Keymaps;
 use crate::domain::section::Section;
-use crate::ports::{Compositor, CompositorError, Store};
-
-#[derive(Clone, Default)]
-struct Arquivo(Rc<RefCell<Option<String>>>);
-
-impl Store for Arquivo {
-    fn load(&self) -> io::Result<Option<String>> {
-        Ok(self.0.borrow().clone())
-    }
-
-    fn save(&self, contents: &str) -> io::Result<()> {
-        *self.0.borrow_mut() = Some(contents.to_owned());
-        Ok(())
-    }
-
-    fn location(&self) -> PathBuf {
-        PathBuf::from("/h/.config/sparky/sparky.toml")
-    }
-}
-
-#[derive(Clone, Default)]
-struct Sparky {
-    recargas: Rc<Cell<usize>>,
-    fora_do_ar: bool,
-}
-
-impl Compositor for Sparky {
-    fn reload(&self) -> Result<(), CompositorError> {
-        self.recargas.set(self.recargas.get() + 1);
-        match self.fora_do_ar {
-            true => Err(CompositorError::Unreachable("sem socket".to_owned())),
-            false => Ok(()),
-        }
-    }
-
-    fn outputs(&self) -> Result<Vec<OutputInfo>, CompositorError> {
-        Ok(Vec::new())
-    }
-}
-
-const REGRAS: &str = "! layout\n  us  English (US)\n  br  Portuguese (Brazil)\n\n! variant\n  abnt2  br: Portuguese (Brazil)\n";
-
-fn painel(conteudo: Option<&str>, sparky: Sparky) -> (Settings, Arquivo) {
-    let arquivo = Arquivo(Rc::new(RefCell::new(conteudo.map(str::to_owned))));
-    let services = Services { store: Box::new(arquivo.clone()), compositor: Box::new(sparky) };
-    let context = Context { home: PathBuf::from("/h"), about: About::default(), keymaps: Keymaps::parse(REGRAS), skin: Skin::default(), rows: 10 };
-    (Settings::new(services, context), arquivo)
-}
-
-fn tecla(settings: &mut Settings, texto: &str) {
-    let _ = update(settings, Message::Key(Key::Character(texto.into()), Modifiers::empty()));
-}
-
-fn enter(settings: &mut Settings) {
-    let _ = update(settings, Message::Key(Key::Named(Named::Enter), Modifiers::empty()));
-}
-
-fn digitar(settings: &mut Settings, texto: &str) {
-    let _ = update(settings, Message::Typed(texto.to_owned()));
-    let _ = update(settings, Message::Submit);
-}
-
-fn salvo(arquivo: &Arquivo) -> String {
-    arquivo.0.borrow().clone().unwrap_or_default()
-}
 
 #[test]
 fn sem_arquivo_ajustar_cria_o_sparky_toml_e_pede_a_recarga() {

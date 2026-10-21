@@ -1,3 +1,7 @@
+pub mod commands;
+#[cfg(test)]
+pub mod fake;
+
 use std::fmt;
 use std::io;
 use std::path::PathBuf;

@@ -75,7 +75,7 @@ fn control(skin: Skin, index: usize, field: Field, value: Value) -> Element<'sta
     container(control).width(VALUE_WIDTH).align_x(Horizontal::Right).into()
 }
 
-fn small(skin: Skin, label: &'static str, message: Message) -> Element<'static, Message> {
+pub fn small(skin: Skin, label: &'static str, message: Message) -> Element<'static, Message> {
     button(text(label).size(TEXT_SIZE).color(skin.accent))
         .on_press(message)
         .style(move |_, status| style::entry(skin, Highlight::Plain, status))

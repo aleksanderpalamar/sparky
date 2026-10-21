@@ -5,10 +5,15 @@ pub mod events;
 pub mod keys;
 pub mod message;
 pub mod state;
+pub mod system;
 pub mod update;
 
 #[cfg(test)]
 mod settings_tests;
+#[cfg(test)]
+mod system_tests;
+#[cfg(test)]
+mod test_support;
 
 use iced::Size;
 

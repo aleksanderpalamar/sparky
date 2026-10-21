@@ -5,6 +5,7 @@ pub mod monitors;
 pub mod shortcuts;
 pub mod status;
 pub mod style;
+pub mod system;
 
 use iced::widget::{column, container, row, text};
 use iced::{Element, Length};
@@ -64,6 +65,7 @@ fn content(settings: &Settings) -> Element<'_, Message> {
         Section::Autostart => autostart::view(settings),
         Section::Shortcuts => shortcuts::view(settings),
         Section::Monitors => monitors::view(settings),
+        Section::Power => system::view(settings),
         Section::About => about::view(settings),
     }
 }

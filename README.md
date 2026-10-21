@@ -182,6 +182,7 @@ O `sparky-settings` abre pelo `SUPER + ALT + ESPAÇO`. Cada mudança é gravada 
 | Inicialização | Comandos rodados quando a sessão começa |
 | Atalhos | Lista dos atalhos em uso, com o que cada um faz |
 | Monitores | Monitores que o sparky está usando |
+| Energia | Perfil de energia (`powerprofilesctl`), brilho da tela (`brightnessctl`) e bateria (`upower`) |
 | Sobre | Versão do sparky, sistema, kernel e onde fica a configuração |
 
 `Tab` e `SHIFT + Tab` (ou `1` a `7`) trocam de seção, `j`/`k` escolhem o item, `h`/`l` diminuem e aumentam números ou ligam e desligam, `Enter` edita um texto ou um número, `d` remove um comando da inicialização, `Esc` desiste da edição e `q` fecha. O mouse também funciona: `−`/`+`, clique no valor para editar e clique duplo na inicialização.

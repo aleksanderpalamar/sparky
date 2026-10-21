@@ -7,17 +7,19 @@ pub enum Section {
     Autostart,
     Shortcuts,
     Monitors,
+    Power,
     About,
 }
 
 impl Section {
-    pub const ALL: [Section; 7] = [
+    pub const ALL: [Section; 8] = [
         Section::Appearance,
         Section::Keyboard,
         Section::Apps,
         Section::Autostart,
         Section::Shortcuts,
         Section::Monitors,
+        Section::Power,
         Section::About,
     ];
 
@@ -29,6 +31,7 @@ impl Section {
             Section::Autostart => "Inicialização",
             Section::Shortcuts => "Atalhos",
             Section::Monitors => "Monitores",
+            Section::Power => "Energia",
             Section::About => "Sobre",
         }
     }
@@ -41,6 +44,7 @@ impl Section {
             Section::Autostart => "Comandos rodados quando a sessão começa",
             Section::Shortcuts => "Atalhos em uso: os padrões e os do sparky.toml",
             Section::Monitors => "Monitores que o sparky está usando",
+            Section::Power => "Perfil de energia, brilho da tela e bateria",
             Section::About => "O sistema e o sparky",
         }
     }
@@ -76,8 +80,9 @@ mod tests {
     #[test]
     fn os_numeros_levam_a_cada_secao() {
         assert_eq!(Section::nth(0), Some(Section::Appearance));
-        assert_eq!(Section::nth(6), Some(Section::About));
-        assert_eq!(Section::nth(7), None);
+        assert_eq!(Section::nth(6), Some(Section::Power));
+        assert_eq!(Section::nth(7), Some(Section::About));
+        assert_eq!(Section::nth(8), None);
         assert_eq!(Section::Monitors.index(), 5);
     }
 }
