@@ -39,11 +39,11 @@ impl Power {
     pub fn rows(&self) -> Vec<Row> {
         let mut rows = vec![self.profile_row()];
         if let Some(light) = &self.backlight {
-            rows.push(Row { id: RowId::Brightness, label: "Brilho da tela", value: format!("{}%", light.percent), control: Control::Level });
+            rows.push(Row { id: RowId::Brightness, label: "Brilho da tela".to_owned(), value: format!("{}%", light.percent), control: Control::Level });
         }
         if let Some(battery) = &self.battery {
             let value = format!("{}% · {}", battery.percent, state_label(&battery.state));
-            rows.push(Row { id: RowId::Battery, label: "Bateria", value, control: Control::Reading });
+            rows.push(Row { id: RowId::Battery, label: "Bateria".to_owned(), value, control: Control::Reading });
         }
         rows
     }
@@ -69,13 +69,13 @@ impl Power {
         match (self.profiles.is_empty(), active) {
             (true, _) => Row {
                 id: RowId::PowerProfile,
-                label: "Perfil de energia",
+                label: "Perfil de energia".to_owned(),
                 value: "power-profiles-daemon indisponível".to_owned(),
                 control: Control::Reading,
             },
             (false, current) => Row {
                 id: RowId::PowerProfile,
-                label: "Perfil de energia",
+                label: "Perfil de energia".to_owned(),
                 value: current.map_or("nenhum", |profile| label_of(&profile.name)).to_owned(),
                 control: Control::Choice,
             },

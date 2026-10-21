@@ -66,7 +66,7 @@ fn content(settings: &Settings) -> Element<'_, Message> {
         Section::Autostart => autostart::view(settings),
         Section::Shortcuts => shortcuts::view(settings),
         Section::Monitors => monitors::view(settings),
-        Section::Power | Section::DateTime | Section::Region => system::view(settings),
+        Section::Power | Section::DateTime | Section::Region | Section::Media => system::view(settings),
         Section::About => about::view(settings),
         Section::Users => users::view(settings),
     }

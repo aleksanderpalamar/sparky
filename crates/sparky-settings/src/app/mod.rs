@@ -17,6 +17,8 @@ mod region_tests;
 #[cfg(test)]
 mod users_tests;
 #[cfg(test)]
+mod media_tests;
+#[cfg(test)]
 mod system_tests;
 #[cfg(test)]
 mod test_support;

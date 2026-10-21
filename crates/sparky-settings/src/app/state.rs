@@ -16,6 +16,7 @@ use crate::domain::system::datetime::DateTime;
 use crate::domain::system::power::Power;
 use crate::domain::system::region::Region;
 use crate::domain::system::users::User;
+use crate::domain::system::media::Media;
 use crate::ports::commands::CommandRunner;
 use crate::ports::{Compositor, CompositorError, Store};
 
@@ -71,6 +72,7 @@ pub struct Settings {
     pub datetime: DateTime,
     pub region: Region,
     pub users: Vec<User>,
+    pub media: Media,
     pub list: Viewport,
     pub context: Context,
     pub services: Services,
@@ -91,6 +93,7 @@ impl Settings {
             datetime: DateTime::default(),
             region: Region::default(),
             users: Vec::new(),
+            media: Media::default(),
             list: Viewport::new(context.rows),
             context,
             services,

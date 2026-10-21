@@ -34,19 +34,19 @@ impl DateTime {
         vec![
             Row {
                 id: RowId::Timezone,
-                label: "Fuso horário",
+                label: "Fuso horário".to_owned(),
                 value: self.timezone.as_deref().unwrap_or(UNSET).to_owned(),
                 control: Control::Text,
             },
             Row {
                 id: RowId::LocalTime,
-                label: "Hora local",
+                label: "Hora local".to_owned(),
                 value: self.local_time.as_deref().unwrap_or(UNSET).to_owned(),
                 control: Control::Reading,
             },
             Row {
                 id: RowId::NetworkTime,
-                label: "Hora pela rede",
+                label: "Hora pela rede".to_owned(),
                 value: self.synchronization_label().to_owned(),
                 control: match self.can_network_time {
                     true => Control::Toggle(self.network_time),
@@ -55,7 +55,7 @@ impl DateTime {
             },
             Row {
                 id: RowId::LocalClock,
-                label: "Relógio do hardware em hora local",
+                label: "Relógio do hardware em hora local".to_owned(),
                 value: match self.local_clock {
                     true => "ligado",
                     false => "desligado",

@@ -15,6 +15,8 @@ path = "src/lib.rs"
 
 [dependencies]
 iced = { version = "0.14", features = ["tokio"] }
+serde.workspace = true
+serde_json.workspace = true
 sparky-config.workspace = true
 sparky-ipc.workspace = true
 sparky-theme.workspace = true

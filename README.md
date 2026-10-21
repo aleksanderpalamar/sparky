@@ -186,6 +186,7 @@ O `sparky-settings` abre pelo `SUPER + ALT + ESPAÇO`. As mudanças de configura
 | Data e hora | Fuso horário, hora local, sincronização pela rede e relógio do hardware (`timedatectl`) |
 | Região e idioma | Idioma, teclado do console e layout padrão do sistema (`localectl`) |
 | Usuários | Consulta de contas, identificadores, grupos e sessões (`getent` e `loginctl`) |
+| Mídia | Volumes externos, montagem e desmontagem (`lsblk` e `udisksctl`) |
 | Sobre | Versão do sparky, sistema, kernel e onde fica a configuração |
 
 `Tab` e `SHIFT + Tab` (ou `1` a `9`) trocam de seção, `j`/`k` escolhem o item, `h`/`l` diminuem e aumentam números ou ligam e desligam, `Enter` edita um texto ou um número, `d` remove um comando da inicialização, `Esc` desiste da edição e `q` fecha. O mouse também funciona: `−`/`+`, clique no valor para editar e clique duplo na inicialização.
@@ -195,6 +196,8 @@ Em Data e hora, `Enter` ou um clique no fuso abre a edição; o nome precisa exi
 Em Região e idioma, `h`/`l` percorrem as opções instaladas e `Enter` ou um clique permite digitar um valor da lista do `localectl`. Sem opções disponíveis, a linha é somente leitura. Esses valores são padrões do sistema; o teclado da sessão Sparky continua sendo configurado na seção Teclado. Mudanças de idioma podem exigir uma nova sessão para os aplicativos adotarem o valor.
 
 Usuários mostra uma conta por vez, navegável por `j`/`k` ou pelos botões laterais: nome, UID, tipo, sessão, pasta pessoal, interpretador e grupos. Reconhece administradores nos grupos `wheel` e `sudo`; se uma consulta falhar, o dado aparece como indisponível. Assim como no painel de exemplo, esta seção é somente leitura: não cria contas nem altera senhas ou grupos. `F5` atualiza a consulta. Seções após a nona continuam acessíveis por `Tab`, `SHIFT + Tab` e clique na lateral.
+
+Mídia lista sistemas de arquivos de discos externos/removíveis e volumes em `/run/media` ou `/media`, com rótulo, tamanho e ponto de montagem. `Enter` ou clique alterna a montagem; `l` monta, `h` desmonta e `F5` relê a lista. A montagem usa `udisksctl` (pacote `udisks2`) e as permissões do sistema. Swap, partições sem sistema de arquivos e montagens do sistema não são oferecidas.
 
 ## Tema
 

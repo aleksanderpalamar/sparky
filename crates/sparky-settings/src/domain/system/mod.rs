@@ -6,6 +6,8 @@ pub mod profiles;
 pub mod region;
 pub mod users;
 pub mod passwd;
+pub mod media;
+pub mod volumes;
 
 #[cfg(test)]
 mod datetime_tests;
@@ -15,6 +17,8 @@ mod power_tests;
 mod region_tests;
 #[cfg(test)]
 mod users_tests;
+#[cfg(test)]
+mod media_tests;
 
 use crate::domain::value::Step;
 use crate::ports::commands::{CommandError, CommandRunner};
@@ -40,12 +44,14 @@ pub enum RowId {
     Locale,
     ConsoleKeymap,
     SystemLayout,
+    Volume(usize),
+    MediaStatus,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Row {
     pub id: RowId,
-    pub label: &'static str,
+    pub label: String,
     pub value: String,
     pub control: Control,
 }
@@ -67,6 +73,8 @@ pub enum Request {
     SetLocale(String),
     SetConsoleKeymap(String),
     SetSystemLayout(String),
+    MountVolume(String),
+    UnmountVolume(String),
 }
 
 impl Request {
@@ -82,6 +90,8 @@ impl Request {
             Request::SetLocale(locale) => ("localectl", vec!["set-locale".to_owned(), format!("LANG={locale}")]),
             Request::SetConsoleKeymap(keymap) => ("localectl", vec!["set-keymap".to_owned(), keymap.clone()]),
             Request::SetSystemLayout(layout) => ("localectl", vec!["set-x11-keymap".to_owned(), layout.clone()]),
+            Request::MountVolume(path) => ("udisksctl", vec!["mount".to_owned(), "-b".to_owned(), path.clone()]),
+            Request::UnmountVolume(path) => ("udisksctl", vec!["unmount".to_owned(), "-b".to_owned(), path.clone()]),
         }
     }
 }

@@ -35,7 +35,7 @@ impl Region {
             let (current, choices) = self.selection(id)?;
             Some(Row {
                 id,
-                label,
+                label: label.to_owned(),
                 value: current.as_deref().unwrap_or("não definido").to_owned(),
                 control: match choices.is_empty() {
                     true => Control::Reading,

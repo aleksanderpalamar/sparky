@@ -5,11 +5,12 @@ use crate::domain::system::datetime::DateTime;
 use crate::domain::system::power::Power;
 use crate::domain::system::region::Region;
 use crate::domain::system::users;
+use crate::domain::system::media::Media;
 use crate::domain::system::{Change, Control, Request, Row, RowId, perform};
 
 impl Settings {
     pub fn is_system(&self) -> bool {
-        matches!(self.section, Section::Power | Section::DateTime | Section::Region)
+        matches!(self.section, Section::Power | Section::DateTime | Section::Region | Section::Media)
     }
 
     pub fn system_rows(&self) -> Vec<Row> {
@@ -17,6 +18,7 @@ impl Settings {
             Section::Power => self.power.rows(),
             Section::DateTime => self.datetime.rows(),
             Section::Region => self.region.rows(),
+            Section::Media => self.media.rows(),
             _ => Vec::new(),
         }
     }
@@ -26,6 +28,8 @@ impl Settings {
         self.datetime = DateTime::load(self.services.commands.as_ref());
         self.region = Region::load(self.services.commands.as_ref());
         self.users = users::load(self.services.commands.as_ref());
+        self.media = Media::load(self.services.commands.as_ref());
+        self.move_focus(0);
     }
 
     pub fn activate_system(&mut self) -> Opened {
@@ -75,6 +79,7 @@ impl Settings {
             (Section::DateTime, RowId::Timezone, Change::Text(input)) => self.timezone_request(input),
             (Section::DateTime, id, change) => self.datetime.request(id, change),
             (Section::Region, id, change) => self.region_request(id, change),
+            (Section::Media, id, change) => self.media.request(id, change),
             _ => None,
         }
     }
