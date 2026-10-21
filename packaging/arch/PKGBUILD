@@ -1,6 +1,6 @@
 
 pkgname=sparky
-pkgver=0.1.0
+pkgver=0.2.0
 pkgrel=1
 pkgdesc='Ambiente de desktop Wayland em Rust, com compositor próprio em mosaico e feito para o teclado'
 arch=('x86_64')
