@@ -1,7 +1,7 @@
 pub mod area;
 mod pixels;
 mod png_file;
-mod render;
+pub(crate) mod render;
 
 #[cfg(test)]
 mod area_tests;
@@ -22,10 +22,13 @@ impl Sparky {
         let focused = self.desktop.focused_monitor().map(|monitor| monitor.name.clone());
         let target = resolve(area, &screens, focused.as_deref(), self.focused_window_rect())?;
         let output = self.output_named(&target.output).ok_or(CaptureError::NoOutput)?;
-        let image = self
-            .with_renderer(|state, renderer| render::read(state, renderer, &output, target.region))
-            .ok_or_else(|| CaptureError::Render("o vídeo ainda não está pronto".to_owned()))??;
+        let image = self.read_region(&output, target.region)?;
         png_file::write(path, &image)
+    }
+
+    pub(crate) fn read_region(&mut self, output: &Output, region: Rect) -> Result<render::Image, CaptureError> {
+        self.with_renderer(|state, renderer| render::read(state, renderer, output, region))
+            .ok_or_else(|| CaptureError::Render("o vídeo ainda não está pronto".to_owned()))?
     }
 
     fn screens(&self) -> Vec<(String, Rect)> {

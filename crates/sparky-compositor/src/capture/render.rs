@@ -49,7 +49,7 @@ pub fn read(state: &mut Sparky, renderer: &mut GlesRenderer, output: &Output, re
     })
 }
 
-fn scaled(region: Rect, scale: f64) -> Rect {
+pub fn scaled(region: Rect, scale: f64) -> Rect {
     let value = |number: i32| (number as f64 * scale).round() as i32;
     Rect::new(value(region.x), value(region.y), value(region.width), value(region.height))
 }

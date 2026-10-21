@@ -125,6 +125,8 @@ sparky-msg capture region 0 0 800 600 regiao.png   # região relativa ao monitor
 
 O próprio sparky desenha a área pedida numa textura fora da tela (as mesmas janelas e camadas da tela, sem o cursor) e grava o PNG. O pedido chega pelo IPC (`capture`), com o monitor inteiro, a janela em foco ou uma região relativa a um monitor; uma região que sai da tela é cortada na borda.
 
+Programas de terceiros também capturam a tela pelo protocolo `wlr-screencopy-unstable-v1`: o `grim` (monitor inteiro ou `-g` com região) e o `xdg-desktop-portal-wlr`, que leva o compartilhamento de tela a navegadores e ao OBS. A imagem vai na orientação do monitor, sem o cursor.
+
 O `sparky-shot` é o capturador que usa esse pedido:
 
 | Atalho | Comando | O que faz |

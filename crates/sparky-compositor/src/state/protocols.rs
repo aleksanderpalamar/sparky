@@ -17,6 +17,7 @@ use smithay::wayland::shm::ShmState;
 use smithay::wayland::viewporter::ViewporterState;
 use smithay::wayland::xwayland_shell::XWaylandShellState;
 
+use crate::screencopy::ScreencopyState;
 use crate::state::Sparky;
 
 pub struct Protocols {
@@ -37,6 +38,7 @@ pub struct Protocols {
     pub relative_pointer: RelativePointerManagerState,
     pub pointer_constraints: PointerConstraintsState,
     pub fractional_scale: FractionalScaleManagerState,
+    pub screencopy: ScreencopyState,
 }
 
 impl Protocols {
@@ -61,6 +63,7 @@ impl Protocols {
             relative_pointer: RelativePointerManagerState::new::<Sparky>(display),
             pointer_constraints: PointerConstraintsState::new::<Sparky>(display),
             fractional_scale: FractionalScaleManagerState::new::<Sparky>(display),
+            screencopy: ScreencopyState::new::<Sparky>(display),
         }
     }
 }

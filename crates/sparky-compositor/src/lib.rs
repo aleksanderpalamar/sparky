@@ -13,6 +13,7 @@ pub mod input;
 pub mod ipc;
 pub mod layout;
 pub mod render;
+pub mod screencopy;
 pub mod session;
 pub mod signals;
 pub mod spawn;
