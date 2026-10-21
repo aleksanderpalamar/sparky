@@ -5,3 +5,4 @@
 /packaging/arch/sparky
 /packaging/arch/*.pkg.tar.zst
 /packaging/out
+sessions.md
