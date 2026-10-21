@@ -1,4 +1,5 @@
 pub mod drm;
+pub mod host_cursor;
 pub mod nested;
 
 use std::mem;

@@ -16,16 +16,15 @@ use smithay::backend::udev::{all_gpus, primary_gpu};
 use smithay::reexports::input::Libinput;
 
 use crate::backend::Backend;
-use crate::backend::drm::cursor::CursorImage;
+use crate::backend::drm::cursor::Cursors;
 use crate::backend::drm::gpu::Gpu;
-use crate::cursor::CursorPixels;
 use crate::state::Sparky;
 
 pub struct Drm {
     pub session: LibSeatSession,
     pub libinput: Libinput,
     pub gpu: Gpu,
-    pub cursor: CursorImage,
+    pub cursors: Cursors,
     pub active: bool,
 }
 
@@ -51,7 +50,7 @@ pub fn init(state: &mut Sparky) -> Result<(), Box<dyn std::error::Error>> {
         session,
         libinput,
         gpu,
-        cursor: CursorImage::from_pixels(&CursorPixels::load()),
+        cursors: Cursors::load(),
         active: true,
     }));
     state.with_drm(|state, drm| state.scan_connectors(drm));

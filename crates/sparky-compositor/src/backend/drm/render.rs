@@ -59,10 +59,11 @@ fn pointer(state: &Sparky, drm: &mut Drm, output: &Output) -> Vec<SparkyElement<
     if !geometry.to_f64().contains(location) {
         return Vec::new();
     }
+    let image = drm.cursors.image(&state.cursor_status);
     let pointer = Pointer {
         status: &state.cursor_status,
-        default: &drm.cursor.buffer,
-        default_hotspot: drm.cursor.hotspot,
+        image: &image.buffer,
+        hotspot: image.hotspot,
         location: location - geometry.loc.to_f64(),
     };
     let scale = Scale::from(output.current_scale().fractional_scale());

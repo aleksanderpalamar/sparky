@@ -3,6 +3,8 @@ mod hit;
 mod keyboard;
 pub mod keyboard_layout;
 mod pointer;
+mod relative;
+pub mod restriction;
 
 use smithay::backend::input::{InputBackend, InputEvent};
 

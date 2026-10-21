@@ -1,8 +1,11 @@
 use smithay::input::SeatState;
 use smithay::reexports::wayland_server::DisplayHandle;
 use smithay::wayland::compositor::CompositorState;
+use smithay::wayland::cursor_shape::CursorShapeManagerState;
 use smithay::wayland::dmabuf::DmabufState;
 use smithay::wayland::output::OutputManagerState;
+use smithay::wayland::pointer_constraints::PointerConstraintsState;
+use smithay::wayland::relative_pointer::RelativePointerManagerState;
 use smithay::wayland::selection::data_device::DataDeviceState;
 use smithay::wayland::selection::primary_selection::PrimarySelectionState;
 use smithay::wayland::selection::wlr_data_control::DataControlState;
@@ -29,6 +32,9 @@ pub struct Protocols {
     pub viewporter: ViewporterState,
     pub dmabuf: DmabufState,
     pub xwayland_shell: XWaylandShellState,
+    pub cursor_shape: CursorShapeManagerState,
+    pub relative_pointer: RelativePointerManagerState,
+    pub pointer_constraints: PointerConstraintsState,
 }
 
 impl Protocols {
@@ -49,6 +55,9 @@ impl Protocols {
             viewporter: ViewporterState::new::<Sparky>(display),
             dmabuf: DmabufState::new(),
             xwayland_shell: XWaylandShellState::new::<Sparky>(display),
+            cursor_shape: CursorShapeManagerState::new::<Sparky>(display),
+            relative_pointer: RelativePointerManagerState::new::<Sparky>(display),
+            pointer_constraints: PointerConstraintsState::new::<Sparky>(display),
         }
     }
 }

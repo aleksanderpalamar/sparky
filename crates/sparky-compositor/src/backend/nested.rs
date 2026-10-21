@@ -12,6 +12,7 @@ use smithay::reexports::winit::window::Window as HostWindow;
 use smithay::utils::{Physical, Rectangle, Size, Transform};
 
 use crate::backend::Backend;
+use crate::backend::host_cursor::{HostCursor, host_cursor};
 use crate::render::output::output_elements;
 use crate::state::Sparky;
 
@@ -22,6 +23,7 @@ pub struct Nested {
     pub graphics: WinitGraphicsBackend<GlesRenderer>,
     pub output: Output,
     pub damage: OutputDamageTracker,
+    pub cursor: Option<HostCursor>,
 }
 
 pub fn init(event_loop: &mut EventLoop<'static, Sparky>, state: &mut Sparky) -> Result<(), Box<dyn std::error::Error>> {
@@ -34,7 +36,7 @@ pub fn init(event_loop: &mut EventLoop<'static, Sparky>, state: &mut Sparky) -> 
     let output = nested_output(state, graphics.window_size());
     state.publish_formats(graphics.renderer());
     let damage = OutputDamageTracker::from_output(&output);
-    state.backend = Backend::Nested(Box::new(Nested { graphics, output, damage }));
+    state.backend = Backend::Nested(Box::new(Nested { graphics, output, damage, cursor: None }));
     event_loop.handle().insert_source(events, |event, _, state| match event {
         WinitEvent::Resized { size, .. } => state.resize_nested(size),
         WinitEvent::Input(event) => state.process_input_event(event),
@@ -98,7 +100,24 @@ fn redraw(state: &mut Sparky, nested: &mut Nested) {
         tracing::warn!("quadro não enviado: {error}");
     }
     send_frames(state, &nested.output);
+    apply_cursor(state, nested);
     nested.graphics.window().request_redraw();
+}
+
+fn apply_cursor(state: &Sparky, nested: &mut Nested) {
+    let wanted = host_cursor(&state.cursor_status);
+    if nested.cursor == Some(wanted) {
+        return;
+    }
+    let window = nested.graphics.window();
+    match wanted {
+        HostCursor::Shape(icon) => {
+            window.set_cursor_visible(true);
+            window.set_cursor(icon);
+        }
+        HostCursor::Hidden => window.set_cursor_visible(false),
+    }
+    nested.cursor = Some(wanted);
 }
 
 pub fn send_frames(state: &Sparky, output: &Output) {

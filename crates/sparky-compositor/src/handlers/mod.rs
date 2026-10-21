@@ -3,6 +3,7 @@ mod compositor;
 mod decoration;
 mod dmabuf;
 mod layer_shell;
+mod pointer;
 mod seat;
 mod selection;
 mod xdg_shell;

@@ -12,8 +12,8 @@ use crate::render::elements::SparkyElement;
 
 pub struct Pointer<'a> {
     pub status: &'a CursorImageStatus,
-    pub default: &'a MemoryRenderBuffer,
-    pub default_hotspot: Point<i32, Logical>,
+    pub image: &'a MemoryRenderBuffer,
+    pub hotspot: Point<i32, Logical>,
     pub location: Point<f64, Logical>,
 }
 
@@ -35,17 +35,17 @@ where
             let origin = (pointer.location - hotspot.to_f64()).to_physical_precise_round(scale);
             render_elements_from_surface_tree(renderer, surface, origin, scale, 1.0, Kind::Cursor)
         }
-        CursorImageStatus::Named(_) => default_cursor(renderer, pointer, scale),
+        CursorImageStatus::Named(_) => themed(renderer, pointer, scale),
     }
 }
 
-fn default_cursor<R>(renderer: &mut R, pointer: &Pointer<'_>, scale: Scale<f64>) -> Vec<SparkyElement<R>>
+fn themed<R>(renderer: &mut R, pointer: &Pointer<'_>, scale: Scale<f64>) -> Vec<SparkyElement<R>>
 where
     R: Renderer + ImportAll + ImportMem,
     R::TextureId: Clone + Texture + Send + 'static,
 {
-    let origin = (pointer.location - pointer.default_hotspot.to_f64()).to_physical(scale);
-    match MemoryRenderBufferRenderElement::from_buffer(renderer, origin, pointer.default, None, None, None, Kind::Cursor) {
+    let origin = (pointer.location - pointer.hotspot.to_f64()).to_physical(scale);
+    match MemoryRenderBufferRenderElement::from_buffer(renderer, origin, pointer.image, None, None, None, Kind::Cursor) {
         Ok(element) => vec![SparkyElement::Memory(element)],
         Err(_) => Vec::new(),
     }

@@ -3,6 +3,7 @@ pub mod arrow;
 use std::env;
 use std::fs;
 
+use smithay::input::pointer::CursorIcon;
 use xcursor::CursorTheme;
 use xcursor::parser::{Image, parse_xcursor};
 
@@ -19,13 +20,21 @@ pub struct CursorPixels {
 
 impl CursorPixels {
     pub fn load() -> Self {
+        Self::named(&ICONS).unwrap_or_else(arrow_cursor)
+    }
+
+    pub fn named(names: &[&str]) -> Option<Self> {
         let theme = env::var("XCURSOR_THEME").unwrap_or_else(|_| "default".to_owned());
         let size = env::var("XCURSOR_SIZE")
             .ok()
             .and_then(|value| value.parse().ok())
             .unwrap_or(DEFAULT_SIZE);
-        from_theme(&theme, size).unwrap_or_else(arrow_cursor)
+        from_theme(&theme, size, names)
     }
+}
+
+pub fn names_for(icon: CursorIcon) -> Vec<&'static str> {
+    std::iter::once(icon.name()).chain(icon.alt_names().iter().copied()).collect()
 }
 
 pub fn nearest(sizes: &[u32], wanted: u32) -> Option<usize> {
@@ -36,9 +45,9 @@ pub fn nearest(sizes: &[u32], wanted: u32) -> Option<usize> {
         .map(|(index, _)| index)
 }
 
-fn from_theme(theme: &str, size: u32) -> Option<CursorPixels> {
+fn from_theme(theme: &str, size: u32, names: &[&str]) -> Option<CursorPixels> {
     let theme = CursorTheme::load(theme);
-    let path = ICONS.iter().find_map(|icon| theme.load_icon(icon))?;
+    let path = names.iter().find_map(|icon| theme.load_icon(icon))?;
     let images = parse_xcursor(&fs::read(path).ok()?)?;
     let sizes: Vec<u32> = images.iter().map(|image| image.size).collect();
     let image = images.get(nearest(&sizes, size)?)?;
@@ -65,7 +74,16 @@ fn arrow_cursor() -> CursorPixels {
 
 #[cfg(test)]
 mod tests {
-    use super::nearest;
+    use super::{names_for, nearest};
+    use smithay::input::pointer::CursorIcon;
+
+    #[test]
+    fn o_formato_pedido_vem_primeiro_e_depois_os_nomes_antigos_do_tema() {
+        let texto = names_for(CursorIcon::Text);
+        assert_eq!(texto.first(), Some(&"text"));
+        assert!(texto.contains(&"xterm"));
+        assert!(names_for(CursorIcon::Default).contains(&"left_ptr"));
+    }
 
     #[test]
     fn escolhe_o_tamanho_mais_proximo() {
