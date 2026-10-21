@@ -4,6 +4,7 @@ use crate::domain::section::Section;
 use crate::domain::system::datetime::DateTime;
 use crate::domain::system::power::Power;
 use crate::domain::system::region::Region;
+use crate::domain::system::users;
 use crate::domain::system::{Change, Control, Request, Row, RowId, perform};
 
 impl Settings {
@@ -24,6 +25,7 @@ impl Settings {
         self.power = Power::load(self.services.commands.as_ref());
         self.datetime = DateTime::load(self.services.commands.as_ref());
         self.region = Region::load(self.services.commands.as_ref());
+        self.users = users::load(self.services.commands.as_ref());
     }
 
     pub fn activate_system(&mut self) -> Opened {

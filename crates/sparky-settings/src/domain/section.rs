@@ -10,11 +10,12 @@ pub enum Section {
     Power,
     DateTime,
     Region,
+    Users,
     About,
 }
 
 impl Section {
-    pub const ALL: [Section; 10] = [
+    pub const ALL: [Section; 11] = [
         Section::Appearance,
         Section::Keyboard,
         Section::Apps,
@@ -24,6 +25,7 @@ impl Section {
         Section::Power,
         Section::DateTime,
         Section::Region,
+        Section::Users,
         Section::About,
     ];
 
@@ -38,6 +40,7 @@ impl Section {
             Section::Power => "Energia",
             Section::DateTime => "Data e hora",
             Section::Region => "Região e idioma",
+            Section::Users => "Usuários",
             Section::About => "Sobre",
         }
     }
@@ -53,6 +56,7 @@ impl Section {
             Section::Power => "Perfil de energia, brilho da tela e bateria",
             Section::DateTime => "Fuso horário, sincronização pela rede e relógio do hardware",
             Section::Region => "Idioma e teclados padrão do sistema",
+            Section::Users => "Contas, grupos e sessões abertas",
             Section::About => "O sistema e o sparky",
         }
     }
@@ -91,8 +95,9 @@ mod tests {
         assert_eq!(Section::nth(6), Some(Section::Power));
         assert_eq!(Section::nth(7), Some(Section::DateTime));
         assert_eq!(Section::nth(8), Some(Section::Region));
-        assert_eq!(Section::nth(9), Some(Section::About));
-        assert_eq!(Section::nth(10), None);
+        assert_eq!(Section::nth(9), Some(Section::Users));
+        assert_eq!(Section::nth(10), Some(Section::About));
+        assert_eq!(Section::nth(11), None);
         assert_eq!(Section::Monitors.index(), 5);
     }
 }

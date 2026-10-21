@@ -4,6 +4,8 @@ pub mod localectl;
 pub mod power;
 pub mod profiles;
 pub mod region;
+pub mod users;
+pub mod passwd;
 
 #[cfg(test)]
 mod datetime_tests;
@@ -11,6 +13,8 @@ mod datetime_tests;
 mod power_tests;
 #[cfg(test)]
 mod region_tests;
+#[cfg(test)]
+mod users_tests;
 
 use crate::domain::value::Step;
 use crate::ports::commands::{CommandError, CommandRunner};

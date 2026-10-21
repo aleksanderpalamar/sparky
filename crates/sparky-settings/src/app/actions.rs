@@ -20,6 +20,7 @@ impl Settings {
             Section::Monitors => self.outputs.as_ref().map_or(0, Vec::len),
             Section::Power | Section::DateTime | Section::Region => self.system_rows().len(),
             Section::About => 0,
+            Section::Users => self.users.len(),
         }
     }
 

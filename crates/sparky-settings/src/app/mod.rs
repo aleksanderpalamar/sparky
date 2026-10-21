@@ -15,6 +15,8 @@ mod datetime_tests;
 #[cfg(test)]
 mod region_tests;
 #[cfg(test)]
+mod users_tests;
+#[cfg(test)]
 mod system_tests;
 #[cfg(test)]
 mod test_support;
