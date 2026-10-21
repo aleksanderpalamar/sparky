@@ -1,12 +1,16 @@
 pub mod datetime;
 pub mod key_value;
+pub mod localectl;
 pub mod power;
 pub mod profiles;
+pub mod region;
 
 #[cfg(test)]
 mod datetime_tests;
 #[cfg(test)]
 mod power_tests;
+#[cfg(test)]
+mod region_tests;
 
 use crate::domain::value::Step;
 use crate::ports::commands::{CommandError, CommandRunner};
@@ -29,6 +33,9 @@ pub enum RowId {
     LocalTime,
     NetworkTime,
     LocalClock,
+    Locale,
+    ConsoleKeymap,
+    SystemLayout,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -53,6 +60,9 @@ pub enum Request {
     SetTimezone(String),
     SetNetworkTime(bool),
     SetLocalClock(bool),
+    SetLocale(String),
+    SetConsoleKeymap(String),
+    SetSystemLayout(String),
 }
 
 impl Request {
@@ -65,6 +75,9 @@ impl Request {
             Request::SetTimezone(timezone) => ("timedatectl", vec!["set-timezone".to_owned(), timezone.clone()]),
             Request::SetNetworkTime(enabled) => ("timedatectl", vec!["set-ntp".to_owned(), enabled.to_string()]),
             Request::SetLocalClock(enabled) => ("timedatectl", vec!["set-local-rtc".to_owned(), enabled.to_string()]),
+            Request::SetLocale(locale) => ("localectl", vec!["set-locale".to_owned(), format!("LANG={locale}")]),
+            Request::SetConsoleKeymap(keymap) => ("localectl", vec!["set-keymap".to_owned(), keymap.clone()]),
+            Request::SetSystemLayout(layout) => ("localectl", vec!["set-x11-keymap".to_owned(), layout.clone()]),
         }
     }
 }

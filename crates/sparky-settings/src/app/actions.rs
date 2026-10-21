@@ -18,7 +18,7 @@ impl Settings {
             Section::Autostart => self.config.autostart.len() + 1,
             Section::Shortcuts => self.binds().len(),
             Section::Monitors => self.outputs.as_ref().map_or(0, Vec::len),
-            Section::Power | Section::DateTime => self.system_rows().len(),
+            Section::Power | Section::DateTime | Section::Region => self.system_rows().len(),
             Section::About => 0,
         }
     }

@@ -14,6 +14,7 @@ use crate::domain::section::Section;
 use crate::domain::system::RowId;
 use crate::domain::system::datetime::DateTime;
 use crate::domain::system::power::Power;
+use crate::domain::system::region::Region;
 use crate::ports::commands::CommandRunner;
 use crate::ports::{Compositor, CompositorError, Store};
 
@@ -67,6 +68,7 @@ pub struct Settings {
     pub outputs: Result<Vec<OutputInfo>, CompositorError>,
     pub power: Power,
     pub datetime: DateTime,
+    pub region: Region,
     pub list: Viewport,
     pub context: Context,
     pub services: Services,
@@ -85,6 +87,7 @@ impl Settings {
             outputs: Ok(Vec::new()),
             power: Power::default(),
             datetime: DateTime::default(),
+            region: Region::default(),
             list: Viewport::new(context.rows),
             context,
             services,

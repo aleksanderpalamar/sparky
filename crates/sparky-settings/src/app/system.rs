@@ -3,17 +3,19 @@ use crate::app::state::{Mode, Settings, Target};
 use crate::domain::section::Section;
 use crate::domain::system::datetime::DateTime;
 use crate::domain::system::power::Power;
+use crate::domain::system::region::Region;
 use crate::domain::system::{Change, Control, Request, Row, RowId, perform};
 
 impl Settings {
     pub fn is_system(&self) -> bool {
-        matches!(self.section, Section::Power | Section::DateTime)
+        matches!(self.section, Section::Power | Section::DateTime | Section::Region)
     }
 
     pub fn system_rows(&self) -> Vec<Row> {
         match self.section {
             Section::Power => self.power.rows(),
             Section::DateTime => self.datetime.rows(),
+            Section::Region => self.region.rows(),
             _ => Vec::new(),
         }
     }
@@ -21,6 +23,7 @@ impl Settings {
     pub fn reload_system(&mut self) {
         self.power = Power::load(self.services.commands.as_ref());
         self.datetime = DateTime::load(self.services.commands.as_ref());
+        self.region = Region::load(self.services.commands.as_ref());
     }
 
     pub fn activate_system(&mut self) -> Opened {
@@ -69,6 +72,7 @@ impl Settings {
             (Section::Power, id, change) => self.power.request(id, change),
             (Section::DateTime, RowId::Timezone, Change::Text(input)) => self.timezone_request(input),
             (Section::DateTime, id, change) => self.datetime.request(id, change),
+            (Section::Region, id, change) => self.region_request(id, change),
             _ => None,
         }
     }
@@ -79,5 +83,17 @@ impl Settings {
             return None;
         }
         self.datetime.request(RowId::Timezone, Change::Text(input))
+    }
+
+    fn region_request(&mut self, id: RowId, change: Change) -> Option<Request> {
+        let invalid = match &change {
+            Change::Text(input) => self.region.unknown_value(id, input),
+            _ => None,
+        };
+        if let Some(unknown) = invalid {
+            self.fail(format!("valor indisponível: {unknown}"));
+            return None;
+        }
+        self.region.request(id, change)
     }
 }

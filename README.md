@@ -184,11 +184,14 @@ O `sparky-settings` abre pelo `SUPER + ALT + ESPAÇO`. As mudanças de configura
 | Monitores | Monitores que o sparky está usando |
 | Energia | Perfil de energia (`powerprofilesctl`), brilho da tela (`brightnessctl`) e bateria (`upower`) |
 | Data e hora | Fuso horário, hora local, sincronização pela rede e relógio do hardware (`timedatectl`) |
+| Região e idioma | Idioma, teclado do console e layout padrão do sistema (`localectl`) |
 | Sobre | Versão do sparky, sistema, kernel e onde fica a configuração |
 
 `Tab` e `SHIFT + Tab` (ou `1` a `9`) trocam de seção, `j`/`k` escolhem o item, `h`/`l` diminuem e aumentam números ou ligam e desligam, `Enter` edita um texto ou um número, `d` remove um comando da inicialização, `Esc` desiste da edição e `q` fecha. O mouse também funciona: `−`/`+`, clique no valor para editar e clique duplo na inicialização.
 
 Em Data e hora, `Enter` ou um clique no fuso abre a edição; o nome precisa existir na lista de `timedatectl list-timezones`. A hora local é somente leitura. `Enter` ou `h`/`l` alternam a hora pela rede e o uso de hora local no relógio do hardware; sem serviço NTP disponível, a linha da rede é somente leitura. `F5` atualiza os dados. Alterações dependem das permissões do sistema, e recusas aparecem no aviso do painel.
+
+Em Região e idioma, `h`/`l` percorrem as opções instaladas e `Enter` ou um clique permite digitar um valor da lista do `localectl`. Sem opções disponíveis, a linha é somente leitura. Esses valores são padrões do sistema; o teclado da sessão Sparky continua sendo configurado na seção Teclado. Mudanças de idioma podem exigir uma nova sessão para os aplicativos adotarem o valor.
 
 ## Tema
 

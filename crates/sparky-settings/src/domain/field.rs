@@ -69,7 +69,7 @@ impl Field {
             Section::Appearance => &APPEARANCE,
             Section::Keyboard => &KEYBOARD,
             Section::Apps => &APPS,
-            Section::Autostart | Section::Shortcuts | Section::Monitors | Section::Power | Section::DateTime | Section::About => &[],
+            Section::Autostart | Section::Shortcuts | Section::Monitors | Section::Power | Section::DateTime | Section::Region | Section::About => &[],
         }
     }
 
