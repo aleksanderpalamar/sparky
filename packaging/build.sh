@@ -46,7 +46,7 @@ deb() {
 }
 
 rpm() {
-  cargo generate-rpm --package sparky-compositor --target "$target" --output "$out"
+  cargo generate-rpm --package crates/sparky-compositor --target "$target" --output "$out"
 }
 
 pacman() {
