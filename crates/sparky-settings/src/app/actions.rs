@@ -18,7 +18,7 @@ impl Settings {
             Section::Autostart => self.config.autostart.len() + 1,
             Section::Shortcuts => self.binds().len(),
             Section::Monitors => self.outputs.as_ref().map_or(0, Vec::len),
-            Section::Power => self.system_rows().len(),
+            Section::Power | Section::DateTime => self.system_rows().len(),
             Section::About => 0,
         }
     }
@@ -60,8 +60,7 @@ impl Settings {
 
     pub fn activate(&mut self) -> Opened {
         if self.is_system() {
-            self.change_system(Change::Activate);
-            return Opened::Nothing;
+            return self.activate_system();
         }
         if let Some(field) = self.focused_field() {
             return self.open_field(field);
@@ -96,6 +95,7 @@ impl Settings {
                 Err(invalid) => self.fail(invalid),
             },
             Mode::Editing(Target::Autostart(slot)) => self.save_entry(slot, input.trim()),
+            Mode::Editing(Target::System(id)) => self.submit_system(id, input),
             Mode::Browse => {}
         }
     }

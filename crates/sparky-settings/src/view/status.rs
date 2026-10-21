@@ -38,6 +38,7 @@ pub fn hints(section: Section, mode: Mode) -> &'static str {
         (Mode::Browse, Section::Shortcuts) => "j/k rola · para mudar um atalho, escreva [[bind]] no sparky.toml",
         (Mode::Browse, Section::Monitors) => "F5 atualiza · Tab troca de seção · q fecha",
         (Mode::Browse, Section::Power) => "j/k escolhe · h/l ajusta · F5 atualiza · Tab troca de seção",
+        (Mode::Browse, Section::DateTime) => "j/k escolhe · Enter edita · h/l alterna · F5 atualiza · Tab troca de seção",
         (Mode::Browse, Section::About) => "Tab troca de seção · q fecha",
     }
 }

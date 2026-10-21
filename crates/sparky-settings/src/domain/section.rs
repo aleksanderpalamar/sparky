@@ -8,11 +8,12 @@ pub enum Section {
     Shortcuts,
     Monitors,
     Power,
+    DateTime,
     About,
 }
 
 impl Section {
-    pub const ALL: [Section; 8] = [
+    pub const ALL: [Section; 9] = [
         Section::Appearance,
         Section::Keyboard,
         Section::Apps,
@@ -20,6 +21,7 @@ impl Section {
         Section::Shortcuts,
         Section::Monitors,
         Section::Power,
+        Section::DateTime,
         Section::About,
     ];
 
@@ -32,6 +34,7 @@ impl Section {
             Section::Shortcuts => "Atalhos",
             Section::Monitors => "Monitores",
             Section::Power => "Energia",
+            Section::DateTime => "Data e hora",
             Section::About => "Sobre",
         }
     }
@@ -45,6 +48,7 @@ impl Section {
             Section::Shortcuts => "Atalhos em uso: os padrões e os do sparky.toml",
             Section::Monitors => "Monitores que o sparky está usando",
             Section::Power => "Perfil de energia, brilho da tela e bateria",
+            Section::DateTime => "Fuso horário, sincronização pela rede e relógio do hardware",
             Section::About => "O sistema e o sparky",
         }
     }
@@ -81,8 +85,9 @@ mod tests {
     fn os_numeros_levam_a_cada_secao() {
         assert_eq!(Section::nth(0), Some(Section::Appearance));
         assert_eq!(Section::nth(6), Some(Section::Power));
-        assert_eq!(Section::nth(7), Some(Section::About));
-        assert_eq!(Section::nth(8), None);
+        assert_eq!(Section::nth(7), Some(Section::DateTime));
+        assert_eq!(Section::nth(8), Some(Section::About));
+        assert_eq!(Section::nth(9), None);
         assert_eq!(Section::Monitors.index(), 5);
     }
 }

@@ -11,6 +11,8 @@ pub mod update;
 #[cfg(test)]
 mod settings_tests;
 #[cfg(test)]
+mod datetime_tests;
+#[cfg(test)]
 mod system_tests;
 #[cfg(test)]
 mod test_support;

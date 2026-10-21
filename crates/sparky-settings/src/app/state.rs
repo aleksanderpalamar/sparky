@@ -11,6 +11,8 @@ use crate::domain::about::About;
 use crate::domain::field::Field;
 use crate::domain::keymaps::Keymaps;
 use crate::domain::section::Section;
+use crate::domain::system::RowId;
+use crate::domain::system::datetime::DateTime;
 use crate::domain::system::power::Power;
 use crate::ports::commands::CommandRunner;
 use crate::ports::{Compositor, CompositorError, Store};
@@ -31,6 +33,7 @@ pub enum Slot {
 pub enum Target {
     Field(Field),
     Autostart(Slot),
+    System(RowId),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -63,6 +66,7 @@ pub struct Settings {
     pub notice: Option<Notice>,
     pub outputs: Result<Vec<OutputInfo>, CompositorError>,
     pub power: Power,
+    pub datetime: DateTime,
     pub list: Viewport,
     pub context: Context,
     pub services: Services,
@@ -80,6 +84,7 @@ impl Settings {
             notice: None,
             outputs: Ok(Vec::new()),
             power: Power::default(),
+            datetime: DateTime::default(),
             list: Viewport::new(context.rows),
             context,
             services,

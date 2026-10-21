@@ -1,29 +1,57 @@
-use crate::app::state::Settings;
+use crate::app::actions::Opened;
+use crate::app::state::{Mode, Settings, Target};
 use crate::domain::section::Section;
+use crate::domain::system::datetime::DateTime;
 use crate::domain::system::power::Power;
-use crate::domain::system::{Change, Request, Row, perform};
+use crate::domain::system::{Change, Control, Request, Row, RowId, perform};
 
 impl Settings {
     pub fn is_system(&self) -> bool {
-        matches!(self.section, Section::Power)
+        matches!(self.section, Section::Power | Section::DateTime)
     }
 
     pub fn system_rows(&self) -> Vec<Row> {
         match self.section {
             Section::Power => self.power.rows(),
+            Section::DateTime => self.datetime.rows(),
             _ => Vec::new(),
         }
     }
 
     pub fn reload_system(&mut self) {
         self.power = Power::load(self.services.commands.as_ref());
+        self.datetime = DateTime::load(self.services.commands.as_ref());
+    }
+
+    pub fn activate_system(&mut self) -> Opened {
+        let Some(row) = self.system_rows().into_iter().nth(self.focus) else {
+            return Opened::Nothing;
+        };
+        if row.control == Control::Text {
+            self.input = row.value;
+            self.mode = Mode::Editing(Target::System(row.id));
+            return Opened::Prompt;
+        }
+        self.change_system(Change::Activate);
+        Opened::Nothing
     }
 
     pub fn change_system(&mut self, change: Change) {
         let Some(row) = self.system_rows().into_iter().nth(self.focus) else {
             return;
         };
-        let Some(request) = self.system_request(&row, change) else {
+        self.apply_system(&row, change);
+    }
+
+    pub fn submit_system(&mut self, id: RowId, input: String) {
+        let Some(row) = self.system_rows().into_iter().find(|row| row.id == id) else {
+            return;
+        };
+        self.apply_system(&row, Change::Text(input));
+    }
+
+    fn apply_system(&mut self, row: &Row, change: Change) {
+        let Some(request) = self.system_request(row, change) else {
             return;
         };
         match perform(self.services.commands.as_ref(), &request) {
@@ -36,10 +64,20 @@ impl Settings {
         }
     }
 
-    fn system_request(&self, row: &Row, change: Change) -> Option<Request> {
-        match self.section {
-            Section::Power => self.power.request(row.id, change),
+    fn system_request(&mut self, row: &Row, change: Change) -> Option<Request> {
+        match (self.section, row.id, change) {
+            (Section::Power, id, change) => self.power.request(id, change),
+            (Section::DateTime, RowId::Timezone, Change::Text(input)) => self.timezone_request(input),
+            (Section::DateTime, id, change) => self.datetime.request(id, change),
             _ => None,
         }
+    }
+
+    fn timezone_request(&mut self, input: String) -> Option<Request> {
+        if let Some(unknown) = self.datetime.unknown_timezone(&input) {
+            self.fail(format!("fuso desconhecido: {unknown}"));
+            return None;
+        }
+        self.datetime.request(RowId::Timezone, Change::Text(input))
     }
 }

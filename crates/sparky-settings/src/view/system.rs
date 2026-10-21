@@ -5,28 +5,33 @@ use sparky_theme::Skin;
 use sparky_ui::style::{self, Highlight, PADDING, SPACING, TEXT_SIZE};
 
 use crate::app::message::Message;
-use crate::app::state::Settings;
+use crate::app::state::{Mode, Settings, Target};
 use crate::domain::system::{Control, Row};
 use crate::domain::value::Step;
-use crate::view::fields::small;
+use crate::view::fields::{input, small};
 use crate::view::style::{NUMBER_WIDTH, VALUE_WIDTH};
 
 const ROW_PADDING: f32 = 10.0;
 const CHOICE_WIDTH: f32 = 200.0;
 
 pub fn view(settings: &Settings) -> Element<'_, Message> {
-    let skin = settings.context.skin;
     let lines = settings
         .system_rows()
         .into_iter()
         .enumerate()
-        .map(|(index, entry)| line(skin, index, entry, Highlight::when(settings.focus == index)));
+        .map(|(index, entry)| line(settings, index, entry));
     Column::with_children(lines).spacing(2).into()
 }
 
-fn line(skin: Skin, index: usize, entry: Row, highlight: Highlight) -> Element<'static, Message> {
+fn line(settings: &Settings, index: usize, entry: Row) -> Element<'_, Message> {
+    let skin = settings.context.skin;
+    let highlight = Highlight::when(settings.focus == index);
     let label = text(entry.label).size(TEXT_SIZE).color(skin.bright_foreground).width(Length::Fill);
-    let content = row![label, control(skin, index, entry)].spacing(SPACING).align_y(Vertical::Center);
+    let value = match settings.mode {
+        Mode::Editing(Target::System(id)) if id == entry.id => input(settings),
+        _ => control(skin, index, entry),
+    };
+    let content = row![label, value].spacing(SPACING).align_y(Vertical::Center);
     let cell = container(content)
         .padding([ROW_PADDING, PADDING])
         .width(Length::Fill)
@@ -51,10 +56,10 @@ fn control(skin: Skin, index: usize, entry: Row) -> Element<'static, Message> {
         ]
         .align_y(Vertical::Center)
         .into(),
-        Control::Toggle(on) => {
-            let color = match on {
-                true => skin.accent,
-                false => skin.foreground,
+        Control::Text | Control::Toggle(_) => {
+            let color = match entry.control {
+                Control::Toggle(true) => skin.accent,
+                _ => skin.foreground,
             };
             button(text(entry.value.clone()).size(TEXT_SIZE).color(color))
                 .on_press(Message::Activate(index))
