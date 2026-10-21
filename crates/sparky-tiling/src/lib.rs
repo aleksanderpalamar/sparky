@@ -1,4 +1,5 @@
 pub mod desktop;
+mod desktop_scratchpad;
 mod desktop_windows;
 mod desktop_workspaces;
 pub mod drag;
@@ -12,6 +13,8 @@ pub mod neighbor;
 mod node;
 pub mod workspace;
 
+#[cfg(test)]
+mod desktop_scratchpad_tests;
 #[cfg(test)]
 mod desktop_tests;
 #[cfg(test)]

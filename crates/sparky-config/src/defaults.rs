@@ -47,6 +47,10 @@ fn windows() -> Vec<Bind> {
         bind("SUPER + TAB", Action::RelativeWorkspace { step: 1 }),
         bind("SUPER + SHIFT + TAB", Action::RelativeWorkspace { step: -1 }),
         bind("SUPER + CTRL + TAB", Action::PreviousWorkspace),
+        bind("SUPER + S", Action::ToggleScratchpad),
+        bind("SUPER + code:49", Action::ToggleScratchpad),
+        bind("SUPER + ALT + S", Action::MoveToScratchpad),
+        bind("SUPER + SHIFT + code:49", Action::MoveToScratchpad),
         bind("CTRL + ALT + TAB", Action::CycleMonitor { step: 1 }),
         bind("CTRL + ALT + SHIFT + TAB", Action::CycleMonitor { step: -1 }),
     ]
@@ -141,6 +145,18 @@ mod tests {
             acao("SUPER + SHIFT + ALT + code:12"),
             Some(Action::MoveToWorkspace { workspace: 3, follow: false })
         );
+    }
+
+    #[test]
+    fn super_s_e_super_crase_alternam_o_rascunho() {
+        assert_eq!(acao("SUPER + S"), Some(Action::ToggleScratchpad));
+        assert_eq!(acao("SUPER + code:49"), Some(Action::ToggleScratchpad));
+    }
+
+    #[test]
+    fn super_alt_s_e_super_shift_crase_mandam_para_o_rascunho() {
+        assert_eq!(acao("SUPER + ALT + S"), Some(Action::MoveToScratchpad));
+        assert_eq!(acao("SUPER + SHIFT + code:49"), Some(Action::MoveToScratchpad));
     }
 
     #[test]

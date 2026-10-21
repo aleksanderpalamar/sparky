@@ -17,7 +17,8 @@ impl Sparky {
 
     pub fn window_under(&self, position: Point<f64, Logical>) -> Option<WindowId> {
         let (window, _) = self.space.element_under(position)?;
-        self.windows.find(|known| known == window).map(|(id, _)| id)
+        let (id, _) = self.windows.find(|known| known == window)?;
+        (!self.desktop.is_covered(id)).then_some(id)
     }
 
     fn window_surface_under(&self, position: Point<f64, Logical>) -> Option<Under> {

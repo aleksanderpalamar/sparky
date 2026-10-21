@@ -139,6 +139,13 @@ impl Workspace {
         }
     }
 
+    pub fn translate_floating(&mut self, dx: i32, dy: i32) {
+        for (_, frame) in &mut self.floating {
+            frame.x += dx;
+            frame.y += dy;
+        }
+    }
+
     pub fn arrange(&self, screen: Screen, gaps: Gaps) -> Vec<Placement> {
         let focused = self.focused();
         let place = |window: WindowId, frame: Rect, layer: Layer| Placement {

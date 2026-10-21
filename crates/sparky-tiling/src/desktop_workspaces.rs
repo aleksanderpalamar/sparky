@@ -12,10 +12,15 @@ pub struct WorkspaceSummary {
 
 impl Desktop {
     pub fn active_workspace(&self) -> Option<WorkspaceId> {
-        self.focused_monitor().map(|monitor| monitor.active)
+        self.focused_monitor().map(|monitor| self.shown(monitor))
     }
 
     pub fn focus_workspace(&mut self, id: WorkspaceId) {
+        if id == WorkspaceId::SCRATCHPAD {
+            self.show_scratchpad();
+            return;
+        }
+        self.scratchpad = None;
         let Some(monitor) = self.focused_monitor() else {
             return;
         };
@@ -34,7 +39,7 @@ impl Desktop {
     }
 
     pub fn focus_relative(&mut self, step: i32) {
-        let Some(current) = self.active_workspace() else {
+        let Some(current) = self.focused_monitor().map(|monitor| monitor.active) else {
             return;
         };
         let open: Vec<WorkspaceId> = self.entries.keys().copied().filter(WorkspaceId::is_numbered).collect();
@@ -54,9 +59,10 @@ impl Desktop {
     }
 
     pub fn summaries(&self) -> Vec<WorkspaceSummary> {
-        let focused = self.active_workspace();
+        let focused = self.focused_monitor().map(|monitor| monitor.active);
         self.entries
             .iter()
+            .filter(|(id, _)| id.is_numbered())
             .map(|(id, entry)| WorkspaceSummary {
                 id: *id,
                 monitor: entry.monitor.clone(),

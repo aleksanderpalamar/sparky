@@ -132,7 +132,7 @@ impl Desktop {
 
     fn focused_target(&self) -> Option<(WorkspaceId, String, Screen)> {
         let monitor = self.focused_monitor()?;
-        Some((monitor.active, monitor.name.clone(), monitor.screen))
+        Some((self.shown(monitor), monitor.name.clone(), monitor.screen))
     }
 
     fn active_entry_mut(&mut self) -> Option<&mut Entry> {
@@ -153,7 +153,7 @@ impl Desktop {
     fn neighbor_of_focused(&self, direction: Direction) -> Option<WindowId> {
         let focused = self.focused_window()?;
         let monitor = self.focused_monitor()?;
-        let entry = self.entries.get(&monitor.active)?;
+        let entry = self.entries.get(&self.shown(monitor))?;
         let boxes: Vec<(WindowId, Rect)> = entry
             .workspace
             .arrange(monitor.screen, self.style.gaps)

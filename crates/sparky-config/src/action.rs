@@ -35,6 +35,8 @@ pub enum Action {
         step: i32,
     },
     PreviousWorkspace,
+    ToggleScratchpad,
+    MoveToScratchpad,
     CycleMonitor {
         step: i32,
     },

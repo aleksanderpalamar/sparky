@@ -38,6 +38,7 @@ pub struct Desktop {
     pub(crate) focused: usize,
     pub(crate) entries: BTreeMap<WorkspaceId, Entry>,
     pub(crate) previous: Option<WorkspaceId>,
+    pub(crate) scratchpad: Option<String>,
     pub(crate) style: Style,
 }
 
@@ -48,6 +49,7 @@ impl Desktop {
             focused: 0,
             entries: BTreeMap::new(),
             previous: None,
+            scratchpad: None,
             style,
         }
     }
@@ -84,6 +86,9 @@ impl Desktop {
 
     pub fn remove_monitor(&mut self, name: &str) {
         self.monitors.retain(|monitor| monitor.name != name);
+        if self.scratchpad.as_deref() == Some(name) {
+            self.scratchpad = None;
+        }
         self.focused = self.focused.min(self.monitors.len().saturating_sub(1));
         if let Some(heir) = self.monitors.first().map(|monitor| monitor.name.clone()) {
             self.adopt_orphans(&heir);
@@ -130,11 +135,12 @@ impl Desktop {
         self.monitors
             .iter()
             .map(|monitor| {
-                let placements = self
+                let mut placements = self
                     .entries
                     .get(&monitor.active)
                     .map(|entry| entry.workspace.arrange(monitor.screen, self.style.gaps))
                     .unwrap_or_default();
+                placements.extend(self.scratchpad_on(monitor));
                 (monitor.name.clone(), placements)
             })
             .collect()

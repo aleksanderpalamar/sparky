@@ -18,6 +18,8 @@ pub fn describe(action: &Action) -> String {
         Action::RelativeWorkspace { step } if *step > 0 => "Próxima área".to_owned(),
         Action::RelativeWorkspace { .. } => "Área anterior".to_owned(),
         Action::PreviousWorkspace => "Volta para a última área usada".to_owned(),
+        Action::ToggleScratchpad => "Mostra ou esconde o rascunho".to_owned(),
+        Action::MoveToScratchpad => "Manda a janela para o rascunho".to_owned(),
         Action::CycleMonitor { step } if *step > 0 => "Próximo monitor".to_owned(),
         Action::CycleMonitor { .. } => "Monitor anterior".to_owned(),
         Action::SwitchTerminal { terminal } => format!("Vai para o terminal virtual {terminal}"),
@@ -53,6 +55,12 @@ mod tests {
         assert_eq!(describe(&Action::Focus { direction: Direction::Left }), "Foca a janela à esquerda");
         assert_eq!(describe(&Action::Resize { width: 50, height: 0 }), "Redimensiona (+50, 0)");
         assert_eq!(describe(&Action::RelativeWorkspace { step: -1 }), "Área anterior");
+    }
+
+    #[test]
+    fn descreve_o_rascunho() {
+        assert_eq!(describe(&Action::ToggleScratchpad), "Mostra ou esconde o rascunho");
+        assert_eq!(describe(&Action::MoveToScratchpad), "Manda a janela para o rascunho");
     }
 
     #[test]

@@ -96,3 +96,13 @@ fn toml_quebrado_e_erro_com_a_mensagem() {
     };
     assert!(!message.is_empty());
 }
+
+#[test]
+fn le_as_acoes_do_rascunho_pelo_nome() {
+    let contents = "[[bind]]\nkeys = \"SUPER + Z\"\naction = \"toggle-scratchpad\"\n\n[[bind]]\nkeys = \"SUPER + X\"\naction = \"move-to-scratchpad\"\n";
+    let Ok(config) = parse(contents) else {
+        panic!("as ações do rascunho deveriam ser aceitas");
+    };
+    let acoes: Vec<Action> = config.bind.into_iter().map(|bind| bind.action).collect();
+    assert_eq!(acoes, [Action::ToggleScratchpad, Action::MoveToScratchpad]);
+}

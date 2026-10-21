@@ -37,6 +37,12 @@ impl Sparky {
             }
             Action::RelativeWorkspace { step } => desktop.focus_relative(step),
             Action::PreviousWorkspace => desktop.focus_previous(),
+            Action::ToggleScratchpad => desktop.toggle_scratchpad(),
+            Action::MoveToScratchpad => {
+                if let Some(window) = desktop.focused_window() {
+                    desktop.move_to_scratchpad(window);
+                }
+            }
             Action::CycleMonitor { step } => desktop.cycle_monitor(step),
             Action::Spawn { .. } | Action::CloseWindow | Action::Exit | Action::SwitchTerminal { .. } => {}
         }
