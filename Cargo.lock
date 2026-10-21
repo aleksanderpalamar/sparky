@@ -4213,7 +4213,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-bar"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "chrono",
  "iced",
@@ -4228,7 +4228,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-compositor"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "ab_glyph",
  "calloop 0.14.5",
@@ -4249,7 +4249,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-config"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "serde",
  "sparky-tiling",
@@ -4259,7 +4259,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-files"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "chrono",
  "iced",
@@ -4271,7 +4271,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-ipc"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -4279,7 +4279,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-launcher"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "iced",
  "iced_layershell",
@@ -4290,7 +4290,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-settings"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "iced",
  "serde",
@@ -4306,7 +4306,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-shot"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "chrono",
  "iced",
@@ -4320,21 +4320,21 @@ dependencies = [
 
 [[package]]
 name = "sparky-theme"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "iced_core",
 ]
 
 [[package]]
 name = "sparky-tiling"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "sparky-ui"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "iced",
  "sparky-theme",
@@ -4342,7 +4342,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-xdg"
-version = "0.15.0"
+version = "0.15.1"
 
 [[package]]
 name = "spirv"

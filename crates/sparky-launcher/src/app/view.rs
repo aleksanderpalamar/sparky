@@ -8,7 +8,6 @@ use crate::app::Message;
 use crate::app::state::Launcher;
 use crate::domain::app::App;
 
-const RADIUS: f32 = 8.0;
 const ROW_HEIGHT: f32 = 44.0;
 const SEARCH_SIZE: f32 = 16.0;
 
@@ -19,6 +18,7 @@ pub fn view(launcher: &Launcher) -> Element<'_, Message> {
         .on_input(Message::Typed)
         .on_submit(Message::Submit)
         .size(SEARCH_SIZE)
+        .style(style::input)
         .padding(PADDING / 1.5);
     let results = launcher.results();
     let range = launcher.list.range(results.len());
@@ -52,7 +52,20 @@ fn line(skin: Skin, app: &App, row: usize, highlight: Highlight) -> Element<'sta
 fn panel(skin: Skin) -> container::Style {
     container::Style {
         background: Some(Background::Color(skin.background)),
-        border: Border { color: skin.accent, width: 2.0, radius: RADIUS.into() },
+        border: Border { color: skin.accent, width: 2.0, ..Border::default() },
         ..container::Style::default()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use iced::border::Radius;
+    use sparky_theme::Skin;
+
+    use super::panel;
+
+    #[test]
+    fn a_caixa_do_lancador_tem_cantos_retos_como_as_janelas() {
+        assert_eq!(panel(Skin::default()).border.radius, Radius::from(0.0));
     }
 }

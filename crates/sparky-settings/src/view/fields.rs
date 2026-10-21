@@ -48,6 +48,7 @@ pub fn input(settings: &Settings) -> Element<'_, Message> {
         .on_submit(Message::Submit)
         .size(TEXT_SIZE)
         .width(VALUE_WIDTH)
+        .style(style::input)
         .into()
 }
 

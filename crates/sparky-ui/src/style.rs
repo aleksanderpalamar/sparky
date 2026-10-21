@@ -1,5 +1,5 @@
-use iced::widget::{button, container};
-use iced::{Background, Border, Color};
+use iced::widget::{button, container, text_input};
+use iced::{Background, Border, Color, Theme};
 use sparky_theme::Skin;
 
 pub const TEXT_SIZE: f32 = 14.0;
@@ -10,7 +10,6 @@ pub const SPACING: f32 = 8.0;
 pub const SIDEBAR_WIDTH: f32 = 210.0;
 pub const HEADER_HEIGHT: f32 = 44.0;
 pub const STATUS_HEIGHT: f32 = 36.0;
-const RADIUS: f32 = 4.0;
 const OUTLINE: f32 = 1.0;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -51,7 +50,7 @@ pub fn row(skin: Skin, highlight: Highlight) -> container::Style {
             border: Border {
                 color: skin.accent,
                 width: OUTLINE,
-                radius: RADIUS.into(),
+                ..Border::default()
             },
             ..container::Style::default()
         },
@@ -67,18 +66,45 @@ pub fn entry(skin: Skin, highlight: Highlight, status: button::Status) -> button
     button::Style {
         background: Some(Background::Color(background)),
         text_color: skin.foreground,
-        border: Border::default().rounded(RADIUS),
         ..button::Style::default()
+    }
+}
+
+pub fn input(theme: &Theme, status: text_input::Status) -> text_input::Style {
+    let standard = text_input::default(theme, status);
+    text_input::Style {
+        border: Border { radius: 0.0.into(), ..standard.border },
+        ..standard
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::Highlight;
+    use iced::border::Radius;
+    use iced::widget::{button, text_input};
+    use sparky_theme::Skin;
+
+    use super::{Highlight, entry, input, row};
 
     #[test]
     fn o_destaque_vem_da_selecao() {
         assert_eq!(Highlight::when(true), Highlight::Selected);
         assert_eq!(Highlight::when(false), Highlight::Plain);
+    }
+
+    #[test]
+    fn a_selecao_e_os_botoes_tem_cantos_retos_como_as_janelas() {
+        let skin = Skin::default();
+        let reto = Radius::from(0.0);
+        assert_eq!(row(skin, Highlight::Selected).border.radius, reto);
+        assert_eq!(entry(skin, Highlight::Selected, button::Status::Active).border.radius, reto);
+        assert_eq!(entry(skin, Highlight::Plain, button::Status::Hovered).border.radius, reto);
+    }
+
+    #[test]
+    fn a_caixa_de_texto_tem_cantos_retos() {
+        let theme = Skin::default().theme();
+        assert_eq!(input(&theme, text_input::Status::Active).border.radius, Radius::from(0.0));
+        assert_eq!(input(&theme, text_input::Status::Focused { is_hovered: false }).border.radius, Radius::from(0.0));
     }
 }

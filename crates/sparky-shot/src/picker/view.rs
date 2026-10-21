@@ -7,7 +7,6 @@ use crate::domain::mode::Mode;
 use crate::picker::Message;
 use crate::picker::keys::{Command, hint};
 
-const RADIUS: f32 = 8.0;
 const SPACING: f32 = 8.0;
 const PADDING: f32 = 16.0;
 
@@ -46,7 +45,7 @@ fn option(skin: Skin, key: &str, label: &str, command: Command) -> Element<'stat
 fn panel(skin: Skin) -> container::Style {
     container::Style {
         background: Some(Background::Color(skin.background)),
-        border: Border { color: skin.accent, width: 2.0, radius: RADIUS.into() },
+        border: Border { color: skin.accent, width: 2.0, ..Border::default() },
         ..container::Style::default()
     }
 }
@@ -59,7 +58,22 @@ fn entry(skin: Skin, status: button::Status) -> button::Style {
     button::Style {
         background: Some(Background::Color(background)),
         text_color: skin.foreground,
-        border: Border { radius: (RADIUS / 2.0).into(), ..Border::default() },
         ..button::Style::default()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use iced::border::Radius;
+    use iced::widget::button;
+    use sparky_theme::Skin;
+
+    use super::{entry, panel};
+
+    #[test]
+    fn o_seletor_tem_cantos_retos_como_as_janelas() {
+        let skin = Skin::default();
+        assert_eq!(panel(skin).border.radius, Radius::from(0.0));
+        assert_eq!(entry(skin, button::Status::Hovered).border.radius, Radius::from(0.0));
     }
 }

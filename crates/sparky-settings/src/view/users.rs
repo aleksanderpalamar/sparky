@@ -1,10 +1,11 @@
 use iced::alignment::Vertical;
-use iced::widget::{Column, button, column, row, text};
+use iced::widget::{Column, column, row, text};
 use iced::{Element, Length};
 use sparky_ui::style::{SMALL_TEXT, SPACING, TEXT_SIZE};
 
 use crate::app::message::Message;
 use crate::app::state::Settings;
+use crate::view::fields::small;
 use crate::view::style::KEYS_WIDTH;
 
 pub fn view(settings: &Settings) -> Element<'_, Message> {
@@ -15,10 +16,10 @@ pub fn view(settings: &Settings) -> Element<'_, Message> {
     let previous = settings.focus.saturating_sub(1);
     let next = (settings.focus + 1).min(settings.users.len() - 1);
     let header = row![
-        button("◂").on_press(Message::Point(previous)),
+        small(skin, "◂", Message::Point(previous)),
         text(format!("{} · {} de {}", user.title(), settings.focus + 1, settings.users.len()))
             .size(TEXT_SIZE).color(skin.accent).width(Length::Fill),
-        button("▸").on_press(Message::Point(next)),
+        small(skin, "▸", Message::Point(next)),
     ].spacing(SPACING).align_y(Vertical::Center);
     let facts = [
         ("Identificador", user.account.uid.to_string()),

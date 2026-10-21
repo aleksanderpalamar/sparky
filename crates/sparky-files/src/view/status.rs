@@ -57,7 +57,8 @@ fn prompt<'a>(files: &'a Files, label: &'static str, keys: &'static str) -> Elem
         .on_input(Message::Typed)
         .on_submit(Message::Submit)
         .size(TEXT_SIZE)
-        .width(PROMPT_WIDTH);
+        .width(PROMPT_WIDTH)
+        .style(style::input);
     row![text(label).size(TEXT_SIZE).color(skin.accent), input, hint(skin, keys)]
         .spacing(SPACING)
         .align_y(Vertical::Center)
