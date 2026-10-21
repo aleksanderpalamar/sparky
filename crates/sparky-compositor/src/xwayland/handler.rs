@@ -7,7 +7,9 @@ use smithay::wayland::xwayland_shell::{XWaylandShellHandler, XWaylandShellState}
 use smithay::xwayland::xwm::{Reorder, ResizeEdge, XwmId};
 use smithay::xwayland::{X11Surface, X11Wm, XwmHandler};
 use sparky_tiling::Fullscreen;
+use sparky_tiling::drag_session::Gesture;
 
+use crate::drag::edges::from_x11;
 use crate::state::Sparky;
 use crate::windows::rules;
 use crate::windows::traits::traits_of;
@@ -100,9 +102,17 @@ impl XwmHandler for Sparky {
         self.set_x11_fullscreen(&x11, false);
     }
 
-    fn resize_request(&mut self, _xwm: XwmId, _x11: X11Surface, _button: u32, _edge: ResizeEdge) {}
+    fn resize_request(&mut self, _xwm: XwmId, x11: X11Surface, _button: u32, edge: ResizeEdge) {
+        if let Some(window) = self.managed_x11(&x11) {
+            self.start_client_drag(window, Gesture::Resize(from_x11(edge)), None);
+        }
+    }
 
-    fn move_request(&mut self, _xwm: XwmId, _x11: X11Surface, _button: u32) {}
+    fn move_request(&mut self, _xwm: XwmId, x11: X11Surface, _button: u32) {
+        if let Some(window) = self.managed_x11(&x11) {
+            self.start_client_drag(window, Gesture::Move, None);
+        }
+    }
 
     fn allow_selection_access(&mut self, xwm: XwmId, _selection: SelectionTarget) -> bool {
         self.x11_may_read_selection(xwm)

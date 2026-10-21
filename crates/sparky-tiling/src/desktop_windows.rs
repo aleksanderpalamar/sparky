@@ -69,6 +69,14 @@ impl Desktop {
         }
     }
 
+    pub fn swap_windows(&mut self, first: WindowId, second: WindowId) -> bool {
+        let shared = self.workspace_of(first).filter(|id| first != second && self.workspace_of(second) == Some(*id));
+        let Some(id) = shared else {
+            return false;
+        };
+        self.entries.get_mut(&id).is_some_and(|entry| entry.workspace.swap(first, second))
+    }
+
     pub fn toggle_floating(&mut self) {
         self.with_focused(|entry, window, screen, size| entry.workspace.toggle_floating(window, screen.area, size));
     }

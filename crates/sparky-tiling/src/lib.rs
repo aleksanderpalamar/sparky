@@ -1,6 +1,8 @@
 pub mod desktop;
 mod desktop_windows;
 mod desktop_workspaces;
+pub mod drag;
+pub mod drag_session;
 pub mod dwindle;
 pub mod focus;
 pub mod gaps;
@@ -14,6 +16,10 @@ pub mod workspace;
 mod desktop_tests;
 #[cfg(test)]
 mod desktop_window_tests;
+#[cfg(test)]
+mod drag_session_tests;
+#[cfg(test)]
+mod drag_tests;
 #[cfg(test)]
 mod dwindle_tests;
 #[cfg(test)]

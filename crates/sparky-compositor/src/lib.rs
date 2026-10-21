@@ -6,6 +6,7 @@ pub mod capture;
 pub mod cli;
 pub mod config;
 pub mod cursor;
+pub mod drag;
 pub mod focus;
 pub mod handlers;
 pub mod input;

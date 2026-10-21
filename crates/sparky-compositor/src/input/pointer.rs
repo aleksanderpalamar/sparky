@@ -44,7 +44,9 @@ impl Sparky {
         let Some(pointer) = self.seat.get_pointer() else {
             return;
         };
-        self.focus_follows_mouse(position);
+        if !pointer.is_grabbed() {
+            self.focus_follows_mouse(position);
+        }
         let under = self.surface_under(position);
         let serial = SERIAL_COUNTER.next_serial();
         pointer.motion(self, under, &MotionEvent { location: position, serial, time });
@@ -55,10 +57,12 @@ impl Sparky {
         let Some(pointer) = self.seat.get_pointer() else {
             return;
         };
-        if event.state() == ButtonState::Pressed {
-            self.focus_under(pointer.current_location());
-        }
         let serial = SERIAL_COUNTER.next_serial();
+        if event.state() == ButtonState::Pressed {
+            let location = pointer.current_location();
+            self.focus_under(location);
+            self.start_super_drag(event.button_code(), location, serial);
+        }
         let button = ButtonEvent {
             button: event.button_code(),
             state: event.state(),

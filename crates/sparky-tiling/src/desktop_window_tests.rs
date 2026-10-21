@@ -129,3 +129,24 @@ fn arrastar_a_flutuante_muda_a_caixa() {
     desktop.set_floating_frame(WindowId(1), Rect::new(5, 5, 300, 200));
     assert_eq!(posicao(&desktop, 1).map(|p| p.frame), Some(Rect::new(5, 5, 300, 200)));
 }
+
+#[test]
+fn trocar_duas_janelas_do_mosaico_troca_as_caixas() {
+    let mut desktop = desktop_com(&[1, 2]);
+    let (Some(antes_1), Some(antes_2)) = (posicao(&desktop, 1), posicao(&desktop, 2)) else {
+        panic!("sem posição");
+    };
+    assert!(desktop.swap_windows(WindowId(1), WindowId(2)));
+    assert_eq!(posicao(&desktop, 1).map(|placement| placement.frame), Some(antes_2.frame));
+    assert_eq!(posicao(&desktop, 2).map(|placement| placement.frame), Some(antes_1.frame));
+}
+
+#[test]
+fn nao_troca_com_flutuante_nem_entre_areas() {
+    let mut desktop = desktop_com(&[1, 2]);
+    desktop.add_window(WindowId(3), Opening::Floating(400, 300));
+    assert!(!desktop.swap_windows(WindowId(1), WindowId(3)));
+    desktop.move_to_workspace(WindowId(2), WorkspaceId(2), false);
+    assert!(!desktop.swap_windows(WindowId(1), WindowId(2)));
+    assert!(!desktop.swap_windows(WindowId(1), WindowId(1)));
+}

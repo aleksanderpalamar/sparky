@@ -1,11 +1,14 @@
 use smithay::delegate_xdg_shell;
 use smithay::desktop::{PopupKind, Window, find_popup_root_surface, get_popup_toplevel_coords};
+use smithay::reexports::wayland_protocols::xdg::shell::server::xdg_toplevel::ResizeEdge;
 use smithay::reexports::wayland_server::protocol::wl_output::WlOutput;
 use smithay::reexports::wayland_server::protocol::wl_seat::WlSeat;
 use smithay::utils::Serial;
 use smithay::wayland::shell::xdg::{PopupSurface, PositionerState, ToplevelSurface, XdgShellHandler, XdgShellState};
+use sparky_tiling::drag_session::Gesture;
 use sparky_tiling::{Fullscreen, WindowId};
 
+use crate::drag::edges::from_xdg;
 use crate::state::Sparky;
 
 impl XdgShellHandler for Sparky {
@@ -47,6 +50,18 @@ impl XdgShellHandler for Sparky {
 
     fn unfullscreen_request(&mut self, surface: ToplevelSurface) {
         self.set_fullscreen(&surface, false);
+    }
+
+    fn move_request(&mut self, surface: ToplevelSurface, _seat: WlSeat, serial: Serial) {
+        if let Some(window) = self.window_of(&surface) {
+            self.start_client_drag(window, Gesture::Move, Some(serial));
+        }
+    }
+
+    fn resize_request(&mut self, surface: ToplevelSurface, _seat: WlSeat, serial: Serial, edges: ResizeEdge) {
+        if let Some(window) = self.window_of(&surface) {
+            self.start_client_drag(window, Gesture::Resize(from_xdg(edges)), Some(serial));
+        }
     }
 }
 
