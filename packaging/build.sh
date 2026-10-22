@@ -5,7 +5,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 out="$root/packaging/out"
 target="x86_64-unknown-linux-gnu"
 glibc="2.36"
-binaries=(sparky sparky-bar sparky-msg sparky-shot sparky-files sparky-settings sparky-launcher sparky-keyring sparky-keyring-prompt)
+binaries=(sparky sparky-bar sparky-msg sparky-shot sparky-files sparky-settings sparky-launcher sparky-keyring sparky-keyring-prompt polkit-sparky)
 
 usage() {
   echo "uso: packaging/build.sh [deb|rpm|pacman|todos]" >&2

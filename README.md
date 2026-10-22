@@ -22,6 +22,7 @@ O layout vem do [Omarchy](https://github.com/basecamp/omarchy): barra no topo co
 | `crates/sparky-launcher` | O lançador de aplicativos (`sparky-launcher`): busca nos `.desktop` instalados e abre pelo teclado |
 | `crates/sparky-keyring` | O chaveiro (`sparky-keyring`): guarda as senhas dos aplicativos num cofre cifrado e atende a API Secret Service do D-Bus |
 | `crates/sparky-keyring-prompt` | A janela que pede a senha do cofre (`sparky-keyring-prompt`) |
+| `crates/polkit-sparky` | Agente de autenticação do sistema, com janela nativa, temas e integração polkit/PAM |
 | `crates/sparky-theme` | Paleta de cores compartilhada pelos aplicativos, lida do `colors.toml` do tema |
 | `data/themes` | Temas no formato `colors.toml` |
 
@@ -101,12 +102,14 @@ Um `[[bind]]` com a mesma combinação de um atalho padrão substitui o padrão;
 O gerenciador de login (SDDM, GDM…) lista a sessão **Sparky** pelo `data/session/sparky.desktop`, instalado em `/usr/share/wayland-sessions`, que abre o `sparky` com `XDG_CURRENT_DESKTOP=sparky`. Ao subir direto no hardware, o sparky:
 
 - exporta `WAYLAND_DISPLAY`, `DISPLAY`, `XDG_CURRENT_DESKTOP`, `XDG_SESSION_TYPE` e `SPARKY_SOCKET` para o D-Bus e o systemd (`dbus-update-activation-environment --systemd`), para os portais e os serviços ativados acharem a sessão;
-- abre o chaveiro (`sparky-keyring`), a barra (`sparky-bar`), as notificações (`mako`) e o primeiro agente polkit instalado;
+- abre o chaveiro (`sparky-keyring`), o agente de autenticação (`polkit-sparky`), a barra (`sparky-bar`) e as notificações (`mako`);
 - abre o autostart XDG (`~/.config/autostart` e `/etc/xdg/autostart`), respeitando `Hidden`, `OnlyShowIn`, `NotShowIn`, `TryExec` e `X-GNOME-Autostart-enabled`; um arquivo do usuário substitui o do sistema com o mesmo nome.
 
 Aninhado em outra sessão, nada disso acontece. Os portais usam `data/portals/sparky-portals.conf` (GTK, wlr para a tela e `sparky-keyring` para senhas), instalado em `/usr/share/xdg-desktop-portal`.
 
-O agente gráfico polkit é necessário para apresentar pedidos de autorização do sistema, como montar partições internas. Os pacotes incluem `polkit-gnome` (no Debian também podem usar `mate-polkit` ou `lxpolkit`), iniciado pela sessão Sparky. Ele autentica pelo sistema e é independente do cofre `sparky-keyring`. Ao instalar um agente numa sessão que já está aberta, ele só será iniciado automaticamente no próximo login.
+O `polkit-sparky` apresenta pedidos de autorização do sistema, como montar partições internas. A janela é própria do Sparky: usa a paleta ativa, a fonte e os cantos retos dos aplicativos nativos, com campo de senha, seleção dos usuários permitidos pelo sistema, Enter para confirmar, Tab para mudar o controle e Esc para cancelar. A paleta acompanha as mudanças de tema enquanto a janela está aberta.
+
+A autenticação usa o polkit e o PAM do sistema por meio da biblioteca `libpolkit-agent-1`; os pacotes não dependem de outro agente gráfico. A senha solicitada é a da conta indicada pelo polkit e é independente da senha do cofre `sparky-keyring`. O agente não guarda essa senha. Cookies de autenticação são enviados ao processo da janela por um pipe privado, sem argumentos de linha de comando. Pedidos são serializados e cancelados quando a autoridade solicita ou a sessão termina. O registro é limitado à sessão logind atual. A inicialização automática ocorre no próximo login no Sparky.
 
 ## Barra
 
