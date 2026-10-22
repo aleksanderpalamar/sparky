@@ -2,7 +2,7 @@
 
 Ambiente de desktop Wayland escrito em Rust, com compositor próprio, feito para ser usado pelo teclado. O mouse funciona, mas tudo tem atalho.
 
-O layout vem do [Omarchy](https://github.com/basecamp/omarchy): barra no topo com as áreas de trabalho à esquerda, o relógio no centro e a bandeja à direita; janelas lado a lado com as mesmas folgas, bordas e atalhos.
+Somente os temas vem do [Omarchy](https://github.com/basecamp/omarchy): como paletas de cores e os wallpapers.
 
 ## Organização
 
