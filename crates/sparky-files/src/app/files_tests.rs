@@ -10,6 +10,7 @@ use sparky_theme::Skin;
 use sparky_ui::notice::Notice;
 use tempfile::TempDir;
 
+use super::test_sources::{NoIcons, NoVolumes};
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::local_disk::LocalDisk;
 use crate::app::message::Message;
@@ -27,9 +28,9 @@ impl Opener for Abertos {
     }
 }
 
-struct Cena {
-    dir: TempDir,
-    files: Files,
+pub(super) struct Cena {
+    pub dir: TempDir,
+    pub files: Files,
     abertos: Abertos,
 }
 
@@ -51,8 +52,10 @@ fn evento_de_paleta_preserva_uma_renomeacao_em_andamento() {
 }
 
 impl Cena {
-    fn nova() -> Self {
-        let Ok(dir) = tempfile::tempdir() else { panic!("sem pasta temporária") };
+    pub fn nova() -> Self {
+        let Ok(dir) = tempfile::tempdir() else {
+            panic!("sem pasta temporária")
+        };
         let work = dir.path().join("work");
         let preparado = fs::create_dir_all(work.join("Fotos")).and_then(|()| fs::write(work.join("a.txt"), "oi"));
         assert!(preparado.is_ok());
@@ -60,28 +63,43 @@ impl Cena {
         let services = Services {
             disk: Box::new(LocalDisk::new(HomeTrash::new(dir.path().join("Trash")))),
             opener: Box::new(abertos.clone()),
+            icons: Box::new(NoIcons),
+            volumes: std::sync::Arc::new(NoVolumes),
         };
-        let setup = Setup { start: work.clone(), home: dir.path().to_path_buf(), places: Vec::new(), skin: Skin::default(), rows: 10 };
-        Self { files: Files::new(setup, services), dir, abertos }
+        let setup = Setup {
+            start: work.clone(),
+            home: dir.path().to_path_buf(),
+            places: Vec::new(),
+            skin: Skin::default(),
+            rows: 10,
+        };
+        Self {
+            files: Files::new(setup, services),
+            dir,
+            abertos,
+        }
     }
 
     fn tecla(&mut self, texto: &str) {
-        let _ = update(&mut self.files, Message::Key(Key::Character(texto.into()), Modifiers::empty()));
+        let _ = update(
+            &mut self.files,
+            Message::Key(Key::Character(texto.into()), Modifiers::empty()),
+        );
     }
 
     fn nomeada(&mut self, named: Named) {
         let _ = update(&mut self.files, Message::Key(Key::Named(named), Modifiers::empty()));
     }
 
-    fn mandar(&mut self, message: Message) {
+    pub fn mandar(&mut self, message: Message) {
         let _ = update(&mut self.files, message);
     }
 
-    fn work(&self) -> PathBuf {
+    pub fn work(&self) -> PathBuf {
         self.dir.path().join("work")
     }
 
-    fn selecionado(&self) -> Option<String> {
+    pub fn selecionado(&self) -> Option<String> {
         self.files.listing.selected().map(|entry| entry.name.clone())
     }
 }

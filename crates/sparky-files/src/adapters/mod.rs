@@ -1,4 +1,5 @@
 pub mod home_trash;
+pub mod icons;
 pub mod local_disk;
 pub mod tree;
 pub mod xdg_open;

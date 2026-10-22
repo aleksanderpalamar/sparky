@@ -6,6 +6,8 @@ use sparky_theme::Skin;
 use crate::app::message::Message;
 use crate::app::state::Files;
 use crate::domain::entry::Entry;
+use crate::domain::icons::IconKind;
+use crate::view::icon::icon;
 use crate::view::labels::{self, Tone};
 use crate::view::style::{DATE_WIDTH, ROW_HEIGHT, SIZE_WIDTH};
 use sparky_ui::style::{self, Highlight, PADDING, SMALL_TEXT, SPACING, TEXT_SIZE};
@@ -13,27 +15,46 @@ use sparky_ui::wheel;
 
 pub fn list(files: &Files) -> Element<'_, Message> {
     let range = files.viewport.range(files.listing.len());
-    let top = range.start;
     let rows = range.filter_map(|index| {
         let entry = files.listing.get(index)?;
         let highlight = Highlight::when(index == files.listing.cursor());
-        Some(entry_row(files, entry, index - top, highlight))
+        Some(entry_row(files, entry, index, highlight))
     });
     let body: Element<'_, Message> = match files.listing.is_empty() {
         true => empty(files.skin),
         false => Column::with_children(rows).into(),
     };
-    let area = mouse_area(container(body).width(Length::Fill).height(Length::Fill)).on_scroll(|delta| Message::Scrolled(wheel::rows(delta, ROW_HEIGHT)));
-    column![titles(files.skin), area].width(Length::Fill).height(Length::Fill).into()
+    let area = mouse_area(container(body).width(Length::Fill).height(Length::Fill))
+        .on_scroll(|delta| Message::Scrolled(wheel::rows(delta, ROW_HEIGHT)));
+    column![titles(files.skin), area]
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
 }
 
 fn entry_row<'a>(files: &'a Files, entry: &'a Entry, row_index: usize, highlight: Highlight) -> Element<'a, Message> {
     let skin = files.skin;
     let tone = labels::tone(&files.listing, entry);
+    let path = files.location.join(&entry.name);
+    let place = files
+        .places
+        .iter()
+        .find(|place| place.path == path)
+        .map(|place| place.label);
     let line = row![
-        text(labels::name(entry, tone)).size(TEXT_SIZE).color(tone_color(skin, tone)).width(Length::Fill),
-        text(labels::size(entry)).size(SMALL_TEXT).width(SIZE_WIDTH).align_x(Horizontal::Right),
-        text(labels::date(entry)).size(SMALL_TEXT).width(DATE_WIDTH).align_x(Horizontal::Right),
+        icon(files, IconKind::for_entry(entry, place), 22.0),
+        text(labels::name(entry, tone))
+            .size(TEXT_SIZE)
+            .color(tone_color(skin, tone))
+            .width(Length::Fill),
+        text(labels::size(entry))
+            .size(SMALL_TEXT)
+            .width(SIZE_WIDTH)
+            .align_x(Horizontal::Right),
+        text(labels::date(entry))
+            .size(SMALL_TEXT)
+            .width(DATE_WIDTH)
+            .align_x(Horizontal::Right),
     ]
     .spacing(SPACING)
     .align_y(Vertical::Center);

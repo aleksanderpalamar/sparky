@@ -3,7 +3,7 @@ resolver = "3"
 members = ["crates/*"]
 
 [workspace.package]
-version = "0.19.1"
+version = "0.20.0"
 edition = "2024"
 authors = ["Aleksander Palamar <apalamardev@gmail.com>"]
 license = "GPL-3.0-or-later"
@@ -18,3 +18,4 @@ sparky-theme = { path = "crates/sparky-theme" }
 sparky-tiling = { path = "crates/sparky-tiling" }
 sparky-ui = { path = "crates/sparky-ui" }
 sparky-xdg = { path = "crates/sparky-xdg" }
+sparky-storage = { path = "crates/sparky-storage" }

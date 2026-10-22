@@ -14,8 +14,9 @@ O layout vem do [Omarchy](https://github.com/basecamp/omarchy): barra no topo co
 | `crates/sparky-config` | O `sparky.toml`: esquema, padrões do sparky, ações e a tabela de atalhos padrão |
 | `crates/sparky-ipc` | Protocolo do IPC do sparky (JSON por linha num socket Unix), o cliente usado pela barra e pelos aplicativos, e o `sparky-msg` |
 | `crates/sparky-shot` | O capturador de tela (`sparky-shot`): seletor de modo, seleção de região pelo teclado ou mouse, PNG salvo e copiado |
-| `crates/sparky-files` | O gerenciador de arquivos (`sparky-files`): lista navegável pelo teclado, lugares, filtro, copiar, recortar, colar, renomear, criar e lixeira |
-| `crates/sparky-xdg` | Convenções XDG compartilhadas: pastas do usuário (`user-dirs.dirs`), leitura de `.desktop` (nome no idioma, `OnlyShowIn`, `Exec`) e busca de programas no `PATH` |
+| `crates/sparky-files` | O gerenciador de arquivos (`sparky-files`): grade e lista com ícones, dispositivos, lugares, filtro, copiar, recortar, colar, renomear, criar e lixeira |
+| `crates/sparky-storage` | Consulta de volumes e montagem/desmontagem pelo udisksctl, com parser compartilhado com o painel |
+| `crates/sparky-xdg` | Convenções XDG compartilhadas: pastas do usuário, leitura de `.desktop`, busca de programas e resolução de ícones dos temas |
 | `crates/sparky-settings` | O painel de configurações (`sparky-settings`): edita o `sparky.toml` e aplica na hora pelo IPC |
 | `crates/sparky-ui` | Peças comuns dos aplicativos iced: teclas, prompt, estilos, lateral numerada, rolagem e janela |
 | `crates/sparky-launcher` | O lançador de aplicativos (`sparky-launcher`): busca nos `.desktop` instalados e abre pelo teclado |
@@ -179,18 +180,23 @@ Se outro chaveiro (gnome-keyring, KWallet) já tiver o nome `org.freedesktop.sec
 
 ## Arquivos
 
-O `sparky-files` abre pelo `SUPER + SHIFT + F` (ou `sparky-files <pasta>`). À esquerda ficam os lugares (pasta pessoal e as pastas do `user-dirs.dirs` que existem); no centro, a pasta atual com pastas primeiro, tamanho e data. A lista se atualiza sozinha quando a pasta muda.
+O `sparky-files` abre pelo `SUPER + SHIFT + F` (ou `sparky-files <pasta>`). Abre em grade, com ícones e nomes de pastas e arquivos, e permite alternar para a lista com tamanho e data pelos botões Grade/Lista ou por `CTRL + 1`/`CTRL + 2`. A grade se adapta à largura da janela; as pastas vêm primeiro, e a visualização se atualiza quando a pasta muda. Trocar a visualização preserva filtro, seleção e itens marcados.
+
+Os ícones seguem o tema configurado pelo painel no GTK, incluindo sua herança (`index.theme`). Pastas especiais e tipos comuns de arquivo têm ícones próprios; sem um ícone instalado, o sparky desenha um ícone de reserva. Uma troca de tema atualiza os ícones sem fechar o gerenciador.
+
+Na lateral ficam os lugares e os dispositivos: SSDs, partições e unidades removíveis com sistema de arquivos, montados ou não. A lista se atualiza a cada dois segundos. Um clique abre o volume montado; se estiver desmontado, pede a montagem pelo `udisksctl` e abre o ponto retornado. O botão de desmontar é separado e nunca força a operação. `ALT + 1` a `9` montam/abrem os dispositivos correspondentes; `ALT + U` pede a desmontagem do volume aberto. A montagem depende do `udisks2` e das permissões do sistema; recusas e dispositivos ocupados aparecem como aviso. As consultas usam `lsblk` (`util-linux`). Partições do sistema, swap e contêineres criptografados ainda trancados não são oferecidos para montagem/desmontagem. Ao retirar o volume em que está navegando, o gerenciador volta à pasta pessoal.
 
 | Tecla | Ação |
 |---|---|
-| `j` `k` ou setas | Desce e sobe |
-| `Enter`, `l` ou `→` | Abre a pasta ou o arquivo (no aplicativo padrão, pelo `xdg-open`) |
-| `h`, `Backspace`, `←` ou `ALT + ↑` | Volta para a pasta de cima, com a de origem selecionada |
+| `j` `k` ou `↑` `↓` | Desce e sobe uma linha da grade ou lista |
+| `←` `→` | Na grade, escolhe o item vizinho; na lista, volta/abre |
+| `Enter` ou `l` | Abre a pasta ou o arquivo (no aplicativo padrão, pelo `xdg-open`) |
+| `h`, `Backspace` ou `ALT + ↑` | Volta para a pasta de cima, com a de origem selecionada |
 | `g` / `G`, `Home` / `End`, `PageUp` / `PageDown` | Começo, fim e páginas |
 | `1` a `9` | Vai para o lugar com esse número |
 | `/` | Filtra pelo nome enquanto digita; `Enter` fixa, `Esc` limpa |
 | `.` ou `CTRL + H` | Mostra ou esconde os ocultos |
-| `Espaço` | Marca o item e desce; as ações valem para os marcados ou, sem marcas, para o selecionado |
+| `Espaço` | Marca o item e avança; as ações valem para os marcados ou, sem marcas, para o selecionado |
 | `y` / `x` / `p` (ou `CTRL + C` / `X` / `V`) | Copia, recorta e cola; colar na mesma pasta cria `nome (cópia).ext` |
 | `r` ou `F2` | Renomeia, já com o nome sem a extensão selecionado |
 | `a` | Cria: `nome/` vira pasta, sem a barra vira arquivo vazio |

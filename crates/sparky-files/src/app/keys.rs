@@ -1,3 +1,4 @@
+use crate::domain::grid::ViewMode;
 use iced::keyboard::key::Named;
 use iced::keyboard::{Key, Modifiers};
 
@@ -5,6 +6,8 @@ use iced::keyboard::{Key, Modifiers};
 pub enum Command {
     Down,
     Up,
+    Left,
+    Right,
     PageDown,
     PageUp,
     First,
@@ -24,6 +27,9 @@ pub enum Command {
     Trash,
     Refresh,
     Quit,
+    View(ViewMode),
+    Volume(usize),
+    UnmountCurrent,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -35,6 +41,7 @@ pub enum Answer {
 pub fn browse(key: &Key, modifiers: Modifiers) -> Option<Command> {
     match key.as_ref() {
         Key::Named(named) => named_command(named, modifiers),
+        Key::Character(text) if modifiers.alt() => volume_command(text),
         Key::Character(text) if modifiers.control() => control_command(text),
         Key::Character(text) => letter_command(text),
         Key::Unidentified => None,
@@ -70,8 +77,10 @@ fn named_command(named: Named, modifiers: Modifiers) -> Option<Command> {
         Named::PageUp => Some(Command::PageUp),
         Named::Home => Some(Command::First),
         Named::End => Some(Command::Last),
-        Named::Enter | Named::ArrowRight => Some(Command::Open),
-        Named::Backspace | Named::ArrowLeft => Some(Command::Parent),
+        Named::Enter => Some(Command::Open),
+        Named::ArrowRight => Some(Command::Right),
+        Named::ArrowLeft => Some(Command::Left),
+        Named::Backspace => Some(Command::Parent),
         Named::Space => Some(Command::Mark),
         Named::F2 => Some(Command::Rename),
         Named::F5 => Some(Command::Refresh),
@@ -90,8 +99,20 @@ fn control_command(text: &str) -> Option<Command> {
         "d" => Some(Command::PageDown),
         "u" => Some(Command::PageUp),
         "q" => Some(Command::Quit),
+        "1" => Some(Command::View(ViewMode::Grid)),
+        "2" => Some(Command::View(ViewMode::List)),
         _ => None,
     }
+}
+
+fn volume_command(text: &str) -> Option<Command> {
+    if text.eq_ignore_ascii_case("u") {
+        return Some(Command::UnmountCurrent);
+    }
+    let Command::Place(index) = place(text)? else {
+        return None;
+    };
+    Some(Command::Volume(index))
 }
 
 fn letter_command(text: &str) -> Option<Command> {

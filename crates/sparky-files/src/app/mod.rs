@@ -4,6 +4,8 @@ pub mod events;
 pub mod keys;
 pub mod message;
 pub mod navigation;
+pub mod presentation;
+pub mod volumes;
 pub mod state;
 pub mod update;
 
@@ -11,6 +13,12 @@ pub mod update;
 mod files_tests;
 #[cfg(test)]
 mod keys_tests;
+#[cfg(test)]
+mod test_sources;
+#[cfg(test)]
+mod presentation_tests;
+#[cfg(test)]
+mod volumes_tests;
 
 use iced::Size;
 

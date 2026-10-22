@@ -4,18 +4,26 @@ use iced::keyboard::{Key, Modifiers};
 use crate::app::keys::{self, Command};
 use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
-use crate::view::style::rows_for;
+use crate::app::volumes;
+use crate::domain::grid::{Direction, ViewMode};
 use sparky_ui::prompt;
 
 pub fn update(files: &mut Files, message: Message) -> Task<Message> {
     match message {
         Message::Palette(palette) => files.skin = sparky_theme::Skin::new(palette),
-        Message::Scrolled(lines) => files.viewport.scroll(lines, files.listing.len()),
-        Message::Resized(size) => {
-            let (cursor, len) = (files.listing.cursor(), files.listing.len());
-            files.viewport.resize(rows_for(size.height), cursor, len);
+        Message::Scrolled(lines) => files
+            .viewport
+            .scroll(lines, files.layout.row_count(files.listing.len())),
+        Message::Resized(size) => files.resize(size),
+        Message::View(mode) => files.change_view(mode),
+        Message::OpenVolume(device) => return volumes::open(files, &device),
+        Message::UnmountVolume(device) => return volumes::unmount(files, &device),
+        Message::VolumesCompleted(operation, result) => volumes::completed(files, operation, result),
+        Message::Tick => {
+            files.refresh_if_changed();
+            files.icons = files.services.icons.load();
+            return volumes::refresh(files);
         }
-        Message::Tick => files.refresh_if_changed(),
         other => return steer(files, other),
     }
     Task::none()
@@ -38,13 +46,13 @@ fn apply(files: &mut Files, message: Message) {
         Message::Escape => files.escape(),
         Message::Typed(text) => files.type_text(text),
         Message::Submit => files.submit(),
-        Message::Clicked(row) => files.listing.select(files.viewport.top() + row),
-        Message::Activated(row) => {
-            files.listing.select(files.viewport.top() + row);
+        Message::Clicked(index) => files.listing.select(index),
+        Message::Activated(index) if files.listing.get(index).is_some() => {
+            files.listing.select(index);
             files.open_selected();
         }
         Message::Place(index) => files.place(index),
-        Message::Key(..) | Message::Scrolled(_) | Message::Resized(_) | Message::Tick | Message::Palette(_) => {}
+        _ => {}
     }
 }
 
@@ -76,6 +84,19 @@ fn run(files: &mut Files, command: Command) -> Task<Message> {
         }
         Command::Rename => files.begin_rename().map_or_else(Task::none, prompt::select),
         Command::Quit => iced::exit(),
+        Command::View(mode) => {
+            files.change_view(mode);
+            Task::none()
+        }
+        Command::Volume(index) => {
+            let device = files.volumes.get(index).map(|volume| volume.path.clone());
+            device.map_or_else(Task::none, |device| volumes::open(files, &device))
+        }
+        Command::UnmountCurrent => volumes::unmount_current(files),
+        Command::Refresh => {
+            files.refresh();
+            volumes::refresh(files)
+        }
         other => {
             act(files, other);
             Task::none()
@@ -84,10 +105,14 @@ fn run(files: &mut Files, command: Command) -> Task<Message> {
 }
 
 fn act(files: &mut Files, command: Command) {
-    let page = files.viewport.rows() as isize;
+    let page = files.layout.capacity() as isize;
     match command {
-        Command::Down => files.listing.move_by(1),
-        Command::Up => files.listing.move_by(-1),
+        Command::Down => files.move_cursor(Direction::Down),
+        Command::Up => files.move_cursor(Direction::Up),
+        Command::Left if files.view_mode == ViewMode::List => files.parent(),
+        Command::Right if files.view_mode == ViewMode::List => files.open_selected(),
+        Command::Left => files.move_cursor(Direction::Left),
+        Command::Right => files.move_cursor(Direction::Right),
         Command::PageDown => files.listing.move_by(page),
         Command::PageUp => files.listing.move_by(-page),
         Command::First => files.listing.first(),
@@ -105,7 +130,13 @@ fn act(files: &mut Files, command: Command) {
         Command::Cut => files.cut(),
         Command::Paste => files.paste(),
         Command::Trash => files.ask_trash(),
-        Command::Refresh => files.refresh(),
-        Command::Filter | Command::Create | Command::Rename | Command::Quit => {}
+        Command::Filter
+        | Command::Create
+        | Command::Rename
+        | Command::Quit
+        | Command::View(_)
+        | Command::Volume(_)
+        | Command::UnmountCurrent
+        | Command::Refresh => {}
     }
 }

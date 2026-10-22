@@ -15,10 +15,13 @@ path = "src/lib.rs"
 
 [dependencies]
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
-iced = { version = "0.14", features = ["tokio"] }
+iced = { version = "0.14", features = ["tokio", "image", "svg"] }
+tokio = { version = "1", features = ["rt"] }
+sparky-storage.workspace = true
 sparky-theme.workspace = true
 sparky-ui.workspace = true
 sparky-xdg.workspace = true
 
 [dev-dependencies]
+iced_runtime = "0.14"
 tempfile = "3"

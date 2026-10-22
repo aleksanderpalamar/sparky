@@ -3,6 +3,11 @@ use std::path::Path;
 use std::time::SystemTime;
 
 use crate::domain::entry::Entry;
+use crate::domain::icons::Icons;
+
+pub trait IconSource {
+    fn load(&mut self) -> Icons;
+}
 
 pub trait Disk {
     fn list(&self, dir: &Path) -> io::Result<Vec<Entry>>;

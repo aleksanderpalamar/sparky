@@ -2,6 +2,7 @@ use iced::keyboard::key::Named;
 use iced::keyboard::{Key, Modifiers};
 
 use crate::app::keys::{Answer, Command, browse, confirm, filtering};
+use crate::domain::grid::ViewMode;
 
 fn letra(text: &str) -> Option<Command> {
     browse(&Key::Character(text.into()), Modifiers::empty())
@@ -32,7 +33,10 @@ fn g_vai_ao_comeco_e_g_maiusculo_ao_fim() {
 #[test]
 fn atalhos_de_arquivo_por_letra_e_por_ctrl() {
     assert_eq!(letra("y"), Some(Command::Copy));
-    assert_eq!(browse(&Key::Character("c".into()), Modifiers::CTRL), Some(Command::Copy));
+    assert_eq!(
+        browse(&Key::Character("c".into()), Modifiers::CTRL),
+        Some(Command::Copy)
+    );
     assert_eq!(browse(&Key::Character("X".into()), Modifiers::CTRL), Some(Command::Cut));
     assert_eq!(letra("p"), Some(Command::Paste));
     assert_eq!(nomeada(Named::F2), Some(Command::Rename));
@@ -49,7 +53,10 @@ fn numeros_levam_aos_lugares_da_lateral() {
 
 #[test]
 fn alt_com_seta_para_cima_sobe_e_alt_home_vai_para_casa() {
-    assert_eq!(browse(&Key::Named(Named::ArrowUp), Modifiers::ALT), Some(Command::Parent));
+    assert_eq!(
+        browse(&Key::Named(Named::ArrowUp), Modifiers::ALT),
+        Some(Command::Parent)
+    );
     assert_eq!(browse(&Key::Named(Named::Home), Modifiers::ALT), Some(Command::Home));
 }
 
@@ -72,4 +79,25 @@ fn teclas_sem_funcao_sao_ignoradas() {
     assert_eq!(letra("z"), None);
     assert_eq!(nomeada(Named::Tab), None);
     assert_eq!(browse(&Key::Character("z".into()), Modifiers::CTRL), None);
+}
+
+#[test]
+fn visualizacoes_e_dispositivos_tem_atalhos_separados_dos_lugares() {
+    assert_eq!(
+        browse(&Key::Character("1".into()), Modifiers::CTRL),
+        Some(Command::View(ViewMode::Grid))
+    );
+    assert_eq!(
+        browse(&Key::Character("2".into()), Modifiers::CTRL),
+        Some(Command::View(ViewMode::List))
+    );
+    assert_eq!(
+        browse(&Key::Character("1".into()), Modifiers::ALT),
+        Some(Command::Volume(0))
+    );
+    assert_eq!(
+        browse(&Key::Character("u".into()), Modifiers::ALT),
+        Some(Command::UnmountCurrent)
+    );
+    assert_eq!(letra("1"), Some(Command::Place(0)));
 }

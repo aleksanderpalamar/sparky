@@ -1,5 +1,7 @@
+use crate::domain::grid::ViewMode;
 use iced::Size;
 use iced::keyboard::{Key, Modifiers};
+use sparky_storage::{Operation, Volume};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -14,4 +16,8 @@ pub enum Message {
     Resized(Size),
     Place(usize),
     Tick,
+    View(ViewMode),
+    OpenVolume(String),
+    UnmountVolume(String),
+    VolumesCompleted(Operation, Result<Vec<Volume>, String>),
 }

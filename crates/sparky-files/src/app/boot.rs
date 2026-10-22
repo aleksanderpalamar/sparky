@@ -1,17 +1,22 @@
+use iced::{Size, Task};
+use sparky_storage::system::{SystemCommands, SystemVolumes};
 use std::env;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use sparky_theme::Skin;
 use sparky_xdg::UserDirs;
 
 use crate::adapters::home_trash::HomeTrash;
+use crate::adapters::icons::ThemeIcons;
 use crate::adapters::local_disk::LocalDisk;
 use crate::adapters::xdg_open::XdgOpen;
+use crate::app::message::Message;
 use crate::app::state::{Files, Services, Setup};
 use crate::domain::places::places;
-use crate::view::style::{WINDOW_HEIGHT, rows_for};
+use crate::view::style::{WINDOW_HEIGHT, WINDOW_WIDTH, rows_for};
 
-pub fn boot() -> Files {
+pub fn boot() -> (Files, Task<Message>) {
     let dirs = UserDirs::from_env().unwrap_or_else(|| UserDirs::new("/", None));
     let home = dirs.home();
     let trash = HomeTrash::from_env().unwrap_or_else(|| HomeTrash::new(home.join(".local/share/Trash")));
@@ -25,8 +30,13 @@ pub fn boot() -> Files {
     let services = Services {
         disk: Box::new(LocalDisk::new(trash)),
         opener: Box::new(XdgOpen),
+        icons: Box::new(ThemeIcons::default()),
+        volumes: Arc::new(SystemVolumes(SystemCommands)),
     };
-    Files::new(setup, services)
+    let mut files = Files::new(setup, services);
+    files.resize(Size::new(WINDOW_WIDTH, WINDOW_HEIGHT));
+    let task = crate::app::volumes::refresh(&mut files);
+    (files, task)
 }
 
 pub fn start_dir(argument: Option<String>, home: &Path) -> PathBuf {

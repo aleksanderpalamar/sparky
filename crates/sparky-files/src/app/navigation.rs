@@ -41,7 +41,10 @@ impl Files {
         let Some(parent) = self.location.parent().map(Path::to_path_buf) else {
             return;
         };
-        let child = self.location.file_name().map(|name| name.to_string_lossy().into_owned());
+        let child = self
+            .location
+            .file_name()
+            .map(|name| name.to_string_lossy().into_owned());
         if self.go(parent)
             && let Some(child) = child
         {
@@ -67,6 +70,7 @@ impl Files {
             }
             Err(error) => self.fail(format!("{}: {error}", self.shown(&self.location))),
         }
+        self.follow();
     }
 
     pub fn refresh_if_changed(&mut self) {
@@ -76,7 +80,10 @@ impl Files {
     }
 
     fn launch(&mut self, path: &Path) {
-        let name = path.file_name().map(|name| name.to_string_lossy().into_owned()).unwrap_or_default();
+        let name = path
+            .file_name()
+            .map(|name| name.to_string_lossy().into_owned())
+            .unwrap_or_default();
         match self.services.opener.open(path) {
             Ok(()) => self.inform(format!("Abrindo {name}")),
             Err(error) => self.fail(format!("{name}: {error}")),
