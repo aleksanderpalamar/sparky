@@ -294,6 +294,12 @@ cargo test
 cargo clippy --all-targets
 ```
 
+Os PRs são validados pelo [Quality Gate](ci/README.md): convenções, checklist de
+revisão, build e testes em debug/release, Clippy, documentação e regras dos três
+formatos de pacote. O CI usa runners isolados e não inicia uma sessão gráfica.
+Consulte o documento para reproduzir as verificações localmente e configurar o
+check obrigatório na main.
+
 ## Créditos
 
 Os temas de `data/themes` (paletas e nomes dos temas de ícones), os papéis de parede de `data/wallpapers` e o layout vêm do Omarchy, © David Heinemeier Hansson, licença MIT; a licença acompanha cada tema. O repositório do Omarchy não informa a autoria das imagens.
