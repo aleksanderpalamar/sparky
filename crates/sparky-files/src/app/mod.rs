@@ -18,6 +18,8 @@ mod test_sources;
 #[cfg(test)]
 mod presentation_tests;
 #[cfg(test)]
+mod volume_pending_tests;
+#[cfg(test)]
 mod volumes_tests;
 
 use iced::Size;

@@ -35,26 +35,30 @@ pub fn sidebar(files: &Files) -> Element<'_, Message> {
         .enumerate()
         .map(|(index, volume)| device(files, volume, index));
     let mut content = column![
-        text("Lugares").size(SMALL_TEXT).color(skin.bright_foreground),
+        text("Lugares")
+            .size(SMALL_TEXT)
+            .color(skin.bright_foreground),
         Column::with_children(places).spacing(3),
         rule::horizontal(1),
-        text("Dispositivos").size(SMALL_TEXT).color(skin.bright_foreground),
+        text("Dispositivos")
+            .size(SMALL_TEXT)
+            .color(skin.bright_foreground),
         Column::with_children(devices).spacing(5)
     ]
     .spacing(SPACING);
-    if let Some(work) = &files.volume_work {
-        let label = match work {
-            Operation::List => "Atualizando…",
-            Operation::Mount(_) => "Montando…",
-            Operation::Unmount(_) => "Desmontando…",
-        };
+    let progress = work_label(files.volume_work.as_ref());
+    if let Some(label) = progress {
         content = content.push(text(label).size(SMALL_TEXT).color(skin.foreground));
     }
     if let Some(error) = &files.volume_error {
         content = content.push(text(error).size(SMALL_TEXT).color(skin.urgent));
     }
-    if files.volumes.is_empty() && files.volume_work.is_none() && files.volume_error.is_none() {
-        content = content.push(text("Nenhum volume disponível").size(SMALL_TEXT).color(skin.foreground));
+    if files.volumes.is_empty() && progress.is_none() && files.volume_error.is_none() {
+        content = content.push(
+            text("Nenhum volume disponível")
+                .size(SMALL_TEXT)
+                .color(skin.foreground),
+        );
     }
     container(scrollable(content).height(Length::Fill))
         .width(SIDEBAR_WIDTH)
@@ -106,18 +110,54 @@ fn device<'a>(files: &'a Files, volume: &'a Volume, index: usize) -> Element<'a,
         volume.mountpoint.as_deref().unwrap_or("Não montado"),
         index + 1
     );
-    let open = tooltip(open, text(help).size(SMALL_TEXT), tooltip::Position::Right);
+    let open = tooltip(open, text(help).size(SMALL_TEXT), tooltip::Position::Right)
+        .style(move |_| style::tooltip(skin));
     let mut line = row![open].align_y(Vertical::Center).spacing(2);
     if volume.mounted() {
         let eject = button(icon(files, IconKind::Eject, 18.0))
             .padding(5)
             .on_press_maybe((!busy).then(|| Message::UnmountVolume(volume.path.clone())))
             .style(move |_, status| style::entry(skin, Highlight::Plain, status));
-        line = line.push(tooltip(
-            eject,
-            text("Desmontar · Alt+U para o volume aberto").size(SMALL_TEXT),
-            tooltip::Position::Right,
-        ));
+        line = line.push(
+            tooltip(
+                eject,
+                text("Desmontar · Alt+U para o volume aberto").size(SMALL_TEXT),
+                tooltip::Position::Right,
+            )
+            .style(move |_| style::tooltip(skin)),
+        );
     }
     line.width(Length::Fill).into()
+}
+
+fn work_label(operation: Option<&Operation>) -> Option<&'static str> {
+    match operation {
+        Some(Operation::Mount(_)) => Some("Montando…"),
+        Some(Operation::Unmount(_)) => Some("Desmontando…"),
+        Some(Operation::List) | None => None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::work_label;
+    use sparky_storage::Operation;
+
+    #[test]
+    fn consulta_periodica_nao_altera_a_indicacao_de_atividade() {
+        assert_eq!(work_label(Some(&Operation::List)), work_label(None));
+    }
+
+    #[test]
+    fn montar_e_desmontar_continuam_com_indicacao_de_progresso() {
+        let device = "/dev/fixture".to_owned();
+        assert_eq!(
+            work_label(Some(&Operation::Mount(device.clone()))),
+            Some("Montando…")
+        );
+        assert_eq!(
+            work_label(Some(&Operation::Unmount(device))),
+            Some("Desmontando…")
+        );
+    }
 }

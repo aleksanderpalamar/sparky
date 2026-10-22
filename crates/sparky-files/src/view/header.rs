@@ -37,14 +37,25 @@ pub fn header(files: &Files) -> Element<'_, Message> {
     .into()
 }
 
-fn view_button<'a>(files: &'a Files, mode: ViewMode, label: &'static str, help: &'static str) -> Element<'a, Message> {
+fn view_button<'a>(
+    files: &'a Files,
+    mode: ViewMode,
+    label: &'static str,
+    help: &'static str,
+) -> Element<'a, Message> {
     let skin = files.skin;
     let highlight = Highlight::when(files.view_mode == mode);
     let control = button(text(label).size(SMALL_TEXT))
         .padding([6, 8])
         .on_press(Message::View(mode))
         .style(move |_, status| style::entry(skin, highlight, status));
-    tooltip(control, text(help).size(SMALL_TEXT), tooltip::Position::Bottom).into()
+    tooltip(
+        control,
+        text(help).size(SMALL_TEXT),
+        tooltip::Position::Bottom,
+    )
+    .style(move |_| style::tooltip(skin))
+    .into()
 }
 
 fn tags(files: &Files) -> Vec<String> {

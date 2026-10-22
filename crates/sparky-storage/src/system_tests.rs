@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 use std::sync::Mutex;
 
-use crate::system::{Commands, LIST_ARGUMENTS, SystemVolumes};
+use crate::system::{Commands, LIST_ARGUMENTS, SystemVolumes, command, failure};
 use crate::{Operation, VolumeSource};
 
 const USB: &str = r#"{"blockdevices":[{"path":"/dev/sda1","type":"part","fstype":"vfat","label":"USB","rm":true}]}"#;
@@ -43,7 +43,9 @@ impl Commands for Fake {
 #[test]
 fn montar_reconsulta_e_retorna_o_ponto_de_montagem_real() {
     let source = SystemVolumes(Fake::new(&[Ok(USB), Ok("Mounted"), Ok(MOUNTED)]));
-    let result = source.run(Operation::Mount("/dev/sda1".to_owned())).unwrap_or_default();
+    let result = source
+        .run(Operation::Mount("/dev/sda1".to_owned()))
+        .unwrap_or_default();
     assert_eq!(result[0].mountpoint.as_deref(), Some("/run/media/p/USB"));
     let calls = source.0.calls.lock().unwrap();
     assert_eq!(
@@ -70,7 +72,10 @@ fn desmontar_nao_forca_e_reconsulta_o_estado() {
         .run(Operation::Unmount("/dev/sda1".to_owned()))
         .unwrap_or_default();
     assert!(!result[0].mounted());
-    assert_eq!(source.0.calls.lock().unwrap()[1].1, ["unmount", "-b", "/dev/sda1"]);
+    assert_eq!(
+        source.0.calls.lock().unwrap()[1].1,
+        ["unmount", "-b", "/dev/sda1"]
+    );
 }
 
 #[test]
@@ -94,5 +99,42 @@ fn recusa_de_permissao_e_resposta_invalida_sao_preservadas() {
         invalid
             .run(Operation::List)
             .is_err_and(|error| error.contains("resposta inválida"))
+    );
+}
+
+#[test]
+fn udisksctl_nao_herda_o_terminal_e_preserva_a_autenticacao_grafica() {
+    let process = command("udisksctl", &["mount", "-b", "/dev/sda2"]);
+    assert_eq!(process.get_program(), "setsid");
+    assert_eq!(
+        process.get_args().collect::<Vec<_>>(),
+        ["--wait", "--", "udisksctl", "mount", "-b", "/dev/sda2"]
+    );
+}
+
+#[test]
+fn consultar_volumes_continua_direto_e_sem_shell() {
+    let process = command("lsblk", LIST_ARGUMENTS);
+    assert_eq!(process.get_program(), "lsblk");
+    assert_eq!(process.get_args().collect::<Vec<_>>(), LIST_ARGUMENTS);
+}
+
+#[test]
+fn a_recusa_explicita_o_agente_grafico_sem_despejar_o_terminal_na_interface() {
+    let error = "WARNING: Got unexpected EOF while reading from controlling terminal.\nError mounting: GDBus.Error:org.freedesktop.UDisks2.Error.NotAuthorized: Not authorized to perform operation";
+    let message = failure("udisksctl", error);
+    assert!(message.contains("polkit"));
+    assert!(!message.contains("WARNING"));
+    assert!(!message.contains('\n'));
+    assert_eq!(
+        failure(
+            "udisksctl",
+            "org.freedesktop.UDisks2.Error.NotAuthorizedDismissed"
+        ),
+        "Autenticação cancelada. O dispositivo não foi alterado."
+    );
+    assert_eq!(
+        failure("lsblk", "erro de leitura"),
+        "lsblk: erro de leitura"
     );
 }

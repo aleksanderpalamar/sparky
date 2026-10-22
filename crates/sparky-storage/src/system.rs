@@ -16,8 +16,7 @@ pub struct SystemCommands;
 
 impl Commands for SystemCommands {
     fn output(&self, program: &str, arguments: &[&str]) -> Result<String, String> {
-        let output = Command::new(program)
-            .args(arguments)
+        let output = command(program, arguments)
             .output()
             .map_err(|error| format!("{program}: {error}"))?;
         if !output.status.success() {
@@ -26,10 +25,37 @@ impl Commands for SystemCommands {
                 true => output.status.to_string(),
                 false => message,
             };
-            return Err(format!("{program}: {detail}"));
+            return Err(failure(program, &detail));
         }
         Ok(String::from_utf8_lossy(&output.stdout).into_owned())
     }
+}
+
+pub(crate) fn command(program: &str, arguments: &[&str]) -> Command {
+    let mut process = match program {
+        "udisksctl" => {
+            let mut process = Command::new("setsid");
+            process.args(["--wait", "--", program]);
+            process
+        }
+        _ => Command::new(program),
+    };
+    process.args(arguments);
+    process
+}
+
+pub(crate) fn failure(program: &str, detail: &str) -> String {
+    if program != "udisksctl" {
+        return format!("{program}: {detail}");
+    }
+    if detail.contains("NotAuthorizedDismissed") {
+        return "Autenticação cancelada. O dispositivo não foi alterado.".to_owned();
+    }
+    if detail.contains(".NotAuthorized") || detail.contains("Not authorized") {
+        return "Operação não autorizada. Verifique o agente gráfico polkit e tente novamente."
+            .to_owned();
+    }
+    format!("{program}: {detail}")
 }
 
 pub struct SystemVolumes<C = SystemCommands>(pub C);

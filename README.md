@@ -106,6 +106,8 @@ O gerenciador de login (SDDM, GDM…) lista a sessão **Sparky** pelo `data/sess
 
 Aninhado em outra sessão, nada disso acontece. Os portais usam `data/portals/sparky-portals.conf` (GTK, wlr para a tela e `sparky-keyring` para senhas), instalado em `/usr/share/xdg-desktop-portal`.
 
+O agente gráfico polkit é necessário para apresentar pedidos de autorização do sistema, como montar partições internas. Os pacotes incluem `polkit-gnome` (no Debian também podem usar `mate-polkit` ou `lxpolkit`), iniciado pela sessão Sparky. Ele autentica pelo sistema e é independente do cofre `sparky-keyring`. Ao instalar um agente numa sessão que já está aberta, ele só será iniciado automaticamente no próximo login.
+
 ## Barra
 
 Uma barra de 26 px no topo de cada monitor, como a do Omarchy: as áreas de trabalho à esquerda (de 1 a 5 sempre, as outras até a 10 quando existem; a ativa vira um ponto, as vazias ficam apagadas, a 10 aparece como 0), o relógio no centro e a bandeja à direita. Clicar numa área vai para ela; o botão direito no relógio alterna entre `quarta 09:05` e `quarta, 07 de outubro de 2026`. A barra fala com o sparky pelo IPC e se atualiza a cada mudança.
@@ -185,6 +187,10 @@ O `sparky-files` abre pelo `SUPER + SHIFT + F` (ou `sparky-files <pasta>`). Abre
 Os ícones seguem o tema configurado pelo painel no GTK, incluindo sua herança (`index.theme`). Pastas especiais e tipos comuns de arquivo têm ícones próprios; sem um ícone instalado, o sparky desenha um ícone de reserva. Uma troca de tema atualiza os ícones sem fechar o gerenciador.
 
 Na lateral ficam os lugares e os dispositivos: SSDs, partições e unidades removíveis com sistema de arquivos, montados ou não. A lista se atualiza a cada dois segundos. Um clique abre o volume montado; se estiver desmontado, pede a montagem pelo `udisksctl` e abre o ponto retornado. O botão de desmontar é separado e nunca força a operação. `ALT + 1` a `9` montam/abrem os dispositivos correspondentes; `ALT + U` pede a desmontagem do volume aberto. A montagem depende do `udisks2` e das permissões do sistema; recusas e dispositivos ocupados aparecem como aviso. As consultas usam `lsblk` (`util-linux`). Partições do sistema, swap e contêineres criptografados ainda trancados não são oferecidos para montagem/desmontagem. Ao retirar o volume em que está navegando, o gerenciador volta à pasta pessoal.
+
+Quando o polkit exige autenticação, o agente gráfico da sessão pede a senha. O gerenciador continua respondendo enquanto aguarda e permite tentar novamente após cancelar. O `udisksctl` é executado sem o terminal de controle da sessão, pelo `setsid` do `util-linux`, para evitar pedidos de senha invisíveis no terminal. Os tooltips têm fundo opaco com as cores do tema.
+
+As consultas periódicas de dispositivos não exibem indicador de atualização. A lateral mostra progresso apenas durante montagem e desmontagem, mantém os avisos de erro e preserva a mensagem de lista vazia durante as consultas.
 
 | Tecla | Ação |
 |---|---|

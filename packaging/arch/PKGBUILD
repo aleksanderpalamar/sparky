@@ -1,7 +1,7 @@
 
 pkgbase=sparky
 pkgname=(sparky sparky-wallpapers)
-pkgver=0.20.0
+pkgver=0.20.1
 pkgrel=1
 pkgdesc='Ambiente de desktop Wayland em Rust, com compositor próprio em mosaico e feito para o teclado'
 arch=('x86_64')
@@ -15,6 +15,7 @@ depends=(
   'libnotify'
   'libxkbcommon'
   'mesa'
+  'polkit-gnome'
   'seatd'
   'systemd-libs'
   'util-linux'
@@ -31,7 +32,6 @@ optdepends=(
   'swaylock: tela de bloqueio padrão do SUPER + CTRL + L'
   'foot: terminal'
   'kitty: terminal'
-  'polkit-gnome: agente de autenticação'
   'xdg-desktop-portal-gtk: portais para os aplicativos'
   'xdg-desktop-portal-wlr: captura e compartilhamento de tela pelos portais'
   'vulkan-icd-loader: renderização por Vulkan nos aplicativos'

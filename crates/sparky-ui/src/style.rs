@@ -43,6 +43,25 @@ pub fn panel(skin: Skin) -> container::Style {
     }
 }
 
+pub fn tooltip(skin: Skin) -> container::Style {
+    container::Style {
+        background: Some(Background::Color(Color {
+            a: 1.0,
+            ..skin.lighter_background
+        })),
+        text_color: Some(Color {
+            a: 1.0,
+            ..skin.bright_foreground
+        }),
+        border: Border {
+            color: skin.accent,
+            width: OUTLINE,
+            ..Border::default()
+        },
+        ..container::Style::default()
+    }
+}
+
 pub fn row(skin: Skin, highlight: Highlight) -> container::Style {
     match highlight {
         Highlight::Plain => container::Style::default(),
@@ -87,7 +106,23 @@ mod tests {
 
     use iced::font::Family;
 
-    use super::{FONT, Highlight, entry, input, row};
+    use super::{FONT, Highlight, entry, input, row, tooltip};
+
+    #[test]
+    fn o_tooltip_cobre_os_arquivos_com_fundo_e_texto_opacos() {
+        let mut skin = Skin::default();
+        skin.lighter_background.a = 0.2;
+        skin.bright_foreground.a = 0.3;
+        let style = tooltip(skin);
+        let Some(iced::Background::Color(background)) = style.background else {
+            panic!("o tooltip precisa de fundo sólido");
+        };
+        assert_eq!(background.a, 1.0);
+        assert_eq!(background.r, skin.lighter_background.r);
+        assert_eq!(style.text_color.map(|color| color.a), Some(1.0));
+        assert!(style.border.width > 0.0);
+        assert_eq!(style.border.radius, Radius::from(0.0));
+    }
 
     #[test]
     fn o_destaque_vem_da_selecao() {
