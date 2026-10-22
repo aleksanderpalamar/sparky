@@ -6,3 +6,5 @@
 /packaging/arch/*.pkg.tar.zst
 /packaging/out
 sessions.md
+__pycache__/
+*.py[cod]
