@@ -15,11 +15,12 @@ Somente os temas vem do [Omarchy](https://github.com/basecamp/omarchy): como pal
 | `crates/sparky-ipc` | Protocolo do IPC do sparky (JSON por linha num socket Unix), o cliente usado pela barra e pelos aplicativos, e o `sparky-msg` |
 | `crates/sparky-shot` | O capturador de tela (`sparky-shot`): seletor de modo, seleção de região pelo teclado ou mouse, PNG salvo e copiado |
 | `crates/sparky-files` | O gerenciador de arquivos (`sparky-files`): grade e lista com ícones, dispositivos, lugares, filtro, copiar, recortar, colar, renomear, criar e lixeira |
-| `crates/sparky-storage` | Consulta de volumes e montagem/desmontagem pelo udisksctl, com parser compartilhado com o painel |
+| `crates/sparky-storage` | Volumes de bloco pelo udisksctl e smartphones MTP pelo udev/GIO/GVfs; parser de discos compartilhado com o painel |
 | `crates/sparky-xdg` | Convenções XDG compartilhadas: pastas do usuário, leitura de `.desktop`, busca de programas e resolução de ícones dos temas |
 | `crates/sparky-settings` | O painel de configurações (`sparky-settings`): edita o `sparky.toml` e aplica na hora pelo IPC |
 | `crates/sparky-ui` | Peças comuns dos aplicativos iced: teclas, prompt, estilos, lateral numerada, rolagem e janela |
 | `crates/sparky-launcher` | O lançador de aplicativos (`sparky-launcher`): busca nos `.desktop` instalados e abre pelo teclado |
+| `crates/sparky-terminal` | O terminal padrão (`sparky-terminal`): abre o shell do usuário com as cores, a fonte e o layout do tema do sparky |
 | `crates/sparky-keyring` | O chaveiro (`sparky-keyring`): guarda as senhas dos aplicativos num cofre cifrado e atende a API Secret Service do D-Bus |
 | `crates/sparky-keyring-prompt` | A janela que pede a senha do cofre (`sparky-keyring-prompt`) |
 | `crates/polkit-sparky` | Agente de autenticação do sistema, com janela nativa, temas e integração polkit/PAM |
@@ -95,7 +96,7 @@ name = "DP-1"
 scale = 1.5
 ```
 
-Um `[[bind]]` com a mesma combinação de um atalho padrão substitui o padrão; `default_binds = false` descarta todos os padrões. Ações: `spawn` (`command`), `close-window`, `toggle-floating`, `fullscreen` (`mode` = `monitor` ou `maximized`), `toggle-split`, `focus` e `swap` (`direction` = `left`, `right`, `up`, `down`), `resize` (`width`, `height`), `workspace` (`workspace`), `move-to-workspace` (`workspace`, `follow`), `relative-workspace` (`step`), `previous-workspace`, `cycle-monitor` (`step`), `exit`. Cada `[[output]]` dá a escala de um monitor pelo nome (`sparky-msg outputs` lista os nomes), de 0.5 a 4, inclusive fracionada como 1.25 ou 1.5; sem regra vale 1. Os aplicativos recebem a escala pelo fractional-scale-v1 e desenham nítidos nela, e ao mudar a escala os monitores se reposicionam lado a lado. Sem `layout` em `[input]`, vale o teclado do sistema. Sem `terminal` em `[apps]`, vale `$TERMINAL` ou o primeiro terminal instalado. `wallpaper` em `[general]` é o caminho da imagem de fundo (`~/` vale a pasta pessoal); `wallpaper = ""` deixa só a cor do tema, e sem a chave vale o primeiro papel de parede do Tokyo Night, se o pacote `sparky-wallpapers` estiver instalado.
+Um `[[bind]]` com a mesma combinação de um atalho padrão substitui o padrão; `default_binds = false` descarta todos os padrões. Ações: `spawn` (`command`), `close-window`, `toggle-floating`, `fullscreen` (`mode` = `monitor` ou `maximized`), `toggle-split`, `focus` e `swap` (`direction` = `left`, `right`, `up`, `down`), `resize` (`width`, `height`), `workspace` (`workspace`), `move-to-workspace` (`workspace`, `follow`), `relative-workspace` (`step`), `previous-workspace`, `cycle-monitor` (`step`), `exit`. Cada `[[output]]` dá a escala de um monitor pelo nome (`sparky-msg outputs` lista os nomes), de 0.5 a 4, inclusive fracionada como 1.25 ou 1.5; sem regra vale 1. Os aplicativos recebem a escala pelo fractional-scale-v1 e desenham nítidos nela, e ao mudar a escala os monitores se reposicionam lado a lado. Sem `layout` em `[input]`, vale o teclado do sistema. Sem `terminal` em `[apps]`, vale `$TERMINAL` ou o primeiro terminal instalado, começando pelo `sparky-terminal`. `wallpaper` em `[general]` é o caminho da imagem de fundo (`~/` vale a pasta pessoal); `wallpaper = ""` deixa só a cor do tema, e sem a chave vale o primeiro papel de parede do Tokyo Night, se o pacote `sparky-wallpapers` estiver instalado.
 
 ## Sessão
 
@@ -171,6 +172,39 @@ O `sparky-launcher` abre pelo `SUPER + ESPAÇO`: uma caixa no centro da tela com
 
 Sair, Reiniciar e Desligar esperam os aplicativos fecharem sozinhos, como o hyprshutdown: nenhum é encerrado à força. Se depois de 8 segundos alguma janela continuar aberta (um aplicativo perguntando se quer salvar, por exemplo), o pedido é cancelado e uma notificação avisa quantas faltam; `SUPER + SHIFT + ESC` continua saindo na hora. Com o sparky aninhado em outra sessão, Suspender, Reiniciar e Desligar são recusados, para um teste nunca desligar a máquina; Bloquear e Sair funcionam.
 
+## Terminal
+
+O `sparky-terminal` é o terminal padrão: o sparky o procura antes dos outros terminais instalados, então ele abre no `SUPER + ENTER` e nos aplicativos de terminal do lançador. Ele abre o zsh com a configuração do próprio sparky (`ZDOTDIR=/usr/share/sparky/zsh`), sem ler o `~/.zshrc`, o oh-my-zsh ou o powerlevel10k do usuário; numa máquina nova ele já sai pronto. Para personalizar, copie a pasta para `~/.config/sparky/zsh/` (respeitando `XDG_CONFIG_HOME`): com um `.zshrc` lá, ela substitui a do sistema. Sem zsh instalado, abre o shell da conta. O shell recebe `TERM=xterm-256color`, `COLORTERM=truecolor` e `TERM_PROGRAM=sparky-terminal`.
+
+A configuração (`data/zsh/`) reproduz a do powerlevel10k *rainbow* em zsh puro, nas cores do tema:
+
+- prompt em duas linhas com moldura `╭─`/`╰─`, a pasta em azul, o git em verde (limpo) ou amarelo (com mudanças) com ramo, `⇣⇡`, `*` stash, `~` conflitos, `+` preparados, `!` alterados e `?` novos, o pontilhado até a direita, `✔` ou `✘ código`, o tempo do comando a partir de 3 segundos, tarefas em segundo plano e a hora; depois de executar, o prompt anterior encolhe para `❯`;
+- histórico de 50 mil linhas em `~/.local/state/sparky/zsh_history`, completação com menu e sem diferenciar maiúsculas, setas buscando pelo começo da linha, `CTRL + ←/→` por palavra;
+- aliases do git (`gst`, `gco`, `gcb`, `gaa`, `gcmsg`, `gp`, `gpsup`, `glog` e outros no padrão do oh-my-zsh), `copyfile`, `CTRL + O` copiando a linha (copybuffer), `ALT + ←/→/↑` voltando, avançando e subindo entre pastas (dirhistory), `google`, `ddg`, `github`, `youtube`, `wiki` e `stackoverflow` (web-search), e o autojump e o fzf quando instalados;
+- `zsh-autosuggestions` e `zsh-syntax-highlighting` dos pacotes da distribuição, que o sparky instala junto.
+
+A emulação (PTY, sequências VT/xterm, histórico de 10 mil linhas e seleção) vem da biblioteca `alacritty_terminal`; a janela, o desenho das células, o teclado e as cores são do sparky. O texto usa a JetBrainsMono Nerd Font em 12 px, com a margem de 18 px e os cantos retos do sparky, e mede a célula com o mesmo motor de texto que desenha, para as colunas não desalinharem. Negrito, itálico, sublinhado, riscado, inverso, esmaecido, 256 cores, truecolor, caracteres largos e os glifos da Nerd Font aparecem como no kitty.
+
+As cores seguem o tema do sparky, inclusive com o terminal aberto: as 16 cores ANSI saem do `colors.toml` na mesma ordem que o Omarchy usa no kitty (`background`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `foreground`, `muted` e as `bright_*`), o cursor e a seleção usam `bright_foreground` e `selection`, e aplicar outro tema no painel recolore o terminal em até um segundo. Cores trocadas por um programa (OSC 4, 10, 11 e 12) valem até o programa desfazer.
+
+| Tecla | O que faz |
+|---|---|
+| `CTRL + SHIFT + C` ou `CTRL + INSERT` | Copia a seleção |
+| `CTRL + SHIFT + V` ou `SHIFT + INSERT` | Cola, entre as marcas de bracketed paste quando o programa pede, sem deixar o texto colado fechar o bloco |
+| `SHIFT + PGUP` / `SHIFT + PGDN` | Rola o histórico uma página |
+| `SHIFT + HOME` / `SHIFT + END` | Vai para o começo ou o fim do histórico |
+| `SHIFT + ENTER` / `ALT + SHIFT + ENTER` | Envia `\e[13;2u` / `\e[13;4u`, como no kitty |
+
+O mouse seleciona arrastando com o botão esquerdo; a roda rola o histórico, e em tela alternativa (`less`, `man`) vira setas. Digitar volta ao fim do histórico e limpa a seleção. O título da janela vem do shell e a janela fecha quando o shell termina.
+
+```bash
+sparky-terminal                       # o shell do usuário
+sparky-terminal -d ~/Projetos         # começando nessa pasta
+sparky-terminal -e htop               # roda um comando; o resto da linha são os argumentos dele
+```
+
+Abas e divisões ficam com o mosaico e os grupos do sparky. O terminal ainda não repassa o mouse para programas que pedem (vim, htop) nem implementa o protocolo de teclado do kitty.
+
 ## Chaveiro
 
 O `sparky-keyring` guarda as senhas e tokens que os aplicativos pedem para lembrar (navegadores, VS Code, git com `libsecret`, clientes de e-mail). Ele atende o nome `org.freedesktop.secrets` no D-Bus da sessão com a API Secret Service, a mesma do gnome-keyring, então os aplicativos funcionam sem configuração. Para os aplicativos Flatpak, atende também o portal de segredos (`data/portals/sparky-keyring.portal`).
@@ -190,6 +224,10 @@ O `sparky-files` abre pelo `SUPER + SHIFT + F` (ou `sparky-files <pasta>`). Abre
 Os ícones seguem o tema configurado pelo painel no GTK, incluindo sua herança (`index.theme`). Pastas especiais e tipos comuns de arquivo têm ícones próprios; sem um ícone instalado, o sparky desenha um ícone de reserva. Uma troca de tema atualiza os ícones sem fechar o gerenciador.
 
 Na lateral ficam os lugares e os dispositivos: SSDs, partições e unidades removíveis com sistema de arquivos, montados ou não. A lista se atualiza a cada dois segundos. Um clique abre o volume montado; se estiver desmontado, pede a montagem pelo `udisksctl` e abre o ponto retornado. O botão de desmontar é separado e nunca força a operação. `ALT + 1` a `9` montam/abrem os dispositivos correspondentes; `ALT + U` pede a desmontagem do volume aberto. A montagem depende do `udisks2` e das permissões do sistema; recusas e dispositivos ocupados aparecem como aviso. As consultas usam `lsblk` (`util-linux`). Partições do sistema, swap e contêineres criptografados ainda trancados não são oferecidos para montagem/desmontagem. Ao retirar o volume em que está navegando, o gerenciador volta à pasta pessoal.
+
+Smartphones Android em modo de transferência de arquivos também aparecem na lateral, com ícone de telefone e indicação MTP. A descoberta usa os registros USB do udev e não monta automaticamente. Clicar conecta pelo GIO/GVfs, reutilizando um acesso existente e abrindo seu caminho FUSE dentro do próprio sparky-files. O botão de desmontar encerra esse acesso sem forçar. O telefone deve estar desbloqueado e autorizar a transferência de arquivos; dispositivos em modo de carregamento e iPhones não estão cobertos por esse suporte MTP.
+
+O backend depende de `gvfs-mtp` no Arch e Fedora; no Debian/Ubuntu, de `gvfs-backends` e `gvfs-fuse`. No Fedora também é necessário `gvfs-fuse`; no Arch o acesso FUSE já faz parte de `gvfs`. Os pacotes declaram esses componentes como dependências opcionais/recomendadas, mantendo a política usada para o udisks2. Não é necessário executar outro gerenciador de arquivos. Falhas de acesso, backend ausente e telefone ocupado aparecem como aviso, e a espera das operações assíncronas de montagem/desmontagem é limitada a 30 segundos.
 
 Quando o polkit exige autenticação, o agente gráfico da sessão pede a senha. O gerenciador continua respondendo enquanto aguarda e permite tentar novamente após cancelar. O `udisksctl` é executado sem o terminal de controle da sessão, pelo `setsid` do `util-linux`, para evitar pedidos de senha invisíveis no terminal. Os tooltips têm fundo opaco com as cores do tema.
 

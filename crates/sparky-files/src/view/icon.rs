@@ -35,22 +35,30 @@ fn fallback(files: &Files, kind: IconKind, size: f32) -> Element<'static, Messag
         | IconKind::Downloads
         | IconKind::Pictures
         | IconKind::Music
-        | IconKind::Videos => "<path d='M6 17h20l6 7h26v30H6z'/><path d='M6 24h52' stroke='#ffffff' opacity='.35'/>",
+        | IconKind::Videos => {
+            "<path d='M6 17h20l6 7h26v30H6z'/><path d='M6 24h52' stroke='#ffffff' opacity='.35'/>"
+        }
         IconKind::Drive | IconKind::Removable => {
             "<path d='M13 8h38v48H13z'/><circle cx='32' cy='28' r='12' fill='none' stroke='#ffffff' stroke-width='2'/><circle cx='32' cy='28' r='3' fill='#ffffff'/><path d='M21 47h22' stroke='#ffffff' stroke-width='3'/>"
         }
         IconKind::Eject => "<path d='M12 40l20-25 20 25zM12 47h40v7H12z'/>",
+        IconKind::Phone => {
+            "<path d='M18 5h28v54H18z'/><path d='M22 12h20v35H22z' fill='#ffffff' opacity='.35'/><circle cx='32' cy='53' r='2' fill='#ffffff'/>"
+        }
         IconKind::Image => {
             "<path d='M7 10h50v44H7z'/><circle cx='43' cy='22' r='5' fill='#ffffff'/><path d='M12 48l14-20 10 12 6-7 10 15z' fill='#ffffff'/>"
         }
         IconKind::Audio => "<path d='M28 14v33a9 9 0 1 1-5-8V19l28-9v29a9 9 0 1 1-5-8V17z'/>",
-        IconKind::Video => "<path d='M7 11h50v43H7z'/><path d='M26 21l18 12-18 12z' fill='#ffffff'/>",
+        IconKind::Video => {
+            "<path d='M7 11h50v43H7z'/><path d='M26 21l18 12-18 12z' fill='#ffffff'/>"
+        }
         _ => {
             "<path d='M14 6h25l12 12v40H14z'/><path d='M39 6v13h12M22 31h21M22 39h21M22 47h16' fill='none' stroke='#ffffff' stroke-width='2'/>"
         }
     };
-    let source =
-        format!("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><g fill='{color}'>{drawing}</g></svg>");
+    let source = format!(
+        "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><g fill='{color}'>{drawing}</g></svg>"
+    );
     svg(svg::Handle::from_memory(source.into_bytes()))
         .width(size)
         .height(size)
