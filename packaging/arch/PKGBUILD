@@ -50,7 +50,7 @@ optdepends=(
   'fzf: busca no histórico e em arquivos dentro do sparky-terminal'
   'autojump: pular para pastas já visitadas no sparky-terminal'
 )
-source=("$pkgbase::git+file://$(realpath "$startdir/../..")")
+source=("$pkgbase::git+file://$(realpath "$startdir/../..")#commit=$(git -C "$startdir/../.." rev-parse HEAD)")
 sha256sums=('SKIP')
 
 prepare() {

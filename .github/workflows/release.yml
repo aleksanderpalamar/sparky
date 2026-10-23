@@ -1,0 +1,175 @@
+name: Release
+
+on:
+  push:
+    tags: ['v[0-9]*.[0-9]*.[0-9]*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  RUSTUP_TOOLCHAIN: 1.96.0
+  CARGO_BUILD_JOBS: 2
+  CARGO_INCREMENTAL: 0
+  CARGO_PROFILE_RELEASE_DEBUG: 0
+  RUST_TEST_THREADS: 2
+  PYTHONDONTWRITEBYTECODE: 1
+  RELEASE_TAG: ${{ github.ref_name }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  version:
+    name: Validar tag e origem
+    if: ${{ !github.event.deleted }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      release: ${{ steps.version.outputs.release }}
+    steps:
+      - name: Checkout v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validar SemVer, manifests e integração na main
+        id: version
+        run: python3 -m ci.release
+
+  quality:
+    name: Validar código da tag
+    needs: version
+    uses: ./.github/workflows/quality-gate.yml
+
+  portable:
+    name: Pacotes DEB e RPM
+    needs: quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Checkout v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Instalar bibliotecas Linux
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            build-essential pkg-config dbus-daemon libudev-dev libinput-dev \
+            libxkbcommon-dev libgbm-dev libegl1-mesa-dev libgles2-mesa-dev \
+            libdrm-dev libseat-dev libwayland-dev libglib2.0-dev \
+            libpolkit-agent-1-0 python3-venv zsh
+      - name: Instalar ferramentas de empacotamento
+        run: |
+          rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal --no-self-update
+          python3 -m venv "$RUNNER_TEMP/release-tools"
+          "$RUNNER_TEMP/release-tools/bin/pip" install ziglang==0.16.0
+          echo "CARGO_ZIGBUILD_PYTHON_PATH=$RUNNER_TEMP/release-tools/bin/python" >> "$GITHUB_ENV"
+          cargo install --locked --version 0.23.4 cargo-zigbuild
+          cargo install --locked --version 3.8.0 cargo-deb
+          cargo install --locked --version 0.21.0 cargo-generate-rpm
+      - name: Gerar pacotes portáveis
+        run: |
+          bash packaging/build.sh deb
+          bash packaging/build.sh rpm
+      - name: Guardar pacotes portáveis
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: packages-portable
+          path: |
+            packaging/out/*.deb
+            packaging/out/*.rpm
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+
+  arch:
+    name: Pacotes Arch Linux
+    needs: quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Checkout v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Compilar, testar e empacotar no Arch
+        run: |
+          docker run --rm --volume "$PWD:/workspace" --workdir /workspace \
+            --env GITHUB_ACTIONS=true --env CARGO_BUILD_JOBS --env RUST_TEST_THREADS \
+            --env CARGO_INCREMENTAL --env CARGO_PROFILE_RELEASE_DEBUG \
+            --env SPARKY_BUILDER_UID="$(id -u)" \
+            archlinux:base-devel-20261018.0.612668 bash ci/release-arch.sh
+      - name: Guardar pacotes Arch
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: packages-arch
+          path: packaging/out/*.pkg.tar.zst
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+
+  assets:
+    name: Conferir artefatos da release
+    needs: [version, portable, arch]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Reunir os pacotes desta execução
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: packages-*
+          merge-multiple: true
+          path: release-assets
+      - name: Conferir conjunto e gerar hashes e proveniência
+        env:
+          RELEASE_VERSION: ${{ needs.version.outputs.version }}
+          PACKAGE_RELEASE: ${{ needs.version.outputs.release }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y rpm libarchive-tools
+          python3 -m ci.release_artifacts
+      - name: Guardar conjunto conferido
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: release-assets
+          path: release-assets/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+
+  publish:
+    name: Publicar release completa
+    needs: assets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Obter conjunto conferido
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: release-assets
+          path: release-assets
+      - name: Publicar pela tag existente
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: bash ci/release-publish.sh

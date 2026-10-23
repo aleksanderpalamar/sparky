@@ -10,6 +10,9 @@ impedem sua aprovação. A configuração reproduzível de proteção está em
 `.github/rulesets/quality-gate.json` e deve ser aplicada pelo administrador do
 repositório, separadamente do token somente leitura do workflow.
 
+O mesmo gate pode ser chamado por `workflow_call`. O [workflow de Releases](RELEASE.md)
+usa essa entrada para validar o commit de cada tag antes de gerar os pacotes.
+
 ## Verificações automáticas
 
 | Verificação | Escopo |

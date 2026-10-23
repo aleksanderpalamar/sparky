@@ -323,6 +323,12 @@ packaging/build.sh deb       # só um deles: deb, rpm ou pacman
 
 Os três instalam os binários em `/usr/bin`, a sessão em `/usr/share/wayland-sessions` (aparece no SDDM e no GDM), os temas e o `sparky.toml` de exemplo em `/usr/share/sparky`, as entradas dos aplicativos e o `sparky-mimeapps.list`, que faz as pastas abrirem no `sparky-files` dentro da sessão.
 
+O [workflow de Releases](ci/RELEASE.md) gera os pacotes pelo GitHub Actions ao
+enviar uma tag `vMAJOR.MINOR.PATCH`, como `v0.22.0`. A tag precisa corresponder
+à versão dos manifests e apontar para um commit integrado na main. Depois do
+Quality Gate e dos builds, os pacotes DEB, RPM e Arch, incluindo wallpapers,
+são publicados na Release com hashes SHA-256 e o commit de origem.
+
 `python3 packaging/test_build.py -v` testa o script de empacotamento com ferramentas simuladas, incluindo a localização do manifesto do RPM e a interrupção quando a compilação ou a checagem da glibc falha.
 
 ## Desenvolvimento
