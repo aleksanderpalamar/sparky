@@ -67,8 +67,8 @@ relógio e bandeja, e três aplicativos nativos (arquivos, capturador de tela e 
 configurações). Tudo tem atalho de teclado."""
 section = "x11"
 priority = "optional"
-depends = "libseat1, libinput10, libxkbcommon0, libgbm1, libdrm2, libudev1, libegl1, libgles2, libwayland-client0, libwayland-server0, libwayland-egl1, xwayland, xkb-data, wl-clipboard, libnotify-bin, xdg-utils, util-linux, polkitd, libpolkit-agent-1-0, libglib2.0-0t64 | libglib2.0-0"
-recommends = "mako-notifier, swaylock, foot | kitty, xdg-desktop-portal-gtk, xdg-desktop-portal-wlr, libvulkan1, udisks2, gvfs-backends, gvfs-fuse, fonts-jetbrains-mono, fonts-liberation, fonts-noto-core, fonts-noto-color-emoji, fonts-noto-cjk, fonts-font-awesome, yaru-theme-icon"
+depends = "libseat1, libinput10, libxkbcommon0, libgbm1, libdrm2, libudev1, libegl1, libgles2, libwayland-client0, libwayland-server0, libwayland-egl1, xwayland, xkb-data, wl-clipboard, libnotify-bin, xdg-utils, util-linux, polkitd, libpolkit-agent-1-0, libglib2.0-0t64 | libglib2.0-0, zsh, zsh-autosuggestions, zsh-syntax-highlighting"
+recommends = "mako-notifier, swaylock, foot | kitty, xdg-desktop-portal-gtk, xdg-desktop-portal-wlr, libvulkan1, udisks2, gvfs-backends, gvfs-fuse, fonts-jetbrains-mono, fonts-liberation, fonts-noto-core, fonts-noto-color-emoji, fonts-noto-cjk, fonts-font-awesome, yaru-theme-icon, fzf, autojump"
 assets = [
     ["target/release/sparky", "usr/bin/", "755"],
     ["target/release/sparky-bar", "usr/bin/", "755"],
@@ -80,15 +80,28 @@ assets = [
     ["target/release/sparky-keyring", "usr/bin/", "755"],
     ["target/release/sparky-keyring-prompt", "usr/bin/", "755"],
     ["target/release/polkit-sparky", "usr/bin/", "755"],
+    ["target/release/sparky-terminal", "usr/bin/", "755"],
     ["../../data/session/sparky.desktop", "usr/share/wayland-sessions/", "644"],
     ["../../data/portals/sparky-portals.conf", "usr/share/xdg-desktop-portal/", "644"],
     ["../../data/portals/sparky-keyring.portal", "usr/share/xdg-desktop-portal/portals/", "644"],
     ["../../data/applications/sparky-files.desktop", "usr/share/applications/", "644"],
     ["../../data/applications/sparky-settings.desktop", "usr/share/applications/", "644"],
     ["../../data/applications/sparky-shot.desktop", "usr/share/applications/", "644"],
+    ["../../data/applications/sparky-terminal.desktop", "usr/share/applications/", "644"],
     ["../../data/applications/sparky-mimeapps.list", "usr/share/applications/", "644"],
     ["../../data/themes/*/*", "usr/share/sparky/themes/", "644"],
     ["../../data/config/sparky.toml", "usr/share/sparky/", "644"],
+    ["../../data/zsh/.zshenv", "usr/share/sparky/zsh/.zshenv", "644"],
+    ["../../data/zsh/.zshrc", "usr/share/sparky/zsh/.zshrc", "644"],
+    ["../../data/zsh/completion.zsh", "usr/share/sparky/zsh/completion.zsh", "644"],
+    ["../../data/zsh/extras.zsh", "usr/share/sparky/zsh/extras.zsh", "644"],
+    ["../../data/zsh/git.zsh", "usr/share/sparky/zsh/git.zsh", "644"],
+    ["../../data/zsh/keys.zsh", "usr/share/sparky/zsh/keys.zsh", "644"],
+    ["../../data/zsh/options.zsh", "usr/share/sparky/zsh/options.zsh", "644"],
+    ["../../data/zsh/plugins.zsh", "usr/share/sparky/zsh/plugins.zsh", "644"],
+    ["../../data/zsh/prompt.zsh", "usr/share/sparky/zsh/prompt.zsh", "644"],
+    ["../../data/zsh/vcs.zsh", "usr/share/sparky/zsh/vcs.zsh", "644"],
+    ["../../data/zsh/web.zsh", "usr/share/sparky/zsh/web.zsh", "644"],
     ["../../README.md", "usr/share/doc/sparky/", "644"],
 ]
 
@@ -117,15 +130,28 @@ assets = [
     { source = "target/release/sparky-keyring", dest = "/usr/bin/sparky-keyring", mode = "755" },
     { source = "target/release/sparky-keyring-prompt", dest = "/usr/bin/sparky-keyring-prompt", mode = "755" },
     { source = "target/release/polkit-sparky", dest = "/usr/bin/polkit-sparky", mode = "755" },
+    { source = "target/release/sparky-terminal", dest = "/usr/bin/sparky-terminal", mode = "755" },
     { source = "../../data/session/sparky.desktop", dest = "/usr/share/wayland-sessions/sparky.desktop", mode = "644" },
     { source = "../../data/portals/sparky-portals.conf", dest = "/usr/share/xdg-desktop-portal/sparky-portals.conf", mode = "644" },
     { source = "../../data/portals/sparky-keyring.portal", dest = "/usr/share/xdg-desktop-portal/portals/sparky-keyring.portal", mode = "644" },
     { source = "../../data/applications/sparky-files.desktop", dest = "/usr/share/applications/sparky-files.desktop", mode = "644" },
     { source = "../../data/applications/sparky-settings.desktop", dest = "/usr/share/applications/sparky-settings.desktop", mode = "644" },
     { source = "../../data/applications/sparky-shot.desktop", dest = "/usr/share/applications/sparky-shot.desktop", mode = "644" },
+    { source = "../../data/applications/sparky-terminal.desktop", dest = "/usr/share/applications/sparky-terminal.desktop", mode = "644" },
     { source = "../../data/applications/sparky-mimeapps.list", dest = "/usr/share/applications/sparky-mimeapps.list", mode = "644" },
     { source = "../../data/themes/*/*", dest = "/usr/share/sparky/themes/", mode = "644" },
     { source = "../../data/config/sparky.toml", dest = "/usr/share/sparky/sparky.toml", mode = "644" },
+    { source = "../../data/zsh/.zshenv", dest = "/usr/share/sparky/zsh/.zshenv", mode = "644" },
+    { source = "../../data/zsh/.zshrc", dest = "/usr/share/sparky/zsh/.zshrc", mode = "644" },
+    { source = "../../data/zsh/completion.zsh", dest = "/usr/share/sparky/zsh/completion.zsh", mode = "644" },
+    { source = "../../data/zsh/extras.zsh", dest = "/usr/share/sparky/zsh/extras.zsh", mode = "644" },
+    { source = "../../data/zsh/git.zsh", dest = "/usr/share/sparky/zsh/git.zsh", mode = "644" },
+    { source = "../../data/zsh/keys.zsh", dest = "/usr/share/sparky/zsh/keys.zsh", mode = "644" },
+    { source = "../../data/zsh/options.zsh", dest = "/usr/share/sparky/zsh/options.zsh", mode = "644" },
+    { source = "../../data/zsh/plugins.zsh", dest = "/usr/share/sparky/zsh/plugins.zsh", mode = "644" },
+    { source = "../../data/zsh/prompt.zsh", dest = "/usr/share/sparky/zsh/prompt.zsh", mode = "644" },
+    { source = "../../data/zsh/vcs.zsh", dest = "/usr/share/sparky/zsh/vcs.zsh", mode = "644" },
+    { source = "../../data/zsh/web.zsh", dest = "/usr/share/sparky/zsh/web.zsh", mode = "644" },
     { source = "../../README.md", dest = "/usr/share/doc/sparky/README.md", mode = "644", doc = true },
     { source = "../../LICENSE", dest = "/usr/share/licenses/sparky/LICENSE", mode = "644", doc = true },
 ]
@@ -133,6 +159,9 @@ assets = [
 [package.metadata.generate-rpm.requires]
 glib2 = "*"
 polkit = "*"
+zsh = "*"
+zsh-autosuggestions = "*"
+zsh-syntax-highlighting = "*"
 polkit-libs = "*"
 util-linux = "*"
 libseat = "*"
@@ -153,6 +182,8 @@ libnotify = "*"
 xdg-utils = "*"
 
 [package.metadata.generate-rpm.recommends]
+fzf = "*"
+autojump = "*"
 gvfs-mtp = "*"
 gvfs-fuse = "*"
 udisks2 = "*"

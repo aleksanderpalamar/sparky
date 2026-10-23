@@ -1,0 +1,24 @@
+[package]
+name = "sparky-terminal"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "sparky-terminal"
+path = "src/main.rs"
+
+[lib]
+name = "sparky_terminal"
+path = "src/lib.rs"
+
+[dependencies]
+alacritty_terminal = "0.26"
+iced = { version = "0.14", features = ["advanced", "canvas", "tokio"] }
+sparky-theme.workspace = true
+sparky-ui.workspace = true
+sparky-xdg.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

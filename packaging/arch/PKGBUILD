@@ -25,6 +25,9 @@ depends=(
   'xdg-utils'
   'xkeyboard-config'
   'xorg-xwayland'
+  'zsh'
+  'zsh-autosuggestions'
+  'zsh-syntax-highlighting'
 )
 makedepends=('cargo' 'git')
 optdepends=(
@@ -44,6 +47,8 @@ optdepends=(
   'noto-fonts-cjk: chinês, japonês e coreano'
   'woff2-font-awesome: ícones em forma de letra'
   'yaru-icon-theme: ícones de cada tema (AUR)'
+  'fzf: busca no histórico e em arquivos dentro do sparky-terminal'
+  'autojump: pular para pastas já visitadas no sparky-terminal'
 )
 source=("$pkgbase::git+file://$(realpath "$startdir/../..")")
 sha256sums=('SKIP')
@@ -70,7 +75,7 @@ check() {
 package_sparky() {
   cd "$pkgbase"
   local binary
-  for binary in sparky sparky-bar sparky-msg sparky-shot sparky-files sparky-settings sparky-launcher sparky-keyring sparky-keyring-prompt polkit-sparky; do
+  for binary in sparky sparky-bar sparky-msg sparky-shot sparky-files sparky-settings sparky-launcher sparky-keyring sparky-keyring-prompt sparky-terminal polkit-sparky; do
     install -Dm755 "target/release/$binary" -t "$pkgdir/usr/bin"
   done
   install -Dm644 data/session/sparky.desktop -t "$pkgdir/usr/share/wayland-sessions"
@@ -82,6 +87,7 @@ package_sparky() {
     install -Dm644 "$file" "$pkgdir/usr/share/sparky/${file#data/}"
   done
   install -Dm644 data/config/sparky.toml -t "$pkgdir/usr/share/sparky"
+  install -Dm644 data/zsh/.zshenv data/zsh/.zshrc data/zsh/completion.zsh data/zsh/extras.zsh data/zsh/git.zsh data/zsh/keys.zsh data/zsh/options.zsh data/zsh/plugins.zsh data/zsh/prompt.zsh data/zsh/vcs.zsh data/zsh/web.zsh -t "$pkgdir/usr/share/sparky/zsh"
   install -Dm644 README.md -t "$pkgdir/usr/share/doc/$pkgname"
   install -Dm644 LICENSE -t "$pkgdir/usr/share/licenses/$pkgname"
 }
