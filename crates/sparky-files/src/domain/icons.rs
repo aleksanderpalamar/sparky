@@ -26,10 +26,11 @@ pub enum IconKind {
     Presentation,
     Drive,
     Removable,
+    Phone,
     Eject,
 }
 
-pub const ALL: [IconKind; 22] = [
+pub const ALL: [IconKind; 23] = [
     IconKind::Folder,
     IconKind::Home,
     IconKind::Desktop,
@@ -51,6 +52,7 @@ pub const ALL: [IconKind; 22] = [
     IconKind::Presentation,
     IconKind::Drive,
     IconKind::Removable,
+    IconKind::Phone,
     IconKind::Eject,
 ];
 
@@ -67,16 +69,20 @@ impl IconKind {
             .unwrap_or_default()
             .to_lowercase();
         match extension.as_str() {
-            "png" | "jpg" | "jpeg" | "gif" | "webp" | "svg" | "bmp" | "avif" | "tif" | "tiff" => Self::Image,
+            "png" | "jpg" | "jpeg" | "gif" | "webp" | "svg" | "bmp" | "avif" | "tif" | "tiff" => {
+                Self::Image
+            }
             "mp3" | "flac" | "ogg" | "wav" | "m4a" | "opus" | "aac" => Self::Audio,
             "mp4" | "mkv" | "webm" | "avi" | "mov" | "m4v" | "mpeg" => Self::Video,
             "pdf" => Self::Pdf,
-            "zip" | "tar" | "gz" | "xz" | "bz2" | "zst" | "7z" | "rar" | "deb" | "rpm" => Self::Archive,
+            "zip" | "tar" | "gz" | "xz" | "bz2" | "zst" | "7z" | "rar" | "deb" | "rpm" => {
+                Self::Archive
+            }
             "doc" | "docx" | "odt" | "rtf" => Self::Document,
             "xls" | "xlsx" | "ods" | "csv" => Self::Spreadsheet,
             "ppt" | "pptx" | "odp" => Self::Presentation,
-            "rs" | "c" | "h" | "cpp" | "py" | "js" | "ts" | "tsx" | "html" | "css" | "sh" | "json" | "toml"
-            | "yaml" | "yml" => Self::Code,
+            "rs" | "c" | "h" | "cpp" | "py" | "js" | "ts" | "tsx" | "html" | "css" | "sh"
+            | "json" | "toml" | "yaml" | "yml" => Self::Code,
             "txt" | "md" | "log" | "conf" | "ini" => Self::Text,
             _ => Self::File,
         }
@@ -111,12 +117,17 @@ impl IconKind {
             Self::Image => &["image-x-generic", "text-x-generic"],
             Self::Audio => &["audio-x-generic", "text-x-generic"],
             Self::Video => &["video-x-generic", "text-x-generic"],
-            Self::Archive => &["package-x-generic", "application-x-archive", "text-x-generic"],
+            Self::Archive => &[
+                "package-x-generic",
+                "application-x-archive",
+                "text-x-generic",
+            ],
             Self::Document => &["x-office-document", "text-x-generic"],
             Self::Spreadsheet => &["x-office-spreadsheet", "text-x-generic"],
             Self::Presentation => &["x-office-presentation", "text-x-generic"],
             Self::Drive => &["drive-harddisk", "drive-removable-media"],
             Self::Removable => &["drive-removable-media", "drive-harddisk"],
+            Self::Phone => &["phone", "multimedia-player", "drive-removable-media"],
             Self::Eject => &["media-eject", "media-eject-symbolic"],
         }
     }

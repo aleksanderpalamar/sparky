@@ -41,4 +41,6 @@ fn cada_tipo_tem_icone_de_tema_e_fallback_generico() {
     );
     assert_eq!(IconKind::Folder.names()[0], "folder");
     assert_eq!(IconKind::Removable.names()[0], "drive-removable-media");
+    assert_eq!(IconKind::Phone.names()[0], "phone");
+    assert!(super::icons::ALL.contains(&IconKind::Phone));
 }

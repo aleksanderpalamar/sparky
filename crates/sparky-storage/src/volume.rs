@@ -9,6 +9,10 @@ pub struct Volume {
 }
 
 impl Volume {
+    pub fn kind(&self) -> VolumeKind {
+        VolumeKind::for_path(&self.path)
+    }
+
     pub fn name(&self) -> &str {
         match self.label.is_empty() {
             true => &self.path,
@@ -23,6 +27,21 @@ impl Volume {
     pub fn external(&self) -> bool {
         let point = self.mountpoint.as_deref().unwrap_or_default();
         self.removable || point.starts_with("/run/media/") || point.starts_with("/media/")
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum VolumeKind {
+    Block,
+    Mtp,
+}
+
+impl VolumeKind {
+    pub fn for_path(path: &str) -> Self {
+        match path.starts_with("mtp://") {
+            true => Self::Mtp,
+            false => Self::Block,
+        }
     }
 }
 

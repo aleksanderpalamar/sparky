@@ -1,5 +1,4 @@
 use iced::{Size, Task};
-use sparky_storage::system::{SystemCommands, SystemVolumes};
 use std::env;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -19,10 +18,14 @@ use crate::view::style::{WINDOW_HEIGHT, WINDOW_WIDTH, rows_for};
 pub fn boot() -> (Files, Task<Message>) {
     let dirs = UserDirs::from_env().unwrap_or_else(|| UserDirs::new("/", None));
     let home = dirs.home();
-    let trash = HomeTrash::from_env().unwrap_or_else(|| HomeTrash::new(home.join(".local/share/Trash")));
+    let trash =
+        HomeTrash::from_env().unwrap_or_else(|| HomeTrash::new(home.join(".local/share/Trash")));
     let setup = Setup {
         start: start_dir(env::args().nth(1), &home),
-        places: places(&dirs).into_iter().filter(|place| place.path.is_dir()).collect(),
+        places: places(&dirs)
+            .into_iter()
+            .filter(|place| place.path.is_dir())
+            .collect(),
         home,
         skin: Skin::new(sparky_theme::current_palette()),
         rows: rows_for(WINDOW_HEIGHT),
@@ -31,7 +34,7 @@ pub fn boot() -> (Files, Task<Message>) {
         disk: Box::new(LocalDisk::new(trash)),
         opener: Box::new(XdgOpen),
         icons: Box::new(ThemeIcons::default()),
-        volumes: Arc::new(SystemVolumes(SystemCommands)),
+        volumes: Arc::new(sparky_storage::desktop::system()),
     };
     let mut files = Files::new(setup, services);
     files.resize(Size::new(WINDOW_WIDTH, WINDOW_HEIGHT));

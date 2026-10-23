@@ -15,7 +15,7 @@ Somente os temas vem do [Omarchy](https://github.com/basecamp/omarchy): como pal
 | `crates/sparky-ipc` | Protocolo do IPC do sparky (JSON por linha num socket Unix), o cliente usado pela barra e pelos aplicativos, e o `sparky-msg` |
 | `crates/sparky-shot` | O capturador de tela (`sparky-shot`): seletor de modo, seleção de região pelo teclado ou mouse, PNG salvo e copiado |
 | `crates/sparky-files` | O gerenciador de arquivos (`sparky-files`): grade e lista com ícones, dispositivos, lugares, filtro, copiar, recortar, colar, renomear, criar e lixeira |
-| `crates/sparky-storage` | Consulta de volumes e montagem/desmontagem pelo udisksctl, com parser compartilhado com o painel |
+| `crates/sparky-storage` | Volumes de bloco pelo udisksctl e smartphones MTP pelo udev/GIO/GVfs; parser de discos compartilhado com o painel |
 | `crates/sparky-xdg` | Convenções XDG compartilhadas: pastas do usuário, leitura de `.desktop`, busca de programas e resolução de ícones dos temas |
 | `crates/sparky-settings` | O painel de configurações (`sparky-settings`): edita o `sparky.toml` e aplica na hora pelo IPC |
 | `crates/sparky-ui` | Peças comuns dos aplicativos iced: teclas, prompt, estilos, lateral numerada, rolagem e janela |
@@ -224,6 +224,10 @@ O `sparky-files` abre pelo `SUPER + SHIFT + F` (ou `sparky-files <pasta>`). Abre
 Os ícones seguem o tema configurado pelo painel no GTK, incluindo sua herança (`index.theme`). Pastas especiais e tipos comuns de arquivo têm ícones próprios; sem um ícone instalado, o sparky desenha um ícone de reserva. Uma troca de tema atualiza os ícones sem fechar o gerenciador.
 
 Na lateral ficam os lugares e os dispositivos: SSDs, partições e unidades removíveis com sistema de arquivos, montados ou não. A lista se atualiza a cada dois segundos. Um clique abre o volume montado; se estiver desmontado, pede a montagem pelo `udisksctl` e abre o ponto retornado. O botão de desmontar é separado e nunca força a operação. `ALT + 1` a `9` montam/abrem os dispositivos correspondentes; `ALT + U` pede a desmontagem do volume aberto. A montagem depende do `udisks2` e das permissões do sistema; recusas e dispositivos ocupados aparecem como aviso. As consultas usam `lsblk` (`util-linux`). Partições do sistema, swap e contêineres criptografados ainda trancados não são oferecidos para montagem/desmontagem. Ao retirar o volume em que está navegando, o gerenciador volta à pasta pessoal.
+
+Smartphones Android em modo de transferência de arquivos também aparecem na lateral, com ícone de telefone e indicação MTP. A descoberta usa os registros USB do udev e não monta automaticamente. Clicar conecta pelo GIO/GVfs, reutilizando um acesso existente e abrindo seu caminho FUSE dentro do próprio sparky-files. O botão de desmontar encerra esse acesso sem forçar. O telefone deve estar desbloqueado e autorizar a transferência de arquivos; dispositivos em modo de carregamento e iPhones não estão cobertos por esse suporte MTP.
+
+O backend depende de `gvfs-mtp` no Arch e Fedora; no Debian/Ubuntu, de `gvfs-backends` e `gvfs-fuse`. No Fedora também é necessário `gvfs-fuse`; no Arch o acesso FUSE já faz parte de `gvfs`. Os pacotes declaram esses componentes como dependências opcionais/recomendadas, mantendo a política usada para o udisks2. Não é necessário executar outro gerenciador de arquivos. Falhas de acesso, backend ausente e telefone ocupado aparecem como aviso, e a espera das operações assíncronas de montagem/desmontagem é limitada a 30 segundos.
 
 Quando o polkit exige autenticação, o agente gráfico da sessão pede a senha. O gerenciador continua respondendo enquanto aguarda e permite tentar novamente após cancelar. O `udisksctl` é executado sem o terminal de controle da sessão, pelo `setsid` do `util-linux`, para evitar pedidos de senha invisíveis no terminal. Os tooltips têm fundo opaco com as cores do tema.
 

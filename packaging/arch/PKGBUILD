@@ -9,6 +9,7 @@ license=('GPL-3.0-or-later')
 depends=(
   'gcc-libs'
   'glibc'
+  'glib2'
   'libdrm'
   'libglvnd'
   'libinput'
@@ -31,6 +32,7 @@ depends=(
 makedepends=('cargo' 'git')
 optdepends=(
   'udisks2: montar e desmontar volumes no painel e no gerenciador de arquivos'
+  'gvfs-mtp: acessar smartphones Android por MTP no gerenciador de arquivos'
   'mako: notificações da sessão'
   'swaylock: tela de bloqueio padrão do SUPER + CTRL + L'
   'foot: terminal'
