@@ -3,33 +3,36 @@ pub mod listener;
 pub mod protocols;
 
 use std::ffi::OsString;
+use std::sync::Arc;
 use std::time::{Instant, SystemTime};
 
 use smithay::desktop::{PopupManager, Space, Window};
 use smithay::input::Seat;
 use smithay::input::pointer::CursorImageStatus;
-use smithay::wayland::dmabuf::DmabufGlobal;
-use smithay::xwayland::X11Wm;
 use smithay::reexports::calloop::{EventLoop, LoopHandle, LoopSignal, RegistrationToken};
 use smithay::reexports::wayland_server::{Display, DisplayHandle};
+use smithay::wayland::dmabuf::DmabufGlobal;
+use smithay::xwayland::X11Wm;
 use sparky_config::Config;
 use sparky_tiling::Desktop;
 
 use crate::backend::Backend;
 use crate::bindings::Bindings;
 use crate::config::{self, keyboard};
+use crate::diagnostics::metrics::{Metrics, Phase};
 use crate::ipc::server::IpcServer;
+use crate::lock::Lock;
 use crate::render::colors::BorderColors;
 use crate::render::frames::Frames;
-use crate::lock::Lock;
-use crate::tabs::lettering::Lettering;
 use crate::session::departure::Farewell;
-use crate::wallpaper::Wallpaper;
-use crate::tabs::paint::TabPaint;
 use crate::state::protocols::Protocols;
+use crate::tabs::lettering::Lettering;
+use crate::tabs::paint::TabPaint;
+use crate::wallpaper::Wallpaper;
 use crate::windows::registry::Registry;
 
 pub struct Sparky {
+    pub(crate) diagnostics: Arc<Metrics>,
     pub display_handle: DisplayHandle,
     pub loop_handle: LoopHandle<'static, Sparky>,
     pub loop_signal: LoopSignal,
@@ -64,19 +67,35 @@ pub struct Sparky {
 }
 
 impl Sparky {
-    pub fn new(event_loop: &mut EventLoop<'static, Sparky>, display: Display<Sparky>) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new(
+        event_loop: &mut EventLoop<'static, Sparky>,
+        display: Display<Sparky>,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
+        Self::with_diagnostics(event_loop, display, Arc::new(Metrics::default()))
+    }
+
+    pub(crate) fn with_diagnostics(
+        event_loop: &mut EventLoop<'static, Sparky>,
+        display: Display<Sparky>,
+        diagnostics: Arc<Metrics>,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         let display_handle = display.handle();
         let mut protocols = Protocols::new(&display_handle);
         let mut seat = protocols.seat.new_wl_seat(&display_handle, "seat0");
         let (config, config_stamp) = config::initial();
         let layout = config::keyboard_for(&config);
         let input = &config.input;
-        seat.add_keyboard(keyboard::xkb_config(&layout), input.repeat_delay, input.repeat_rate)?;
+        seat.add_keyboard(
+            keyboard::xkb_config(&layout),
+            input.repeat_delay,
+            input.repeat_rate,
+        )?;
         seat.add_pointer();
         let loop_handle = event_loop.handle();
         let socket_name = listener::listen(display, &loop_handle)?;
         let wallpaper = Wallpaper::new(&loop_handle);
         Ok(Self {
+            diagnostics,
             display_handle,
             loop_handle,
             loop_signal: event_loop.get_signal(),
@@ -112,6 +131,7 @@ impl Sparky {
     }
 
     pub fn after_dispatch(&mut self) {
+        self.diagnostics.phase(Phase::Dispatch);
         if std::mem::take(&mut self.needs_render) {
             self.render_pending();
         }
@@ -121,5 +141,6 @@ impl Sparky {
         if let Err(error) = self.display_handle.flush_clients() {
             tracing::warn!("falha ao enviar aos clientes: {error}");
         }
+        self.diagnostics.heartbeat();
     }
 }

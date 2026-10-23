@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use smithay::backend::drm::compositor::FrameFlags;
 use smithay::backend::renderer::gles::GlesRenderer;
@@ -10,6 +10,7 @@ use smithay::utils::Scale;
 use crate::backend::drm::Drm;
 use crate::backend::drm::gpu::Surface;
 use crate::backend::nested::send_frames;
+use crate::diagnostics::metrics::{Metrics, Phase};
 use crate::render::cursor::{Pointer, cursor_elements};
 use crate::render::elements::SparkyElement;
 use crate::render::output::output_elements;
@@ -35,24 +36,41 @@ fn render_surface(state: &mut Sparky, drm: &mut Drm, crtc: crtc::Handle) {
         .filter(|surface| !surface.frame_pending)
         .map(|surface| surface.output.clone())
     else {
+        state.diagnostics.skipped();
         return;
     };
+    let metrics = state.diagnostics.clone();
+    let started = Instant::now();
+    metrics.phase(Phase::Render);
     let mut elements = pointer(state, drm, &output);
     elements.extend(output_elements(state, &mut drm.gpu.renderer, &output));
     let clear = state.colors.background;
     let gpu = &mut drm.gpu;
     let Some(surface) = gpu.surfaces.get_mut(&crtc) else {
+        metrics.phase(Phase::Dispatch);
         return;
     };
-    match surface.drm_output.render_frame(&mut gpu.renderer, &elements, clear, FrameFlags::DEFAULT) {
-        Ok(result) if !result.is_empty => queue(surface),
+    let result =
+        surface
+            .drm_output
+            .render_frame(&mut gpu.renderer, &elements, clear, FrameFlags::DEFAULT);
+    metrics.rendered(started.elapsed());
+    match result {
+        Ok(result) if !result.is_empty => queue(surface, &metrics),
         Ok(_) => schedule_idle_frames(state, surface, crtc),
-        Err(error) => tracing::warn!("quadro não desenhado: {error}"),
+        Err(error) => {
+            metrics.error();
+            tracing::warn!(output = %output.name(), "quadro não desenhado: {error}");
+        }
     }
+    metrics.phase(Phase::Dispatch);
 }
 
 fn pointer(state: &Sparky, drm: &mut Drm, output: &Output) -> Vec<SparkyElement<GlesRenderer>> {
-    let (Some(geometry), Some(handle)) = (state.space.output_geometry(output), state.seat.get_pointer()) else {
+    let (Some(geometry), Some(handle)) = (
+        state.space.output_geometry(output),
+        state.seat.get_pointer(),
+    ) else {
         return Vec::new();
     };
     let location = handle.current_location();
@@ -70,10 +88,19 @@ fn pointer(state: &Sparky, drm: &mut Drm, output: &Output) -> Vec<SparkyElement<
     cursor_elements(&mut drm.gpu.renderer, &pointer, scale)
 }
 
-fn queue(surface: &mut Surface) {
+fn queue(surface: &mut Surface, metrics: &Metrics) {
+    metrics.phase(Phase::Queue);
+    let started = Instant::now();
     match surface.drm_output.queue_frame(()) {
-        Ok(()) => surface.frame_pending = true,
-        Err(error) => tracing::warn!("quadro não enfileirado: {error}"),
+        Ok(()) => {
+            surface.frame_pending = true;
+            metrics.queued(started.elapsed());
+            tracing::trace!(output = %surface.output.name(), "quadro enfileirado");
+        }
+        Err(error) => {
+            metrics.error();
+            tracing::warn!(output = %surface.output.name(), "quadro não enfileirado: {error}");
+        }
     }
 }
 
@@ -81,12 +108,19 @@ fn schedule_idle_frames(state: &mut Sparky, surface: &mut Surface, crtc: crtc::H
     if surface.idle_timer.is_some() {
         return;
     }
-    let timer = state.loop_handle.insert_source(Timer::from_duration(IDLE_FRAME), move |_, _, state| {
-        state.on_idle_frame(crtc);
-        TimeoutAction::Drop
-    });
+    let timer =
+        state
+            .loop_handle
+            .insert_source(Timer::from_duration(IDLE_FRAME), move |_, _, state| {
+                state.on_idle_frame(crtc);
+                TimeoutAction::Drop
+            });
     match timer {
-        Ok(token) => surface.idle_timer = Some(token),
+        Ok(token) => {
+            surface.idle_timer = Some(token);
+            state.diagnostics.idle();
+            tracing::trace!(output = %surface.output.name(), "timer ocioso agendado");
+        }
         Err(error) => tracing::warn!("sem relógio de quadros: {error}"),
     }
 }
@@ -97,8 +131,14 @@ impl Sparky {
             let Some(surface) = drm.gpu.surfaces.get_mut(&crtc) else {
                 return;
             };
-            if let Err(error) = surface.drm_output.frame_submitted() {
-                tracing::warn!("quadro não confirmado: {error}");
+            tracing::trace!(output = %surface.output.name(), pending = surface.frame_pending, "vblank recebido");
+            match surface.drm_output.frame_submitted() {
+                Ok(Some(())) => state.diagnostics.presented(),
+                Ok(None) => {}
+                Err(error) => {
+                    state.diagnostics.error();
+                    tracing::warn!(output = %surface.output.name(), "quadro não confirmado: {error}");
+                }
             }
             surface.frame_pending = false;
             let output = surface.output.clone();
@@ -113,6 +153,7 @@ impl Sparky {
                 return;
             };
             surface.idle_timer = None;
+            tracing::trace!(output = %surface.output.name(), "timer ocioso disparou");
             let output = surface.output.clone();
             send_frames(state, &output);
         });
