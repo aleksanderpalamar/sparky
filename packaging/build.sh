@@ -5,6 +5,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 out="$root/packaging/out"
 target="x86_64-unknown-linux-gnu"
 glibc="2.36"
+package_release="$(sed -n 's/^pkgrel=//p' "$root/packaging/arch/PKGBUILD")"
 binaries=(sparky sparky-bar sparky-msg sparky-shot sparky-files sparky-settings sparky-launcher sparky-keyring sparky-keyring-prompt polkit-sparky)
 
 usage() {
@@ -42,13 +43,15 @@ portable() {
 }
 
 deb() {
-  cargo deb --package sparky-compositor --no-build --target "$target" --output "$out"
-  cargo deb --package sparky-compositor --no-build --target "$target" --output "$out" --variant wallpapers
+  local arguments=(--package sparky-compositor --no-build --target "$target" --output "$out" --deb-revision "$package_release")
+  cargo deb "${arguments[@]}"
+  cargo deb "${arguments[@]}" --variant wallpapers
 }
 
 rpm() {
-  cargo generate-rpm --package crates/sparky-compositor --target "$target" --output "$out"
-  cargo generate-rpm --package crates/sparky-compositor --target "$target" --output "$out" --variant wallpapers
+  local arguments=(--package crates/sparky-compositor --target "$target" --output "$out" --set-metadata "release=\"$package_release\"")
+  cargo generate-rpm "${arguments[@]}"
+  cargo generate-rpm "${arguments[@]}" --variant wallpapers
 }
 
 pacman() {
@@ -56,6 +59,7 @@ pacman() {
 }
 
 main() {
+  [[ "$package_release" =~ ^[1-9][0-9]*$ ]] || { echo "pkgrel inválido no PKGBUILD" >&2; return 1; }
   mkdir -p "$out"
   cd "$root"
   case "${1:-todos}" in

@@ -171,4 +171,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          RELEASE_COMMIT: ${{ github.sha }}
         run: bash ci/release-publish.sh

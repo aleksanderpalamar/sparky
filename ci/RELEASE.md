@@ -9,8 +9,9 @@ Pré-releases, sufixos de build e tags sem `v` não são aceitos nesta entrega.
 
 1. Definir a versão conforme o impacto SemVer documentado no projeto.
 2. Manter a mesma versão em `Cargo.toml`, nos crates locais do `Cargo.lock` e no
-   `pkgver` de `packaging/arch/PKGBUILD`. As revisões dos três formatos precisam
-   corresponder ao `pkgrel`, atualmente `1`.
+   `pkgver` de `packaging/arch/PKGBUILD`. O script propaga o `pkgrel` aos três
+   formatos, incluindo wallpapers, e recusa valores que não sejam inteiros
+   positivos canônicos. O valor atual é `1`.
 3. Integrar as mudanças na `main` pelo PR e Quality Gate obrigatórios.
 4. Criar a tag no commit integrado e enviar somente essa tag, quando a publicação
    da versão for autorizada. Não é necessário gerar os pacotes no computador local.
@@ -67,8 +68,16 @@ a publicação usa o `GITHUB_TOKEN` fornecido ao job. As Actions oficiais são
 fixadas por SHA e o checkout não persiste credenciais.
 
 O job final verifica os hashes recebidos, cria um rascunho vinculado à tag já
-existente, envia os anexos e só então publica. Falha no envio deixa o rascunho
-para investigação. Reexecutar o workflow pode retomar um rascunho; uma Release
+existente, envia os anexos e só então publica. O destino atual da tag é consultado
+diretamente no remoto, resolvendo tags anotadas até seu commit, antes da criação
+e imediatamente antes da publicação. Ele deve coincidir com o commit original
+do workflow e o registrado em release.json; tag removida ou movida impede a
+publicação. Falha no envio deixa o rascunho para investigação.
+
+Reexecutar o workflow pode retomar um rascunho. Anexos antigos ausentes do conjunto
+local validado são removidos antes do upload, incluindo símbolos opcionais de
+uma tentativa anterior. Depois do upload, o conjunto remoto deve corresponder
+exatamente ao local; falhas de consulta ou remoção impedem a publicação. Uma Release
 já publicada é recusada e não tem seus arquivos substituídos. Publicações da
 mesma tag são serializadas. Um pacote corrigido deve receber a versão SemVer
 adequada e uma nova tag, sem mover uma tag de versão publicada.
