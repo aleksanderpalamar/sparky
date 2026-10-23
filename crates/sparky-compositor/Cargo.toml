@@ -67,8 +67,8 @@ relógio e bandeja, e três aplicativos nativos (arquivos, capturador de tela e 
 configurações). Tudo tem atalho de teclado."""
 section = "x11"
 priority = "optional"
-depends = "libseat1, libinput10, libxkbcommon0, libgbm1, libdrm2, libudev1, libegl1, libgles2, libwayland-client0, libwayland-server0, libwayland-egl1, xwayland, xkb-data, wl-clipboard, libnotify-bin, xdg-utils, util-linux, polkitd, libpolkit-agent-1-0"
-recommends = "mako-notifier, swaylock, foot | kitty, xdg-desktop-portal-gtk, xdg-desktop-portal-wlr, libvulkan1, udisks2, fonts-jetbrains-mono, fonts-liberation, fonts-noto-core, fonts-noto-color-emoji, fonts-noto-cjk, fonts-font-awesome, yaru-theme-icon"
+depends = "libseat1, libinput10, libxkbcommon0, libgbm1, libdrm2, libudev1, libegl1, libgles2, libwayland-client0, libwayland-server0, libwayland-egl1, xwayland, xkb-data, wl-clipboard, libnotify-bin, xdg-utils, util-linux, polkitd, libpolkit-agent-1-0, libglib2.0-0t64 | libglib2.0-0"
+recommends = "mako-notifier, swaylock, foot | kitty, xdg-desktop-portal-gtk, xdg-desktop-portal-wlr, libvulkan1, udisks2, gvfs-backends, gvfs-fuse, fonts-jetbrains-mono, fonts-liberation, fonts-noto-core, fonts-noto-color-emoji, fonts-noto-cjk, fonts-font-awesome, yaru-theme-icon"
 assets = [
     ["target/release/sparky", "usr/bin/", "755"],
     ["target/release/sparky-bar", "usr/bin/", "755"],
@@ -131,6 +131,7 @@ assets = [
 ]
 
 [package.metadata.generate-rpm.requires]
+glib2 = "*"
 polkit = "*"
 polkit-libs = "*"
 util-linux = "*"
@@ -152,6 +153,8 @@ libnotify = "*"
 xdg-utils = "*"
 
 [package.metadata.generate-rpm.recommends]
+gvfs-mtp = "*"
+gvfs-fuse = "*"
 udisks2 = "*"
 mako = "*"
 swaylock = "*"

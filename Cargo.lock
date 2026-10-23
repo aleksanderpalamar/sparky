@@ -1593,6 +1593,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "gio"
+version = "0.22.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4620fbafdf19dba814473e19f18e75290cb3338662f6ae35f0402affd3b2b699"
+dependencies = [
+ "futures-channel",
+ "futures-core",
+ "futures-io",
+ "futures-util",
+ "gio-sys",
+ "glib",
+ "libc",
+ "pin-project-lite",
+ "smallvec",
+]
+
+[[package]]
+name = "gio-sys"
+version = "0.22.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c28739f914c15b87a9856000bed9cbd5b3a8afbca5e982d9a299e1601422cb5"
+dependencies = [
+ "glib-sys",
+ "gobject-sys",
+ "libc",
+ "system-deps",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
 name = "gl_generator"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1616,6 +1646,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e4cf9e5bd8713f1990a92c422998826e0fb34824277b46bc59757373483c6694"
 dependencies = [
  "bitflags 2.13.2",
+ "futures-channel",
+ "futures-core",
+ "futures-executor",
+ "futures-task",
+ "futures-util",
  "glib-macros",
  "glib-sys",
  "gobject-sys",
@@ -3506,7 +3541,7 @@ dependencies = [
 
 [[package]]
 name = "polkit-sparky"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "futures-util",
  "glib",
@@ -4437,7 +4472,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-bar"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "chrono",
  "iced",
@@ -4452,7 +4487,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-compositor"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "ab_glyph",
  "calloop 0.14.5",
@@ -4477,7 +4512,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-config"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "serde",
  "sparky-tiling",
@@ -4487,7 +4522,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-files"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "chrono",
  "iced",
@@ -4502,7 +4537,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-ipc"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -4510,7 +4545,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-keyring"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "argon2",
  "base64",
@@ -4528,7 +4563,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-keyring-prompt"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "iced",
  "iced_layershell",
@@ -4539,7 +4574,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-launcher"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "iced",
  "iced_layershell",
@@ -4551,7 +4586,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-settings"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "iced",
  "serde",
@@ -4568,7 +4603,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-shot"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "chrono",
  "iced",
@@ -4582,15 +4617,17 @@ dependencies = [
 
 [[package]]
 name = "sparky-storage"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
+ "gio",
  "serde",
  "serde_json",
+ "udev",
 ]
 
 [[package]]
 name = "sparky-theme"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "iced_core",
  "tempfile",
@@ -4598,14 +4635,14 @@ dependencies = [
 
 [[package]]
 name = "sparky-tiling"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "sparky-ui"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "iced",
  "sparky-theme",
@@ -4613,7 +4650,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-xdg"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "tempfile",
 ]
