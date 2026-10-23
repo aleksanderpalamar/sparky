@@ -10,7 +10,7 @@ use alacritty_terminal::grid::{Dimensions, Scroll};
 use alacritty_terminal::index::{Column, Line, Point, Side};
 use alacritty_terminal::selection::{Selection, SelectionType};
 use alacritty_terminal::sync::FairMutex;
-use alacritty_terminal::term::{Config, Term, TermMode};
+use alacritty_terminal::term::{Config, Osc52, Term, TermMode};
 use alacritty_terminal::tty::{self, Options, Shell};
 use sparky_theme::TerminalPalette;
 use sparky_xdg::programs::installed;
@@ -27,6 +27,7 @@ pub struct Size {
     pub columns: usize,
     pub lines: usize,
     pub cell: Cell,
+    pub scale: f32,
 }
 
 impl Dimensions for Size {
@@ -49,8 +50,8 @@ impl Size {
         WindowSize {
             num_lines: narrow(self.lines),
             num_cols: narrow(self.columns),
-            cell_width: self.cell.width.round() as u16,
-            cell_height: self.cell.height.round() as u16,
+            cell_width: (self.cell.width * self.scale).round() as u16,
+            cell_height: (self.cell.height * self.scale).round() as u16,
         }
     }
 }
@@ -73,7 +74,7 @@ impl Session {
         };
         let pty = tty::new(&options, size.window(), 0)?;
         let term = Arc::new(FairMutex::new(Term::new(
-            Config::default(),
+            terminal_config(),
             &size,
             listener.clone(),
         )));
@@ -128,6 +129,13 @@ impl Session {
 
     pub fn screen(&self, palette: &TerminalPalette) -> Screen {
         snapshot(&self.term.lock(), palette)
+    }
+}
+
+pub fn terminal_config() -> Config {
+    Config {
+        osc52: Osc52::OnlyCopy,
+        ..Config::default()
     }
 }
 

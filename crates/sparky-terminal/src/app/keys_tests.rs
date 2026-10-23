@@ -6,11 +6,17 @@ use crate::app::keys::{Cursor, Pressed, Scroll, pressed};
 const NADA: Modifiers = Modifiers::empty();
 
 fn nomeada(nome: Named, mods: Modifiers) -> Pressed {
-    pressed(&Key::Named(nome), mods, None, Cursor::Normal)
+    pressed(&Key::Named(nome), mods, None, None, Cursor::Normal)
 }
 
 fn letra(letra: &str, mods: Modifiers, texto: Option<&str>) -> Pressed {
-    pressed(&Key::Character(letra.into()), mods, texto, Cursor::Normal)
+    pressed(
+        &Key::Character(letra.into()),
+        mods,
+        texto,
+        None,
+        Cursor::Normal,
+    )
 }
 
 fn envia(bytes: &[u8]) -> Pressed {
@@ -82,7 +88,13 @@ fn apagar_tab_e_esc() {
 fn setas_seguem_o_modo_do_cursor_e_os_modificadores() {
     assert_eq!(nomeada(Named::ArrowUp, NADA), envia(b"\x1b[A"));
     assert_eq!(
-        pressed(&Key::Named(Named::ArrowUp), NADA, None, Cursor::Application),
+        pressed(
+            &Key::Named(Named::ArrowUp),
+            NADA,
+            None,
+            None,
+            Cursor::Application
+        ),
         envia(b"\x1bOA")
     );
     assert_eq!(
@@ -95,7 +107,13 @@ fn setas_seguem_o_modo_do_cursor_e_os_modificadores() {
     );
     assert_eq!(nomeada(Named::Home, NADA), envia(b"\x1b[H"));
     assert_eq!(
-        pressed(&Key::Named(Named::End), NADA, None, Cursor::Application),
+        pressed(
+            &Key::Named(Named::End),
+            NADA,
+            None,
+            None,
+            Cursor::Application
+        ),
         envia(b"\x1bOF")
     );
 }
@@ -134,4 +152,25 @@ fn texto_digitado_e_alt_como_prefixo_esc() {
 fn modificadores_sozinhos_nao_enviam_nada() {
     assert_eq!(nomeada(Named::Shift, Modifiers::SHIFT), Pressed::Ignored);
     assert_eq!(nomeada(Named::Control, Modifiers::CTRL), Pressed::Ignored);
+}
+
+fn cirilica(letra: &str, mods: Modifiers, latina: char) -> Pressed {
+    pressed(
+        &Key::Character(letra.into()),
+        mods,
+        Some(letra),
+        Some(latina),
+        Cursor::Normal,
+    )
+}
+
+#[test]
+fn com_teclado_nao_latino_ctrl_usa_a_tecla_fisica() {
+    assert_eq!(cirilica("с", Modifiers::CTRL, 'c'), envia(&[0x03]));
+    assert_eq!(cirilica("в", Modifiers::CTRL, 'd'), envia(&[0x04]));
+    assert_eq!(
+        cirilica("С", Modifiers::CTRL | Modifiers::SHIFT, 'c'),
+        Pressed::Copy
+    );
+    assert_eq!(cirilica("с", NADA, 'c'), envia("с".as_bytes()));
 }

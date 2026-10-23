@@ -1,10 +1,11 @@
 use alacritty_terminal::grid::Dimensions;
 use alacritty_terminal::term::cell::Flags;
 use alacritty_terminal::term::{RenderableContent, Term, TermMode};
-use alacritty_terminal::vte::ansi::CursorShape;
+use alacritty_terminal::vte::ansi::{Color, CursorShape, NamedColor};
 use sparky_theme::{Rgb, TerminalPalette};
 
 use crate::adapters::listener::Listener;
+use crate::domain::color::resolve;
 use crate::domain::runs::{Glyph, Width, rows};
 use crate::domain::screen::{CursorSpot, Screen};
 use crate::domain::style::{Selected, style};
@@ -47,6 +48,11 @@ pub fn snapshot(term: &Term<Listener>, palette: &TerminalPalette) -> Screen {
                 line,
                 column: indexed.point.column.0,
                 character: indexed.cell.c,
+                marks: indexed
+                    .cell
+                    .zerowidth()
+                    .map(<[char]>::to_vec)
+                    .unwrap_or_default(),
                 width,
                 style,
             })
@@ -61,6 +67,7 @@ pub fn snapshot(term: &Term<Listener>, palette: &TerminalPalette) -> Screen {
             line,
             column: cursor.point.column.0,
             character: term.grid()[cursor.point].c,
+            color: resolve(Color::Named(NamedColor::Cursor), palette, &overrides),
         })
     });
     Screen {

@@ -75,7 +75,7 @@ fn block<R: Renderer>(
     palette: &TerminalPalette,
 ) {
     let place = origin(metrics, cursor.line, cursor.column);
-    frame.fill_rectangle(place, span(metrics, 1), color(palette.cursor));
+    frame.fill_rectangle(place, span(metrics, 1), color(cursor.color));
     let character = cursor.character.to_string();
     if !character.trim().is_empty() {
         frame.fill_text(text(
@@ -133,14 +133,14 @@ fn font_of(style: &Style) -> Font {
     }
 }
 
-fn origin(metrics: Metrics, line: usize, column: usize) -> Point {
+pub fn origin(metrics: Metrics, line: usize, column: usize) -> Point {
     Point::new(
         metrics.padding + column as f32 * metrics.cell.width,
         metrics.padding + line as f32 * metrics.cell.height,
     )
 }
 
-fn span(metrics: Metrics, cells: usize) -> Size {
+pub fn span(metrics: Metrics, cells: usize) -> Size {
     Size::new(cells as f32 * metrics.cell.width, metrics.cell.height)
 }
 

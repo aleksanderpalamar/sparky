@@ -140,3 +140,12 @@ fn a_busca_na_web_codifica_acentos_e_espacos() {
         "ol%C3%A1%20mundo%20%26%20caf%C3%A9"
     );
 }
+
+#[test]
+fn voltar_e_avancar_entre_pastas_preserva_o_historico() {
+    let casa = casa_com_armadilha();
+    let script = "cd /usr; cd /tmp; sparky-dirs-back 2>/dev/null; print -r -- \"voltou=$PWD avancar=${sparky_dirs_forward[*]}\"; sparky-dirs-forward 2>/dev/null; print -r -- \"avancou=$PWD\"";
+    let saida = String::from_utf8_lossy(&zsh(casa.path(), casa.path(), script).stdout).into_owned();
+    assert!(saida.contains("voltou=/usr avancar=/tmp"), "{saida}");
+    assert!(saida.contains("avancou=/tmp"), "{saida}");
+}

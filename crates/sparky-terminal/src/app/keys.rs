@@ -28,22 +28,34 @@ pub enum Pressed {
     Ignored,
 }
 
-pub fn pressed(key: &Key, modifiers: Modifiers, text: Option<&str>, cursor: Cursor) -> Pressed {
-    if let Some(found) = shortcut(key, modifiers) {
+pub fn pressed(
+    key: &Key,
+    modifiers: Modifiers,
+    text: Option<&str>,
+    latin: Option<char>,
+    cursor: Cursor,
+) -> Pressed {
+    if let Some(found) = shortcut(key, modifiers, latin) {
         return found;
     }
     match key.as_ref() {
         Key::Named(named) => named_key(named, modifiers, cursor),
-        Key::Character(character) => character_key(character, modifiers, text),
+        Key::Character(character) => {
+            character_key(character, &physical(character, latin), modifiers, text)
+        }
         Key::Unidentified => Pressed::Ignored,
     }
 }
 
-fn shortcut(key: &Key, modifiers: Modifiers) -> Option<Pressed> {
+fn shortcut(key: &Key, modifiers: Modifiers, latin: Option<char>) -> Option<Pressed> {
     let both = modifiers.control() && modifiers.shift();
     match key.as_ref() {
-        Key::Character(letter) if both && letter.eq_ignore_ascii_case("c") => Some(Pressed::Copy),
-        Key::Character(letter) if both && letter.eq_ignore_ascii_case("v") => Some(Pressed::Paste),
+        Key::Character(letter) if both && physical(letter, latin).eq_ignore_ascii_case("c") => {
+            Some(Pressed::Copy)
+        }
+        Key::Character(letter) if both && physical(letter, latin).eq_ignore_ascii_case("v") => {
+            Some(Pressed::Paste)
+        }
         Key::Named(Named::Insert) if modifiers.control() => Some(Pressed::Copy),
         Key::Named(Named::Insert) if modifiers.shift() => Some(Pressed::Paste),
         Key::Named(Named::PageUp) if modifiers.shift() => Some(Pressed::Scroll(Scroll::PageUp)),
@@ -54,6 +66,13 @@ fn shortcut(key: &Key, modifiers: Modifiers) -> Option<Pressed> {
     }
 }
 
+fn physical(letter: &str, latin: Option<char>) -> String {
+    match (letter.is_ascii(), latin) {
+        (false, Some(translated)) => translated.to_string(),
+        _ => letter.to_owned(),
+    }
+}
+
 fn named_key(named: Named, modifiers: Modifiers, cursor: Cursor) -> Pressed {
     let bytes = match named {
         Named::Enter => enter(modifiers),
@@ -61,7 +80,7 @@ fn named_key(named: Named, modifiers: Modifiers, cursor: Cursor) -> Pressed {
         Named::Tab if modifiers.shift() => b"\x1b[Z".to_vec(),
         Named::Tab => b"\t".to_vec(),
         Named::Escape => vec![ESC],
-        Named::Space => return character_key(" ", modifiers, Some(" ")),
+        Named::Space => return character_key(" ", " ", modifiers, Some(" ")),
         other => match special(other, modifier_code(modifiers), cursor) {
             Some(sequence) => sequence,
             None => return Pressed::Ignored,
@@ -87,8 +106,11 @@ fn backspace(modifiers: Modifiers) -> Vec<u8> {
     }
 }
 
-fn character_key(key: &str, modifiers: Modifiers, text: Option<&str>) -> Pressed {
-    let control = modifiers.control().then(|| control_byte(key)).flatten();
+fn character_key(key: &str, physical: &str, modifiers: Modifiers, text: Option<&str>) -> Pressed {
+    let control = modifiers
+        .control()
+        .then(|| control_byte(physical))
+        .flatten();
     let bytes = match control {
         Some(byte) => vec![byte],
         None => typed(key, text).as_bytes().to_vec(),

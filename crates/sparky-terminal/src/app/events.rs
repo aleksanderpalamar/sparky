@@ -8,6 +8,7 @@ use iced::{Subscription, keyboard, time, window};
 use crate::adapters::listener::Listener;
 use crate::app::message::Message;
 use crate::app::state::Terminal;
+use crate::domain::input::Focus;
 
 const COLORS_EVERY: Duration = Duration::from_secs(1);
 const BUFFER: usize = 256;
@@ -49,13 +50,21 @@ fn input(event: Event, _status: Status, _window: window::Id) -> Option<Message> 
             key,
             modifiers,
             text,
+            physical_key,
             ..
-        }) => Some(Message::Key(
-            key,
-            modifiers,
-            text.map(|text| text.to_string()),
-        )),
+        }) => {
+            let latin = key.to_latin(physical_key);
+            Some(Message::Key(
+                key,
+                modifiers,
+                text.map(|text| text.to_string()),
+                latin,
+            ))
+        }
         Event::Window(window::Event::Resized(size)) => Some(Message::Resized(size)),
+        Event::Window(window::Event::Rescaled(scale)) => Some(Message::Rescaled(scale)),
+        Event::Window(window::Event::Focused) => Some(Message::Focus(Focus::Gained)),
+        Event::Window(window::Event::Unfocused) => Some(Message::Focus(Focus::Lost)),
         _ => None,
     }
 }

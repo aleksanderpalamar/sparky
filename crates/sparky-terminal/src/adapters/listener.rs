@@ -5,7 +5,6 @@ use alacritty_terminal::event::{Event, EventListener, WindowSize};
 use alacritty_terminal::vte::ansi::Rgb;
 use iced::futures::channel::mpsc::UnboundedSender;
 
-pub type TextReply = Arc<dyn Fn(&str) -> String + Sync + Send + 'static>;
 pub type ColorReply = Arc<dyn Fn(Rgb) -> String + Sync + Send + 'static>;
 pub type SizeReply = Arc<dyn Fn(WindowSize) -> String + Sync + Send + 'static>;
 
@@ -15,7 +14,6 @@ pub enum Signal {
     Title(String),
     ResetTitle,
     Store(String),
-    Load(TextReply),
     Write(String),
     Color(usize, ColorReply),
     Size(SizeReply),
@@ -29,7 +27,6 @@ impl fmt::Debug for Signal {
             Signal::Title(title) => write!(formatter, "Title({title})"),
             Signal::ResetTitle => formatter.write_str("ResetTitle"),
             Signal::Store(_) => formatter.write_str("Store(..)"),
-            Signal::Load(_) => formatter.write_str("Load(..)"),
             Signal::Write(_) => formatter.write_str("Write(..)"),
             Signal::Color(index, _) => write!(formatter, "Color({index})"),
             Signal::Size(_) => formatter.write_str("Size(..)"),
@@ -55,12 +52,14 @@ pub fn signal_of(event: Event) -> Option<Signal> {
         Event::Title(title) => Some(Signal::Title(title)),
         Event::ResetTitle => Some(Signal::ResetTitle),
         Event::ClipboardStore(_, text) => Some(Signal::Store(text)),
-        Event::ClipboardLoad(_, reply) => Some(Signal::Load(reply)),
         Event::PtyWrite(text) => Some(Signal::Write(text)),
         Event::ColorRequest(index, reply) => Some(Signal::Color(index, reply)),
         Event::TextAreaSizeRequest(reply) => Some(Signal::Size(reply)),
         Event::Exit | Event::ChildExit(_) => Some(Signal::Exited),
-        Event::MouseCursorDirty | Event::CursorBlinkingChange | Event::Bell => None,
+        Event::ClipboardLoad(..)
+        | Event::MouseCursorDirty
+        | Event::CursorBlinkingChange
+        | Event::Bell => None,
     }
 }
 
@@ -79,5 +78,16 @@ mod tests {
         assert!(matches!(signal_of(Event::Exit), Some(Signal::Exited)));
         assert!(signal_of(Event::Bell).is_none());
         assert!(signal_of(Event::MouseCursorDirty).is_none());
+    }
+
+    #[test]
+    fn programa_no_pty_nunca_le_o_clipboard_por_osc_52() {
+        use std::sync::Arc;
+
+        use alacritty_terminal::term::ClipboardType;
+
+        let pedido =
+            Event::ClipboardLoad(ClipboardType::Clipboard, Arc::new(|_: &str| String::new()));
+        assert!(signal_of(pedido).is_none());
     }
 }

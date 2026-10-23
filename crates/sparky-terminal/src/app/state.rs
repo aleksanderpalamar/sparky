@@ -1,7 +1,9 @@
+use iced::Rectangle;
 use iced::widget::canvas;
 use sparky_theme::{Palette, Skin, TerminalPalette};
 
 use crate::adapters::session::{Session, Size};
+use crate::app::paint::{origin, span};
 use crate::domain::grid::{Cell, Metrics};
 use crate::domain::launch::Launch;
 use crate::domain::screen::Screen;
@@ -27,6 +29,7 @@ pub struct Terminal {
     pub screen: Screen,
     pub cache: canvas::Cache,
     pub title: String,
+    pub wheel_rest: f32,
 }
 
 impl Terminal {
@@ -46,10 +49,12 @@ impl Terminal {
                 columns,
                 lines,
                 cell,
+                scale: 1.0,
             },
             screen: Screen::default(),
             cache: canvas::Cache::new(),
             title: TITLE.to_owned(),
+            wheel_rest: 0.0,
         }
     }
 
@@ -74,6 +79,26 @@ impl Terminal {
             lines,
             ..self.size
         };
+        self.resize_session();
+    }
+
+    pub fn rescale(&mut self, scale: f32) {
+        if scale == self.size.scale {
+            return;
+        }
+        self.size.scale = scale;
+        self.resize_session();
+    }
+
+    pub fn ime_area(&self) -> Rectangle {
+        let (line, column) = self
+            .screen
+            .cursor
+            .map_or((0, 0), |cursor| (cursor.line, cursor.column));
+        Rectangle::new(origin(self.metrics, line, column), span(self.metrics, 1))
+    }
+
+    fn resize_session(&mut self) {
         if let Some(session) = self.session.as_mut() {
             session.resize(self.size);
         }

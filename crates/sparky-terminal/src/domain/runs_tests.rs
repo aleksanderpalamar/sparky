@@ -18,6 +18,7 @@ fn glifo(line: usize, column: usize, character: char, fg: u8) -> Glyph {
         line,
         column,
         character,
+        marks: Vec::new(),
         width: Width::Single,
         style: estilo(fg),
     }
@@ -89,4 +90,17 @@ fn linhas_fora_da_tela_sao_ignoradas() {
     let linhas = rows([glifo(5, 0, 'z', 1)], 2);
     assert_eq!(linhas.len(), 2);
     assert!(linhas.iter().all(Vec::is_empty));
+}
+
+#[test]
+fn marcas_de_largura_zero_ficam_junto_do_caractere() {
+    let acentuado = Glyph {
+        marks: vec!['\u{301}'],
+        ..glifo(0, 1, 'e', 1)
+    };
+    let linhas = rows([glifo(0, 0, 'a', 1), acentuado, glifo(0, 2, 'b', 1)], 1);
+    assert_eq!(
+        trechos(&linhas[0]),
+        [(0, 1, "a"), (1, 1, "e\u{301}"), (2, 1, "b")]
+    );
 }

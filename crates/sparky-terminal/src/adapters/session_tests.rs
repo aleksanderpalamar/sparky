@@ -1,8 +1,9 @@
 use std::time::{Duration, Instant};
 
+use alacritty_terminal::term::Osc52;
 use iced::futures::StreamExt;
 use iced::futures::channel::mpsc;
-use sparky_theme::TerminalPalette;
+use sparky_theme::{Rgb, TerminalPalette};
 
 use crate::adapters::listener::{Listener, Signal};
 use crate::adapters::session::{Session, Size};
@@ -29,6 +30,7 @@ fn rodar(script: &str) -> Screen {
             width: 8.0,
             height: 16.0,
         },
+        scale: 1.0,
     };
     let Ok(session) = Session::start(&launch, size, Listener(sender)) else {
         panic!("o PTY não abriu")
@@ -94,6 +96,7 @@ fn a_pasta_inicial_e_respeitada() {
             width: 8.0,
             height: 16.0,
         },
+        scale: 1.0,
     };
     let Ok(session) = Session::start(&launch, size, Listener(sender)) else {
         panic!("o PTY não abriu")
@@ -104,4 +107,50 @@ fn a_pasta_inicial_e_respeitada() {
         }
     }
     assert!(texto(&session.screen(&PALETA)).contains("/usr"));
+}
+
+#[test]
+fn o_terminal_so_aceita_copiar_por_osc_52_nunca_ler() {
+    assert_eq!(
+        crate::adapters::session::terminal_config().osc52,
+        Osc52::OnlyCopy
+    );
+}
+
+#[test]
+fn acentos_combinados_ficam_junto_da_letra() {
+    let tela = rodar("printf 'cafe\\314\\201'; sleep 0.2");
+    assert!(texto(&tela).contains("cafe\u{301}"), "{:?}", texto(&tela));
+}
+
+#[test]
+fn a_cor_do_cursor_trocada_por_osc_12_e_respeitada() {
+    let tela = rodar("printf '\\033]12;#ff0000\\007'; sleep 0.2");
+    assert_eq!(
+        tela.cursor.map(|cursor| cursor.color),
+        Some(Rgb::new(255, 0, 0))
+    );
+}
+
+#[test]
+fn em_hidpi_o_pty_recebe_o_tamanho_em_pixels_fisicos() {
+    let tamanho = Size {
+        columns: 80,
+        lines: 24,
+        cell: Cell {
+            width: 8.0,
+            height: 16.0,
+        },
+        scale: 2.0,
+    };
+    let janela = tamanho.window();
+    assert_eq!(
+        (
+            janela.num_cols,
+            janela.num_lines,
+            janela.cell_width,
+            janela.cell_height
+        ),
+        (80, 24, 16, 32)
+    );
 }

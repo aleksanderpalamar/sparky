@@ -7,19 +7,22 @@ use crate::app::keys::{Cursor, Pressed, Scroll, pressed};
 use crate::app::message::Message;
 use crate::app::state::Terminal;
 use crate::app::update::{mode, scroll, with_session};
-use crate::domain::input::{Bracketed, Buffer, Wheel, paste as pasted, wheel as rolled};
+use crate::domain::input::{
+    Bracketed, Buffer, Focus, Reporting, Wheel, focus_report, paste as pasted, wheel as rolled,
+};
 
 pub fn key(
     terminal: &mut Terminal,
     key: &Key,
     modifiers: Modifiers,
     text: Option<&str>,
+    latin: Option<char>,
 ) -> Task<Message> {
     let cursor = match mode(terminal).contains(TermMode::APP_CURSOR) {
         true => Cursor::Application,
         false => Cursor::Normal,
     };
-    match pressed(key, modifiers, text, cursor) {
+    match pressed(key, modifiers, text, latin, cursor) {
         Pressed::Send(bytes) => typed(terminal, bytes),
         Pressed::Copy => return copy(terminal),
         Pressed::Paste => return clipboard::read().map(Message::Pasted),
@@ -45,10 +48,26 @@ pub fn wheel(terminal: &mut Terminal, lines: f32) {
         true => Buffer::Alternate,
         false => Buffer::Main,
     };
-    match rolled(lines, buffer) {
+    let (rolled, rest) = rolled(lines, terminal.wheel_rest, buffer);
+    terminal.wheel_rest = rest;
+    match rolled {
         Wheel::History(0) => {}
         Wheel::History(steps) => scroll(terminal, Viewport::Delta(steps)),
         Wheel::Keys(bytes) => with_session(terminal, |session| session.write(bytes)),
+    }
+}
+
+pub fn commit(terminal: &mut Terminal, text: String) {
+    typed(terminal, text.into_bytes());
+}
+
+pub fn focus(terminal: &mut Terminal, focus: Focus) {
+    let reporting = match mode(terminal).contains(TermMode::FOCUS_IN_OUT) {
+        true => Reporting::On,
+        false => Reporting::Off,
+    };
+    if let Some(report) = focus_report(focus, reporting) {
+        with_session(terminal, |session| session.write(report.to_vec()));
     }
 }
 

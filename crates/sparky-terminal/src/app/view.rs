@@ -1,7 +1,9 @@
 use iced::mouse::{self, Button, ScrollDelta};
 use iced::widget::canvas::{self, Action, Event, Geometry, Program};
+use iced::widget::stack;
 use iced::{Element, Length, Point, Rectangle, Renderer, Theme};
 
+use crate::app::composer::Composer;
 use crate::app::message::Message;
 use crate::app::paint::paint;
 use crate::app::state::Terminal;
@@ -14,10 +16,10 @@ pub enum Pointer {
 }
 
 pub fn view(terminal: &Terminal) -> Element<'_, Message> {
-    canvas::Canvas::new(Painter { terminal })
+    let painter = canvas::Canvas::new(Painter { terminal })
         .width(Length::Fill)
-        .height(Length::Fill)
-        .into()
+        .height(Length::Fill);
+    stack![painter, Composer::new(terminal.ime_area(), Message::Commit)].into()
 }
 
 struct Painter<'a> {

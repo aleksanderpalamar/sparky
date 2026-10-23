@@ -7,7 +7,7 @@ use crate::domain::launch::{Launch, Program};
 const NORD: &str =
     "background = \"#2e3440\"\nforeground = \"#d8dee9\"\naccent = \"#88c0d0\"\nred = \"#bf616a\"\n";
 
-fn terminal() -> Terminal {
+pub fn terminal() -> Terminal {
     let launch = Launch {
         program: Program::Shell,
         directory: None,
@@ -54,4 +54,29 @@ fn a_janela_define_a_grade_com_a_margem_do_sparky() {
     aberto.fit(900.0, 560.0);
     assert_eq!((aberto.size.columns, aberto.size.lines), (108, 32));
     assert_eq!(aberto.title, "Terminal");
+}
+
+#[test]
+fn a_escala_da_janela_chega_ao_tamanho_do_pty() {
+    let mut aberto = terminal();
+    aberto.rescale(2.0);
+    assert_eq!(aberto.size.scale, 2.0);
+    assert_eq!(aberto.size.window().cell_width, 16);
+}
+
+#[test]
+fn o_ime_abre_na_celula_do_cursor() {
+    use crate::domain::screen::CursorSpot;
+    let mut aberto = terminal();
+    aberto.screen.cursor = Some(CursorSpot {
+        line: 2,
+        column: 3,
+        character: ' ',
+        color: sparky_theme::Rgb::new(0, 0, 0),
+    });
+    let area = aberto.ime_area();
+    assert_eq!(
+        (area.x, area.y, area.width, area.height),
+        (18.0 + 24.0, 18.0 + 32.0, 8.0, 16.0)
+    );
 }

@@ -15,11 +15,12 @@ impl Width {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Glyph {
     pub line: usize,
     pub column: usize,
     pub character: char,
+    pub marks: Vec<char>,
     pub width: Width,
     pub style: Style,
 }
@@ -49,6 +50,7 @@ fn place(row: &mut Vec<Run>, glyph: Glyph) {
             && glyph.character.is_ascii()
             && run.text.is_ascii()
             && glyph.width == Width::Single
+            && glyph.marks.is_empty()
     };
     match row.last_mut() {
         Some(run) if joins(run) => {
@@ -58,7 +60,9 @@ fn place(row: &mut Vec<Run>, glyph: Glyph) {
         _ => row.push(Run {
             column: glyph.column,
             cells: glyph.width.cells(),
-            text: glyph.character.to_string(),
+            text: std::iter::once(glyph.character)
+                .chain(glyph.marks)
+                .collect(),
             style: glyph.style,
         }),
     }
