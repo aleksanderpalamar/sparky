@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Terminal
+GenericName=Emulador de terminal
+Comment=Use a linha de comando com o zsh nas cores do tema do sparky
+Exec=sparky-terminal
+Icon=utilities-terminal
+Terminal=false
+Categories=System;TerminalEmulator;
+Keywords=terminal;shell;zsh;console;linha de comando;
