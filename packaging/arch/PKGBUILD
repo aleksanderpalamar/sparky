@@ -1,7 +1,7 @@
 
 pkgbase=sparky
 pkgname=(sparky sparky-wallpapers)
-pkgver=0.21.0
+pkgver=0.22.0
 pkgrel=1
 pkgdesc='Ambiente de desktop Wayland em Rust, com compositor próprio em mosaico e feito para o teclado'
 arch=('x86_64')
@@ -43,7 +43,7 @@ optdepends=(
   'woff2-font-awesome: ícones em forma de letra'
   'yaru-icon-theme: ícones de cada tema (AUR)'
 )
-source=("$pkgbase::git+file://$(realpath "$startdir/../..")")
+source=("$pkgbase::git+file://$(realpath "$startdir/../..")#commit=$(git -C "$startdir/../.." rev-parse HEAD)")
 sha256sums=('SKIP')
 
 prepare() {
