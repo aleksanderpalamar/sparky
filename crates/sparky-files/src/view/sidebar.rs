@@ -1,7 +1,7 @@
 use iced::alignment::Vertical;
 use iced::widget::{Column, button, column, container, row, rule, scrollable, text, tooltip};
 use iced::{Element, Length};
-use sparky_storage::{Operation, Volume};
+use sparky_storage::{Operation, Volume, VolumeKind};
 use sparky_ui::style::{self, Highlight, PADDING, SIDEBAR_WIDTH, SMALL_TEXT, SPACING, TEXT_SIZE};
 
 use crate::app::message::Message;
@@ -70,22 +70,19 @@ pub fn sidebar(files: &Files) -> Element<'_, Message> {
 
 fn device<'a>(files: &'a Files, volume: &'a Volume, index: usize) -> Element<'a, Message> {
     let skin = files.skin;
-    let kind = match volume.removable {
-        true => IconKind::Removable,
-        false => IconKind::Drive,
+    let kind = match volume.kind() {
+        VolumeKind::Mtp => IconKind::Phone,
+        VolumeKind::Block if volume.removable => IconKind::Removable,
+        VolumeKind::Block => IconKind::Drive,
     };
     let name = match volume.label.is_empty() {
         true if !volume.size.is_empty() => format!("Volume de {}", volume.size),
         true => volume.path.clone(),
         false => volume.label.clone(),
     };
-    let state = match volume.mounted() {
-        true => "montado",
-        false => "não montado",
-    };
     let label = column![
         text(name).size(TEXT_SIZE),
-        text(format!("{} · {state}", volume.size))
+        text(device_detail(volume))
             .size(SMALL_TEXT)
             .color(skin.foreground)
     ]
@@ -130,6 +127,21 @@ fn device<'a>(files: &'a Files, volume: &'a Volume, index: usize) -> Element<'a,
     line.width(Length::Fill).into()
 }
 
+fn device_detail(volume: &Volume) -> String {
+    let state = match volume.mounted() {
+        true => "montado",
+        false => "não montado",
+    };
+    let summary = match volume.kind() {
+        VolumeKind::Mtp => "MTP",
+        VolumeKind::Block => &volume.size,
+    };
+    match summary.is_empty() {
+        true => state.to_owned(),
+        false => format!("{summary} · {state}"),
+    }
+}
+
 fn work_label(operation: Option<&Operation>) -> Option<&'static str> {
     match operation {
         Some(Operation::Mount(_)) => Some("Montando…"),
@@ -140,8 +152,23 @@ fn work_label(operation: Option<&Operation>) -> Option<&'static str> {
 
 #[cfg(test)]
 mod tests {
-    use super::work_label;
-    use sparky_storage::Operation;
+    use super::{device_detail, work_label};
+    use sparky_storage::{Operation, Volume};
+
+    #[test]
+    fn telefone_indica_mtp_sem_inventar_capacidade() {
+        let mut volume = Volume {
+            path: "mtp://Android_Test/".to_owned(),
+            label: "Android".to_owned(),
+            filesystem: "mtp".to_owned(),
+            size: String::new(),
+            mountpoint: None,
+            removable: true,
+        };
+        assert_eq!(device_detail(&volume), "MTP · não montado");
+        volume.mountpoint = Some("/run/user/1000/gvfs/mtp:host=Android_Test".to_owned());
+        assert_eq!(device_detail(&volume), "MTP · montado");
+    }
 
     #[test]
     fn consulta_periodica_nao_altera_a_indicacao_de_atividade() {

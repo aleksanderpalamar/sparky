@@ -5,18 +5,20 @@ pub mod keys;
 pub mod message;
 pub mod navigation;
 pub mod presentation;
-pub mod volumes;
 pub mod state;
 pub mod update;
+pub mod volumes;
 
 #[cfg(test)]
 mod files_tests;
 #[cfg(test)]
 mod keys_tests;
 #[cfg(test)]
-mod test_sources;
+mod mtp_tests;
 #[cfg(test)]
 mod presentation_tests;
+#[cfg(test)]
+mod test_sources;
 #[cfg(test)]
 mod volume_pending_tests;
 #[cfg(test)]
@@ -33,7 +35,9 @@ pub fn run() -> iced::Result {
         .subscription(events::subscription)
         .default_font(sparky_ui::style::FONT)
         .theme(|files: &Files| files.skin.theme())
-        .window(sparky_ui::window::settings(style::APPLICATION_ID, Size::new(style::WINDOW_WIDTH, style::WINDOW_HEIGHT)))
+        .window(sparky_ui::window::settings(
+            style::APPLICATION_ID,
+            Size::new(style::WINDOW_WIDTH, style::WINDOW_HEIGHT),
+        ))
         .run()
 }
-
