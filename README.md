@@ -333,6 +333,11 @@ são publicados na Release com hashes SHA-256 e o commit de origem.
 
 ## Desenvolvimento
 
+O compositor mantém logs rotativos e amostras de memória e do agendamento de
+quadros em `~/.local/state/sparky/logs/`, respeitando `XDG_STATE_HOME`.
+Veja o [diagnóstico do compositor](docs/DIAGNOSTICS.md) para interpretar os
+contadores, a retenção e os limites da investigação de travamentos e vazamentos.
+
 ```bash
 cargo test
 cargo clippy --all-targets
