@@ -22,6 +22,7 @@ use crate::screencopy::ScreencopyState;
 use crate::state::Sparky;
 
 pub struct Protocols {
+    pub foreign_toplevels: smithay::wayland::foreign_toplevel_list::ForeignToplevelListState,
     pub compositor: CompositorState,
     pub xdg_shell: XdgShellState,
     pub layer_shell: WlrLayerShellState,
@@ -45,9 +46,15 @@ pub struct Protocols {
 
 impl Protocols {
     pub fn new(display: &DisplayHandle) -> Self {
+        crate::image_capture::manager::register(display);
         let primary_selection = PrimarySelectionState::new::<Sparky>(display);
-        let data_control = DataControlState::new::<Sparky, _>(display, Some(&primary_selection), |_| true);
+        let data_control =
+            DataControlState::new::<Sparky, _>(display, Some(&primary_selection), |_| true);
         Self {
+            foreign_toplevels:
+                smithay::wayland::foreign_toplevel_list::ForeignToplevelListState::new::<Sparky>(
+                    display,
+                ),
             compositor: CompositorState::new::<Sparky>(display),
             xdg_shell: XdgShellState::new::<Sparky>(display),
             layer_shell: WlrLayerShellState::new::<Sparky>(display),

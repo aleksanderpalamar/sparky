@@ -26,3 +26,5 @@ pub mod tabs;
 pub mod wallpaper;
 pub mod windows;
 pub mod xwayland;
+
+pub mod image_capture;

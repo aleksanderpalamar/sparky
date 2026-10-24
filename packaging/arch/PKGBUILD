@@ -1,7 +1,7 @@
 
 pkgbase=sparky
 pkgname=(sparky sparky-wallpapers)
-pkgver=0.22.1
+pkgver=0.23.0
 pkgrel=1
 pkgdesc='Ambiente de desktop Wayland em Rust, com compositor próprio em mosaico e feito para o teclado'
 arch=('x86_64')
@@ -17,12 +17,16 @@ depends=(
   'libxkbcommon'
   'mesa'
   'polkit'
+  'pipewire'
   'seatd'
   'systemd-libs'
   'util-linux'
   'wayland'
   'wl-clipboard'
   'xdg-utils'
+  'xdg-desktop-portal'
+  'xdg-desktop-portal-gtk'
+  'xdg-desktop-portal-wlr>=0.8.4'
   'xkeyboard-config'
   'xorg-xwayland'
   'zsh'
@@ -30,6 +34,7 @@ depends=(
   'zsh-syntax-highlighting'
 )
 makedepends=('cargo' 'git')
+backup=('etc/xdg/xdg-desktop-portal-wlr/sparky')
 optdepends=(
   'udisks2: montar e desmontar volumes no painel e no gerenciador de arquivos'
   'gvfs-mtp: acessar smartphones Android por MTP no gerenciador de arquivos'
@@ -37,8 +42,6 @@ optdepends=(
   'swaylock: tela de bloqueio padrão do SUPER + CTRL + L'
   'foot: terminal'
   'kitty: terminal'
-  'xdg-desktop-portal-gtk: portais para os aplicativos'
-  'xdg-desktop-portal-wlr: captura e compartilhamento de tela pelos portais'
   'vulkan-icd-loader: renderização por Vulkan nos aplicativos'
   'ttf-jetbrains-mono-nerd: fonte da barra, das abas e dos aplicativos'
   'ttf-liberation: fontes com e sem serifa'
@@ -80,6 +83,7 @@ package_sparky() {
   done
   install -Dm644 data/session/sparky.desktop -t "$pkgdir/usr/share/wayland-sessions"
   install -Dm644 data/portals/sparky-portals.conf -t "$pkgdir/usr/share/xdg-desktop-portal"
+  install -Dm644 data/portals/sparky-wlr.conf "$pkgdir/etc/xdg/xdg-desktop-portal-wlr/sparky"
   install -Dm644 data/portals/sparky-keyring.portal -t "$pkgdir/usr/share/xdg-desktop-portal/portals"
   install -Dm644 data/applications/* -t "$pkgdir/usr/share/applications"
   local file
@@ -89,6 +93,7 @@ package_sparky() {
   install -Dm644 data/config/sparky.toml -t "$pkgdir/usr/share/sparky"
   install -Dm644 data/zsh/.zshenv data/zsh/.zshrc data/zsh/completion.zsh data/zsh/extras.zsh data/zsh/git.zsh data/zsh/keys.zsh data/zsh/options.zsh data/zsh/plugins.zsh data/zsh/prompt.zsh data/zsh/vcs.zsh data/zsh/web.zsh -t "$pkgdir/usr/share/sparky/zsh"
   install -Dm644 README.md -t "$pkgdir/usr/share/doc/$pkgname"
+  install -Dm644 docs/SCREENCAST.md -t "$pkgdir/usr/share/doc/$pkgname/docs"
   install -Dm644 LICENSE -t "$pkgdir/usr/share/licenses/$pkgname"
 }
 
@@ -97,6 +102,7 @@ package_sparky-wallpapers() {
   arch=('any')
   depends=('sparky')
   optdepends=()
+  backup=()
   cd "$pkgbase"
   local file
   for file in data/wallpapers/*/*; do
