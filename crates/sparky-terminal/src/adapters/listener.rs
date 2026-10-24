@@ -2,6 +2,7 @@ use std::fmt;
 use std::sync::Arc;
 
 use alacritty_terminal::event::{Event, EventListener, WindowSize};
+use alacritty_terminal::term::ClipboardType;
 use alacritty_terminal::vte::ansi::Rgb;
 use iced::futures::channel::mpsc::UnboundedSender;
 
@@ -13,7 +14,7 @@ pub enum Signal {
     Redraw,
     Title(String),
     ResetTitle,
-    Store(String),
+    Store(ClipboardType, String),
     Write(String),
     Color(usize, ColorReply),
     Size(SizeReply),
@@ -26,7 +27,7 @@ impl fmt::Debug for Signal {
             Signal::Redraw => formatter.write_str("Redraw"),
             Signal::Title(title) => write!(formatter, "Title({title})"),
             Signal::ResetTitle => formatter.write_str("ResetTitle"),
-            Signal::Store(_) => formatter.write_str("Store(..)"),
+            Signal::Store(..) => formatter.write_str("Store(..)"),
             Signal::Write(_) => formatter.write_str("Write(..)"),
             Signal::Color(index, _) => write!(formatter, "Color({index})"),
             Signal::Size(_) => formatter.write_str("Size(..)"),
@@ -51,7 +52,7 @@ pub fn signal_of(event: Event) -> Option<Signal> {
         Event::Wakeup => Some(Signal::Redraw),
         Event::Title(title) => Some(Signal::Title(title)),
         Event::ResetTitle => Some(Signal::ResetTitle),
-        Event::ClipboardStore(_, text) => Some(Signal::Store(text)),
+        Event::ClipboardStore(kind, text) => Some(Signal::Store(kind, text)),
         Event::PtyWrite(text) => Some(Signal::Write(text)),
         Event::ColorRequest(index, reply) => Some(Signal::Color(index, reply)),
         Event::TextAreaSizeRequest(reply) => Some(Signal::Size(reply)),

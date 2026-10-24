@@ -21,4 +21,5 @@ sparky-ui.workspace = true
 sparky-xdg.workspace = true
 
 [dev-dependencies]
+iced_runtime = "0.14"
 tempfile = "3"

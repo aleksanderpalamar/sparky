@@ -7,17 +7,23 @@ use crate::app::keys::{Cursor, Pressed, Scroll, pressed};
 use crate::app::message::Message;
 use crate::app::state::Terminal;
 use crate::app::update::{mode, scroll, with_session};
+use crate::app::workspace::Workspace;
 use crate::domain::input::{
     Bracketed, Buffer, Focus, Reporting, Wheel, focus_report, paste as pasted, wheel as rolled,
 };
 
 pub fn key(
-    terminal: &mut Terminal,
+    app: &mut Workspace,
     key: &Key,
     modifiers: Modifiers,
     text: Option<&str>,
     latin: Option<char>,
 ) -> Task<Message> {
+    let Some(tab) = app.tabs.active_mut() else {
+        return Task::none();
+    };
+    let id = tab.id;
+    let terminal = &mut tab.value;
     let cursor = match mode(terminal).contains(TermMode::APP_CURSOR) {
         true => Cursor::Application,
         false => Cursor::Normal,
@@ -25,7 +31,8 @@ pub fn key(
     match pressed(key, modifiers, text, latin, cursor) {
         Pressed::Send(bytes) => typed(terminal, bytes),
         Pressed::Copy => return copy(terminal),
-        Pressed::Paste => return clipboard::read().map(Message::Pasted),
+        Pressed::Paste => return clipboard::read().map(move |text| Message::Pasted(id, text)),
+        Pressed::Tab(action) => return super::tabs::action(app, action),
         Pressed::Scroll(page) => scroll(terminal, viewport_of(page)),
         Pressed::Ignored => {}
     }

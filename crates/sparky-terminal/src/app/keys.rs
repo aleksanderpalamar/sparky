@@ -2,6 +2,7 @@ use iced::keyboard::key::Named;
 use iced::keyboard::{Key, Modifiers};
 
 use crate::app::sequences::{modifier_code, special};
+use crate::domain::tabs::TabAction;
 
 const ESC: u8 = 0x1b;
 
@@ -24,6 +25,7 @@ pub enum Pressed {
     Send(Vec<u8>),
     Copy,
     Paste,
+    Tab(TabAction),
     Scroll(Scroll),
     Ignored,
 }
@@ -48,6 +50,9 @@ pub fn pressed(
 }
 
 fn shortcut(key: &Key, modifiers: Modifiers, latin: Option<char>) -> Option<Pressed> {
+    if let Some(action) = super::tab_keys::shortcut(key, modifiers, latin) {
+        return Some(Pressed::Tab(action));
+    }
     let both = modifiers.control() && modifiers.shift();
     match key.as_ref() {
         Key::Character(letter) if both && physical(letter, latin).eq_ignore_ascii_case("c") => {
@@ -66,7 +71,7 @@ fn shortcut(key: &Key, modifiers: Modifiers, latin: Option<char>) -> Option<Pres
     }
 }
 
-fn physical(letter: &str, latin: Option<char>) -> String {
+pub(super) fn physical(letter: &str, latin: Option<char>) -> String {
     match (letter.is_ascii(), latin) {
         (false, Some(translated)) => translated.to_string(),
         _ => letter.to_owned(),
