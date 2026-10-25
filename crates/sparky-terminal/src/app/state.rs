@@ -30,6 +30,7 @@ pub struct Terminal {
     pub cache: canvas::Cache,
     pub title: String,
     pub wheel_rest: f32,
+    pub error: Option<String>,
 }
 
 impl Terminal {
@@ -55,6 +56,7 @@ impl Terminal {
             cache: canvas::Cache::new(),
             title: TITLE.to_owned(),
             wheel_rest: 0.0,
+            error: None,
         }
     }
 

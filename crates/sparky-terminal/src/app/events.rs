@@ -7,15 +7,21 @@ use iced::{Subscription, keyboard, time, window};
 
 use crate::adapters::listener::Listener;
 use crate::app::message::Message;
-use crate::app::state::Terminal;
+use crate::app::workspace::Workspace;
 use crate::domain::input::Focus;
+use crate::domain::tabs::TabId;
 
 const COLORS_EVERY: Duration = Duration::from_secs(1);
 const BUFFER: usize = 256;
 
-pub fn subscription(_terminal: &Terminal) -> Subscription<Message> {
+pub fn subscription(terminal: &Workspace) -> Subscription<Message> {
     Subscription::batch([
-        Subscription::run(pty),
+        Subscription::batch(
+            terminal
+                .tabs
+                .iter()
+                .map(|tab| Subscription::run_with(tab.id, pty)),
+        ),
         event::listen_with(input),
         time::every(COLORS_EVERY).map(|_| {
             Message::Colors(
@@ -26,18 +32,19 @@ pub fn subscription(_terminal: &Terminal) -> Subscription<Message> {
     ])
 }
 
-fn pty() -> impl Stream<Item = Message> {
-    iced::stream::channel(BUFFER, async |mut output| {
+fn pty(id: &TabId) -> impl Stream<Item = Message> + use<> {
+    let id = *id;
+    iced::stream::channel(BUFFER, async move |mut output| {
         let (sender, mut signals) = mpsc::unbounded();
         if output
-            .send(Message::Connected(Listener(sender)))
+            .send(Message::Connected(id, Listener(sender)))
             .await
             .is_err()
         {
             return;
         }
         while let Some(signal) = signals.next().await {
-            if output.send(Message::Pty(signal)).await.is_err() {
+            if output.send(Message::Pty(id, signal)).await.is_err() {
                 return;
             }
         }

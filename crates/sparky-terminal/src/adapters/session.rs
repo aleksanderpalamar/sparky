@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use alacritty_terminal::event::Notify;
 use alacritty_terminal::event::{OnResize, WindowSize};
-use alacritty_terminal::event_loop::{EventLoop, Notifier};
+use alacritty_terminal::event_loop::{EventLoop, Msg, Notifier};
 use alacritty_terminal::grid::{Dimensions, Scroll};
 use alacritty_terminal::index::{Column, Line, Point, Side};
 use alacritty_terminal::selection::{Selection, SelectionType};
@@ -21,6 +21,10 @@ use crate::domain::grid::{Cell, Half, Spot};
 use crate::domain::launch::{Availability, Launch, plan};
 use crate::domain::screen::Screen;
 use crate::domain::zsh::{ZSH, chosen, dirs};
+
+#[cfg(test)]
+#[path = "lifecycle_tests.rs"]
+mod lifecycle_tests;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Size {
@@ -59,6 +63,12 @@ impl Size {
 pub struct Session {
     term: Arc<FairMutex<Term<Listener>>>,
     notifier: Notifier,
+}
+
+impl Drop for Session {
+    fn drop(&mut self) {
+        let _ = self.notifier.0.send(Msg::Shutdown);
+    }
 }
 
 impl Session {
