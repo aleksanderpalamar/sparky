@@ -41,13 +41,24 @@ impl Notify {
 }
 
 impl Job {
-    pub fn complete(self, locked: bool) {
+    pub fn render_transform(&self) -> smithay::utils::Transform {
+        match (&self.notify, &self.target) {
+            (Notify::Legacy(..), Target::Output(output)) => output
+                .upgrade()
+                .map_or(smithay::utils::Transform::Normal, |output| {
+                    output.current_transform()
+                }),
+            _ => smithay::utils::Transform::Normal,
+        }
+    }
+
+    pub fn complete(self, locked: bool) -> Option<Self> {
         if !self.notify.alive() {
-            return;
+            return None;
         }
         if !super::rules::can_publish(self.locked, locked) {
-            self.notify.failed(FailureReason::Unknown);
-            return;
+            self.reset_pace();
+            return Some(self);
         }
         let now: std::time::Duration = Clock::<Monotonic>::new().now().into();
         let seconds = now.as_secs();
@@ -66,6 +77,16 @@ impl Job {
                 }
                 frame.ready(hi, lo, ns);
             }
+        }
+        None
+    }
+
+    fn reset_pace(&self) {
+        let Some((_, data)) = &self.session else {
+            return;
+        };
+        if let Ok(mut status) = data.status.lock() {
+            status.pace = super::rules::Pace::default();
         }
     }
 }

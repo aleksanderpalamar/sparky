@@ -13,6 +13,7 @@ pub use wayland_protocols::ext::image_copy_capture::v1::client::{
 
 #[derive(Default)]
 pub struct Events {
+    pub callbacks: usize,
     pub legacy_dma: Option<(u32, u32, u32)>,
     pub legacy_shm: Option<(u32, u32, u32)>,
     pub legacy_done: bool,

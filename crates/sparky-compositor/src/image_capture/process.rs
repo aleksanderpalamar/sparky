@@ -100,7 +100,7 @@ impl Sparky {
         }
     }
 
-    fn pump_capture(&mut self, target: &Target) {
+    pub(super) fn pump_capture(&mut self, target: &Target) {
         let Target::Window(id) = target else { return };
         let Some(window) = self.windows.get(*id) else {
             return;
@@ -117,7 +117,7 @@ impl Sparky {
         self.wake_capture(FRAME_INTERVAL);
     }
 
-    fn wake_capture(&mut self, delay: Duration) {
+    pub(super) fn wake_capture(&mut self, delay: Duration) {
         let deadline = self.start_time.elapsed().saturating_add(delay);
         let current = self.image_capture.wake.as_ref().map(|wake| wake.deadline);
         if !super::rules::replaces_wake(current, deadline) {

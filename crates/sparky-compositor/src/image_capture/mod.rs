@@ -15,6 +15,10 @@ pub mod manager;
 mod process;
 pub mod queue;
 #[cfg(test)]
+mod queue_fixture;
+#[cfg(test)]
+mod queue_tests;
+#[cfg(test)]
 mod rules_tests;
 pub mod session;
 pub mod source;

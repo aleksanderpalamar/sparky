@@ -1,3 +1,5 @@
+#[path = "capture_protocols/callback.rs"]
+mod callback;
 #[path = "capture_protocols/client.rs"]
 mod client;
 #[path = "capture_protocols/events.rs"]
@@ -10,6 +12,10 @@ mod legacy;
 mod lifecycle;
 #[path = "capture_protocols/options.rs"]
 mod options;
+#[path = "capture_protocols/submission.rs"]
+mod submission;
+#[path = "capture_protocols/transition.rs"]
+mod transition;
 #[path = "capture_protocols/window_events.rs"]
 mod window_events;
 

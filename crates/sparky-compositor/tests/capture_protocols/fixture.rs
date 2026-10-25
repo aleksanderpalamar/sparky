@@ -143,6 +143,7 @@ fn private_capture_server() -> Result<(), Error> {
             state.space.unmap_output(&output);
         }
         event_loop.dispatch(Duration::from_millis(5), &mut state)?;
+        super::submission::dispatch(&mut state, &directory)?;
         state.after_dispatch();
     }
 }

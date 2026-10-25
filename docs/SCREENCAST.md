@@ -19,7 +19,9 @@ pela GPU com `wait()` no loop do compositor.
 Cada sessão nativa pede no máximo um quadro por vez. O compositor limita a
 captura a 60 FPS e mantém no máximo oito quadros pendentes/em execução no total
 e dezesseis sessões. Sem alteração na imagem, aguarda nova atualização; uma
-janela de outro workspace recebe callbacks para continuar produzindo quadros.
+janela de outro workspace recebe callbacks após submissões bem-sucedidas e
+enquanto aguarda mudanças, para continuar produzindo quadros mesmo com outros
+aplicativos atualizando a cena.
 Fechar a fonte encerra a sessão, e redimensioná-la renegocia os buffers.
 
 A captura de uma janela usa apenas sua árvore de superfícies e popups. Janelas
@@ -27,11 +29,14 @@ que a cobrem e outros aplicativos não entram nessa imagem. O cursor pode ser
 oculto ou incorporado, conforme o pedido do portal. Cursor separado em metadados
 não é oferecido. Uma sessão iniciada durante o bloqueio é recusada; capturas em
 andamento mascaram a imagem enquanto a sessão está bloqueada. Um quadro cuja
-entrega atravesse uma mudança desse estado é invalidado.
+entrega atravesse uma mudança desse estado é refeito com a máscara atual antes
+de ser entregue, sem encerrar a transmissão nem publicar o conteúdo obsoleto.
 
 O protocolo antigo `wlr-screencopy` continua disponível com buffers SHM para
 screenshots, inclusive `grim`, e também aceita DMA-BUF para vídeo. O capturador
-PNG mantém seu caminho de leitura de pixels. No protocolo novo de vídeo, um
+PNG mantém seu caminho de leitura de pixels. Os buffers antigos preservam a
+transformação do monitor; o protocolo novo entrega pixels na orientação normal
+com metadado explícito. No protocolo novo de vídeo, um
 buffer incompatível falha explicitamente, sem voltar silenciosamente para
 leitura de pixels na CPU.
 

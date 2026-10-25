@@ -12,7 +12,7 @@ use smithay::backend::renderer::element::{
 };
 use smithay::backend::renderer::gles::GlesRenderer;
 use smithay::backend::renderer::sync::SyncPoint;
-use smithay::utils::{Point, Scale, Transform};
+use smithay::utils::{Point, Scale};
 
 pub fn render(
     state: &mut Sparky,
@@ -76,8 +76,9 @@ pub fn render(
         .map(|e| RelocateRenderElement::from_element(e, offset, Relocate::Relative))
         .collect();
     let size = (job.buffer.width() as i32, job.buffer.height() as i32);
+    let transform = job.render_transform();
     let mut framebuffer = renderer.bind(&mut job.buffer).map_err(|e| e.to_string())?;
-    let mut damage = OutputDamageTracker::new(size, scale, Transform::Normal);
+    let mut damage = OutputDamageTracker::new(size, scale, transform);
     let clear = match locked {
         true => [0.0, 0.0, 0.0, 1.0].into(),
         false => state.colors.background,

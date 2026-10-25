@@ -7,8 +7,12 @@ use super::{queue::Job, state::Flight};
 
 impl Sparky {
     pub fn finish_capture(&mut self, job: Job, sync: SyncPoint) {
+        if !job.notify.alive() {
+            return;
+        }
+        self.pump_capture(&job.target);
         if sync.is_reached() {
-            job.complete(self.lock.is_locked());
+            self.complete_capture(job);
             return;
         }
         let notify = job.notify.clone();
@@ -22,7 +26,7 @@ impl Sparky {
                     Generic::new(fd, Interest::READ, Mode::Level),
                     move |_, _, state| {
                         if let Some(job) = job.take() {
-                            job.complete(state.lock.is_locked());
+                            state.complete_capture(job);
                         }
                         finished.set(true);
                         Ok(PostAction::Remove)
@@ -38,7 +42,7 @@ impl Sparky {
                             return TimeoutAction::ToDuration(Duration::from_millis(2));
                         }
                         if let Some(job) = job.take() {
-                            job.complete(state.lock.is_locked());
+                            state.complete_capture(job);
                         }
                         finished.set(true);
                         TimeoutAction::Drop
@@ -56,6 +60,13 @@ impl Sparky {
                 notify.failed(FailureReason::Unknown);
                 tracing::warn!("falha ao acompanhar captura na GPU: {error}");
             }
+        }
+    }
+
+    fn complete_capture(&mut self, job: Job) {
+        if let Some(job) = job.complete(self.lock.is_locked()) {
+            self.image_capture.pending.push(job);
+            self.wake_capture(Duration::ZERO);
         }
     }
 
