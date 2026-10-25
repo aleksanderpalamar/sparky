@@ -4,6 +4,7 @@ use crate::state::Sparky;
 
 impl Sparky {
     pub fn forget_window(&mut self, id: WindowId) {
+        self.image_capture.forget(id);
         if let Some(window) = self.windows.remove(id) {
             self.space.unmap_elem(&window);
         }

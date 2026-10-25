@@ -139,7 +139,7 @@ sparky-msg session suspend     #   lock, suspend, logout, reboot e poweroff
 
 O próprio sparky desenha a área pedida numa textura fora da tela (as mesmas janelas e camadas da tela, sem o cursor) e grava o PNG. O pedido chega pelo IPC (`capture`), com o monitor inteiro, a janela em foco ou uma região relativa a um monitor; uma região que sai da tela é cortada na borda.
 
-Programas de terceiros também capturam a tela pelo protocolo `wlr-screencopy-unstable-v1`: o `grim` (monitor inteiro ou `-g` com região) e o `xdg-desktop-portal-wlr`, que leva o compartilhamento de tela a navegadores e ao OBS. A imagem vai na orientação do monitor, sem o cursor.
+Programas de terceiros capturam monitor ou janela individual pelos protocolos `ext-image-copy-capture-v1` e `ext-image-capture-source-v1`, com lista de janelas por `ext-foreign-toplevel-list-v1`. O compositor desenha diretamente em DMA-BUF na GPU, e o `xdg-desktop-portal-wlr` leva a imagem ao OBS e aos navegadores pelo PipeWire. O seletor nativo respeita o tema do Sparky. Os pacotes incluem os portais e o PipeWire como dependências. Captura de janela exige o backend wlr 0.8.0 ou posterior; recomenda-se 0.8.4 ou posterior. O protocolo `wlr-screencopy-unstable-v1` continua compatível com `grim` e backends antigos, com SHM para screenshots e DMA-BUF para vídeo. Veja [configuração, arquitetura e validação de desempenho](docs/SCREENCAST.md).
 
 O `sparky-shot` é o capturador que usa esse pedido:
 

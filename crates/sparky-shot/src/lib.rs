@@ -5,4 +5,5 @@ pub mod overlay;
 pub mod picker;
 pub mod ports;
 pub mod run;
+pub mod share_source;
 pub mod slot;

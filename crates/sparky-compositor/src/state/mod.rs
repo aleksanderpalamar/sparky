@@ -32,6 +32,7 @@ use crate::wallpaper::Wallpaper;
 use crate::windows::registry::Registry;
 
 pub struct Sparky {
+    pub image_capture: crate::image_capture::state::ImageCaptureState,
     pub(crate) diagnostics: Arc<Metrics>,
     pub display_handle: DisplayHandle,
     pub loop_handle: LoopHandle<'static, Sparky>,
@@ -95,6 +96,7 @@ impl Sparky {
         let socket_name = listener::listen(display, &loop_handle)?;
         let wallpaper = Wallpaper::new(&loop_handle);
         Ok(Self {
+            image_capture: crate::image_capture::state::ImageCaptureState::default(),
             diagnostics,
             display_handle,
             loop_handle,
@@ -133,8 +135,10 @@ impl Sparky {
     pub fn after_dispatch(&mut self) {
         self.diagnostics.phase(Phase::Dispatch);
         if std::mem::take(&mut self.needs_render) {
+            self.image_capture.generation = self.image_capture.generation.wrapping_add(1);
             self.render_pending();
         }
+        self.process_captures();
         self.broadcast_changes();
         self.space.refresh();
         self.popups.cleanup();

@@ -53,7 +53,10 @@ impl Sparky {
         }
     }
 
-    pub fn with_nested<T>(&mut self, change: impl FnOnce(&mut Sparky, &mut Nested) -> T) -> Option<T> {
+    pub fn with_nested<T>(
+        &mut self,
+        change: impl FnOnce(&mut Sparky, &mut Nested) -> T,
+    ) -> Option<T> {
         match mem::replace(&mut self.backend, Backend::Starting) {
             Backend::Nested(mut nested) => {
                 let result = change(self, &mut nested);
@@ -67,7 +70,10 @@ impl Sparky {
         }
     }
 
-    pub fn with_renderer<T>(&mut self, use_renderer: impl FnOnce(&mut Sparky, &mut GlesRenderer) -> T) -> Option<T> {
+    pub fn with_renderer<T>(
+        &mut self,
+        use_renderer: impl FnOnce(&mut Sparky, &mut GlesRenderer) -> T,
+    ) -> Option<T> {
         match mem::replace(&mut self.backend, Backend::Starting) {
             Backend::Nested(mut nested) => {
                 let result = use_renderer(self, nested.graphics.renderer());
@@ -83,10 +89,27 @@ impl Sparky {
         }
     }
 
-    pub fn publish_formats(&mut self, renderer: &GlesRenderer, device: Option<libc::dev_t>) -> std::io::Result<()> {
+    pub fn publish_formats(
+        &mut self,
+        renderer: &GlesRenderer,
+        device: Option<libc::dev_t>,
+    ) -> std::io::Result<()> {
+        self.image_capture.formats.set(
+            device,
+            renderer
+                .egl_context()
+                .dmabuf_render_formats()
+                .iter()
+                .copied(),
+        );
         self.protocols.shm.update_formats(renderer.shm_formats());
         let formats = renderer.dmabuf_formats();
-        let global = dmabuf::publish::<Sparky>(&self.display_handle, &mut self.protocols.dmabuf, device, formats)?;
+        let global = dmabuf::publish::<Sparky>(
+            &self.display_handle,
+            &mut self.protocols.dmabuf,
+            device,
+            formats,
+        )?;
         self.dmabuf_global = Some(global);
         Ok(())
     }
