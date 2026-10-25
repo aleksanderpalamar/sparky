@@ -1,35 +1,80 @@
 use alacritty_terminal::grid::Scroll as Viewport;
 use alacritty_terminal::term::TermMode;
-use alacritty_terminal::vte::ansi::Rgb as Spec;
 use iced::{Task, clipboard};
 
-use crate::adapters::listener::Signal;
+use super::input::{commit, key, paste, wheel};
+use super::message::Message;
+use super::state::Terminal;
+use super::workspace::Workspace;
 use crate::adapters::session::Session;
-use crate::app::input::{commit, focus, key, wheel};
-use crate::app::message::Message;
-use crate::app::state::Terminal;
-use crate::domain::color::by_index;
 
-pub fn update(terminal: &mut Terminal, message: Message) -> Task<Message> {
+pub fn update(app: &mut Workspace, message: Message) -> Task<Message> {
     match message {
-        Message::Connected(listener) => return connect(terminal, listener),
-        Message::Pty(signal) => return signal_received(terminal, signal),
-        Message::Resized(size) => terminal.fit(size.width, size.height),
+        Message::Connected(id, listener) => super::signals::connect(app, id, listener),
+        Message::Pty(id, signal) => super::signals::receive(app, id, signal),
         Message::Key(pressed, modifiers, text, latin) => {
-            return key(terminal, &pressed, modifiers, text.as_deref(), latin);
+            key(app, &pressed, modifiers, text.as_deref(), latin)
         }
-        Message::Colors(palette, colors) => {
-            terminal.observe_colors(palette, colors);
+        Message::Tab(action) => super::tabs::action(app, action),
+        Message::CloseTab(id) => super::tabs::close(app, id),
+        Message::SelectTab(id) => {
+            app.select(id);
+            super::tabs_view::reveal(app)
         }
-        Message::Pasted(text) => crate::app::input::paste(terminal, text),
-        Message::Commit(text) => commit(terminal, text),
-        Message::Focus(change) => focus(terminal, change),
-        Message::Rescaled(scale) => terminal.rescale(scale),
-        Message::Press(spot) => with_session(terminal, |session| session.select(spot)),
-        Message::Drag(spot) => with_session(terminal, |session| session.extend(spot)),
-        Message::Wheel(lines) => wheel(terminal, lines),
+        Message::PastePrimary(id) => {
+            clipboard::read_primary().map(move |text| Message::Pasted(id, text))
+        }
+        Message::Selected(id) => {
+            let text = app
+                .tabs
+                .get(id)
+                .and_then(|tab| tab.value.session.as_ref())
+                .and_then(Session::copy);
+            match text {
+                Some(text) => clipboard::write_primary(text),
+                None => Task::none(),
+            }
+        }
+        other => {
+            change(app, other);
+            Task::none()
+        }
     }
-    Task::none()
+}
+
+fn change(app: &mut Workspace, message: Message) {
+    match message {
+        Message::Resized(size) => app.fit(size),
+        Message::Rescaled(scale) => app.rescale(scale),
+        Message::Colors(palette, colors) => app.observe_colors(palette, colors),
+        Message::Focus(change) => app.focus(change),
+        Message::Commit(text) => {
+            if let Some(tab) = app.tabs.active_mut() {
+                commit(&mut tab.value, text);
+            }
+        }
+        Message::Pasted(id, text) => {
+            if let Some(tab) = app.tabs.get_mut(id) {
+                paste(&mut tab.value, text);
+            }
+        }
+        Message::Press(id, spot) => {
+            if let Some(tab) = app.tabs.get_mut(id) {
+                with_session(&mut tab.value, |session| session.select(spot));
+            }
+        }
+        Message::Drag(id, spot) => {
+            if let Some(tab) = app.tabs.get_mut(id) {
+                with_session(&mut tab.value, |session| session.extend(spot));
+            }
+        }
+        Message::Wheel(id, lines) => {
+            if let Some(tab) = app.tabs.get_mut(id) {
+                wheel(&mut tab.value, lines);
+            }
+        }
+        _ => {}
+    }
 }
 
 pub fn with_session(terminal: &mut Terminal, action: impl FnOnce(&Session)) {
@@ -37,48 +82,6 @@ pub fn with_session(terminal: &mut Terminal, action: impl FnOnce(&Session)) {
         action(session);
     }
     terminal.refresh();
-}
-
-fn connect(
-    terminal: &mut Terminal,
-    listener: crate::adapters::listener::Listener,
-) -> Task<Message> {
-    match Session::start(&terminal.launch, terminal.size, listener) {
-        Ok(session) => {
-            terminal.session = Some(session);
-            terminal.refresh();
-            Task::none()
-        }
-        Err(error) => {
-            eprintln!("sparky-terminal: não deu para abrir o shell: {error}");
-            iced::exit()
-        }
-    }
-}
-
-fn signal_received(terminal: &mut Terminal, signal: Signal) -> Task<Message> {
-    match signal {
-        Signal::Redraw => terminal.refresh(),
-        Signal::Title(title) => terminal.title = title,
-        Signal::ResetTitle => terminal.reset_title(),
-        Signal::Store(text) => return clipboard::write(text),
-        Signal::Write(text) => with_session(terminal, |session| session.write(text.into_bytes())),
-        Signal::Color(index, reply) => {
-            let color = by_index(index, &terminal.palette);
-            let answer = reply(Spec {
-                r: color.red,
-                g: color.green,
-                b: color.blue,
-            });
-            with_session(terminal, |session| session.write(answer.into_bytes()));
-        }
-        Signal::Size(reply) => {
-            let answer = reply(terminal.size.window());
-            with_session(terminal, |session| session.write(answer.into_bytes()));
-        }
-        Signal::Exited => return iced::exit(),
-    }
-    Task::none()
 }
 
 pub fn mode(terminal: &Terminal) -> TermMode {

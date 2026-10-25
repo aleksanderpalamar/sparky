@@ -5,7 +5,11 @@ pub mod launch;
 pub mod runs;
 pub mod screen;
 pub mod style;
+pub mod tabs;
 pub mod zsh;
+
+#[cfg(test)]
+mod tabs_tests;
 
 #[cfg(test)]
 mod color_tests;

@@ -55,7 +55,7 @@ where
         &mut self,
         tree: &mut Tree,
         event: &Event,
-        _layout: Layout<'_>,
+        layout: Layout<'_>,
         _cursor: mouse::Cursor,
         _renderer: &Renderer,
         _clipboard: &mut dyn Clipboard,
@@ -78,8 +78,13 @@ where
             }
             Event::InputMethod(input_method::Event::Closed) => *preedit = None,
             Event::Window(window::Event::RedrawRequested(_)) => {
+                let bounds = layout.bounds();
                 shell.request_input_method(&InputMethod::Enabled {
-                    cursor: self.area,
+                    cursor: Rectangle {
+                        x: self.area.x + bounds.x,
+                        y: self.area.y + bounds.y,
+                        ..self.area
+                    },
                     purpose: Purpose::Terminal,
                     preedit: preedit.as_ref().map(Preedit::as_ref),
                 });

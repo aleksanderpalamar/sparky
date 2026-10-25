@@ -1,4 +1,5 @@
-use std::os::unix::fs::PermissionsExt;
+use std::io::Write;
+use std::process::{Command, Stdio};
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -19,8 +20,22 @@ fn request() -> Request {
 
 fn fixture(directory: &std::path::Path, script: &str) -> PromptProcess {
     let path = directory.join("prompt");
-    std::fs::write(&path, format!("#!/bin/sh\n{script}\n")).unwrap();
-    std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o700)).unwrap();
+    let mut writer = Command::new("/bin/sh")
+        .args([
+            "-c",
+            "cat > \"$1\" && chmod 700 \"$1\"",
+            "sparky-prompt-fixture",
+        ])
+        .arg(&path)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::null())
+        .spawn()
+        .unwrap();
+    {
+        let mut input = writer.stdin.take().unwrap();
+        writeln!(input, "#!/bin/sh\n{script}").unwrap();
+    }
+    assert!(writer.wait().unwrap().success());
     PromptProcess(path)
 }
 

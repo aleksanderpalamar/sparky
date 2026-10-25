@@ -4699,6 +4699,7 @@ version = "0.23.0"
 dependencies = [
  "alacritty_terminal",
  "iced",
+ "iced_runtime",
  "sparky-theme",
  "sparky-ui",
  "sparky-xdg",

@@ -193,9 +193,13 @@ As cores seguem o tema do sparky, inclusive com o terminal aberto: as 16 cores A
 | `CTRL + SHIFT + V` ou `SHIFT + INSERT` | Cola, entre as marcas de bracketed paste quando o programa pede, sem deixar o texto colado fechar o bloco |
 | `SHIFT + PGUP` / `SHIFT + PGDN` | Rola o histórico uma página |
 | `SHIFT + HOME` / `SHIFT + END` | Vai para o começo ou o fim do histórico |
+| `CTRL + SHIFT + T` | Cria uma aba com um novo shell |
+| `CTRL + SHIFT + Q` | Fecha a aba atual |
+| `CTRL + SHIFT + ←/→` | Alterna entre abas, voltando pelas extremidades |
+| Clique no botão do meio | Cola a seleção primária |
 | `SHIFT + ENTER` / `ALT + SHIFT + ENTER` | Envia `\e[13;2u` / `\e[13;4u`, como no kitty |
 
-O mouse seleciona arrastando com o botão esquerdo; a roda rola o histórico, e em tela alternativa (`less`, `man`) vira setas. Digitar volta ao fim do histórico e limpa a seleção. O título da janela vem do shell e a janela fecha quando o shell termina.
+O mouse seleciona arrastando com o botão esquerdo; soltar publica o texto na seleção primária, separada da área de transferência de `CTRL + SHIFT + C/V`. Clicar na rodinha cola essa seleção, inclusive quando vem de outro aplicativo. A roda rola o histórico, e em tela alternativa (`less`, `man`) vira setas. Digitar volta ao fim do histórico e limpa a seleção. O título da janela vem do shell da aba ativa. Cada aba mantém seu PTY, histórico, seleção e rolagem, e os programas continuam funcionando nas abas inativas. O fim de um shell fecha somente sua aba; fechar a última encerra a janela. Uma colagem assíncrona permanece vinculada à aba que a pediu e é descartada se ela já tiver sido fechada.
 
 ```bash
 sparky-terminal                       # o shell do usuário
@@ -203,7 +207,7 @@ sparky-terminal -d ~/Projetos         # começando nessa pasta
 sparky-terminal -e htop               # roda um comando; o resto da linha são os argumentos dele
 ```
 
-Abas e divisões ficam com o mosaico e os grupos do sparky. O terminal ainda não repassa o mouse para programas que pedem (vim, htop) nem implementa o protocolo de teclado do kitty.
+A barra de abas usa a fonte, as cores e os cantos retos do Sparky e acompanha o tema ao vivo. Clique no título para alternar, em `×` para fechar ou em `+` para criar. Muitas abas podem ser percorridas pela rolagem horizontal; a aba escolhida pelo teclado é trazida para a área visível. A primeira aba respeita `-e` e `-d`; as seguintes abrem o shell do Sparky na pasta inicial escolhida por `-d`, quando informada. Os atalhos de abas são tratados pelo terminal antes do envio ao PTY; `CTRL + C` continua interrompendo comandos. Divisões de janelas continuam com o mosaico e os grupos do Sparky. O terminal ainda não repassa o mouse para programas que pedem (vim, htop) nem implementa o protocolo de teclado do kitty.
 
 ## Chaveiro
 

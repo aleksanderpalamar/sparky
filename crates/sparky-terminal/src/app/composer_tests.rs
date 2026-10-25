@@ -6,7 +6,7 @@ use iced::advanced::widget::Tree;
 use iced::advanced::{Shell, Widget};
 use iced::futures::executor::block_on;
 use iced::time::Instant;
-use iced::{Event, Pixels, Rectangle, Renderer, Size, Theme, mouse, window};
+use iced::{Event, Pixels, Point, Rectangle, Renderer, Size, Theme, mouse, window};
 use sparky_ui::style::FONT;
 
 use crate::app::composer::Composer;
@@ -43,9 +43,13 @@ impl Ensaio {
     }
 
     fn evento(&mut self, evento: Event) -> (Vec<String>, InputMethod) {
+        self.evento_em(evento, Point::ORIGIN)
+    }
+
+    fn evento_em(&mut self, evento: Event, position: Point) -> (Vec<String>, InputMethod) {
         let mut mensagens = Vec::new();
         let mut shell = Shell::new(&mut mensagens);
-        let no = Node::new(Size::ZERO);
+        let no = Node::new(Size::ZERO).move_to(position);
         Widget::<String, Theme, Renderer>::update(
             &mut self.composer,
             &mut self.arvore,
@@ -112,4 +116,15 @@ fn a_composicao_aparece_ate_ser_confirmada() {
         panic!("o IME devia estar ligado")
     };
     assert_eq!(preedit, None::<Preedit>);
+}
+
+#[test]
+fn a_barra_de_abas_desloca_o_ime_junto_com_o_terminal() {
+    let mut ensaio = Ensaio::novo();
+    let (_, ime) = ensaio.evento_em(quadro(), Point::new(0.0, super::workspace::TAB_HEIGHT));
+    let InputMethod::Enabled { cursor, .. } = ime else {
+        panic!("sem IME")
+    };
+    assert_eq!(cursor.y, AREA.y + super::workspace::TAB_HEIGHT);
+    assert_eq!(cursor.x, AREA.x);
 }
