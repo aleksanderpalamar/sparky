@@ -4548,8 +4548,11 @@ dependencies = [
  "sparky-ipc",
  "sparky-theme",
  "sparky-ui",
+ "sparky-xdg",
  "system-tray",
+ "tempfile",
  "tokio",
+ "zbus",
 ]
 
 [[package]]

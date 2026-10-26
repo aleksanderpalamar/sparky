@@ -12,6 +12,14 @@ pub fn update(bar: &mut Bar, message: Message) -> Task<Message> {
         Message::FocusWorkspace(id) => report(bar.focus(id)),
         Message::ToggleClock => bar.toggle_clock(),
         Message::Tray(change) => return tray_actions::apply(bar, change),
+        Message::Bluetooth(bluetooth) => return super::bluetooth::apply(bar, bluetooth),
+        Message::TrayHover(window, expansion) => {
+            let open = bar.tray().menu().is_some();
+            bar.tray_mut()
+                .drawers
+                .hover(window, expansion, open, std::time::Instant::now());
+        }
+        Message::TrayFrame(now) => bar.tray_mut().drawers.advance(now),
         Message::TrayReady(client) => bar.tray_mut().connect(client),
         Message::TrayActivate(address) => return tray_actions::activate(bar, address),
         Message::TrayMenu(address) => return tray_actions::open_menu(bar, address),

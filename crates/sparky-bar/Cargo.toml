@@ -15,13 +15,16 @@ path = "src/lib.rs"
 
 [dependencies]
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
-iced = { version = "0.14", features = ["image", "svg", "tokio"] }
+iced = { version = "0.14", features = ["advanced", "image", "svg", "tokio"] }
 iced_layershell = "0.19.1"
 sparky-ipc.workspace = true
 sparky-theme.workspace = true
 sparky-ui.workspace = true
+sparky-xdg.workspace = true
 system-tray = "0.8"
-tokio = { version = "1", features = ["sync"] }
+tokio = { version = "1", features = ["sync", "time"] }
+zbus = { version = "5", default-features = false, features = ["tokio"] }
 
 [dev-dependencies]
 iced_runtime = "0.14"
+tempfile = "3"

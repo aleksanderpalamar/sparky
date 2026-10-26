@@ -13,11 +13,17 @@ use crate::app::tray_subscription::tray_events;
 const RECONNECT_DELAY: Duration = Duration::from_secs(1);
 const CLOCK_INTERVAL: Duration = Duration::from_secs(1);
 
-pub fn subscription(_bar: &Bar) -> Subscription<Message> {
+pub fn subscription(bar: &Bar) -> Subscription<Message> {
+    let animation = match bar.tray().drawers.animating() {
+        true => time::every(Duration::from_millis(16)).map(Message::TrayFrame),
+        false => Subscription::none(),
+    };
     Subscription::batch([
         sparky_ui::palette::subscription().map(Message::Palette),
         Subscription::run(sparky_events),
         Subscription::run(tray_events),
+        Subscription::run(super::bluetooth::events),
+        animation,
         time::every(CLOCK_INTERVAL).map(|_| Message::Tick),
         keyboard::listen().filter_map(close_on_escape),
     ])
@@ -25,9 +31,10 @@ pub fn subscription(_bar: &Bar) -> Subscription<Message> {
 
 fn close_on_escape(event: keyboard::Event) -> Option<Message> {
     match event {
-        keyboard::Event::KeyPressed { key: keyboard::Key::Named(keyboard::key::Named::Escape), .. } => {
-            Some(Message::CloseMenu)
-        }
+        keyboard::Event::KeyPressed {
+            key: keyboard::Key::Named(keyboard::key::Named::Escape),
+            ..
+        } => Some(Message::CloseMenu),
         _ => None,
     }
 }
@@ -82,7 +89,9 @@ mod tests {
         let mut bar = bar();
         let window = opened(&mut bar, ":1.1");
         let event = pressed(key::Named::Escape, key::Code::Escape);
-        let output = close_on_escape(event).map(|message| messages(update(&mut bar, message))).unwrap_or_default();
+        let output = close_on_escape(event)
+            .map(|message| messages(update(&mut bar, message)))
+            .unwrap_or_default();
         assert!(removes(&output, window));
         assert!(bar.tray().menu().is_none());
     }

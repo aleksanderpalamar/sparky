@@ -118,6 +118,10 @@ Uma barra de 26 px no topo de cada monitor, como a do Omarchy: as áreas de trab
 
 A bandeja usa StatusNotifierItem pelo D-Bus. O clique esquerdo ativa o aplicativo ou abre o menu quando o item anuncia apenas um menu; o direito abre o menu. Escolher uma entrada habilitada ou pressionar Esc fecha o menu. A superfície também fecha quando o item desaparece ou o menu fica vazio.
 
+Os ícones simbólicos do tema de ícones ativo (Yaru nos temas distribuídos) acompanham a cor da barra. A busca respeita a herança do tema e prioriza as variantes simbólicas de rede, preservando os estados de conexão; ícones próprios e pixmaps continuam disponíveis como fallback. Rede, Bluetooth e itens que pedem atenção permanecem visíveis. Os demais aplicativos ficam numa área recolhível: passar o mouse na seta abre os ícones para a esquerda, com transição de 600 ms e desaceleração cúbica; sair recolhe, mantendo a área aberta enquanto seu menu está visível. Cada monitor tem seu próprio estado, e o temporizador da animação para ao terminar a transição. Itens passivos não aparecem.
+
+Quando há adaptador Bluetooth, a barra possui um indicador nativo, sem exigir um applet externo. Ele acompanha os sinais do BlueZ para distinguir desligado, ligado e conectado; o clique abre um menu informativo com os adaptadores e dispositivos conectados. Não inicia descoberta, pareamento ou conexão e não altera o estado dos rádios. Sem adaptador, o indicador desaparece; se o serviço estiver indisponível e o hardware existir, isso é informado. Um applet Bluetooth ativo substitui o indicador nativo, evitando duplicação. O gerenciamento completo de Bluetooth não faz parte desse indicador.
+
 ## IPC
 
 O sparky abre um socket em `$XDG_RUNTIME_DIR/sparky-<WAYLAND_DISPLAY>.sock` e exporta o caminho em `SPARKY_SOCKET` para os programas que abre. Cada pedido e cada resposta é uma linha de JSON.
