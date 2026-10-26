@@ -2,6 +2,7 @@ pub mod color;
 pub mod grid;
 pub mod input;
 pub mod launch;
+pub mod mouse;
 pub mod runs;
 pub mod screen;
 pub mod style;
