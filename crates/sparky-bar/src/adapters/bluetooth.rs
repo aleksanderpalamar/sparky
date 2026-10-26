@@ -123,7 +123,15 @@ fn relevant(message: &zbus::Message) -> bool {
     if interface != bluez_objects::ADAPTER && interface != bluez_objects::DEVICE {
         return false;
     }
-    ["Powered", "Connected", "Alias", "Name", "Adapter"]
-        .iter()
-        .any(|key| changed.contains_key(*key) || invalidated.iter().any(|value| value == key))
+    [
+        "Powered",
+        "Connected",
+        "Alias",
+        "Name",
+        "Adapter",
+        "Discovering",
+        "Paired",
+    ]
+    .iter()
+    .any(|key| changed.contains_key(*key) || invalidated.iter().any(|value| value == key))
 }

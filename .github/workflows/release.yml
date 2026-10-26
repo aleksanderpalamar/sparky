@@ -64,7 +64,7 @@ jobs:
           sudo apt-get install --no-install-recommends -y \
             build-essential pkg-config dbus-daemon libudev-dev libinput-dev \
             libxkbcommon-dev libgbm-dev libegl1-mesa-dev libgles2-mesa-dev \
-            libdrm-dev libseat-dev libwayland-dev libglib2.0-dev \
+            libdrm-dev libseat-dev libwayland-dev libglib2.0-dev libpulse-dev \
             libpolkit-agent-1-0 python3-venv zsh
       - name: Instalar ferramentas de empacotamento
         run: |

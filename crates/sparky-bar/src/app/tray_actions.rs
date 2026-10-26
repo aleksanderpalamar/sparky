@@ -1,5 +1,7 @@
 use iced::Task;
-use iced_layershell::reexport::{Anchor, KeyboardInteractivity, Layer, NewLayerShellSettings, OutputOption};
+use iced_layershell::reexport::{
+    Anchor, KeyboardInteractivity, Layer, NewLayerShellSettings, OutputOption,
+};
 
 use crate::app::message::Message;
 use crate::app::state::Bar;
@@ -15,6 +17,9 @@ pub fn activate(bar: &mut Bar, address: String) -> Task<Message> {
     let Some(item) = bar.tray().tray().item(&address) else {
         return Task::none();
     };
+    if let Some(kind) = super::panel_actions::kind(item.role) {
+        return super::panel_actions::open(bar, kind);
+    }
     if item.primary_action == PrimaryAction::Menu {
         return open_menu(bar, address);
     }
@@ -22,11 +27,16 @@ pub fn activate(bar: &mut Bar, address: String) -> Task<Message> {
     let Some(client) = bar.tray().client() else {
         return Task::none();
     };
-    let request = TrayRequest::Activate { address: address.clone() };
-    Task::perform(async move { client.0.send(request).await.is_ok() }, move |accepted| match (accepted, has_menu) {
-        (false, true) => Message::TrayMenu(address.clone()),
-        _ => Message::Ignore,
-    })
+    let request = TrayRequest::Activate {
+        address: address.clone(),
+    };
+    Task::perform(
+        async move { client.0.send(request).await.is_ok() },
+        move |accepted| match (accepted, has_menu) {
+            (false, true) => Message::TrayMenu(address.clone()),
+            _ => Message::Ignore,
+        },
+    )
 }
 
 pub fn open_menu(bar: &mut Bar, address: String) -> Task<Message> {
@@ -49,9 +59,12 @@ pub fn open_menu(bar: &mut Bar, address: String) -> Task<Message> {
         events_transparent: false,
         namespace: Some("sparky-bar-menu".to_owned()),
     };
-    let open = Task::done(Message::NewLayerShell { settings, id: window });
+    let open = Task::done(Message::NewLayerShell {
+        settings,
+        id: window,
+    });
     let previous = bar.tray_mut().open_menu(OpenMenu { window, address });
-    Task::batch([close(previous), open])
+    Task::batch([super::panel_actions::close(bar), close(previous), open])
 }
 
 pub fn choose(bar: &mut Bar, entry: i32) -> Task<Message> {
@@ -59,7 +72,11 @@ pub fn choose(bar: &mut Bar, entry: i32) -> Task<Message> {
         .tray()
         .menu()
         .and_then(|menu| bar.tray().tray().item(&menu.address))
-        .is_some_and(|item| item.menu.iter().any(|item| item.id == entry && item.enabled && !item.separator));
+        .is_some_and(|item| {
+            item.menu
+                .iter()
+                .any(|item| item.id == entry && item.enabled && !item.separator)
+        });
     if !allowed {
         return Task::none();
     }
@@ -67,11 +84,21 @@ pub fn choose(bar: &mut Bar, entry: i32) -> Task<Message> {
     let Some(menu) = menu else {
         return Task::none();
     };
-    let target = bar.tray().tray().item(&menu.address).and_then(|item| item.menu_path.clone());
+    let target = bar
+        .tray()
+        .tray()
+        .item(&menu.address)
+        .and_then(|item| item.menu_path.clone());
     let activation = match (bar.tray().client(), target) {
         (Some(client), Some(menu_path)) => {
-            let request = TrayRequest::Select { address: menu.address.clone(), menu_path, entry };
-            Task::perform(async move { client.0.send(request).await.is_ok() }, |_| Message::Ignore)
+            let request = TrayRequest::Select {
+                address: menu.address.clone(),
+                menu_path,
+                entry,
+            };
+            Task::perform(async move { client.0.send(request).await.is_ok() }, |_| {
+                Message::Ignore
+            })
         }
         _ => Task::none(),
     };

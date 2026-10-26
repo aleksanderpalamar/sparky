@@ -22,7 +22,9 @@ pub fn events_from(
 ) -> BoxStream<'static, Message> {
     source
         .subscribe()
-        .map(move |state| Message::Bluetooth(state.map(|state| item(state, &resolve))))
+        .map(move |state| {
+            Message::Bluetooth(state.as_ref().map(|state| item(state, &resolve)), state)
+        })
         .boxed()
 }
 
@@ -34,7 +36,7 @@ pub fn apply(bar: &mut Bar, item: Option<TrayItem>) -> Task<Message> {
     super::tray_actions::apply(bar, change)
 }
 
-fn item(bluetooth: Bluetooth, resolve: &impl Fn(&str) -> Option<TrayIcon>) -> TrayItem {
+fn item(bluetooth: &Bluetooth, resolve: &impl Fn(&str) -> Option<TrayIcon>) -> TrayItem {
     TrayItem {
         address: ADDRESS.to_owned(),
         title: bluetooth.title().to_owned(),
