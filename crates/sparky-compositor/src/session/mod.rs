@@ -2,19 +2,20 @@ pub mod autostart;
 pub mod autostart_files;
 pub mod components;
 pub mod departure;
-pub mod leaving;
 pub mod environment;
+pub mod leaving;
+mod startup;
 
 #[cfg(test)]
 mod autostart_tests;
 #[cfg(test)]
 mod departure_tests;
 
-use sparky_xdg::programs::installed;
 use crate::backend::Backend;
 use crate::session::environment::{DESKTOP, activation_arguments};
-use crate::spawn::{spawn, spawn_program};
+use crate::spawn::spawn_program;
 use crate::state::Sparky;
+use sparky_xdg::programs::installed;
 
 const ACTIVATION: &str = "dbus-update-activation-environment";
 
@@ -25,12 +26,16 @@ impl Sparky {
 
     pub fn start_session(&mut self) {
         let environment = self.child_environment();
-        spawn_program(ACTIVATION, &activation_arguments(&environment.variables()), &environment);
+        spawn_program(
+            ACTIVATION,
+            &activation_arguments(&environment.variables()),
+            &environment,
+        );
         let autostart = autostart::commands(&autostart_files::from_system(), DESKTOP, installed);
         let extra = self.config.autostart.clone();
-        for command in components::components(installed).into_iter().chain(autostart).chain(extra) {
-            tracing::info!("sessão abre {command}");
-            spawn(&command, &environment);
-        }
+        let components = components::components(installed);
+        std::thread::spawn(move || {
+            startup::launch(components, autostart.into_iter().chain(extra), &environment)
+        });
     }
 }

@@ -19,6 +19,7 @@ iced = { version = "0.14", features = ["advanced", "image", "svg", "tokio"] }
 iced_layershell = "0.19.1"
 libpulse-binding = "2.30.1"
 sparky-ipc.workspace = true
+sparky-notifications.workspace = true
 sparky-theme.workspace = true
 sparky-ui.workspace = true
 sparky-xdg.workspace = true

@@ -10,6 +10,7 @@ use crate::domain::slots::{self, Slot};
 use crate::ports::workspaces::Workspaces;
 
 pub struct Bar {
+    pub center: super::center_state::CenterState,
     pub panels: super::panel_state::Panels,
     skin: Skin,
     workspaces: Arc<dyn Workspaces>,
@@ -22,6 +23,7 @@ pub struct Bar {
 impl Bar {
     pub fn new(skin: Skin, workspaces: Arc<dyn Workspaces>, now: NaiveDateTime) -> Self {
         let mut bar = Self {
+            center: super::center_state::CenterState::new(now.date()),
             panels: super::panel_state::Panels::default(),
             skin,
             workspaces,
@@ -65,6 +67,7 @@ impl Bar {
 
     pub fn tick(&mut self, now: NaiveDateTime) {
         self.now = now;
+        self.center.calendar.update_today(now.date());
     }
 
     pub fn toggle_clock(&mut self) {

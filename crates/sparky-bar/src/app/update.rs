@@ -11,6 +11,16 @@ pub fn update(bar: &mut Bar, message: Message) -> Task<Message> {
         Message::Tick => bar.tick(chrono::Local::now().naive_local()),
         Message::FocusWorkspace(id) => report(bar.focus(id)),
         Message::ToggleClock => bar.toggle_clock(),
+        Message::Notifications(event) => return super::notifications::event(bar, event),
+        Message::NotificationCommand(command) => {
+            return super::notifications::request(bar, command);
+        }
+        Message::NotificationFinished(id, result) => {
+            bar.panels
+                .finish(id, crate::domain::panel::PanelKind::Clock, result)
+        }
+        Message::Calendar(action) => bar.center.calendar.apply(action),
+        Message::CenterGeometry(id, size) => return super::center_geometry::apply(bar, id, size),
         Message::Tray(change) => return tray_actions::apply(bar, change),
         Message::Bluetooth(item, state) => {
             bar.panels.bluetooth = state;

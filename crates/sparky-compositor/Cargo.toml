@@ -69,10 +69,11 @@ configurações). Tudo tem atalho de teclado."""
 section = "x11"
 priority = "optional"
 depends = "libpulse0, libseat1, libinput10, libxkbcommon0, libgbm1, libdrm2, libudev1, libegl1, libgles2, libwayland-client0, libwayland-server0, libwayland-egl1, xwayland, xkb-data, wl-clipboard, libnotify-bin, xdg-utils, util-linux, polkitd, libpolkit-agent-1-0, libglib2.0-0t64 | libglib2.0-0, zsh, zsh-autosuggestions, zsh-syntax-highlighting, xdg-desktop-portal, xdg-desktop-portal-gtk, xdg-desktop-portal-wlr, pipewire"
-recommends = "pipewire-pulse, network-manager, bluez, mako-notifier, swaylock, foot | kitty, libvulkan1, udisks2, gvfs-backends, gvfs-fuse, fonts-jetbrains-mono, fonts-liberation, fonts-noto-core, fonts-noto-color-emoji, fonts-noto-cjk, fonts-font-awesome, yaru-theme-icon, fzf, autojump"
+recommends = "pipewire-pulse, network-manager, bluez, swaylock, foot | kitty, libvulkan1, udisks2, gvfs-backends, gvfs-fuse, fonts-jetbrains-mono, fonts-liberation, fonts-noto-core, fonts-noto-color-emoji, fonts-noto-cjk, fonts-font-awesome, yaru-theme-icon, fzf, autojump"
 assets = [
     ["target/release/sparky", "usr/bin/", "755"],
     ["target/release/sparky-bar", "usr/bin/", "755"],
+    ["target/release/sparky-notifications", "usr/bin/", "755"],
     ["target/release/sparky-msg", "usr/bin/", "755"],
     ["target/release/sparky-shot", "usr/bin/", "755"],
     ["target/release/sparky-files", "usr/bin/", "755"],
@@ -125,6 +126,7 @@ auto-req = "disabled"
 assets = [
     { source = "target/release/sparky", dest = "/usr/bin/sparky", mode = "755" },
     { source = "target/release/sparky-bar", dest = "/usr/bin/sparky-bar", mode = "755" },
+    { source = "target/release/sparky-notifications", dest = "/usr/bin/sparky-notifications", mode = "755" },
     { source = "target/release/sparky-msg", dest = "/usr/bin/sparky-msg", mode = "755" },
     { source = "target/release/sparky-shot", dest = "/usr/bin/sparky-shot", mode = "755" },
     { source = "target/release/sparky-files", dest = "/usr/bin/sparky-files", mode = "755" },
@@ -200,7 +202,6 @@ autojump = "*"
 gvfs-mtp = "*"
 gvfs-fuse = "*"
 udisks2 = "*"
-mako = "*"
 swaylock = "*"
 foot = "*"
 vulkan-loader = "*"

@@ -24,6 +24,7 @@ pub fn subscription(bar: &Bar) -> Subscription<Message> {
         Subscription::run(tray_events),
         Subscription::run(super::bluetooth::events),
         Subscription::run(super::native_events::events),
+        Subscription::run(sparky_notifications::client::events).map(Message::Notifications),
         iced::window::events().filter_map(|(window, event)| match event {
             iced::window::Event::Unfocused => Some(Message::PanelUnfocused(window)),
             iced::window::Event::Focused => Some(Message::PanelFocused(window)),

@@ -8,6 +8,7 @@ Somente os temas vem do [Omarchy](https://github.com/basecamp/omarchy): como pal
 
 | Caminho | O que é |
 |---|---|
+| `crates/sparky-notifications` | Serviço nativo freedesktop de notificações, pop-ups temáticos, histórico da sessão e Não perturbe |
 | `crates/sparky-bar` | A barra do topo (`sparky-bar`): áreas de trabalho, relógio e bandeja, uma por monitor |
 | `crates/sparky-compositor` | O compositor Wayland (binário `sparky`), feito com a biblioteca Smithay: protocolos, janelas, bordas, teclado e ponteiro |
 | `crates/sparky-tiling` | O mosaico: árvore dwindle, folgas, foco por direção, flutuantes, tela cheia, áreas de trabalho e monitores. Não depende de Wayland |
@@ -103,7 +104,7 @@ Um `[[bind]]` com a mesma combinação de um atalho padrão substitui o padrão;
 O gerenciador de login (SDDM, GDM…) lista a sessão **Sparky** pelo `data/session/sparky.desktop`, instalado em `/usr/share/wayland-sessions`, que abre o `sparky` com `XDG_CURRENT_DESKTOP=sparky`. Ao subir direto no hardware, o sparky:
 
 - exporta `WAYLAND_DISPLAY`, `DISPLAY`, `XDG_CURRENT_DESKTOP`, `XDG_SESSION_TYPE` e `SPARKY_SOCKET` para o D-Bus e o systemd (`dbus-update-activation-environment --systemd`), para os portais e os serviços ativados acharem a sessão;
-- abre o chaveiro (`sparky-keyring`), o agente de autenticação (`polkit-sparky`), a barra (`sparky-bar`) e as notificações (`mako`);
+- abre o chaveiro (`sparky-keyring`), o agente de autenticação (`polkit-sparky`), as notificações nativas (`sparky-notifications`) e a barra (`sparky-bar`);
 - abre o autostart XDG (`~/.config/autostart` e `/etc/xdg/autostart`), respeitando `Hidden`, `OnlyShowIn`, `NotShowIn`, `TryExec` e `X-GNOME-Autostart-enabled`; um arquivo do usuário substitui o do sistema com o mesmo nome.
 
 Aninhado em outra sessão, nada disso acontece. Os portais usam `data/portals/sparky-portals.conf` (GTK, wlr para a tela e `sparky-keyring` para senhas), instalado em `/usr/share/xdg-desktop-portal`.
@@ -370,3 +371,11 @@ Os temas de `data/themes` (paletas e nomes dos temas de ícones), os papéis de 
 ## Licença
 
 GPL-3.0-or-later. O texto está em `LICENSE`.
+
+### Calendário e central de notificações
+
+O clique esquerdo no relógio abre a central, abaixo do centro da barra: histórico à esquerda, calendário à direita e Não perturbe fixo no rodapé esquerdo. O clique direito continua alternando data/hora; Esc, × ou outro clique no relógio fecham. O calendário navega entre meses, destaca o dia atual e tem um botão Hoje. O painel e os pop-ups usam Skin, fonte, cores e cantos retos do Sparky, acompanhando alterações da paleta.
+
+O processo `sparky-notifications` implementa `org.freedesktop.Notifications` e oferece a API privada `org.sparky.Notifications` para a barra. Guarda até 100 registros durante a sessão, sem salvar mensagens em disco; notificações transitórias não entram no histórico. Há limites de 128 notificações ativas, três pop-ups visíveis, texto e imagens. Ações só ficam disponíveis enquanto a notificação e o aplicativo remetente continuam ativos. O Não perturbe oculta todos os pop-ups, inclusive críticos, mantendo o histórico elegível; desativá-lo não reproduz avisos antigos. Com a central aberta, os avisos chegam ao histórico sem pop-ups duplicados. Os pop-ups não capturam foco do teclado e notificações críticas não expiram automaticamente.
+
+A sessão inicia o serviço nativo antes dos aplicativos e aguarda sua prontidão por até cinco segundos fora do loop do compositor. Não inicia Mako por padrão nem o exige nos pacotes. Um serviço que já possua o nome de notificações não é substituído à força; nesse caso a central informa indisponibilidade. Configurações pessoais de autostart permanecem sob controle do usuário. Não há agenda, sincronização em nuvem, histórico entre sessões, sons ou suporte a marcação HTML nesta entrega.

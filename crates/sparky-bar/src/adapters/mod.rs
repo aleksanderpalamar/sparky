@@ -17,4 +17,4 @@ mod tray_events_tests;
 mod prompts_tests;
 
 #[cfg(test)]
-mod test_bus;
+pub(crate) mod test_bus;

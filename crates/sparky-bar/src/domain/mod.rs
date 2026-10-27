@@ -1,5 +1,6 @@
 pub mod audio;
 pub mod bluetooth;
+pub mod calendar;
 pub mod clock;
 pub mod indicator;
 pub mod label;
@@ -22,3 +23,6 @@ mod tray_layout_tests;
 
 #[cfg(test)]
 mod panel_domain_tests;
+
+#[cfg(test)]
+mod calendar_tests;

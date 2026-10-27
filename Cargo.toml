@@ -14,6 +14,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sparky-config = { path = "crates/sparky-config" }
 sparky-ipc = { path = "crates/sparky-ipc" }
+sparky-notifications = { path = "crates/sparky-notifications" }
 sparky-theme = { path = "crates/sparky-theme" }
 sparky-tiling = { path = "crates/sparky-tiling" }
 sparky-ui = { path = "crates/sparky-ui" }

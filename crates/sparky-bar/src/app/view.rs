@@ -10,7 +10,7 @@ use crate::ui::workspaces::workspaces;
 
 pub fn view(bar: &Bar, window: iced::window::Id) -> Element<'_, Message> {
     if let Some(open) = bar.panels.open.filter(|open| open.window == window) {
-        return crate::ui::panels::view(bar.skin(), &bar.panels, open.kind);
+        return crate::ui::panels::view(bar.skin(), &bar.panels, &bar.center, open.kind);
     }
     let open = bar.tray().menu().filter(|menu| menu.window == window);
     match open.and_then(|menu| bar.tray().tray().item(&menu.address)) {
@@ -25,7 +25,12 @@ fn strip(bar: &Bar, window: iced::window::Id) -> Element<'_, Message> {
         .width(Length::Fill)
         .height(Length::Fill)
         .align_x(Alignment::Start);
-    let center = clock(skin, bar.clock(), Message::ToggleClock);
+    let center = clock(
+        skin,
+        bar.clock(),
+        Message::ToggleClock,
+        Message::Panel(crate::domain::panel::PanelKind::Clock),
+    );
     let right = container(tray(
         skin,
         bar.tray().tray().items(),
