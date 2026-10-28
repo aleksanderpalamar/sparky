@@ -1,5 +1,6 @@
 pub mod commands;
 pub mod config_file;
+pub mod hardware;
 pub mod sparky_ipc;
 pub mod system;
 pub mod theme_files;

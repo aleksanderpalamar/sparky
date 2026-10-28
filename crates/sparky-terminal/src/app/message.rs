@@ -19,7 +19,7 @@ pub enum Message {
     Rescaled(f32),
     Press(TabId, Spot),
     Drag(TabId, Spot),
-    Wheel(TabId, f32),
+    Wheel(TabId, f32, Spot),
     Selected(TabId),
     PastePrimary(TabId),
     Tab(TabAction),
