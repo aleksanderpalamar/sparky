@@ -9,6 +9,9 @@ use crate::ui::tray::tray;
 use crate::ui::workspaces::workspaces;
 
 pub fn view(bar: &Bar, window: iced::window::Id) -> Element<'_, Message> {
+    if let Some(open) = bar.panels.open.filter(|open| open.window == window) {
+        return crate::ui::panels::view(bar.skin(), &bar.panels, open.kind);
+    }
     let open = bar.tray().menu().filter(|menu| menu.window == window);
     match open.and_then(|menu| bar.tray().tray().item(&menu.address)) {
         Some(item) => menu(bar.skin(), &item.menu),

@@ -10,6 +10,7 @@ use crate::domain::slots::{self, Slot};
 use crate::ports::workspaces::Workspaces;
 
 pub struct Bar {
+    pub panels: super::panel_state::Panels,
     skin: Skin,
     workspaces: Arc<dyn Workspaces>,
     slots: Vec<Slot>,
@@ -21,6 +22,7 @@ pub struct Bar {
 impl Bar {
     pub fn new(skin: Skin, workspaces: Arc<dyn Workspaces>, now: NaiveDateTime) -> Self {
         let mut bar = Self {
+            panels: super::panel_state::Panels::default(),
             skin,
             workspaces,
             slots: slots::slots(&[]),
@@ -85,7 +87,9 @@ mod tests {
     use std::sync::Arc;
 
     fn agora(minuto: u32) -> chrono::NaiveDateTime {
-        let Some(momento) = NaiveDate::from_ymd_opt(2026, 10, 7).and_then(|d| d.and_hms_opt(9, minuto, 0)) else {
+        let Some(momento) =
+            NaiveDate::from_ymd_opt(2026, 10, 7).and_then(|d| d.and_hms_opt(9, minuto, 0))
+        else {
             panic!("momento inválido");
         };
         momento
@@ -93,7 +97,10 @@ mod tests {
 
     fn barra(workspaces: FakeWorkspaces) -> (Bar, Arc<FakeWorkspaces>) {
         let workspaces = Arc::new(workspaces);
-        (Bar::new(Skin::default(), workspaces.clone(), agora(5)), workspaces)
+        (
+            Bar::new(Skin::default(), workspaces.clone(), agora(5)),
+            workspaces,
+        )
     }
 
     fn area_dois() -> WorkspaceInfo {
@@ -117,7 +124,11 @@ mod tests {
     fn sem_sparky_mostra_as_cinco_areas_vazias() {
         let (bar, _) = barra(FakeWorkspaces::default());
         assert_eq!(bar.slots().len(), 5);
-        assert!(bar.slots().iter().all(|slot| slot.state == SlotState::Empty));
+        assert!(
+            bar.slots()
+                .iter()
+                .all(|slot| slot.state == SlotState::Empty)
+        );
     }
 
     #[test]

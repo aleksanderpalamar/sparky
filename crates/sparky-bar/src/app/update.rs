@@ -12,7 +12,10 @@ pub fn update(bar: &mut Bar, message: Message) -> Task<Message> {
         Message::FocusWorkspace(id) => report(bar.focus(id)),
         Message::ToggleClock => bar.toggle_clock(),
         Message::Tray(change) => return tray_actions::apply(bar, change),
-        Message::Bluetooth(bluetooth) => return super::bluetooth::apply(bar, bluetooth),
+        Message::Bluetooth(item, state) => {
+            bar.panels.bluetooth = state;
+            return super::bluetooth::apply(bar, item);
+        }
         Message::TrayHover(window, expansion) => {
             let open = bar.tray().menu().is_some();
             bar.tray_mut()
@@ -24,8 +27,13 @@ pub fn update(bar: &mut Bar, message: Message) -> Task<Message> {
         Message::TrayActivate(address) => return tray_actions::activate(bar, address),
         Message::TrayMenu(address) => return tray_actions::open_menu(bar, address),
         Message::TrayChoose(entry) => return tray_actions::choose(bar, entry),
-        Message::CloseMenu => return tray_actions::close_menu(bar),
-        _ => {}
+        Message::CloseMenu => {
+            return Task::batch([
+                super::panel_actions::close(bar),
+                tray_actions::close_menu(bar),
+            ]);
+        }
+        other => return super::panel_update::update(bar, other),
     }
     Task::none()
 }

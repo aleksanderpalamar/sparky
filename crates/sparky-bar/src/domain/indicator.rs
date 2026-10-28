@@ -4,6 +4,7 @@ pub enum Role {
     Application,
     Network,
     Bluetooth,
+    Audio,
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
@@ -16,6 +17,9 @@ pub enum Status {
 
 pub fn role(id: &str, icon: &str) -> Role {
     let id = id.to_lowercase();
+    if id == "pasystray" || icon.starts_with("audio-volume-") {
+        return Role::Audio;
+    }
     if id.starts_with("blueman") || icon.starts_with("bluetooth") {
         return Role::Bluetooth;
     }

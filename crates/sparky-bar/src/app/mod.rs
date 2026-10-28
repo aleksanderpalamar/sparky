@@ -1,6 +1,12 @@
+pub mod audio;
 pub mod bluetooth;
 pub mod drawers;
 pub mod message;
+pub mod native_events;
+pub mod network;
+pub mod panel_actions;
+pub mod panel_state;
+pub mod panel_update;
 pub mod state;
 pub mod subscription;
 pub mod tray_actions;
@@ -15,6 +21,8 @@ mod bluetooth_tests;
 mod drawers_tests;
 #[cfg(test)]
 mod palette_tests;
+#[cfg(test)]
+mod panel_tests;
 #[cfg(test)]
 mod tray_actions_tests;
 #[cfg(test)]
@@ -67,3 +75,9 @@ fn settings() -> Settings {
         ..Settings::default()
     }
 }
+
+#[cfg(test)]
+pub(crate) mod panel_flow_tests;
+
+#[cfg(test)]
+mod panel_keyboard_tests;

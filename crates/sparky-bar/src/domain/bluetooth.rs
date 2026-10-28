@@ -2,11 +2,33 @@ use super::tray::MenuEntry;
 
 pub const ADDRESS: &str = "sparky.bluetooth";
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Adapter {
+    pub path: String,
     pub name: String,
     pub powered: bool,
+    pub discovering: bool,
+    pub devices: Vec<Device>,
     pub connected: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Device {
+    pub path: String,
+    pub name: String,
+    pub paired: bool,
+    pub connected: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BluetoothRequest {
+    Power { adapter: String, enabled: bool },
+    Discover(String),
+    StopDiscovery(String),
+    Connect(String),
+    Disconnect(String),
+    Pair { device: String, name: String },
+    Cancel,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

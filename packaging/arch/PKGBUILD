@@ -14,6 +14,7 @@ depends=(
   'libglvnd'
   'libinput'
   'libnotify'
+  'libpulse'
   'libxkbcommon'
   'mesa'
   'polkit'
@@ -36,6 +37,9 @@ depends=(
 makedepends=('cargo' 'git')
 backup=('etc/xdg/xdg-desktop-portal-wlr/sparky')
 optdepends=(
+  'pipewire-pulse: controle de som dos painéis da bandeja via PipeWire'
+  'networkmanager: controle de rede no painel da bandeja'
+  'bluez: controle e pareamento Bluetooth no painel da bandeja'
   'udisks2: montar e desmontar volumes no painel e no gerenciador de arquivos'
   'gvfs-mtp: acessar smartphones Android por MTP no gerenciador de arquivos'
   'mako: notificações da sessão'

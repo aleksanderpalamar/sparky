@@ -20,6 +20,7 @@ impl BluetoothSource for FakeBluetooth {
                 name: "Adaptador".to_owned(),
                 powered: true,
                 connected: vec!["Fone".to_owned()],
+                ..Default::default()
             }])),
             None,
         ]))

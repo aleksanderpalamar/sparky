@@ -23,10 +23,27 @@ pub fn subscription(bar: &Bar) -> Subscription<Message> {
         Subscription::run(sparky_events),
         Subscription::run(tray_events),
         Subscription::run(super::bluetooth::events),
+        Subscription::run(super::native_events::events),
+        iced::window::events().filter_map(|(window, event)| match event {
+            iced::window::Event::Unfocused => Some(Message::PanelUnfocused(window)),
+            iced::window::Event::Focused => Some(Message::PanelFocused(window)),
+            _ => None,
+        }),
         animation,
         time::every(CLOCK_INTERVAL).map(|_| Message::Tick),
-        keyboard::listen().filter_map(close_on_escape),
+        keyboard::listen().filter_map(panel_key),
     ])
+}
+
+fn panel_key(event: keyboard::Event) -> Option<Message> {
+    match event {
+        keyboard::Event::KeyPressed {
+            key: keyboard::Key::Named(keyboard::key::Named::Tab),
+            modifiers,
+            ..
+        } => Some(Message::PanelTab(modifiers.shift())),
+        event => close_on_escape(event),
+    }
 }
 
 fn close_on_escape(event: keyboard::Event) -> Option<Message> {

@@ -124,6 +124,7 @@ fn icon_of(
     let fallback = match role {
         Role::Network => Some("network-transmit-receive-symbolic"),
         Role::Bluetooth => Some("bluetooth-symbolic"),
+        Role::Audio => Some("audio-volume-high-symbolic"),
         Role::Application => None,
     };
     named
