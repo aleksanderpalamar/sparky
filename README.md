@@ -275,7 +275,7 @@ O `sparky-settings` abre pelo `SUPER + ALT + ESPAÇO`. As mudanças de configura
 | Usuários | Consulta de contas, identificadores, grupos e sessões (`getent` e `loginctl`) |
 | Mídia | Volumes externos, montagem e desmontagem (`lsblk` e `udisksctl`) |
 | Temas | Catálogo e aplicação de paletas nativas do Sparky |
-| Sobre | Versão do sparky, sistema, kernel e onde fica a configuração |
+| Sobre | Versão do sparky, sistema, kernel, computador, processador, GPUs e RAM total |
 
 `Tab` e `SHIFT + Tab` (ou `1` a `9`) trocam de seção, `j`/`k` escolhem o item, `h`/`l` diminuem e aumentam números ou ligam e desligam, `Enter` edita um texto ou um número, `d` remove um comando da inicialização, `Esc` desiste da edição e `q` fecha. O mouse também funciona: `−`/`+`, clique no valor para editar e clique duplo na inicialização.
 

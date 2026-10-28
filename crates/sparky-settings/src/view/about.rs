@@ -5,6 +5,7 @@ use sparky_ui::style::{PADDING, SPACING, TEXT_SIZE};
 
 use crate::app::message::Message;
 use crate::app::state::Settings;
+use crate::domain::hardware::memory_label;
 use crate::view::style::KEYS_WIDTH;
 
 const UNKNOWN: &str = "não informado";
@@ -19,11 +20,22 @@ pub fn view(settings: &Settings) -> Element<'_, Message> {
         ("Sistema", known(&about.distribution)),
         ("Kernel", known(&about.kernel)),
         ("Computador", known(&about.host)),
-        ("Configuração", sparky_xdg::tilde(&settings.services.store.location(), &settings.context.home)),
+        ("Processador", known(&about.hardware.processor)),
+        (
+            "GPU",
+            match about.hardware.gpus.is_empty() {
+                true => UNKNOWN.to_owned(),
+                false => about.hardware.gpus.join("\n"),
+            },
+        ),
+        ("RAM", known(&about.hardware.memory_kib.map(memory_label))),
     ];
     let rows = facts.into_iter().map(|(label, value)| {
         let line = row![
-            text(label).size(TEXT_SIZE).color(skin.accent).width(KEYS_WIDTH),
+            text(label)
+                .size(TEXT_SIZE)
+                .color(skin.accent)
+                .width(KEYS_WIDTH),
             text(value).size(TEXT_SIZE).width(Length::Fill),
         ]
         .spacing(SPACING)
