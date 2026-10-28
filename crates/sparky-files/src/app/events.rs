@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use iced::event::{self, Event, Status};
+use iced::mouse;
 use iced::{Subscription, time, window};
 use sparky_ui::press::{Press, press};
 
@@ -19,6 +20,9 @@ pub fn subscription(_files: &Files) -> Subscription<Message> {
 }
 
 fn keyboard_message(event: Event, status: Status, _window: window::Id) -> Option<Message> {
+    if let Event::Mouse(mouse::Event::CursorMoved { position }) = event {
+        return Some(Message::Pointer(position));
+    }
     press(event, status).map(|press| match press {
         Press::Escape => Message::Escape,
         Press::Key(key, modifiers) => Message::Key(key, modifiers),

@@ -19,7 +19,9 @@ struct FakeDisk {
 impl FakeDisk {
     fn with(paths: &[&str]) -> Self {
         let disk = Self::default();
-        disk.existing.borrow_mut().extend(paths.iter().map(PathBuf::from));
+        disk.existing
+            .borrow_mut()
+            .extend(paths.iter().map(PathBuf::from));
         disk
     }
 
@@ -61,15 +63,25 @@ impl Disk for FakeDisk {
     }
 
     fn relocate(&self, from: &Path, to: &Path) -> io::Result<()> {
-        self.record(format!("mover {} {}", from.display(), to.display()), Some(to))
+        self.record(
+            format!("mover {} {}", from.display(), to.display()),
+            Some(to),
+        )
     }
 
     fn copy(&self, from: &Path, to: &Path) -> io::Result<()> {
-        self.record(format!("copiar {} {}", from.display(), to.display()), Some(to))
+        self.record(
+            format!("copiar {} {}", from.display(), to.display()),
+            Some(to),
+        )
     }
 
     fn trash(&self, path: &Path) -> io::Result<()> {
         self.record(format!("lixeira {}", path.display()), None)
+    }
+
+    fn properties(&self, _path: &Path) -> io::Result<crate::domain::properties::Properties> {
+        Err(io::Error::other("sem metadados no disco simulado"))
     }
 }
 
@@ -100,9 +112,22 @@ fn recortar_para_a_mesma_pasta_nao_mexe_em_nada() {
 #[test]
 fn recortar_para_outra_pasta_move_cada_item() {
     let disk = FakeDisk::with(&["/h/a.txt", "/h/b.txt"]);
-    let pasted = paste(&recorte(&["/h/a.txt", "/h/b.txt"]), Path::new("/h/Docs"), &disk);
-    assert_eq!(pasted.ok(), Some(vec!["a.txt".to_owned(), "b.txt".to_owned()]));
-    assert_eq!(disk.calls(), ["mover /h/a.txt /h/Docs/a.txt", "mover /h/b.txt /h/Docs/b.txt"]);
+    let pasted = paste(
+        &recorte(&["/h/a.txt", "/h/b.txt"]),
+        Path::new("/h/Docs"),
+        &disk,
+    );
+    assert_eq!(
+        pasted.ok(),
+        Some(vec!["a.txt".to_owned(), "b.txt".to_owned()])
+    );
+    assert_eq!(
+        disk.calls(),
+        [
+            "mover /h/a.txt /h/Docs/a.txt",
+            "mover /h/b.txt /h/Docs/b.txt"
+        ]
+    );
 }
 
 #[test]
@@ -123,8 +148,14 @@ fn renomear_move_dentro_da_pasta() {
 #[test]
 fn renomear_para_nome_ocupado_ou_invalido_e_recusado() {
     let disk = FakeDisk::with(&["/h/a.txt", "/h/b.txt"]);
-    assert!(matches!(rename(Path::new("/h"), "a.txt", "b.txt", &disk), Err(Failure::AlreadyExists(_))));
-    assert!(matches!(rename(Path::new("/h"), "a.txt", "x/y", &disk), Err(Failure::InvalidName)));
+    assert!(matches!(
+        rename(Path::new("/h"), "a.txt", "b.txt", &disk),
+        Err(Failure::AlreadyExists(_))
+    ));
+    assert!(matches!(
+        rename(Path::new("/h"), "a.txt", "x/y", &disk),
+        Err(Failure::InvalidName)
+    ));
     assert!(rename(Path::new("/h"), "a.txt", "a.txt", &disk).is_ok());
     assert!(disk.calls().is_empty());
 }
@@ -132,10 +163,19 @@ fn renomear_para_nome_ocupado_ou_invalido_e_recusado() {
 #[test]
 fn criar_pasta_ou_arquivo_conforme_a_barra() {
     let disk = FakeDisk::default();
-    assert_eq!(create(Path::new("/h"), "Projetos/", &disk).ok(), Some("Projetos".to_owned()));
-    assert_eq!(create(Path::new("/h"), "notas.md", &disk).ok(), Some("notas.md".to_owned()));
+    assert_eq!(
+        create(Path::new("/h"), "Projetos/", &disk).ok(),
+        Some("Projetos".to_owned())
+    );
+    assert_eq!(
+        create(Path::new("/h"), "notas.md", &disk).ok(),
+        Some("notas.md".to_owned())
+    );
     assert_eq!(disk.calls(), ["pasta /h/Projetos", "arquivo /h/notas.md"]);
-    assert!(matches!(create(Path::new("/h"), "notas.md", &disk), Err(Failure::AlreadyExists(_))));
+    assert!(matches!(
+        create(Path::new("/h"), "notas.md", &disk),
+        Err(Failure::AlreadyExists(_))
+    ));
 }
 
 #[test]

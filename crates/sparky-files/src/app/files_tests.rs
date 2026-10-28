@@ -1,38 +1,10 @@
-use std::cell::RefCell;
-use std::fs;
-use std::io;
-use std::path::{Path, PathBuf};
-use std::rc::Rc;
-
 use iced::keyboard::key::Named;
-use iced::keyboard::{Key, Modifiers};
 use sparky_theme::Skin;
 use sparky_ui::notice::Notice;
-use tempfile::TempDir;
 
-use super::test_sources::{NoIcons, NoVolumes};
-use crate::adapters::home_trash::HomeTrash;
-use crate::adapters::local_disk::LocalDisk;
+use super::test_scene::Cena;
 use crate::app::message::Message;
-use crate::app::state::{Files, Mode, Services, Setup};
-use crate::app::update::update;
-use crate::ports::Opener;
-
-#[derive(Clone, Default)]
-struct Abertos(Rc<RefCell<Vec<PathBuf>>>);
-
-impl Opener for Abertos {
-    fn open(&self, path: &Path) -> io::Result<()> {
-        self.0.borrow_mut().push(path.to_path_buf());
-        Ok(())
-    }
-}
-
-pub(super) struct Cena {
-    pub dir: TempDir,
-    pub files: Files,
-    abertos: Abertos,
-}
+use crate::app::state::Mode;
 
 #[test]
 fn evento_de_paleta_preserva_uma_renomeacao_em_andamento() {
@@ -49,59 +21,6 @@ fn evento_de_paleta_preserva_uma_renomeacao_em_andamento() {
     assert_eq!(cena.files.input, "novo.txt");
     assert_eq!(cena.selecionado(), selected);
     assert!(cena.work().join("a.txt").exists());
-}
-
-impl Cena {
-    pub fn nova() -> Self {
-        let Ok(dir) = tempfile::tempdir() else {
-            panic!("sem pasta temporária")
-        };
-        let work = dir.path().join("work");
-        let preparado = fs::create_dir_all(work.join("Fotos")).and_then(|()| fs::write(work.join("a.txt"), "oi"));
-        assert!(preparado.is_ok());
-        let abertos = Abertos::default();
-        let services = Services {
-            disk: Box::new(LocalDisk::new(HomeTrash::new(dir.path().join("Trash")))),
-            opener: Box::new(abertos.clone()),
-            icons: Box::new(NoIcons),
-            volumes: std::sync::Arc::new(NoVolumes),
-        };
-        let setup = Setup {
-            start: work.clone(),
-            home: dir.path().to_path_buf(),
-            places: Vec::new(),
-            skin: Skin::default(),
-            rows: 10,
-        };
-        Self {
-            files: Files::new(setup, services),
-            dir,
-            abertos,
-        }
-    }
-
-    fn tecla(&mut self, texto: &str) {
-        let _ = update(
-            &mut self.files,
-            Message::Key(Key::Character(texto.into()), Modifiers::empty()),
-        );
-    }
-
-    fn nomeada(&mut self, named: Named) {
-        let _ = update(&mut self.files, Message::Key(Key::Named(named), Modifiers::empty()));
-    }
-
-    pub fn mandar(&mut self, message: Message) {
-        let _ = update(&mut self.files, message);
-    }
-
-    pub fn work(&self) -> PathBuf {
-        self.dir.path().join("work")
-    }
-
-    pub fn selecionado(&self) -> Option<String> {
-        self.files.listing.selected().map(|entry| entry.name.clone())
-    }
 }
 
 #[test]
@@ -135,7 +54,10 @@ fn renomear_comeca_com_o_nome_atual() {
     cena.mandar(Message::Typed("b.txt".to_owned()));
     cena.mandar(Message::Submit);
     assert!(cena.work().join("b.txt").exists());
-    assert_eq!(cena.files.notice, Some(Notice::Info("Renomeado para b.txt".to_owned())));
+    assert_eq!(
+        cena.files.notice,
+        Some(Notice::Info("Renomeado para b.txt".to_owned()))
+    );
 }
 
 #[test]
@@ -153,7 +75,10 @@ fn a_lixeira_so_age_depois_da_confirmacao() {
     let mut cena = Cena::nova();
     cena.tecla("G");
     cena.tecla("d");
-    assert_eq!(cena.files.mode, Mode::ConfirmTrash(vec!["a.txt".to_owned()]));
+    assert_eq!(
+        cena.files.mode,
+        Mode::ConfirmTrash(vec!["a.txt".to_owned()])
+    );
     cena.tecla("n");
     assert!(cena.work().join("a.txt").exists());
     cena.tecla("d");
@@ -178,7 +103,7 @@ fn abrir_um_arquivo_chama_o_aplicativo_padrao() {
     let mut cena = Cena::nova();
     cena.tecla("G");
     cena.nomeada(Named::Enter);
-    assert_eq!(*cena.abertos.0.borrow(), vec![cena.work().join("a.txt")]);
+    assert_eq!(cena.abertos(), vec![cena.work().join("a.txt")]);
 }
 
 #[test]
@@ -187,6 +112,9 @@ fn marcar_com_espaco_e_copiar_leva_todos_os_marcados() {
     cena.nomeada(Named::Space);
     cena.nomeada(Named::Space);
     cena.tecla("y");
-    assert_eq!(cena.files.clip.as_ref().map(|clip| clip.paths().len()), Some(2));
+    assert_eq!(
+        cena.files.clip.as_ref().map(|clip| clip.paths().len()),
+        Some(2)
+    );
     assert_eq!(cena.files.listing.marked_count(), 0);
 }

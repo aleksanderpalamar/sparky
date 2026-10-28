@@ -6,8 +6,7 @@ use sparky_theme::Skin;
 use crate::app::message::Message;
 use crate::app::state::Files;
 use crate::domain::entry::Entry;
-use crate::domain::icons::IconKind;
-use crate::view::icon::icon;
+use crate::view::icon::entry_icon;
 use crate::view::labels::{self, Tone};
 use crate::view::style::{DATE_WIDTH, ROW_HEIGHT, SIZE_WIDTH};
 use sparky_ui::style::{self, Highlight, PADDING, SMALL_TEXT, SPACING, TEXT_SIZE};
@@ -25,14 +24,20 @@ pub fn list(files: &Files) -> Element<'_, Message> {
         false => Column::with_children(rows).into(),
     };
     let area = mouse_area(container(body).width(Length::Fill).height(Length::Fill))
-        .on_scroll(|delta| Message::Scrolled(wheel::rows(delta, ROW_HEIGHT)));
+        .on_scroll(|delta| Message::Scrolled(wheel::rows(delta, ROW_HEIGHT)))
+        .on_right_press(Message::ContextBackground);
     column![titles(files.skin), area]
         .width(Length::Fill)
         .height(Length::Fill)
         .into()
 }
 
-fn entry_row<'a>(files: &'a Files, entry: &'a Entry, row_index: usize, highlight: Highlight) -> Element<'a, Message> {
+fn entry_row<'a>(
+    files: &'a Files,
+    entry: &'a Entry,
+    row_index: usize,
+    highlight: Highlight,
+) -> Element<'a, Message> {
     let skin = files.skin;
     let tone = labels::tone(&files.listing, entry);
     let path = files.location.join(&entry.name);
@@ -42,7 +47,7 @@ fn entry_row<'a>(files: &'a Files, entry: &'a Entry, row_index: usize, highlight
         .find(|place| place.path == path)
         .map(|place| place.label);
     let line = row![
-        icon(files, IconKind::for_entry(entry, place), 22.0),
+        entry_icon(files, entry, place, 22.0),
         text(labels::name(entry, tone))
             .size(TEXT_SIZE)
             .color(tone_color(skin, tone))
@@ -66,6 +71,7 @@ fn entry_row<'a>(files: &'a Files, entry: &'a Entry, row_index: usize, highlight
         .style(move |_| style::row(skin, highlight));
     mouse_area(cell)
         .on_press(Message::Clicked(row_index))
+        .on_right_press(Message::ContextEntry(row_index))
         .on_double_click(Message::Activated(row_index))
         .into()
 }
@@ -74,8 +80,12 @@ fn titles(skin: Skin) -> Element<'static, Message> {
     let title = |label: &'static str| text(label).size(SMALL_TEXT).color(skin.dark_foreground);
     let line = row![
         title("Nome").width(Length::Fill),
-        title("Tamanho").width(SIZE_WIDTH).align_x(Horizontal::Right),
-        title("Modificado").width(DATE_WIDTH).align_x(Horizontal::Right),
+        title("Tamanho")
+            .width(SIZE_WIDTH)
+            .align_x(Horizontal::Right),
+        title("Modificado")
+            .width(DATE_WIDTH)
+            .align_x(Horizontal::Right),
     ]
     .spacing(SPACING)
     .align_y(Vertical::Center);
@@ -87,9 +97,13 @@ fn titles(skin: Skin) -> Element<'static, Message> {
 }
 
 fn empty(skin: Skin) -> Element<'static, Message> {
-    container(text("Pasta vazia").size(TEXT_SIZE).color(skin.dark_foreground))
-        .padding(PADDING)
-        .into()
+    container(
+        text("Pasta vazia")
+            .size(TEXT_SIZE)
+            .color(skin.dark_foreground),
+    )
+    .padding(PADDING)
+    .into()
 }
 
 fn tone_color(skin: Skin, tone: Tone) -> Color {

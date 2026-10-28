@@ -47,7 +47,8 @@ impl Listing {
     pub fn replace(&mut self, mut entries: Vec<Entry>) {
         let selected = self.selected_name();
         sort(&mut entries);
-        self.marked.retain(|name| entries.iter().any(|entry| &entry.name == name));
+        self.marked
+            .retain(|name| entries.iter().any(|entry| &entry.name == name));
         self.entries = entries;
         self.refresh();
         if let Some(name) = selected {
@@ -56,7 +57,9 @@ impl Listing {
     }
 
     pub fn visible(&self) -> impl Iterator<Item = &Entry> {
-        self.shown.iter().filter_map(|index| self.entries.get(*index))
+        self.shown
+            .iter()
+            .filter_map(|index| self.entries.get(*index))
     }
 
     pub fn len(&self) -> usize {
@@ -80,7 +83,10 @@ impl Listing {
     }
 
     pub fn move_by(&mut self, delta: isize) {
-        self.cursor = self.cursor.saturating_add_signed(delta).min(self.len().saturating_sub(1));
+        self.cursor = self
+            .cursor
+            .saturating_add_signed(delta)
+            .min(self.len().saturating_sub(1));
     }
 
     pub fn first(&mut self) {
@@ -146,6 +152,10 @@ impl Listing {
 
     pub fn clear_marks(&mut self) {
         self.marked.clear();
+    }
+
+    pub fn select_all(&mut self) {
+        self.marked = self.visible().map(|entry| entry.name.clone()).collect();
     }
 
     pub fn chosen(&self) -> Vec<String> {

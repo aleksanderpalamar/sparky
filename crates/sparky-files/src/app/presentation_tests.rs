@@ -3,8 +3,8 @@ use std::fs;
 use iced::Size;
 use iced::keyboard::{Key, Modifiers, key::Named};
 
-use super::files_tests::Cena;
 use super::message::Message;
+use super::test_scene::Cena;
 use crate::domain::grid::ViewMode;
 
 fn many() -> Cena {
@@ -37,9 +37,15 @@ fn alternar_grade_e_lista_preserva_filtro_selecao_e_marcacoes() {
 fn setas_movem_por_celulas_e_h_l_continuam_entrando_e_voltando() {
     let mut scene = many();
     let columns = scene.files.layout.columns;
-    scene.mandar(Message::Key(Key::Named(Named::ArrowDown), Modifiers::empty()));
+    scene.mandar(Message::Key(
+        Key::Named(Named::ArrowDown),
+        Modifiers::empty(),
+    ));
     assert_eq!(scene.files.listing.cursor(), columns);
-    scene.mandar(Message::Key(Key::Named(Named::ArrowRight), Modifiers::empty()));
+    scene.mandar(Message::Key(
+        Key::Named(Named::ArrowRight),
+        Modifiers::empty(),
+    ));
     assert_eq!(scene.files.listing.cursor(), columns + 1);
     scene.files.listing.first();
     scene.mandar(Message::Key(Key::Character("l".into()), Modifiers::empty()));
@@ -101,9 +107,12 @@ fn atualizacao_de_icones_preserva_edicao_e_selecao() {
     struct NewIcons;
     impl crate::ports::IconSource for NewIcons {
         fn load(&mut self) -> crate::domain::icons::Icons {
-            [(crate::domain::icons::IconKind::Folder, "/tema/folder.svg".into())]
-                .into_iter()
-                .collect()
+            [(
+                crate::domain::icons::IconKind::Folder,
+                "/tema/folder.svg".into(),
+            )]
+            .into_iter()
+            .collect()
         }
     }
     let mut scene = Cena::nova();
@@ -117,7 +126,10 @@ fn atualizacao_de_icones_preserva_edicao_e_selecao() {
     assert_eq!(scene.files.input, "Novo nome");
     assert_eq!(scene.selecionado(), selected);
     assert_eq!(
-        scene.files.icons.get(&crate::domain::icons::IconKind::Folder),
+        scene
+            .files
+            .icons
+            .get(&crate::domain::icons::IconKind::Folder),
         Some(&std::path::PathBuf::from("/tema/folder.svg"))
     );
 }

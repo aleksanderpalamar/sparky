@@ -5,6 +5,8 @@ use sparky_theme::Skin;
 
 use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
+use crate::domain::clip::Clip;
+use crate::domain::entry::Kind;
 use crate::domain::wording::{items, summary};
 use sparky_ui::prompt::PROMPT;
 use sparky_ui::style::{self, PADDING, SMALL_TEXT, SPACING, STATUS_HEIGHT, TEXT_SIZE};
@@ -18,8 +20,23 @@ pub fn status(files: &Files) -> Element<'_, Message> {
         Mode::Browse => browsing(files),
         Mode::Filter => prompt(files, "Filtrar", "Enter fixa · Esc limpa"),
         Mode::Rename(_) => prompt(files, "Renomear", "Enter confirma · Esc cancela"),
-        Mode::Create => prompt(files, "Criar (termine com / para pasta)", "Enter cria · Esc cancela"),
-        Mode::ConfirmTrash(names) => text(question(names)).size(TEXT_SIZE).color(skin.urgent).into(),
+        Mode::Create => prompt(
+            files,
+            "Criar (termine com / para pasta)",
+            "Enter cria · Esc cancela",
+        ),
+        Mode::New(Kind::Directory) => prompt(files, "Nova pasta", "Enter cria · Esc cancela"),
+        Mode::New(Kind::File) => prompt(files, "Novo documento", "Enter cria · Esc cancela"),
+        Mode::Destination(clip) => prompt(
+            files,
+            destination(clip),
+            "Caminho da pasta · Enter confirma · Esc cancela",
+        ),
+        Mode::Compress(_) => prompt(files, "Comprimir (.tar.gz)", "Enter cria · Esc cancela"),
+        Mode::ConfirmTrash(names) => text(question(names))
+            .size(TEXT_SIZE)
+            .color(skin.urgent)
+            .into(),
     };
     container(content)
         .height(STATUS_HEIGHT)
@@ -28,6 +45,13 @@ pub fn status(files: &Files) -> Element<'_, Message> {
         .align_y(Vertical::Center)
         .style(move |_| style::panel(skin))
         .into()
+}
+
+fn destination(clip: &Clip) -> &'static str {
+    match clip {
+        Clip::Cut(_) => "Mover para",
+        Clip::Copy(_) => "Copiar para",
+    }
 }
 
 pub fn question(names: &[String]) -> String {
@@ -68,14 +92,21 @@ fn prompt<'a>(files: &'a Files, label: &'static str, keys: &'static str) -> Elem
         .size(TEXT_SIZE)
         .width(PROMPT_WIDTH)
         .style(style::input);
-    row![text(label).size(TEXT_SIZE).color(skin.accent), input, hint(skin, keys)]
-        .spacing(SPACING)
-        .align_y(Vertical::Center)
-        .into()
+    row![
+        text(label).size(TEXT_SIZE).color(skin.accent),
+        input,
+        hint(skin, keys)
+    ]
+    .spacing(SPACING)
+    .align_y(Vertical::Center)
+    .into()
 }
 
 fn hint(skin: Skin, keys: &'static str) -> Element<'static, Message> {
-    text(keys).size(SMALL_TEXT).color(skin.dark_foreground).into()
+    text(keys)
+        .size(SMALL_TEXT)
+        .color(skin.dark_foreground)
+        .into()
 }
 
 #[cfg(test)]

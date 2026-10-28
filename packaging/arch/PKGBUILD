@@ -21,6 +21,7 @@ depends=(
   'pipewire'
   'seatd'
   'systemd-libs'
+  'tar'
   'util-linux'
   'wayland'
   'wl-clipboard'

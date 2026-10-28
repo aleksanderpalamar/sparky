@@ -18,12 +18,17 @@ fn respeita_tema_do_usuario_diretorios_do_indice_e_heranca() {
     theme(dir.path(), "Yaru-sage", "Yaru", "48x48/places");
     theme(dir.path(), "Yaru", "hicolor", "scalable/mimetypes");
     let folder = dir.path().join("Yaru-sage/48x48/places/folder.png");
-    let pdf = dir.path().join("Yaru/scalable/mimetypes/application-pdf.svg");
+    let pdf = dir
+        .path()
+        .join("Yaru/scalable/mimetypes/application-pdf.svg");
     fs::write(&folder, "png").unwrap();
     fs::write(&pdf, "svg").unwrap();
     let icons = IconTheme::new(vec![dir.path().to_path_buf()], "Yaru-sage");
     assert_eq!(icons.resolve(&["folder"]), Some(folder));
-    assert_eq!(icons.resolve(&["application-pdf", "text-x-generic"]), Some(pdf));
+    assert_eq!(
+        icons.resolve(&["application-pdf", "text-x-generic"]),
+        Some(pdf)
+    );
     assert_eq!(icons.resolve(&["inexistente"]), None);
 }
 
@@ -47,19 +52,43 @@ fn heranca_circular_termina_e_raiz_do_usuario_tem_prioridade() {
 fn hicolor_e_usado_quando_o_tema_nao_existe() {
     let dir = tempfile::tempdir().unwrap();
     theme(dir.path(), "hicolor", "", "48x48/mimetypes");
-    let fallback = dir.path().join("hicolor/48x48/mimetypes/text-x-generic.svg");
+    let fallback = dir
+        .path()
+        .join("hicolor/48x48/mimetypes/text-x-generic.svg");
     fs::write(&fallback, "svg").unwrap();
     let icons = IconTheme::new(vec![dir.path().to_path_buf()], "ausente");
-    assert_eq!(icons.resolve(&["sem-tipo", "text-x-generic"]), Some(fallback));
+    assert_eq!(
+        icons.resolve(&["sem-tipo", "text-x-generic"]),
+        Some(fallback)
+    );
+}
+
+#[test]
+fn tamanho_fisico_prefere_icone_em_escala_dupla_para_grade() {
+    let dir = tempfile::tempdir().unwrap();
+    theme(dir.path(), "custom", "", "48x48/places,48x48@2x/places");
+    fs::create_dir_all(dir.path().join("custom/48x48/places")).unwrap();
+    fs::create_dir_all(dir.path().join("custom/48x48@2x/places")).unwrap();
+    let regular = dir.path().join("custom/48x48/places/folder.png");
+    let sharp = dir.path().join("custom/48x48@2x/places/folder.png");
+    fs::write(&regular, "png").unwrap();
+    fs::write(&sharp, "png").unwrap();
+    let icons = IconTheme::with_size(vec![dir.path().to_path_buf()], "custom", 96);
+    assert_eq!(icons.resolve(&["folder"]), Some(sharp));
 }
 
 #[test]
 fn configuracao_do_gtk_ignora_outras_secoes_e_valores_vazios() {
     assert_eq!(
-        theme_from_settings("[Other]\ngtk-icon-theme-name=Outro\n[Settings]\ngtk-icon-theme-name=\"Yaru-sage\""),
+        theme_from_settings(
+            "[Other]\ngtk-icon-theme-name=Outro\n[Settings]\ngtk-icon-theme-name=\"Yaru-sage\""
+        ),
         Some("Yaru-sage".to_owned())
     );
-    assert_eq!(theme_from_settings("[Settings]\ngtk-icon-theme-name=\n"), None);
+    assert_eq!(
+        theme_from_settings("[Settings]\ngtk-icon-theme-name=\n"),
+        None
+    );
     assert_eq!(
         theme_from_settings("[Settings]\ngtk-icon-theme-name = Yaru-sage\n"),
         Some("Yaru-sage".to_owned())

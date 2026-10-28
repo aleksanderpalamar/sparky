@@ -5,27 +5,35 @@ use iced::{Element, Length};
 use crate::app::message::Message;
 use crate::app::state::Files;
 use crate::domain::entry::Entry;
-use crate::domain::icons::IconKind;
-use crate::view::icon::icon;
+use crate::view::icon::entry_icon;
 use crate::view::style::TILE_HEIGHT;
 use sparky_ui::style::{self, Highlight, PADDING, SPACING, TEXT_SIZE};
 use sparky_ui::wheel;
 
 pub fn grid(files: &Files) -> Element<'_, Message> {
-    let range = files.layout.range(files.viewport.top(), files.listing.len());
+    let range = files
+        .layout
+        .range(files.viewport.top(), files.listing.len());
     let rows = range.step_by(files.layout.columns).map(|start| {
-        let cells = (start..start + files.layout.columns).map(|index| match files.listing.get(index) {
-            Some(entry) => tile(files, entry, index),
-            None => Space::new().width(Length::FillPortion(1)).into(),
-        });
-        Row::with_children(cells).spacing(SPACING).width(Length::Fill).into()
+        let cells =
+            (start..start + files.layout.columns).map(|index| match files.listing.get(index) {
+                Some(entry) => tile(files, entry, index),
+                None => Space::new().width(Length::FillPortion(1)).into(),
+            });
+        Row::with_children(cells)
+            .spacing(SPACING)
+            .width(Length::Fill)
+            .into()
     });
     let body: Element<'_, Message> = match files.listing.is_empty() {
         true => text("Pasta vazia")
             .color(files.skin.dark_foreground)
             .size(TEXT_SIZE)
             .into(),
-        false => Column::with_children(rows).spacing(SPACING).width(Length::Fill).into(),
+        false => Column::with_children(rows)
+            .spacing(SPACING)
+            .width(Length::Fill)
+            .into(),
     };
     mouse_area(
         container(body)
@@ -34,6 +42,7 @@ pub fn grid(files: &Files) -> Element<'_, Message> {
             .padding(PADDING),
     )
     .on_scroll(|delta| Message::Scrolled(wheel::rows(delta, TILE_HEIGHT + SPACING)))
+    .on_right_press(Message::ContextBackground)
     .into()
 }
 
@@ -63,7 +72,7 @@ fn tile<'a>(files: &'a Files, entry: &'a Entry, index: usize) -> Element<'a, Mes
         .height(42.0)
         .align_x(Horizontal::Center)
         .wrapping(iced::widget::text::Wrapping::WordOrGlyph);
-    let body = column![icon(files, IconKind::for_entry(entry, place), 56.0), label]
+    let body = column![entry_icon(files, entry, place, 56.0), label]
         .align_x(Horizontal::Center)
         .spacing(6.0)
         .width(Length::Fill);
@@ -76,6 +85,7 @@ fn tile<'a>(files: &'a Files, entry: &'a Entry, index: usize) -> Element<'a, Mes
         .style(move |_| style::row(skin, highlight));
     mouse_area(cell)
         .on_press(Message::Clicked(index))
+        .on_right_press(Message::ContextEntry(index))
         .on_double_click(Message::Activated(index))
         .into()
 }

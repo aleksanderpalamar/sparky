@@ -6,9 +6,11 @@ use std::sync::Arc;
 use sparky_theme::Skin;
 use sparky_xdg::UserDirs;
 
+use crate::adapters::archive::TarArchive;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::icons::ThemeIcons;
 use crate::adapters::local_disk::LocalDisk;
+use crate::adapters::thumbnail::FileThumbnail;
 use crate::adapters::xdg_open::XdgOpen;
 use crate::app::message::Message;
 use crate::app::state::{Files, Services, Setup};
@@ -35,10 +37,15 @@ pub fn boot() -> (Files, Task<Message>) {
         opener: Box::new(XdgOpen),
         icons: Box::new(ThemeIcons::default()),
         volumes: Arc::new(sparky_storage::desktop::system()),
+        archiver: Arc::new(TarArchive),
+        thumbnails: Arc::new(FileThumbnail),
     };
     let mut files = Files::new(setup, services);
     files.resize(Size::new(WINDOW_WIDTH, WINDOW_HEIGHT));
-    let task = crate::app::volumes::refresh(&mut files);
+    let task = Task::batch([
+        crate::app::volumes::refresh(&mut files),
+        files.request_previews(),
+    ]);
     (files, task)
 }
 

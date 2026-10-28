@@ -3,6 +3,7 @@ use std::io;
 use std::path::Path;
 
 use crate::domain::clip::Clip;
+use crate::domain::entry::Kind;
 use crate::domain::naming::{Creation, creation, free_name, valid};
 use crate::ports::Disk;
 
@@ -19,14 +20,19 @@ impl fmt::Display for Failure {
         match self {
             Failure::InvalidName => write!(formatter, "nome inválido"),
             Failure::AlreadyExists(name) => write!(formatter, "já existe um item chamado {name}"),
-            Failure::IntoItself(name) => write!(formatter, "não dá para colar {name} dentro dela mesma"),
+            Failure::IntoItself(name) => {
+                write!(formatter, "não dá para colar {name} dentro dela mesma")
+            }
             Failure::Io { name, source } => write!(formatter, "{name}: {source}"),
         }
     }
 }
 
 pub fn paste(clip: &Clip, into: &Path, disk: &dyn Disk) -> Result<Vec<String>, Failure> {
-    clip.paths().iter().map(|source| paste_one(clip, source, into, disk)).collect()
+    clip.paths()
+        .iter()
+        .map(|source| paste_one(clip, source, into, disk))
+        .collect()
 }
 
 pub fn rename(dir: &Path, old: &str, new: &str, disk: &dyn Disk) -> Result<(), Failure> {
@@ -44,17 +50,27 @@ pub fn rename(dir: &Path, old: &str, new: &str, disk: &dyn Disk) -> Result<(), F
 }
 
 pub fn create(dir: &Path, input: &str, disk: &dyn Disk) -> Result<String, Failure> {
-    let created = creation(input).ok_or(Failure::InvalidName)?;
-    let (Creation::Folder(name) | Creation::File(name)) = &created;
+    let (name, kind) = match creation(input).ok_or(Failure::InvalidName)? {
+        Creation::Folder(name) => (name, Kind::Directory),
+        Creation::File(name) => (name, Kind::File),
+    };
+    create_as(dir, &name, kind, disk)
+}
+
+pub fn create_as(dir: &Path, input: &str, kind: Kind, disk: &dyn Disk) -> Result<String, Failure> {
+    let name = input.trim();
+    if !valid(name) {
+        return Err(Failure::InvalidName);
+    }
     let path = dir.join(name);
     if disk.exists(&path) {
-        return Err(Failure::AlreadyExists(name.clone()));
+        return Err(Failure::AlreadyExists(name.to_owned()));
     }
-    let result = match &created {
-        Creation::Folder(_) => disk.create_dir(&path),
-        Creation::File(_) => disk.create_file(&path),
+    let result = match kind {
+        Kind::Directory => disk.create_dir(&path),
+        Kind::File => disk.create_file(&path),
     };
-    result.map(|()| name.clone()).map_err(failed(name))
+    result.map(|()| name.to_owned()).map_err(failed(name))
 }
 
 pub fn trash(dir: &Path, names: &[String], disk: &dyn Disk) -> Result<usize, Failure> {
@@ -65,7 +81,10 @@ pub fn trash(dir: &Path, names: &[String], disk: &dyn Disk) -> Result<usize, Fai
 }
 
 fn paste_one(clip: &Clip, source: &Path, into: &Path, disk: &dyn Disk) -> Result<String, Failure> {
-    let name = source.file_name().map(|name| name.to_string_lossy().into_owned()).unwrap_or_default();
+    let name = source
+        .file_name()
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_default();
     if into.starts_with(source) {
         return Err(Failure::IntoItself(name));
     }
