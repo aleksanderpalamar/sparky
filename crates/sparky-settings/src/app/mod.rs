@@ -10,21 +10,23 @@ pub mod themes;
 pub mod update;
 
 #[cfg(test)]
-mod settings_tests;
+mod about_tests;
 #[cfg(test)]
 mod datetime_tests;
 #[cfg(test)]
-mod region_tests;
-#[cfg(test)]
-mod users_tests;
-#[cfg(test)]
 mod media_tests;
 #[cfg(test)]
-mod themes_tests;
+mod region_tests;
+#[cfg(test)]
+mod settings_tests;
 #[cfg(test)]
 mod system_tests;
 #[cfg(test)]
 mod test_support;
+#[cfg(test)]
+mod themes_tests;
+#[cfg(test)]
+mod users_tests;
 
 use iced::Size;
 
@@ -37,6 +39,9 @@ pub fn run() -> iced::Result {
         .subscription(events::subscription)
         .default_font(sparky_ui::style::FONT)
         .theme(|settings: &Settings| settings.context.skin.theme())
-        .window(sparky_ui::window::settings(style::APPLICATION_ID, Size::new(style::WINDOW_WIDTH, style::WINDOW_HEIGHT)))
+        .window(sparky_ui::window::settings(
+            style::APPLICATION_ID,
+            Size::new(style::WINDOW_WIDTH, style::WINDOW_HEIGHT),
+        ))
         .run()
 }

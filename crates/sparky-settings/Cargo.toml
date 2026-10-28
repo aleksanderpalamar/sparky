@@ -25,3 +25,6 @@ sparky-theme.workspace = true
 sparky-tiling.workspace = true
 sparky-ui.workspace = true
 sparky-xdg.workspace = true
+
+[dev-dependencies]
+iced = { version = "0.14", features = ["advanced"] }
