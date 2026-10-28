@@ -8,9 +8,11 @@ use crate::app::message::Message;
 use crate::app::state::Terminal;
 use crate::app::update::{mode, scroll, with_session};
 use crate::app::workspace::Workspace;
+use crate::domain::grid::Spot;
 use crate::domain::input::{
     Bracketed, Buffer, Focus, Reporting, Wheel, focus_report, paste as pasted, wheel as rolled,
 };
+use crate::domain::mouse::{self, Encoding};
 
 pub fn key(
     app: &mut Workspace,
@@ -50,17 +52,32 @@ pub fn paste(terminal: &mut Terminal, text: Option<String>) {
     typed(terminal, pasted(&text, bracketed));
 }
 
-pub fn wheel(terminal: &mut Terminal, lines: f32) {
-    let buffer = match mode(terminal).contains(TermMode::ALT_SCREEN | TermMode::ALTERNATE_SCROLL) {
-        true => Buffer::Alternate,
-        false => Buffer::Main,
+pub fn wheel(terminal: &mut Terminal, lines: f32, at: Spot) {
+    let (rolled, rest) = match mode(terminal) {
+        mode if mode.intersects(TermMode::MOUSE_MODE) => {
+            mouse::wheel(lines, terminal.wheel_rest, at, mouse_encoding(mode))
+        }
+        mode if mode.contains(TermMode::ALT_SCREEN | TermMode::ALTERNATE_SCROLL) => {
+            rolled(lines, terminal.wheel_rest, Buffer::Alternate)
+        }
+        _ => rolled(lines, terminal.wheel_rest, Buffer::Main),
     };
-    let (rolled, rest) = rolled(lines, terminal.wheel_rest, buffer);
     terminal.wheel_rest = rest;
     match rolled {
         Wheel::History(0) => {}
         Wheel::History(steps) => scroll(terminal, Viewport::Delta(steps)),
-        Wheel::Keys(bytes) => with_session(terminal, |session| session.write(bytes)),
+        Wheel::Keys(bytes) if !bytes.is_empty() => {
+            with_session(terminal, |session| session.write(bytes))
+        }
+        Wheel::Keys(_) => {}
+    }
+}
+
+fn mouse_encoding(mode: TermMode) -> Encoding {
+    match mode {
+        mode if mode.contains(TermMode::SGR_MOUSE) => Encoding::Sgr,
+        mode if mode.contains(TermMode::UTF8_MOUSE) => Encoding::Utf8,
+        _ => Encoding::Legacy,
     }
 }
 
