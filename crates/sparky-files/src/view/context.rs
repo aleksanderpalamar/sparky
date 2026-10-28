@@ -80,7 +80,7 @@ fn menu_row(skin: Skin, entry: Row) -> Element<'static, Message> {
         text(shortcut).size(11.0).color(skin.dark_foreground),
     ]
     .align_y(iced::alignment::Vertical::Center);
-    let item = button(line)
+    let item = button(container(line).height(Length::Fill).center_y(Length::Fill))
         .width(Length::Fill)
         .height(ITEM_HEIGHT)
         .padding([0.0, 10.0])
