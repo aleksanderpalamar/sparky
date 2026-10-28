@@ -15,6 +15,28 @@ fn identifica_seguranca_sem_confundir_owe_com_empresa_ou_rede_aberta() {
 }
 
 #[test]
+fn rede_mista_aceita_todos_os_modos_de_autenticacao_anunciados() {
+    for (wpa, rsn) in [(0, 0x500), (0x100, 0x400)] {
+        assert!(Security::Personal.matches_flags(1, wpa, rsn));
+        assert!(Security::Sae.matches_flags(1, wpa, rsn));
+        assert!(!Security::Enterprise.matches_flags(1, wpa, rsn));
+        assert!(!Security::Open.matches_flags(1, wpa, rsn));
+    }
+    assert!(Security::Enterprise.matches_flags(1, 0x100, 0x200));
+    assert!(Security::Enterprise.matches_flags(1, 0, 0x2000));
+}
+
+#[test]
+fn modos_de_autenticacao_ausentes_nao_correspondem_ao_perfil() {
+    assert!(!Security::Personal.matches_flags(1, 0, 0x400));
+    assert!(!Security::Sae.matches_flags(1, 0x100, 0));
+    assert!(!Security::Personal.matches_flags(0, 0, 0));
+    assert!(!Security::Sae.matches_flags(1, 0, 0x800));
+    assert!(!Security::Open.matches_flags(1, 0, 0));
+    assert!(Security::Open.matches_flags(0, 0, 0));
+}
+
+#[test]
 fn valida_senhas_wpa2_e_wpa3_sem_impor_regra_de_psk_ao_sae() {
     assert!(Security::Personal.validate("curta").is_err());
     assert!(Security::Personal.validate("12345678").is_ok());

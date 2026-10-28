@@ -24,14 +24,13 @@ pub async fn read(
         )
         .await?;
         let ssid: Vec<u8> = ap.get_property("Ssid").await?;
-        let security = Security::from_flags(
-            ap.get_property("Flags").await?,
-            ap.get_property("WpaFlags").await?,
-            ap.get_property("RsnFlags").await?,
-        );
+        let flags = ap.get_property("Flags").await?;
+        let wpa = ap.get_property("WpaFlags").await?;
+        let rsn = ap.get_property("RsnFlags").await?;
+        let security = Security::from_flags(flags, wpa, rsn);
         let profile = profiles
             .iter()
-            .find(|profile| profile.ssid == ssid && profile.security == security)
+            .find(|profile| profile.ssid == ssid && profile.security.matches_flags(flags, wpa, rsn))
             .map(|profile| profile.path.clone());
         networks.push(WifiNetwork {
             path: path.to_string(),

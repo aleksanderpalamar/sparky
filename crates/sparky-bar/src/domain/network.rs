@@ -45,6 +45,16 @@ impl Security {
             _ => Self::Unsupported,
         }
     }
+
+    pub fn matches_flags(self, flags: u32, wpa: u32, rsn: u32) -> bool {
+        let modes = wpa | rsn;
+        match self {
+            Self::Personal => modes & 0x100 != 0,
+            Self::Sae => modes & 0x400 != 0,
+            Self::Enterprise => modes & (0x200 | 0x2000) != 0,
+            _ => self == Self::from_flags(flags, wpa, rsn),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

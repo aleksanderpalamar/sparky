@@ -134,3 +134,6 @@ mod tests;
 
 #[cfg(test)]
 mod activation_tests;
+
+#[cfg(test)]
+mod wifi_tests;
