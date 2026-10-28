@@ -20,7 +20,7 @@ pub fn list(files: &Files) -> Element<'_, Message> {
         Some(entry_row(files, entry, index, highlight))
     });
     let body: Element<'_, Message> = match files.listing.is_empty() {
-        true => empty(files.skin),
+        true => empty(files.skin, files.in_trash(), files.listing.total_len()),
         false => Column::with_children(rows).into(),
     };
     let area = mouse_area(container(body).width(Length::Fill).height(Length::Fill))
@@ -96,14 +96,15 @@ fn titles(skin: Skin) -> Element<'static, Message> {
         .into()
 }
 
-fn empty(skin: Skin) -> Element<'static, Message> {
-    container(
-        text("Pasta vazia")
-            .size(TEXT_SIZE)
-            .color(skin.dark_foreground),
-    )
-    .padding(PADDING)
-    .into()
+fn empty(skin: Skin, trash: bool, total: usize) -> Element<'static, Message> {
+    let label = match (trash, total) {
+        (true, 0) => "Lixeira vazia",
+        (true, _) => "Nenhum item visível",
+        (false, _) => "Pasta vazia",
+    };
+    container(text(label).size(TEXT_SIZE).color(skin.dark_foreground))
+        .padding(PADDING)
+        .into()
 }
 
 fn tone_color(skin: Skin, tone: Tone) -> Color {

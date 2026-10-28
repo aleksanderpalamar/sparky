@@ -60,6 +60,9 @@ fn fallback(files: &Files, kind: IconKind, size: f32) -> Element<'static, Messag
             "<path d='M13 8h38v48H13z'/><circle cx='32' cy='28' r='12' fill='none' stroke='#ffffff' stroke-width='2'/><circle cx='32' cy='28' r='3' fill='#ffffff'/><path d='M21 47h22' stroke='#ffffff' stroke-width='3'/>"
         }
         IconKind::Eject => "<path d='M12 40l20-25 20 25zM12 47h40v7H12z'/>",
+        IconKind::Trash => {
+            "<path d='M14 17h36l-3 39H17z'/><path d='M10 12h44v5H10z'/><path d='M25 8h14v4H25z'/>"
+        }
         IconKind::Phone => {
             "<path d='M18 5h28v54H18z'/><path d='M22 12h20v35H22z' fill='#ffffff' opacity='.35'/><circle cx='32' cy='53' r='2' fill='#ffffff'/>"
         }

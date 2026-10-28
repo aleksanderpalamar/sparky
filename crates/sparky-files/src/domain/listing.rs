@@ -66,6 +66,10 @@ impl Listing {
         self.shown.len()
     }
 
+    pub fn total_len(&self) -> usize {
+        self.entries.len()
+    }
+
     pub fn is_empty(&self) -> bool {
         self.shown.is_empty()
     }

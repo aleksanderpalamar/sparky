@@ -26,10 +26,14 @@ pub fn grid(files: &Files) -> Element<'_, Message> {
             .into()
     });
     let body: Element<'_, Message> = match files.listing.is_empty() {
-        true => text("Pasta vazia")
-            .color(files.skin.dark_foreground)
-            .size(TEXT_SIZE)
-            .into(),
+        true => text(match (files.in_trash(), files.listing.total_len()) {
+            (true, 0) => "Lixeira vazia",
+            (true, _) => "Nenhum item visível",
+            (false, _) => "Pasta vazia",
+        })
+        .color(files.skin.dark_foreground)
+        .size(TEXT_SIZE)
+        .into(),
         false => Column::with_children(rows)
             .spacing(SPACING)
             .width(Length::Fill)

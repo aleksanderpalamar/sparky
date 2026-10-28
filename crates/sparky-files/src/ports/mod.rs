@@ -50,3 +50,13 @@ pub trait Archiver: Send + Sync {
 pub trait ThumbnailSource: Send + Sync {
     fn load(&self, path: &Path) -> Option<Thumbnail>;
 }
+
+pub trait TrashStore {
+    fn open(&self) -> io::Result<PathBuf>;
+
+    fn directory(&self) -> PathBuf;
+
+    fn names(&self) -> io::Result<Vec<String>>;
+
+    fn restore(&self, name: &str) -> io::Result<PathBuf>;
+}

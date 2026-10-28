@@ -21,7 +21,12 @@ pub fn layer<'a>(files: &'a Files, base: Element<'a, Message>) -> Element<'a, Me
     let Some(menu) = &files.context else {
         return base;
     };
-    let entries = context::entries(menu.target, files.clip.is_some(), !files.listing.is_empty());
+    let has_entries = if menu.target == context::Target::TrashBackground {
+        files.listing.total_len() > 0
+    } else {
+        !files.listing.is_empty()
+    };
+    let entries = context::entries(menu.target, files.clip.is_some(), has_entries);
     let height = context::height(&entries).min((files.size.height - 16.0).max(32.0));
     let (x, y) = context::position(
         (menu.point.x, menu.point.y),

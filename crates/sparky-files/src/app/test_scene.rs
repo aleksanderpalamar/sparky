@@ -70,13 +70,15 @@ impl Cena {
             .and_then(|()| fs::write(work.join("a.txt"), "oi"));
         assert!(preparado.is_ok());
         let abertos = Abertos::default();
+        let trash = HomeTrash::new(dir.path().join("Trash"));
         let services = Services {
-            disk: Box::new(LocalDisk::new(HomeTrash::new(dir.path().join("Trash")))),
+            disk: Box::new(LocalDisk::new(trash.clone())),
             opener: Box::new(abertos.clone()),
             icons: Box::new(NoIcons),
             volumes: Arc::new(NoVolumes),
             archiver: Arc::new(ArquivosComprimidos),
             thumbnails: Arc::new(FileThumbnail),
+            trash: Box::new(trash),
         };
         let setup = Setup {
             start: work.clone(),

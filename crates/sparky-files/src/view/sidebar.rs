@@ -39,6 +39,7 @@ pub fn sidebar(files: &Files) -> Element<'_, Message> {
             .size(SMALL_TEXT)
             .color(skin.bright_foreground),
         Column::with_children(places).spacing(3),
+        crate::view::trash_sidebar::button(files),
         rule::horizontal(1),
         text("Dispositivos")
             .size(SMALL_TEXT)

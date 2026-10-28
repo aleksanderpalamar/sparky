@@ -38,6 +38,9 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::OpenWithChoice(id) => context::open_with(files, &id),
         Message::ArchiveCompleted(path, result) => files.archive_completed(path, result),
         Message::PreviewReady(path, stamp, image) => files.preview_ready(path, stamp, image),
+        Message::OpenTrash => files.open_trash(),
+        Message::RestoreSelected => files.restore_selected(),
+        Message::RestoreAll => files.restore_all(),
         Message::ContextAction(action) => return context::choose(files, action),
         Message::Submit => return files.submit(),
         Message::Resized(size) => files.resize(size),
@@ -106,6 +109,9 @@ fn key_pressed(files: &mut Files, key: &Key, modifiers: Modifiers) -> Task<Messa
 }
 
 fn run(files: &mut Files, command: Command) -> Task<Message> {
+    if files.blocks_in_trash(command) {
+        return Task::none();
+    }
     files.notice = None;
     match command {
         Command::Filter => {

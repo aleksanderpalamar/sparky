@@ -33,12 +33,13 @@ pub fn boot() -> (Files, Task<Message>) {
         rows: rows_for(WINDOW_HEIGHT),
     };
     let services = Services {
-        disk: Box::new(LocalDisk::new(trash)),
+        disk: Box::new(LocalDisk::new(trash.clone())),
         opener: Box::new(XdgOpen),
         icons: Box::new(ThemeIcons::default()),
         volumes: Arc::new(sparky_storage::desktop::system()),
         archiver: Arc::new(TarArchive),
         thumbnails: Arc::new(FileThumbnail),
+        trash: Box::new(trash),
     };
     let mut files = Files::new(setup, services);
     files.resize(Size::new(WINDOW_WIDTH, WINDOW_HEIGHT));

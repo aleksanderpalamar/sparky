@@ -52,6 +52,22 @@ fn area_vazia_oferece_criacao_e_so_habilita_colar_com_clipboard() {
 }
 
 #[test]
+fn lixeira_oferece_apenas_restauracao_e_propriedades() {
+    let item: Vec<_> = entries(Target::Trashed, true, true)
+        .into_iter()
+        .filter_map(|row| row.action())
+        .collect();
+    assert_eq!(item, [Action::Restore, Action::Properties]);
+    let empty = entries(Target::TrashBackground, true, false);
+    assert!(empty.iter().any(|row| row.is_disabled(Action::RestoreAll)));
+    let full = entries(Target::TrashBackground, false, true);
+    assert!(
+        full.iter()
+            .any(|row| row.action() == Some(Action::RestoreAll))
+    );
+}
+
+#[test]
 fn menu_permanece_dentro_da_janela_junto_das_bordas() {
     assert_eq!(
         position((950.0, 700.0), (1000.0, 760.0), (280.0, 460.0)),
