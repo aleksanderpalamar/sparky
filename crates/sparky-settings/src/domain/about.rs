@@ -3,6 +3,7 @@ pub struct About {
     pub distribution: Option<String>,
     pub kernel: Option<String>,
     pub host: Option<String>,
+    pub hardware: super::hardware::Hardware,
 }
 
 pub fn pretty_name(os_release: &str) -> Option<String> {

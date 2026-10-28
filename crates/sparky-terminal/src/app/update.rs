@@ -68,9 +68,9 @@ fn change(app: &mut Workspace, message: Message) {
                 with_session(&mut tab.value, |session| session.extend(spot));
             }
         }
-        Message::Wheel(id, lines) => {
+        Message::Wheel(id, lines, at) => {
             if let Some(tab) = app.tabs.get_mut(id) {
-                wheel(&mut tab.value, lines);
+                wheel(&mut tab.value, lines, at);
             }
         }
         _ => {}
