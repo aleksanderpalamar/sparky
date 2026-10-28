@@ -210,7 +210,7 @@ As cores seguem o tema do sparky, inclusive com o terminal aberto: as 16 cores A
 | Clique no botão do meio | Cola a seleção primária |
 | `SHIFT + ENTER` / `ALT + SHIFT + ENTER` | Envia `\e[13;2u` / `\e[13;4u`, como no kitty |
 
-O mouse seleciona arrastando com o botão esquerdo; soltar publica o texto na seleção primária, separada da área de transferência de `CTRL + SHIFT + C/V`. Clicar na rodinha cola essa seleção, inclusive quando vem de outro aplicativo. A roda rola o histórico, e em tela alternativa (`less`, `man`) vira setas. Digitar volta ao fim do histórico e limpa a seleção. O título da janela vem do shell da aba ativa. Cada aba mantém seu PTY, histórico, seleção e rolagem, e os programas continuam funcionando nas abas inativas. O fim de um shell fecha somente sua aba; fechar a última encerra a janela. Uma colagem assíncrona permanece vinculada à aba que a pediu e é descartada se ela já tiver sido fechada.
+O mouse seleciona arrastando com o botão esquerdo; soltar publica o texto na seleção primária, separada da área de transferência de `CTRL + SHIFT + C/V`. Clicar na rodinha cola essa seleção, inclusive quando vem de outro aplicativo. A roda rola o histórico. Quando o programa solicita eventos de mouse, recebe a roda com as coordenadas da célula no formato pedido (SGR, UTF-8 ou legado), nos buffers principal e alternativo. Sem essa solicitação, a roda em tela alternativa (`less`, `man`) continua virando setas. Movimentos fracionários são acumulados até completar uma linha. Digitar volta ao fim do histórico e limpa a seleção. O título da janela vem do shell da aba ativa. Cada aba mantém seu PTY, histórico, seleção e rolagem, e os programas continuam funcionando nas abas inativas. O fim de um shell fecha somente sua aba; fechar a última encerra a janela. Uma colagem assíncrona permanece vinculada à aba que a pediu e é descartada se ela já tiver sido fechada.
 
 ```bash
 sparky-terminal                       # o shell do usuário
@@ -218,7 +218,7 @@ sparky-terminal -d ~/Projetos         # começando nessa pasta
 sparky-terminal -e htop               # roda um comando; o resto da linha são os argumentos dele
 ```
 
-A barra de abas usa a fonte, as cores e os cantos retos do Sparky e acompanha o tema ao vivo. Clique no título para alternar, em `×` para fechar ou em `+` para criar. Muitas abas podem ser percorridas pela rolagem horizontal; a aba escolhida pelo teclado é trazida para a área visível. A primeira aba respeita `-e` e `-d`; as seguintes abrem o shell do Sparky na pasta inicial escolhida por `-d`, quando informada. Os atalhos de abas são tratados pelo terminal antes do envio ao PTY; `CTRL + C` continua interrompendo comandos. Divisões de janelas continuam com o mosaico e os grupos do Sparky. O terminal ainda não repassa o mouse para programas que pedem (vim, htop) nem implementa o protocolo de teclado do kitty.
+A barra de abas usa a fonte, as cores e os cantos retos do Sparky e acompanha o tema ao vivo. Clique no título para alternar, em `×` para fechar ou em `+` para criar. Muitas abas podem ser percorridas pela rolagem horizontal; a aba escolhida pelo teclado é trazida para a área visível. A primeira aba respeita `-e` e `-d`; as seguintes abrem o shell do Sparky na pasta inicial escolhida por `-d`, quando informada. Os atalhos de abas são tratados pelo terminal antes do envio ao PTY; `CTRL + C` continua interrompendo comandos. Divisões de janelas continuam com o mosaico e os grupos do Sparky. O envio de mouse aos programas cobre somente a roda vertical; cliques e arrastos continuam dedicados à seleção e colagem do terminal. O protocolo de teclado do kitty ainda não está implementado.
 
 ## Chaveiro
 
@@ -286,7 +286,7 @@ O `sparky-settings` abre pelo `SUPER + ALT + ESPAÇO`. As mudanças de configura
 | Usuários | Consulta de contas, identificadores, grupos e sessões (`getent` e `loginctl`) |
 | Mídia | Volumes externos, montagem e desmontagem (`lsblk` e `udisksctl`) |
 | Temas | Catálogo e aplicação de paletas nativas do Sparky |
-| Sobre | Versão do sparky, sistema, kernel e onde fica a configuração |
+| Sobre | Versão do sparky, sistema, kernel, computador, processador, GPUs e RAM total |
 
 `Tab` e `SHIFT + Tab` (ou `1` a `9`) trocam de seção, `j`/`k` escolhem o item, `h`/`l` diminuem e aumentam números ou ligam e desligam, `Enter` edita um texto ou um número, `d` remove um comando da inicialização, `Esc` desiste da edição e `q` fecha. O mouse também funciona: `−`/`+`, clique no valor para editar e clique duplo na inicialização.
 

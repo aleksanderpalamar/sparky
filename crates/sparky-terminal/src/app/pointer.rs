@@ -37,7 +37,9 @@ pub fn update(
         (mouse::Event::ButtonPressed(Button::Middle), _, _) if over => {
             Some(Message::PastePrimary(id))
         }
-        (mouse::Event::WheelScrolled { .. }, _, _) if over => Some(Message::Wheel(id, lines)),
+        (mouse::Event::WheelScrolled { .. }, _, Some(at)) if over => {
+            Some(Message::Wheel(id, lines, at))
+        }
         _ => None,
     }
 }

@@ -27,6 +27,8 @@ mod pointer_tests;
 #[cfg(test)]
 mod pty_tabs_tests;
 #[cfg(test)]
+mod scroll_tests;
+#[cfg(test)]
 mod state_tests;
 #[cfg(test)]
 mod tab_keys_tests;

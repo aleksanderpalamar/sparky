@@ -44,8 +44,7 @@ pub fn paste(text: &str, bracketed: Bracketed) -> Vec<u8> {
 }
 
 pub fn wheel(lines: f32, rest: f32, buffer: Buffer) -> (Wheel, f32) {
-    let total = rest + lines;
-    let steps = total.trunc();
+    let (steps, rest) = wheel_steps(lines, rest);
     let wheel = match buffer {
         Buffer::Main => Wheel::History(steps as i32),
         Buffer::Alternate => {
@@ -56,7 +55,13 @@ pub fn wheel(lines: f32, rest: f32, buffer: Buffer) -> (Wheel, f32) {
             Wheel::Keys(arrow.repeat(steps.abs() as usize))
         }
     };
-    (wheel, total - steps)
+    (wheel, rest)
+}
+
+pub fn wheel_steps(lines: f32, rest: f32) -> (f32, f32) {
+    let total = rest + lines;
+    let steps = total.trunc();
+    (steps, total - steps)
 }
 
 pub fn focus_report(focus: Focus, reporting: Reporting) -> Option<&'static [u8]> {
