@@ -11,6 +11,11 @@ pub enum Message {
     Tick,
     FocusWorkspace(u32),
     ToggleClock,
+    Notifications(sparky_notifications::client::Event),
+    NotificationCommand(sparky_notifications::client::Command),
+    NotificationFinished(u64, Result<(), String>),
+    Calendar(crate::domain::calendar::Action),
+    CenterGeometry(iced::window::Id, (u32, u32)),
     Tray(TrayChange),
     Bluetooth(
         Option<crate::domain::tray::TrayItem>,

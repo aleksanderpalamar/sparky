@@ -1,5 +1,7 @@
 mod audio;
 mod bluetooth;
+mod calendar;
+mod center;
 mod forms;
 mod network;
 mod style;
@@ -11,8 +13,14 @@ use sparky_theme::Skin;
 use crate::app::{message::Message, panel_state::Panels};
 use crate::domain::panel::PanelKind;
 
-pub fn view<'a>(skin: &Skin, panels: &'a Panels, kind: PanelKind) -> Element<'a, Message> {
+pub fn view<'a>(
+    skin: &Skin,
+    panels: &'a Panels,
+    center: &'a crate::app::center_state::CenterState,
+    kind: PanelKind,
+) -> Element<'a, Message> {
     let title = match kind {
+        PanelKind::Clock => "Calendário e notificações",
         PanelKind::Audio => "Som",
         PanelKind::Network => "Rede",
         PanelKind::Bluetooth => "Bluetooth",
@@ -26,17 +34,17 @@ pub fn view<'a>(skin: &Skin, panels: &'a Panels, kind: PanelKind) -> Element<'a,
     ]
     .spacing(8);
     let normal = match kind {
+        PanelKind::Clock => center::view(skin, center),
         PanelKind::Audio => audio::view(skin, panels),
         PanelKind::Network => network::view(skin, panels),
         PanelKind::Bluetooth => bluetooth::view(skin, panels),
     };
     let body = forms::prompt(skin, panels).unwrap_or(normal);
-    let mut content = column![
-        header,
-        rule::horizontal(1),
-        scrollable(body).height(Length::Fill)
-    ]
-    .spacing(12);
+    let body = match kind {
+        PanelKind::Clock => body,
+        _ => scrollable(body).height(Length::Fill).into(),
+    };
+    let mut content = column![header, rule::horizontal(1), body].spacing(12);
     if panels.pending.contains_key(&kind) {
         content = content.push(text("Operação em andamento…").size(12).color(skin.accent));
     }

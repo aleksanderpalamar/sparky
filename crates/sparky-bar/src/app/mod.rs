@@ -1,9 +1,14 @@
 pub mod audio;
 pub mod bluetooth;
+pub mod center_geometry;
+pub mod center_state;
+#[cfg(test)]
+mod center_tests;
 pub mod drawers;
 pub mod message;
 pub mod native_events;
 pub mod network;
+pub mod notifications;
 pub mod panel_actions;
 pub mod panel_state;
 pub mod panel_update;

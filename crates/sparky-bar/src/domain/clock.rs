@@ -1,9 +1,21 @@
 use chrono::{Datelike, NaiveDateTime, Timelike};
 
-const WEEKDAYS: [&str; 7] = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"];
-const MONTHS: [&str; 12] = [
-    "janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro",
-    "novembro", "dezembro",
+const WEEKDAYS: [&str; 7] = [
+    "segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo",
+];
+pub(super) const MONTHS: [&str; 12] = [
+    "janeiro",
+    "fevereiro",
+    "março",
+    "abril",
+    "maio",
+    "junho",
+    "julho",
+    "agosto",
+    "setembro",
+    "outubro",
+    "novembro",
+    "dezembro",
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -24,7 +36,12 @@ impl ClockFormat {
 
 pub fn render(format: ClockFormat, moment: &NaiveDateTime) -> String {
     match format {
-        ClockFormat::Time => format!("{} {:02}:{:02}", weekday(moment), moment.hour(), moment.minute()),
+        ClockFormat::Time => format!(
+            "{} {:02}:{:02}",
+            weekday(moment),
+            moment.hour(),
+            moment.minute()
+        ),
         ClockFormat::Date => format!(
             "{}, {:02} de {} de {}",
             weekday(moment),
@@ -60,7 +77,10 @@ mod tests {
 
     #[test]
     fn mostra_o_dia_da_semana_e_a_hora() {
-        assert_eq!(render(ClockFormat::Time, &momento(2026, 10, 7, 9, 5)), "quarta 09:05");
+        assert_eq!(
+            render(ClockFormat::Time, &momento(2026, 10, 7, 9, 5)),
+            "quarta 09:05"
+        );
     }
 
     #[test]
@@ -73,8 +93,14 @@ mod tests {
 
     #[test]
     fn domingo_e_o_ultimo_dia_da_semana() {
-        assert_eq!(render(ClockFormat::Time, &momento(2026, 10, 18, 23, 59)), "domingo 23:59");
-        assert_eq!(render(ClockFormat::Time, &momento(2026, 10, 19, 0, 0)), "segunda 00:00");
+        assert_eq!(
+            render(ClockFormat::Time, &momento(2026, 10, 18, 23, 59)),
+            "domingo 23:59"
+        );
+        assert_eq!(
+            render(ClockFormat::Time, &momento(2026, 10, 19, 0, 0)),
+            "segunda 00:00"
+        );
     }
 
     #[test]

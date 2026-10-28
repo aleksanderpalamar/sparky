@@ -26,9 +26,17 @@ pub fn open(bar: &mut Bar, kind: PanelKind) -> Task<Message> {
     bar.panels.input_focus = super::panel_state::InputFocus::Interactive;
     bar.panels.errors.remove(&kind);
     let settings = NewLayerShellSettings {
-        size: Some((400, 520)),
+        size: Some(if kind == PanelKind::Clock {
+            (760, 520)
+        } else {
+            (400, 520)
+        }),
         layer: Layer::Overlay,
-        anchor: Anchor::Top | Anchor::Right,
+        anchor: if kind == PanelKind::Clock {
+            Anchor::Top
+        } else {
+            Anchor::Top | Anchor::Right
+        },
         exclusive_zone: None,
         margin: Some((crate::ui::style::HEIGHT as i32 + 6, 10, 0, 0)),
         keyboard_interactivity: KeyboardInteractivity::Exclusive,
@@ -36,8 +44,22 @@ pub fn open(bar: &mut Bar, kind: PanelKind) -> Task<Message> {
         events_transparent: false,
         namespace: Some("sparky-quick-panel".to_owned()),
     };
+    let center = match kind {
+        PanelKind::Clock => {
+            bar.center.calendar.show_today();
+            Task::batch([
+                super::notifications::lease(bar, true),
+                Task::perform(
+                    async { tokio::task::spawn_blocking(super::center_geometry::query).await },
+                    move |result| Message::CenterGeometry(window, result.unwrap_or((760, 520))),
+                ),
+            ])
+        }
+        _ => Task::none(),
+    };
     Task::batch([
         previous,
+        center,
         menu,
         Task::done(Message::NewLayerShell {
             settings,
@@ -96,5 +118,13 @@ pub fn close(bar: &mut Bar) -> Task<Message> {
         ),
         _ => Task::none(),
     };
-    Task::batch([cleanup, Task::done(Message::RemoveWindow(open.window))])
+    let lease = match open.kind {
+        PanelKind::Clock => super::notifications::lease(bar, false),
+        _ => Task::none(),
+    };
+    Task::batch([
+        cleanup,
+        lease,
+        Task::done(Message::RemoveWindow(open.window)),
+    ])
 }

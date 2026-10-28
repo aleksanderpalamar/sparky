@@ -1,10 +1,10 @@
 pub const KEYRING: &str = "sparky-keyring";
 pub const POLKIT: &str = "polkit-sparky";
 pub const BAR: &str = "sparky-bar";
-pub const NOTIFICATIONS: &str = "mako";
+pub const NOTIFICATIONS: &str = "sparky-notifications";
 
 pub fn components(installed: impl Fn(&str) -> bool) -> Vec<String> {
-    [KEYRING, POLKIT, BAR, NOTIFICATIONS]
+    [KEYRING, POLKIT, NOTIFICATIONS, BAR]
         .into_iter()
         .filter(|program| installed(program))
         .map(str::to_owned)
@@ -17,7 +17,7 @@ mod tests {
 
     #[test]
     fn o_chaveiro_e_o_agente_proprio_sobem_antes_dos_aplicativos() {
-        let installed = [KEYRING, POLKIT, BAR, NOTIFICATIONS];
+        let installed = [KEYRING, POLKIT, NOTIFICATIONS, BAR];
         assert_eq!(
             components(|program| installed.contains(&program)),
             installed
@@ -26,7 +26,7 @@ mod tests {
 
     #[test]
     fn agentes_externos_nao_sao_iniciados() {
-        let installed = ["polkit-gnome", "lxpolkit", "polkit-mate"];
+        let installed = ["polkit-gnome", "lxpolkit", "polkit-mate", "mako"];
         assert!(components(|program| installed.contains(&program)).is_empty());
     }
 

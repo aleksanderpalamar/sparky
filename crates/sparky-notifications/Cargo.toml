@@ -1,0 +1,25 @@
+[package]
+name = "sparky-notifications"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "sparky-notifications"
+path = "src/main.rs"
+
+[dependencies]
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+iced = { version = "0.14", features = ["advanced", "image", "svg", "tokio"] }
+iced_layershell = "0.19.1"
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+sparky-ipc.workspace = true
+sparky-theme.workspace = true
+sparky-ui.workspace = true
+sparky-xdg.workspace = true
+tokio = { version = "1", features = ["sync", "time", "macros", "rt"] }
+url = "2"
+zbus = { version = "5", default-features = false, features = ["tokio"] }
