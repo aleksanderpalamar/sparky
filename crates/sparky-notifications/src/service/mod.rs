@@ -62,3 +62,6 @@ mod tests;
 
 #[cfg(test)]
 mod pump_tests;
+
+#[cfg(test)]
+mod burst_tests;

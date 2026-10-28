@@ -8,3 +8,6 @@ pub use model::{Action, Card, Error, Incoming, Moment, Notification, Picture, Sn
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod transient_tests;

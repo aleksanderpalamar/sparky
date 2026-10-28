@@ -43,7 +43,7 @@ impl Center {
         }
         self.dnd = enabled;
         if enabled {
-            self.hide_popups();
+            self.suppress_popups();
         }
         self.changed();
     }
@@ -57,7 +57,7 @@ impl Center {
             return;
         }
         if open {
-            self.hide_popups();
+            self.suppress_popups();
         }
         self.changed();
     }
@@ -85,9 +85,9 @@ impl Center {
         Vec::new()
     }
 
-    fn hide_popups(&mut self) {
+    fn suppress_popups(&mut self) {
         for active in self.active.values_mut() {
-            active.popup = false;
+            active.popup = active.popup && active.transient && !self.dnd;
         }
     }
 }

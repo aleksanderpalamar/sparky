@@ -50,7 +50,8 @@ impl Center {
                 sender: input.sender,
                 card,
                 deadline: timeout.map(|value| now.elapsed_ms.saturating_add(value)),
-                popup: !self.dnd && self.readers.is_empty(),
+                popup: !self.dnd && (input.transient || self.readers.is_empty()),
+                transient: input.transient,
                 resident: input.resident,
             },
         );

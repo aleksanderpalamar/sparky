@@ -45,25 +45,26 @@ impl Notifications {
             actions,
             &hints,
         );
-        let permit =
-            self.0.images.clone().try_acquire_owned().map_err(|_| {
-                fdo::Error::LimitsExceeded("Preparação de imagens ocupada".to_owned())
-            })?;
-        let picture = super::pictures::prepare(&hints, &input.icon);
-        let icon = input.icon.clone();
-        let (picture, icon) = tokio::task::spawn_blocking(move || {
-            let _permit = permit;
-            let icon = super::icons::resolve(&icon);
-            let picture = picture.resolve().or_else(|| super::pictures::file(&icon));
-            let icon = if icon.ends_with(".svg") {
-                icon
-            } else {
-                String::new()
-            };
-            (picture, icon)
-        })
-        .await
-        .map_err(|_| fdo::Error::Failed("Não foi possível preparar a imagem".to_owned()))?;
+        let (picture, icon) = match self.0.images.clone().try_acquire_owned() {
+            Ok(permit) => {
+                let picture = super::pictures::prepare(&hints, &input.icon);
+                let icon = input.icon.clone();
+                tokio::task::spawn_blocking(move || {
+                    let _permit = permit;
+                    let icon = super::icons::resolve(&icon);
+                    let picture = picture.resolve().or_else(|| super::pictures::file(&icon));
+                    let icon = if icon.ends_with(".svg") {
+                        icon
+                    } else {
+                        String::new()
+                    };
+                    (picture, icon)
+                })
+                .await
+                .map_err(|_| fdo::Error::Failed("Não foi possível preparar a imagem".to_owned()))?
+            }
+            Err(_) => (None, String::new()),
+        };
         input.picture = picture;
         input.icon = icon;
         self.0

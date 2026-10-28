@@ -102,5 +102,6 @@ pub(super) struct Active {
     pub card: Card,
     pub deadline: Option<u64>,
     pub popup: bool,
+    pub transient: bool,
     pub resident: bool,
 }
