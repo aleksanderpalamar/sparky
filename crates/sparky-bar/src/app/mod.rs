@@ -1,3 +1,5 @@
+pub mod bluetooth;
+pub mod drawers;
 pub mod message;
 pub mod state;
 pub mod subscription;
@@ -8,13 +10,17 @@ pub mod update;
 pub mod view;
 
 #[cfg(test)]
+mod bluetooth_tests;
+#[cfg(test)]
+mod drawers_tests;
+#[cfg(test)]
+mod palette_tests;
+#[cfg(test)]
 mod tray_actions_tests;
 #[cfg(test)]
 mod tray_activation_tests;
 #[cfg(test)]
 mod tray_test_support;
-#[cfg(test)]
-mod palette_tests;
 
 use std::sync::Arc;
 

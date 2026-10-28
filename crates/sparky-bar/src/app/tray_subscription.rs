@@ -5,6 +5,7 @@ use iced::futures::{SinkExt, Stream};
 use system_tray::client::Client;
 use tokio::sync::broadcast::error::RecvError;
 
+use crate::adapters::icons::Icons;
 use crate::adapters::tray_events::{changes, item_of};
 use crate::app::message::Message;
 use crate::app::tray_state::TrayClient;
@@ -20,10 +21,15 @@ pub fn tray_events() -> impl Stream<Item = Message> {
             }
         };
         let mut events = client.subscribe();
-        if output.send(Message::TrayReady(TrayClient(client.clone()))).await.is_err() {
+        let icons = Icons::current();
+        if output
+            .send(Message::TrayReady(TrayClient(client.clone())))
+            .await
+            .is_err()
+        {
             return;
         }
-        for change in current_items(&client) {
+        for change in current_items(&client, &icons) {
             if output.send(Message::Tray(change)).await.is_err() {
                 return;
             }
@@ -31,7 +37,16 @@ pub fn tray_events() -> impl Stream<Item = Message> {
         loop {
             match events.recv().await {
                 Ok(event) => {
-                    if !forward(&mut output, changes(event, |address| current_item(&client, address))).await {
+                    if !forward(
+                        &mut output,
+                        changes(
+                            event,
+                            |address| current_item(&client, address, &icons),
+                            &icons,
+                        ),
+                    )
+                    .await
+                    {
                         return;
                     }
                 }
@@ -51,20 +66,27 @@ async fn forward(output: &mut Sender<Message>, changes: Vec<TrayChange>) -> bool
     true
 }
 
-fn current_items(client: &Client) -> Vec<TrayChange> {
+fn current_items(client: &Client, icons: &Icons) -> Vec<TrayChange> {
     let items = client.items();
     let Ok(items) = items.lock() else {
         return Vec::new();
     };
     items
         .iter()
-        .map(|(address, (item, menu))| TrayChange::Added(item_of(address.clone(), item.clone(), menu.as_ref())))
+        .map(|(address, (item, menu))| {
+            TrayChange::Added(item_of(address.clone(), item.clone(), menu.as_ref(), icons))
+        })
         .collect()
 }
 
-fn current_item(client: &Client, address: &str) -> Option<TrayItem> {
+fn current_item(client: &Client, address: &str, icons: &Icons) -> Option<TrayItem> {
     let items = client.items();
     let items = items.lock().ok()?;
     let (item, menu) = items.get(address)?;
-    Some(item_of(address.to_owned(), item.clone(), menu.as_ref()))
+    Some(item_of(
+        address.to_owned(),
+        item.clone(),
+        menu.as_ref(),
+        icons,
+    ))
 }

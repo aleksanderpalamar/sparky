@@ -13,7 +13,11 @@ use crate::ports::fake::FakeWorkspaces;
 use crate::ports::tray::TrayCommands;
 
 pub fn bar() -> Bar {
-    Bar::new(Skin::default(), Arc::new(FakeWorkspaces::default()), chrono::Local::now().naive_local())
+    Bar::new(
+        Skin::default(),
+        Arc::new(FakeWorkspaces::default()),
+        chrono::Local::now().naive_local(),
+    )
 }
 
 pub fn item(address: &str) -> TrayItem {
@@ -21,12 +25,29 @@ pub fn item(address: &str) -> TrayItem {
         address: address.to_owned(),
         title: "Aplicativo de teste".to_owned(),
         icon: TrayIcon::Missing,
+        role: crate::domain::indicator::Role::Application,
+        status: crate::domain::indicator::Status::Active,
         primary_action: PrimaryAction::Activate,
         menu_path: Some("/Menu".to_owned()),
         menu: vec![
-            MenuEntry { id: 1, label: "Abrir".to_owned(), enabled: true, separator: false },
-            MenuEntry { id: 2, label: "Indisponível".to_owned(), enabled: false, separator: false },
-            MenuEntry { id: 3, label: String::new(), enabled: true, separator: true },
+            MenuEntry {
+                id: 1,
+                label: "Abrir".to_owned(),
+                enabled: true,
+                separator: false,
+            },
+            MenuEntry {
+                id: 2,
+                label: "Indisponível".to_owned(),
+                enabled: false,
+                separator: false,
+            },
+            MenuEntry {
+                id: 3,
+                label: String::new(),
+                enabled: true,
+                separator: true,
+            },
         ],
     }
 }
@@ -34,7 +55,10 @@ pub fn item(address: &str) -> TrayItem {
 pub fn opened(bar: &mut Bar, address: &str) -> window::Id {
     bar.tray_mut().apply(TrayChange::Added(item(address)));
     let window = window::Id::unique();
-    bar.tray_mut().open_menu(OpenMenu { window, address: address.to_owned() });
+    bar.tray_mut().open_menu(OpenMenu {
+        window,
+        address: address.to_owned(),
+    });
     window
 }
 
@@ -53,7 +77,9 @@ pub fn messages(task: Task<Message>) -> Vec<Message> {
 }
 
 pub fn removes(messages: &[Message], window: window::Id) -> bool {
-    messages.iter().any(|message| matches!(message, Message::RemoveWindow(found) if *found == window))
+    messages
+        .iter()
+        .any(|message| matches!(message, Message::RemoveWindow(found) if *found == window))
 }
 
 pub fn notifier(item_is_menu: bool) -> system_tray::item::StatusNotifierItem {
@@ -104,7 +130,10 @@ impl TrayCommands for FakeTray {
 
 pub fn connected(response: Result<(), String>) -> (Bar, Arc<FakeTray>) {
     let mut bar = bar();
-    let client = Arc::new(FakeTray { response, requests: Mutex::default() });
+    let client = Arc::new(FakeTray {
+        response,
+        requests: Mutex::default(),
+    });
     bar.tray_mut().connect(TrayClient(client.clone()));
     (bar, client)
 }

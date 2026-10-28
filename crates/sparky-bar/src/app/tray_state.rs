@@ -16,6 +16,7 @@ pub struct OpenMenu {
 
 #[derive(Debug, Default)]
 pub struct TrayState {
+    pub drawers: super::drawers::Drawers,
     tray: Tray,
     client: Option<TrayClient>,
     menu: Option<OpenMenu>,
@@ -28,12 +29,19 @@ impl TrayState {
 
     pub fn apply(&mut self, change: TrayChange) -> Option<OpenMenu> {
         self.tray.apply(change);
-        let invalid = self
-            .menu
-            .as_ref()
-            .is_some_and(|menu| self.tray.item(&menu.address).is_none_or(|item| item.menu.is_empty()));
+        if crate::domain::tray_layout::groups(self.tray.items())
+            .drawer
+            .is_empty()
+        {
+            self.drawers.clear();
+        }
+        let invalid = self.menu.as_ref().is_some_and(|menu| {
+            self.tray.item(&menu.address).is_none_or(|item| {
+                item.menu.is_empty() || item.status == crate::domain::indicator::Status::Passive
+            })
+        });
         match invalid {
-            true => self.menu.take(),
+            true => self.close_menu(),
             false => None,
         }
     }
@@ -55,6 +63,7 @@ impl TrayState {
     }
 
     pub fn close_menu(&mut self) -> Option<OpenMenu> {
+        self.drawers.release(std::time::Instant::now());
         self.menu.take()
     }
 }
@@ -70,6 +79,8 @@ mod tests {
             address: address.to_owned(),
             title: String::new(),
             icon: TrayIcon::Missing,
+            role: crate::domain::indicator::Role::Application,
+            status: crate::domain::indicator::Status::Active,
             primary_action: PrimaryAction::Activate,
             menu_path: None,
             menu: Vec::new(),
@@ -79,9 +90,15 @@ mod tests {
     #[test]
     fn abrir_outro_menu_devolve_o_anterior_para_fechar() {
         let mut state = TrayState::default();
-        let primeiro = OpenMenu { window: window::Id::unique(), address: ":1.1".to_owned() };
+        let primeiro = OpenMenu {
+            window: window::Id::unique(),
+            address: ":1.1".to_owned(),
+        };
         assert_eq!(state.open_menu(primeiro.clone()), None);
-        let segundo = OpenMenu { window: window::Id::unique(), address: ":1.2".to_owned() };
+        let segundo = OpenMenu {
+            window: window::Id::unique(),
+            address: ":1.2".to_owned(),
+        };
         assert_eq!(state.open_menu(segundo), Some(primeiro));
     }
 
@@ -89,7 +106,10 @@ mod tests {
     fn o_item_que_sai_leva_o_menu_junto() {
         let mut state = TrayState::default();
         state.apply(TrayChange::Added(item(":1.1")));
-        state.open_menu(OpenMenu { window: window::Id::unique(), address: ":1.1".to_owned() });
+        state.open_menu(OpenMenu {
+            window: window::Id::unique(),
+            address: ":1.1".to_owned(),
+        });
         state.apply(TrayChange::Removed(":1.1".to_owned()));
         assert_eq!(state.menu(), None);
         assert!(state.tray().items().is_empty());

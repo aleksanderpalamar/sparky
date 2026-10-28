@@ -1,18 +1,52 @@
-use iced::widget::{button, image, mouse_area, row, svg, text};
-use iced::{Alignment, Element, Length};
+use iced::widget::{button, container, mouse_area, row, text};
+use iced::{Alignment, Element, Length, window};
 use sparky_theme::Skin;
 
 use crate::app::message::Message;
-use crate::domain::tray::{TrayIcon, TrayItem};
-use crate::ui::style::{HOVER_ALPHA, ICON_SIZE, PADDING_X, SLOT_WIDTH, TEXT_SIZE};
+use crate::domain::reveal::Expansion;
+use crate::domain::tray::TrayItem;
+use crate::domain::tray_layout::groups;
+use crate::ui::drawer::drawer;
+use crate::ui::style::{HOVER_ALPHA, PADDING_X, SLOT_WIDTH, TEXT_SIZE};
+use crate::ui::tray_icon::icon;
 
-pub fn tray<'a>(skin: &Skin, items: &'a [TrayItem]) -> Element<'a, Message> {
-    let icons = items.iter().map(|item| icon_button(skin, item));
-    row(icons)
+pub fn tray<'a>(
+    skin: &Skin,
+    items: &'a [TrayItem],
+    window: window::Id,
+    progress: f32,
+) -> Element<'a, Message> {
+    let groups = groups(items);
+    let pinned = row(groups
+        .pinned
+        .into_iter()
+        .map(|item| icon_button(skin, item)))
+    .height(Length::Fill);
+    let mut content = row![].height(Length::Fill).align_y(Alignment::Center);
+    if !groups.drawer.is_empty() {
+        let extent = groups.drawer.len() as f32 * SLOT_WIDTH;
+        let icons = row(groups
+            .drawer
+            .into_iter()
+            .map(|item| icon_button(skin, item)))
+        .width(extent)
+        .height(Length::Fill);
+        let chevron = button(
+            container(text("‹").size(TEXT_SIZE + 4.0).color(skin.foreground)).center(Length::Fill),
+        )
+        .width(SLOT_WIDTH)
         .height(Length::Fill)
-        .padding([0.0, PADDING_X])
-        .align_y(Alignment::Center)
-        .into()
+        .padding(0)
+        .on_press(Message::TrayHover(window, Expansion::Open))
+        .style(button::text);
+        let area = row![chevron, drawer(icons.into(), extent, progress)].height(Length::Fill);
+        content = content.push(
+            mouse_area(area)
+                .on_enter(Message::TrayHover(window, Expansion::Open))
+                .on_exit(Message::TrayHover(window, Expansion::Closed)),
+        );
+    }
+    content.push(pinned).padding([0.0, PADDING_X]).into()
 }
 
 fn icon_button<'a>(skin: &Skin, item: &'a TrayItem) -> Element<'a, Message> {
@@ -33,30 +67,4 @@ fn icon_button<'a>(skin: &Skin, item: &'a TrayItem) -> Element<'a, Message> {
     mouse_area(body)
         .on_right_press(Message::TrayMenu(item.address.clone()))
         .into()
-}
-
-fn icon<'a>(skin: &Skin, item: &'a TrayItem) -> Element<'a, Message> {
-    let centered = |element: Element<'a, Message>| {
-        iced::widget::container(element)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .center(Length::Fill)
-            .into()
-    };
-    match &item.icon {
-        TrayIcon::File(path) if path.extension().is_some_and(|extension| extension == "svg") => {
-            centered(svg(path.clone()).width(ICON_SIZE).height(ICON_SIZE).into())
-        }
-        TrayIcon::File(path) => centered(image(path.clone()).width(ICON_SIZE).height(ICON_SIZE).into()),
-        TrayIcon::Pixels { width, height, rgba } => {
-            let handle = image::Handle::from_rgba(*width, *height, rgba.clone());
-            centered(image(handle).width(ICON_SIZE).height(ICON_SIZE).into())
-        }
-        TrayIcon::Missing => centered(fallback(skin, item)),
-    }
-}
-
-fn fallback<'a>(skin: &Skin, item: &'a TrayItem) -> Element<'a, Message> {
-    let initial: String = item.title.chars().next().map(String::from).unwrap_or_else(|| "?".to_owned());
-    text(initial).size(TEXT_SIZE).color(skin.foreground).into()
 }
