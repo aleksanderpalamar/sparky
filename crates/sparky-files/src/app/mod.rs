@@ -10,6 +10,8 @@ pub mod update;
 pub mod volumes;
 
 #[cfg(test)]
+mod clipboard_tests;
+#[cfg(test)]
 mod files_tests;
 #[cfg(test)]
 mod keys_tests;
@@ -17,6 +19,8 @@ mod keys_tests;
 mod mtp_tests;
 #[cfg(test)]
 mod presentation_tests;
+#[cfg(test)]
+mod test_scene;
 #[cfg(test)]
 mod test_sources;
 #[cfg(test)]

@@ -6,6 +6,7 @@ use std::sync::Arc;
 use sparky_theme::Skin;
 use sparky_xdg::UserDirs;
 
+use crate::adapters::clipboard::WlImageClipboard;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::icons::ThemeIcons;
 use crate::adapters::local_disk::LocalDisk;
@@ -35,6 +36,7 @@ pub fn boot() -> (Files, Task<Message>) {
         opener: Box::new(XdgOpen),
         icons: Box::new(ThemeIcons::default()),
         volumes: Arc::new(sparky_storage::desktop::system()),
+        image_clipboard: Box::new(WlImageClipboard),
     };
     let mut files = Files::new(setup, services);
     files.resize(Size::new(WINDOW_WIDTH, WINDOW_HEIGHT));

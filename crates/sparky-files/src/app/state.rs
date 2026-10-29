@@ -14,7 +14,7 @@ use crate::domain::grid::{Layout, ViewMode};
 use crate::domain::icons::Icons;
 use crate::domain::listing::Listing;
 use crate::domain::places::Place;
-use crate::ports::{Disk, IconSource, Opener};
+use crate::ports::{Disk, IconSource, ImageClipboard, Opener};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Mode {
@@ -30,6 +30,7 @@ pub struct Services {
     pub opener: Box<dyn Opener>,
     pub icons: Box<dyn IconSource>,
     pub volumes: Arc<dyn VolumeSource>,
+    pub image_clipboard: Box<dyn ImageClipboard>,
 }
 
 pub struct Setup {
@@ -73,7 +74,10 @@ impl Files {
             viewport: Viewport::new(setup.rows),
             view_mode: ViewMode::Grid,
             layout: Layout::new(1, setup.rows),
-            size: Size::new(crate::view::style::WINDOW_WIDTH, crate::view::style::WINDOW_HEIGHT),
+            size: Size::new(
+                crate::view::style::WINDOW_WIDTH,
+                crate::view::style::WINDOW_HEIGHT,
+            ),
             icons,
             volumes: Vec::new(),
             volume_work: None,

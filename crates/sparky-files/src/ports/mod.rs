@@ -4,9 +4,14 @@ use std::time::SystemTime;
 
 use crate::domain::entry::Entry;
 use crate::domain::icons::Icons;
+use crate::domain::image::ImageMime;
 
 pub trait IconSource {
     fn load(&mut self) -> Icons;
+}
+
+pub trait ImageClipboard {
+    fn publish(&self, path: &Path, mime: ImageMime) -> io::Result<()>;
 }
 
 pub trait Disk {

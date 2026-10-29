@@ -4,13 +4,30 @@ use std::path::PathBuf;
 use crate::app::keys::Answer;
 use crate::app::state::{Files, Mode};
 use crate::domain::clip::Clip;
+use crate::domain::image::ImageMime;
 use crate::domain::naming::stem_length;
 use crate::domain::wording::{agreed, items};
 use crate::operations;
 
 impl Files {
     pub fn copy(&mut self) {
+        let paths = self.chosen_paths();
         self.hold(Clip::Copy);
+        let [path] = paths.as_slice() else {
+            return;
+        };
+        if !path.is_file() {
+            return;
+        }
+        let Some(mime) = ImageMime::from_path(path) else {
+            return;
+        };
+        match self.services.image_clipboard.publish(path, mime) {
+            Ok(()) => self.inform("Imagem copiada para a área de transferência".to_owned()),
+            Err(error) => self.fail(format!(
+                "Arquivo copiado no Sparky Files, mas a imagem não foi para a área de transferência: {error}"
+            )),
+        }
     }
 
     pub fn cut(&mut self) {
@@ -32,7 +49,11 @@ impl Files {
                 if matches!(clip, Clip::Cut(_)) {
                     self.clip = None;
                 }
-                self.inform(format!("{} {}", items(names.len()), agreed("colado", names.len())));
+                self.inform(format!(
+                    "{} {}",
+                    items(names.len()),
+                    agreed("colado", names.len())
+                ));
             }
             Err(failure) => self.fail(failure),
         }

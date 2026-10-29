@@ -268,6 +268,8 @@ As consultas periódicas de dispositivos não exibem indicador de atualização.
 
 Com o mouse, um clique seleciona, dois cliques abrem e a roda rola a lista.
 
+Ao copiar uma única imagem PNG, JPEG ou WebP, o `sparky-files` também publica seus bytes na área de transferência do sistema. Assim, `CTRL + V` em outro aplicativo pode colar a imagem; a cópia de arquivos dentro do gerenciador continua disponível.
+
 ## Configurações
 
 O `sparky-settings` abre pelo `SUPER + ALT + ESPAÇO`. As mudanças de configuração do sparky são gravadas no `~/.config/sparky/sparky.toml` na hora, só na chave mexida (os comentários do arquivo ficam), e o sparky recarrega pelo IPC. Se o sparky não estiver rodando, a mudança vale quando ele iniciar. As seções de sistema executam as ferramentas correspondentes e mostram o resultado ou o erro, sem gravar no TOML.
