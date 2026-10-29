@@ -3744,7 +3744,7 @@ dependencies = [
 
 [[package]]
 name = "polkit-sparky"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "futures-util",
  "glib",
@@ -4705,7 +4705,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-bar"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "chrono",
  "iced",
@@ -4726,7 +4726,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-compositor"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "ab_glyph",
  "calloop 0.14.5",
@@ -4752,7 +4752,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-config"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "serde",
  "sparky-tiling",
@@ -4762,7 +4762,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-files"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "chrono",
  "gio",
@@ -4780,7 +4780,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-ipc"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -4788,7 +4788,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-keyring"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "argon2",
  "base64",
@@ -4806,7 +4806,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-keyring-prompt"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "iced",
  "iced_layershell",
@@ -4817,7 +4817,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-launcher"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "iced",
  "iced_layershell",
@@ -4829,7 +4829,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-notifications"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "chrono",
  "iced",
@@ -4848,7 +4848,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-settings"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "iced",
  "serde",
@@ -4865,7 +4865,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-shot"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "chrono",
  "iced",
@@ -4879,7 +4879,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-storage"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "gio",
  "serde",
@@ -4889,7 +4889,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-terminal"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "alacritty_terminal",
  "iced",
@@ -4902,7 +4902,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-theme"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "iced_core",
  "tempfile",
@@ -4910,14 +4910,14 @@ dependencies = [
 
 [[package]]
 name = "sparky-tiling"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "sparky-ui"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "iced",
  "sparky-theme",
@@ -4925,7 +4925,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-xdg"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "tempfile",
 ]
