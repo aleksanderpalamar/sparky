@@ -1,3 +1,4 @@
+use std::ffi::{OsStr, OsString};
 use std::io;
 use std::path::Path;
 use std::path::PathBuf;
@@ -56,7 +57,7 @@ pub trait TrashStore {
 
     fn directory(&self) -> PathBuf;
 
-    fn names(&self) -> io::Result<Vec<String>>;
+    fn names(&self) -> io::Result<Vec<OsString>>;
 
-    fn restore(&self, name: &str) -> io::Result<PathBuf>;
+    fn restore(&self, name: &OsStr) -> io::Result<PathBuf>;
 }

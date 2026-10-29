@@ -1,5 +1,6 @@
 use rustix::fs::{CWD, RenameFlags, renameat_with};
 use std::env;
+use std::ffi::{OsStr, OsString};
 use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
 use std::path::Component;
@@ -25,18 +26,18 @@ impl TrashStore for HomeTrash {
         self.root.join("files")
     }
 
-    fn names(&self) -> io::Result<Vec<String>> {
+    fn names(&self) -> io::Result<Vec<OsString>> {
         let entries = match fs::read_dir(self.directory()) {
             Ok(entries) => entries,
             Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(Vec::new()),
             Err(error) => return Err(error),
         };
         entries
-            .map(|entry| entry.map(|item| item.file_name().to_string_lossy().into_owned()))
+            .map(|entry| entry.map(|item| item.file_name()))
             .collect()
     }
 
-    fn restore(&self, name: &str) -> io::Result<PathBuf> {
+    fn restore(&self, name: &OsStr) -> io::Result<PathBuf> {
         let path = Path::new(name);
         if !matches!(path.components().next(), Some(Component::Normal(_)))
             || path.components().count() != 1
@@ -47,7 +48,9 @@ impl TrashStore for HomeTrash {
             ));
         }
         let source = self.directory().join(name);
-        let record = self.root.join("info").join(format!("{name}.trashinfo"));
+        let mut record_name = name.to_os_string();
+        record_name.push(".trashinfo");
+        let record = self.root.join("info").join(record_name);
         if fs::metadata(&record)?.len() > 16 * 1024 {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,

@@ -1,5 +1,9 @@
+use std::ffi::OsString;
+use std::io;
+
 use crate::app::keys::Command;
 use crate::app::state::Files;
+use crate::ports::TrashStore;
 
 impl Files {
     pub fn blocks_in_trash(&self, command: Command) -> bool {
@@ -33,15 +37,19 @@ impl Files {
         if !self.in_trash() {
             return;
         }
-        let Some(name) = self.listing.selected().map(|entry| entry.name.clone()) else {
+        let Some(shown) = self.listing.selected().map(|entry| entry.name.clone()) else {
             return;
+        };
+        let name = match raw_name(self.services.trash.as_ref(), &shown) {
+            Ok(name) => name,
+            Err(error) => return self.fail(format!("{shown}: {error}")),
         };
         match self.services.trash.restore(&name) {
             Ok(path) => {
                 self.refresh();
                 self.inform(format!("Restaurado para {}", path.display()));
             }
-            Err(error) => self.fail(format!("{name}: {error}")),
+            Err(error) => self.fail(format!("{shown}: {error}")),
         }
     }
 
@@ -53,25 +61,60 @@ impl Files {
             Ok(names) => names,
             Err(error) => return self.fail(error),
         };
-        let mut restored = 0;
-        let mut failed = 0;
-        let mut first = None;
-        for name in names {
-            match self.services.trash.restore(&name) {
-                Ok(_) => restored += 1,
-                Err(error) => {
-                    failed += 1;
-                    first.get_or_insert(format!("{name}: {error}"));
-                }
-            }
-        }
+        let (restored, failures) = restore_items(self.services.trash.as_ref(), names);
         self.refresh();
-        if let Some(first) = first {
+        if let Some((name, error)) = failures.first() {
             self.fail(format!(
-                "{restored} restaurados; {failed} falharam. {first}"
+                "{restored} restaurados; {} falharam. {}: {error}",
+                failures.len(),
+                name.to_string_lossy()
             ));
             return;
         }
         self.inform(format!("{restored} itens restaurados"));
     }
+}
+
+fn raw_name(trash: &dyn TrashStore, shown: &str) -> io::Result<OsString> {
+    let names = trash.names()?;
+    let mut matching = names
+        .into_iter()
+        .filter(|name| name.to_string_lossy() == shown);
+    match (matching.next(), matching.next()) {
+        (Some(name), None) => Ok(name),
+        (None, _) => Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            "item não encontrado",
+        )),
+        _ => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "nome ambíguo na lixeira",
+        )),
+    }
+}
+
+fn restore_items(
+    trash: &dyn TrashStore,
+    names: Vec<OsString>,
+) -> (usize, Vec<(OsString, io::Error)>) {
+    let mut pending = names;
+    let mut restored = 0;
+    let mut failures = Vec::new();
+    while !pending.is_empty() {
+        let mut retry = Vec::new();
+        let previous = restored;
+        for name in pending {
+            match trash.restore(&name) {
+                Ok(_) => restored += 1,
+                Err(error) if error.kind() == io::ErrorKind::NotFound => retry.push((name, error)),
+                Err(error) => failures.push((name, error)),
+            }
+        }
+        if restored == previous {
+            failures.extend(retry);
+            break;
+        }
+        pending = retry.into_iter().map(|(name, _)| name).collect();
+    }
+    (restored, failures)
 }
