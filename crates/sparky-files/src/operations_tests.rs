@@ -1,13 +1,15 @@
 use std::cell::RefCell;
 use std::collections::BTreeSet;
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 use std::time::SystemTime;
 
 use crate::domain::clip::Clip;
 use crate::domain::entry::Entry;
-use crate::operations::{Failure, create, paste, rename, trash};
+use crate::operations::{Failure, create, rename, trash};
 use crate::ports::Disk;
+
+mod paste_tests;
 
 #[derive(Default)]
 struct FakeDisk {
@@ -44,6 +46,20 @@ impl FakeDisk {
 impl Disk for FakeDisk {
     fn list(&self, _dir: &Path) -> io::Result<Vec<Entry>> {
         Ok(Vec::new())
+    }
+
+    fn canonicalize(&self, path: &Path) -> io::Result<PathBuf> {
+        let mut resolved = PathBuf::new();
+        for component in path.components() {
+            match component {
+                Component::ParentDir => {
+                    resolved.pop();
+                }
+                Component::CurDir => {}
+                other => resolved.push(other.as_os_str()),
+            }
+        }
+        Ok(resolved)
     }
 
     fn exists(&self, path: &Path) -> bool {
@@ -91,51 +107,6 @@ fn copia(paths: &[&str]) -> Clip {
 
 fn recorte(paths: &[&str]) -> Clip {
     Clip::Cut(paths.iter().map(PathBuf::from).collect())
-}
-
-#[test]
-fn copiar_para_a_mesma_pasta_ganha_nome_de_copia() {
-    let disk = FakeDisk::with(&["/h/foto.png"]);
-    let pasted = paste(&copia(&["/h/foto.png"]), Path::new("/h"), &disk);
-    assert_eq!(pasted.ok(), Some(vec!["foto (cópia).png".to_owned()]));
-    assert_eq!(disk.calls(), ["copiar /h/foto.png /h/foto (cópia).png"]);
-}
-
-#[test]
-fn recortar_para_a_mesma_pasta_nao_mexe_em_nada() {
-    let disk = FakeDisk::with(&["/h/foto.png"]);
-    let pasted = paste(&recorte(&["/h/foto.png"]), Path::new("/h"), &disk);
-    assert_eq!(pasted.ok(), Some(vec!["foto.png".to_owned()]));
-    assert!(disk.calls().is_empty());
-}
-
-#[test]
-fn recortar_para_outra_pasta_move_cada_item() {
-    let disk = FakeDisk::with(&["/h/a.txt", "/h/b.txt"]);
-    let pasted = paste(
-        &recorte(&["/h/a.txt", "/h/b.txt"]),
-        Path::new("/h/Docs"),
-        &disk,
-    );
-    assert_eq!(
-        pasted.ok(),
-        Some(vec!["a.txt".to_owned(), "b.txt".to_owned()])
-    );
-    assert_eq!(
-        disk.calls(),
-        [
-            "mover /h/a.txt /h/Docs/a.txt",
-            "mover /h/b.txt /h/Docs/b.txt"
-        ]
-    );
-}
-
-#[test]
-fn colar_uma_pasta_dentro_dela_mesma_e_recusado() {
-    let disk = FakeDisk::with(&["/h/Fotos"]);
-    let pasted = paste(&copia(&["/h/Fotos"]), Path::new("/h/Fotos/2026"), &disk);
-    assert!(matches!(pasted, Err(Failure::IntoItself(name)) if name == "Fotos"));
-    assert!(disk.calls().is_empty());
 }
 
 #[test]
