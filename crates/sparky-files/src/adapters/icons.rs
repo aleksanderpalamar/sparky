@@ -15,7 +15,7 @@ impl IconSource for ThemeIcons {
         if self.theme.as_deref() == Some(&name) {
             return self.icons.clone();
         }
-        let theme = IconTheme::new(icon_roots(), &name);
+        let theme = IconTheme::with_size(icon_roots(), &name, 96);
         self.icons = ALL
             .into_iter()
             .filter_map(|kind| theme.resolve(kind.names()).map(|path| (kind, path)))

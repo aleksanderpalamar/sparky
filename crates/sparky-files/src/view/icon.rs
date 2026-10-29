@@ -1,9 +1,27 @@
-use iced::Element;
 use iced::widget::{image, svg};
+use iced::{ContentFit, Element};
 
 use crate::app::message::Message;
 use crate::app::state::Files;
+use crate::domain::entry::Entry;
 use crate::domain::icons::IconKind;
+
+pub fn entry_icon(
+    files: &Files,
+    entry: &Entry,
+    place: Option<&str>,
+    size: f32,
+) -> Element<'static, Message> {
+    let path = files.location.join(&entry.name);
+    if let Some(handle) = files.previews.handle(&path) {
+        return image(handle)
+            .width(size)
+            .height(size)
+            .content_fit(ContentFit::Contain)
+            .into();
+    }
+    icon(files, IconKind::for_entry(entry, place), size)
+}
 
 pub fn icon(files: &Files, kind: IconKind, size: f32) -> Element<'static, Message> {
     match files.icons.get(&kind) {

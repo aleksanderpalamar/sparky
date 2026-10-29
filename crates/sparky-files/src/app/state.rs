@@ -3,18 +3,23 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::SystemTime;
 
-use iced::Size;
+use iced::{Point, Size};
 use sparky_storage::{Operation, Volume, VolumeSource};
 use sparky_theme::Skin;
 use sparky_ui::notice::Notice;
 use sparky_ui::viewport::Viewport;
 
+use crate::app::previews::Previews;
+use crate::domain::application::Application;
 use crate::domain::clip::Clip;
+use crate::domain::context::Target;
+use crate::domain::entry::Kind;
 use crate::domain::grid::{Layout, ViewMode};
 use crate::domain::icons::Icons;
 use crate::domain::listing::Listing;
 use crate::domain::places::Place;
-use crate::ports::{Disk, IconSource, Opener};
+use crate::domain::properties::Properties;
+use crate::ports::{Archiver, Disk, IconSource, Opener, ThumbnailSource};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Mode {
@@ -22,6 +27,9 @@ pub enum Mode {
     Filter,
     Rename(String),
     Create,
+    New(Kind),
+    Destination(Clip),
+    Compress(Vec<PathBuf>),
     ConfirmTrash(Vec<String>),
 }
 
@@ -30,6 +38,8 @@ pub struct Services {
     pub opener: Box<dyn Opener>,
     pub icons: Box<dyn IconSource>,
     pub volumes: Arc<dyn VolumeSource>,
+    pub archiver: Arc<dyn Archiver>,
+    pub thumbnails: Arc<dyn ThumbnailSource>,
 }
 
 pub struct Setup {
@@ -38,6 +48,19 @@ pub struct Setup {
     pub places: Vec<Place>,
     pub skin: Skin,
     pub rows: usize,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ContextMenu {
+    pub target: Target,
+    pub name: Option<String>,
+    pub point: Point,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OpenWith {
+    pub path: PathBuf,
+    pub apps: Vec<Application>,
 }
 
 pub struct Files {
@@ -57,6 +80,12 @@ pub struct Files {
     pub mode: Mode,
     pub input: String,
     pub clip: Option<Clip>,
+    pub pointer: Point,
+    pub context: Option<ContextMenu>,
+    pub details: Option<Properties>,
+    pub open_with: Option<OpenWith>,
+    pub archive_work: Option<PathBuf>,
+    pub previews: Previews,
     pub notice: Option<Notice>,
     pub skin: Skin,
     pub services: Services,
@@ -73,7 +102,10 @@ impl Files {
             viewport: Viewport::new(setup.rows),
             view_mode: ViewMode::Grid,
             layout: Layout::new(1, setup.rows),
-            size: Size::new(crate::view::style::WINDOW_WIDTH, crate::view::style::WINDOW_HEIGHT),
+            size: Size::new(
+                crate::view::style::WINDOW_WIDTH,
+                crate::view::style::WINDOW_HEIGHT,
+            ),
             icons,
             volumes: Vec::new(),
             volume_work: None,
@@ -82,6 +114,12 @@ impl Files {
             mode: Mode::Browse,
             input: String::new(),
             clip: None,
+            pointer: Point::ORIGIN,
+            context: None,
+            details: None,
+            open_with: None,
+            archive_work: None,
+            previews: Previews::default(),
             notice: None,
             skin: setup.skin,
             services,
