@@ -14,7 +14,9 @@ use crate::operations::{self, Failure};
 
 impl Files {
     pub fn copy(&mut self) {
+        let paths = self.chosen_paths();
         self.hold(Clip::Copy);
+        self.publish_image(&paths);
     }
 
     pub fn cut(&mut self) {

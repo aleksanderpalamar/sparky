@@ -1,4 +1,5 @@
 pub mod archive;
+pub mod clipboard;
 pub mod home_trash;
 pub mod icons;
 pub mod local_disk;

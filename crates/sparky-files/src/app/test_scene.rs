@@ -10,7 +10,7 @@ use iced::keyboard::{Key, Modifiers};
 use sparky_theme::Skin;
 use tempfile::TempDir;
 
-use super::test_sources::{NoIcons, NoVolumes};
+use super::test_sources::{CopiedImages, NoIcons, NoVolumes};
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::local_disk::LocalDisk;
 use crate::adapters::thumbnail::FileThumbnail;
@@ -57,6 +57,7 @@ impl Archiver for ArquivosComprimidos {
 pub struct Cena {
     pub dir: TempDir,
     pub files: Files,
+    pub imagens: CopiedImages,
     abertos: Abertos,
 }
 
@@ -70,6 +71,7 @@ impl Cena {
             .and_then(|()| fs::write(work.join("a.txt"), "oi"));
         assert!(preparado.is_ok());
         let abertos = Abertos::default();
+        let imagens = CopiedImages::default();
         let trash = HomeTrash::new(dir.path().join("Trash"));
         let services = Services {
             disk: Box::new(LocalDisk::new(trash.clone())),
@@ -79,6 +81,7 @@ impl Cena {
             archiver: Arc::new(ArquivosComprimidos),
             thumbnails: Arc::new(FileThumbnail),
             trash: Box::new(trash),
+            image_clipboard: Box::new(imagens.clone()),
         };
         let setup = Setup {
             start: work.clone(),
@@ -90,6 +93,7 @@ impl Cena {
         Self {
             files: Files::new(setup, services),
             dir,
+            imagens,
             abertos,
         }
     }

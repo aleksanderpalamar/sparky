@@ -5,6 +5,7 @@ pub mod destination;
 pub mod entry;
 pub mod grid;
 pub mod icons;
+pub mod image;
 pub mod listing;
 pub mod naming;
 pub mod places;
