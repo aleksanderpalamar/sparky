@@ -80,7 +80,7 @@ impl Cena {
             volumes: Arc::new(NoVolumes),
             archiver: Arc::new(ArquivosComprimidos),
             thumbnails: Arc::new(FileThumbnail),
-            trash: Box::new(trash),
+            trash: Arc::new(trash),
             image_clipboard: Box::new(imagens.clone()),
         };
         let setup = Setup {

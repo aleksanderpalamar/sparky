@@ -59,7 +59,13 @@ pub trait ThumbnailSource: Send + Sync {
     fn load(&self, path: &Path) -> Option<Thumbnail>;
 }
 
-pub trait TrashStore {
+#[derive(Debug, Clone, Default)]
+pub struct EmptyReport {
+    pub removed: usize,
+    pub errors: Vec<String>,
+}
+
+pub trait TrashStore: Send + Sync {
     fn open(&self) -> io::Result<PathBuf>;
 
     fn directory(&self) -> PathBuf;
@@ -67,4 +73,6 @@ pub trait TrashStore {
     fn names(&self) -> io::Result<Vec<OsString>>;
 
     fn restore(&self, name: &OsStr) -> io::Result<PathBuf>;
+
+    fn empty(&self) -> io::Result<EmptyReport>;
 }
