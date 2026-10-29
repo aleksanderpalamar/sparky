@@ -2,7 +2,7 @@ use iced::alignment::Vertical;
 use iced::widget::{button, container, row, text, tooltip};
 use iced::{Element, Length};
 
-use crate::app::message::Message;
+use crate::app::message::{Message, TrashEvent};
 use crate::app::state::Files;
 use crate::domain::grid::ViewMode;
 use crate::domain::listing::Hidden;
@@ -33,13 +33,13 @@ pub fn header(files: &Files) -> Element<'_, Message> {
         heading = heading.push(restore_button(
             files,
             "Restaurar item",
-            Message::RestoreSelected,
+            Message::Trash(TrashEvent::RestoreSelected),
             files.listing.selected().is_some(),
         ));
         heading = heading.push(restore_button(
             files,
             "Restaurar todos",
-            Message::RestoreAll,
+            Message::Trash(TrashEvent::RestoreAll),
             files.listing.total_len() > 0,
         ));
     }

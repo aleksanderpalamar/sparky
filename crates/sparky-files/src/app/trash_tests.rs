@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use iced::keyboard::key::Named;
 use sparky_ui::notice::Notice;
 
-use super::message::Message;
+use super::message::{Message, TrashEvent};
 use super::test_scene::Cena;
 use crate::adapters::home_trash::HomeTrash;
 use crate::domain::context::{Action, Target};
@@ -37,7 +37,7 @@ impl TrashStore for ChildFirstTrash {
 #[test]
 fn abre_lixeira_vazia_e_volta_para_a_pasta_pessoal() {
     let mut scene = Cena::nova();
-    scene.mandar(Message::OpenTrash);
+    scene.mandar(Message::Trash(TrashEvent::Open));
     assert!(scene.files.in_trash());
     assert!(scene.files.listing.is_empty());
     scene.nomeada(Named::Backspace);
@@ -53,7 +53,7 @@ fn restaura_somente_o_item_escolhido_pelo_menu() {
     fs::write(&second, "outro").unwrap();
     trash.put(&first).unwrap();
     trash.put(&second).unwrap();
-    scene.mandar(Message::OpenTrash);
+    scene.mandar(Message::Trash(TrashEvent::Open));
     scene.files.listing.select_name("a.txt");
     scene.mandar(Message::ContextEntry(scene.files.listing.cursor()));
     assert_eq!(
@@ -76,8 +76,8 @@ fn restaurar_todos_preserva_conflitos_e_restaura_os_demais() {
     trash.put(&first).unwrap();
     trash.put(&second).unwrap();
     fs::write(&first, "novo").unwrap();
-    scene.mandar(Message::OpenTrash);
-    scene.mandar(Message::RestoreAll);
+    scene.mandar(Message::Trash(TrashEvent::Open));
+    scene.mandar(Message::Trash(TrashEvent::RestoreAll));
     assert_eq!(fs::read_to_string(&first).unwrap(), "novo");
     assert_eq!(fs::read_to_string(&second).unwrap(), "antigo");
     assert_eq!(scene.files.listing.len(), 1);
@@ -89,7 +89,7 @@ fn na_lixeira_teclas_de_apagar_e_criar_nao_alteram_itens() {
     let mut scene = Cena::nova();
     let trash = HomeTrash::new(scene.dir.path().join("Trash"));
     trash.put(&scene.work().join("a.txt")).unwrap();
-    scene.mandar(Message::OpenTrash);
+    scene.mandar(Message::Trash(TrashEvent::Open));
     scene.nomeada(Named::Delete);
     scene.tecla("a");
     assert!(scene.files.in_trash());
@@ -104,10 +104,10 @@ fn restaurar_todos_inclui_itens_ocultos_pela_visualizacao() {
     let hidden = scene.work().join(".oculto.txt");
     fs::write(&hidden, "segredo").unwrap();
     trash.put(&hidden).unwrap();
-    scene.mandar(Message::OpenTrash);
+    scene.mandar(Message::Trash(TrashEvent::Open));
     assert!(scene.files.listing.is_empty());
     assert_eq!(scene.files.listing.total_len(), 1);
-    scene.mandar(Message::RestoreAll);
+    scene.mandar(Message::Trash(TrashEvent::RestoreAll));
     assert_eq!(fs::read_to_string(hidden).unwrap(), "segredo");
 }
 
@@ -121,8 +121,8 @@ fn restaurar_todos_recupera_pasta_antes_do_arquivo_filho() {
     trash.put(&child).unwrap();
     trash.put(&folder).unwrap();
     scene.files.services.trash = Box::new(ChildFirstTrash(trash));
-    scene.mandar(Message::OpenTrash);
-    scene.mandar(Message::RestoreAll);
+    scene.mandar(Message::Trash(TrashEvent::Open));
+    scene.mandar(Message::Trash(TrashEvent::RestoreAll));
     assert_eq!(fs::read_to_string(child).unwrap(), "conteúdo");
     assert_eq!(scene.files.listing.len(), 0);
 }
@@ -136,8 +136,8 @@ fn restaurar_todos_encerra_quando_o_pai_nao_pode_ser_recuperado() {
     fs::write(&child, "conteúdo").unwrap();
     trash.put(&child).unwrap();
     fs::remove_dir(&folder).unwrap();
-    scene.mandar(Message::OpenTrash);
-    scene.mandar(Message::RestoreAll);
+    scene.mandar(Message::Trash(TrashEvent::Open));
+    scene.mandar(Message::Trash(TrashEvent::RestoreAll));
     assert!(scene.dir.path().join("Trash/files/nota.txt").exists());
     assert!(matches!(scene.files.notice, Some(Notice::Error(_))));
 }
@@ -146,8 +146,8 @@ fn restaurar_todos_encerra_quando_o_pai_nao_pode_ser_recuperado() {
 fn restaurar_todos_preserva_nome_nao_utf8_de_item_externo() {
     let mut scene = Cena::nova();
     let original = external_item(&scene);
-    scene.mandar(Message::OpenTrash);
-    scene.mandar(Message::RestoreAll);
+    scene.mandar(Message::Trash(TrashEvent::Open));
+    scene.mandar(Message::Trash(TrashEvent::RestoreAll));
     assert_eq!(fs::read_to_string(original).unwrap(), "conteúdo");
 }
 
@@ -155,8 +155,8 @@ fn restaurar_todos_preserva_nome_nao_utf8_de_item_externo() {
 fn restaurar_selecionado_preserva_nome_nao_utf8_de_item_externo() {
     let mut scene = Cena::nova();
     let original = external_item(&scene);
-    scene.mandar(Message::OpenTrash);
-    scene.mandar(Message::RestoreSelected);
+    scene.mandar(Message::Trash(TrashEvent::Open));
+    scene.mandar(Message::Trash(TrashEvent::RestoreSelected));
     assert_eq!(fs::read_to_string(original).unwrap(), "conteúdo");
 }
 

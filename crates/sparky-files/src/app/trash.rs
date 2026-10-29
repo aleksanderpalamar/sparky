@@ -2,10 +2,19 @@ use std::ffi::OsString;
 use std::io;
 
 use crate::app::keys::Command;
+use crate::app::message::TrashEvent;
 use crate::app::state::Files;
 use crate::ports::TrashStore;
 
 impl Files {
+    pub fn handle_trash(&mut self, action: TrashEvent) {
+        match action {
+            TrashEvent::Open => self.open_trash(),
+            TrashEvent::RestoreSelected => self.restore_selected(),
+            TrashEvent::RestoreAll => self.restore_all(),
+        }
+    }
+
     pub fn blocks_in_trash(&self, command: Command) -> bool {
         self.in_trash()
             && matches!(

@@ -3,7 +3,7 @@ use iced::widget::{button as widget_button, row, text};
 use iced::{Element, Length};
 use sparky_ui::style::{self, Highlight};
 
-use crate::app::message::Message;
+use crate::app::message::{Message, TrashEvent};
 use crate::app::state::Files;
 use crate::domain::icons::IconKind;
 use crate::view::icon::icon;
@@ -18,7 +18,7 @@ pub fn button(files: &Files) -> Element<'_, Message> {
     .align_y(Vertical::Center);
     widget_button(label)
         .width(Length::Fill)
-        .on_press(Message::OpenTrash)
+        .on_press(Message::Trash(TrashEvent::Open))
         .style(move |_, status| style::entry(skin, Highlight::when(files.in_trash()), status))
         .into()
 }
