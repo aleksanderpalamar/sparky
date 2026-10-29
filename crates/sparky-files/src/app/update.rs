@@ -39,7 +39,11 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::ArchiveCompleted(path, result) => files.archive_completed(path, result),
         Message::PreviewReady(path, stamp, image) => files.preview_ready(path, stamp, image),
         Message::ContextAction(action) => return context::choose(files, action),
-        Message::Submit => return files.submit(),
+        Message::Submit => {
+            let task = files.submit();
+            files.follow();
+            return task;
+        }
         Message::Resized(size) => files.resize(size),
         Message::View(mode) => files.change_view(mode),
         Message::OpenVolume(device) => return volumes::open(files, &device),

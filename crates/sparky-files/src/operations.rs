@@ -1,6 +1,6 @@
 use std::fmt;
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::domain::clip::Clip;
 use crate::domain::entry::Kind;
@@ -29,9 +29,10 @@ impl fmt::Display for Failure {
 }
 
 pub fn paste(clip: &Clip, into: &Path, disk: &dyn Disk) -> Result<Vec<String>, Failure> {
+    let resolved_into = disk.canonicalize(into).map_err(failed("destino"))?;
     clip.paths()
         .iter()
-        .map(|source| paste_one(clip, source, into, disk))
+        .map(|source| paste_one(clip, source, into, &resolved_into, disk))
         .collect()
 }
 
@@ -80,15 +81,22 @@ pub fn trash(dir: &Path, names: &[String], disk: &dyn Disk) -> Result<usize, Fai
     Ok(names.len())
 }
 
-fn paste_one(clip: &Clip, source: &Path, into: &Path, disk: &dyn Disk) -> Result<String, Failure> {
+fn paste_one(
+    clip: &Clip,
+    source: &Path,
+    into: &Path,
+    resolved_into: &Path,
+    disk: &dyn Disk,
+) -> Result<String, Failure> {
     let name = source
         .file_name()
         .map(|name| name.to_string_lossy().into_owned())
         .unwrap_or_default();
-    if into.starts_with(source) {
+    let resolved_source = source_path(source, disk).map_err(failed(&name))?;
+    if resolved_into.starts_with(&resolved_source) {
         return Err(Failure::IntoItself(name));
     }
-    if matches!(clip, Clip::Cut(_)) && source.parent() == Some(into) {
+    if matches!(clip, Clip::Cut(_)) && resolved_source.parent() == Some(resolved_into) {
         return Ok(name);
     }
     let target = free_name(&name, |candidate| disk.exists(&into.join(candidate)));
@@ -97,6 +105,14 @@ fn paste_one(clip: &Clip, source: &Path, into: &Path, disk: &dyn Disk) -> Result
         Clip::Cut(_) => disk.relocate(source, &into.join(&target)),
     };
     result.map(|()| target).map_err(failed(&name))
+}
+
+fn source_path(source: &Path, disk: &dyn Disk) -> io::Result<PathBuf> {
+    let parent = source.parent().unwrap_or(Path::new("."));
+    let name = source
+        .file_name()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "origem sem nome"))?;
+    disk.canonicalize(parent).map(|path| path.join(name))
 }
 
 fn failed(name: &str) -> impl FnOnce(io::Error) -> Failure + '_ {

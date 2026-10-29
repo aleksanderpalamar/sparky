@@ -10,7 +10,11 @@ pub struct FileThumbnail;
 
 impl ThumbnailSource for FileThumbnail {
     fn load(&self, path: &Path) -> Option<Thumbnail> {
-        if !supported(path) || fs::metadata(path).ok()?.len() > 16 * 1024 * 1024 {
+        if !supported(path) {
+            return None;
+        }
+        let metadata = fs::metadata(path).ok()?;
+        if !metadata.is_file() || metadata.len() > 16 * 1024 * 1024 {
             return None;
         }
         let mut reader = ImageReader::open(path).ok()?.with_guessed_format().ok()?;
@@ -32,6 +36,10 @@ impl ThumbnailSource for FileThumbnail {
 mod tests {
     use super::{FileThumbnail, ThumbnailSource, fs};
     use image::{ImageBuffer, Rgb};
+    use std::process::Command;
+    use std::sync::mpsc;
+    use std::thread;
+    use std::time::Duration;
 
     #[test]
     fn decodifica_miniatura_limitada_e_ignora_arquivo_corrompido() {
@@ -45,5 +53,28 @@ mod tests {
         assert_eq!(preview.rgba.len(), 128 * 64 * 4);
         fs::write(&path, b"quebrado").unwrap();
         assert!(FileThumbnail.load(&path).is_none());
+    }
+
+    #[test]
+    fn fifo_com_extensao_de_imagem_nao_bloqueia_previa() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("preview.png");
+        assert!(
+            Command::new("mkfifo")
+                .arg(&path)
+                .status()
+                .unwrap()
+                .success()
+        );
+        let (sender, receiver) = mpsc::channel();
+        thread::spawn(move || {
+            let _ = sender.send(FileThumbnail.load(&path));
+        });
+        assert!(
+            receiver
+                .recv_timeout(Duration::from_secs(2))
+                .unwrap()
+                .is_none()
+        );
     }
 }

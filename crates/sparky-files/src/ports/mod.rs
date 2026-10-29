@@ -16,6 +16,8 @@ pub trait IconSource {
 pub trait Disk {
     fn list(&self, dir: &Path) -> io::Result<Vec<Entry>>;
 
+    fn canonicalize(&self, path: &Path) -> io::Result<PathBuf>;
+
     fn exists(&self, path: &Path) -> bool;
 
     fn stamp(&self, dir: &Path) -> Option<SystemTime>;

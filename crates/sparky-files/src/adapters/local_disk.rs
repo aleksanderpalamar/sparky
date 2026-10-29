@@ -1,7 +1,7 @@
 use std::fs::{self, OpenOptions};
 use std::io;
 use std::os::unix::fs::PermissionsExt;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
 use chrono::{DateTime, Local};
@@ -28,6 +28,10 @@ impl Disk for LocalDisk {
             .filter_map(Result::ok)
             .map(|item| entry_of(&item))
             .collect())
+    }
+
+    fn canonicalize(&self, path: &Path) -> io::Result<PathBuf> {
+        fs::canonicalize(path)
     }
 
     fn exists(&self, path: &Path) -> bool {

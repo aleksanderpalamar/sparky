@@ -25,7 +25,7 @@ impl Opener for XdgOpen {
     fn applications(&self, path: &Path) -> Vec<Application> {
         let mut applications: Vec<_> = gio::AppInfo::all_for_type(&content_type(path))
             .into_iter()
-            .filter(|app| app.should_show() && app.supports_files())
+            .filter(|app| app.should_show() && can_open_local(app))
             .filter_map(|app| {
                 Some(Application {
                     id: app.id()?.to_string(),
@@ -62,6 +62,10 @@ impl Opener for XdgOpen {
     }
 }
 
+fn can_open_local(app: &gio::AppInfo) -> bool {
+    app.supports_files() || app.supports_uris()
+}
+
 fn content_type(path: &Path) -> String {
     if path.is_dir() {
         return "inode/directory".to_owned();
@@ -71,7 +75,8 @@ fn content_type(path: &Path) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::content_type;
+    use super::{can_open_local, content_type};
+    use gio::prelude::*;
 
     #[test]
     fn pasta_usa_o_tipo_de_diretorio_para_listar_aplicativos() {
@@ -79,5 +84,18 @@ mod tests {
         let folder = dir.path().join("Fotos");
         std::fs::create_dir(&folder).unwrap();
         assert_eq!(content_type(&folder), "inode/directory");
+    }
+
+    #[test]
+    fn aplicativo_que_aceita_uri_pode_abrir_arquivo_local() {
+        let app = gio::AppInfo::create_from_commandline(
+            "true",
+            Some("Aplicativo URI"),
+            gio::AppInfoCreateFlags::SUPPORTS_URIS,
+        )
+        .unwrap();
+        assert!(!app.supports_files());
+        assert!(app.supports_uris());
+        assert!(can_open_local(&app));
     }
 }

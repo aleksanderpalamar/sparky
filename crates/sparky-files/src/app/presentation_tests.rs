@@ -133,3 +133,38 @@ fn atualizacao_de_icones_preserva_edicao_e_selecao() {
         Some(&std::path::PathBuf::from("/tema/folder.svg"))
     );
 }
+
+#[test]
+fn renomear_para_fora_da_pagina_mantem_item_visivel() {
+    let mut scene = many();
+    scene.mandar(Message::View(ViewMode::List));
+    scene.files.listing.select(2);
+    scene.files.begin_rename();
+    scene.mandar(Message::Typed("z-ultimo.txt".to_owned()));
+    scene.mandar(Message::Submit);
+    assert_eq!(scene.selecionado().as_deref(), Some("z-ultimo.txt"));
+    assert!(
+        scene
+            .files
+            .layout
+            .range(scene.files.viewport.top(), scene.files.listing.len())
+            .contains(&scene.files.listing.cursor())
+    );
+}
+
+#[test]
+fn criar_fora_da_pagina_mantem_item_visivel() {
+    let mut scene = many();
+    scene.mandar(Message::View(ViewMode::List));
+    scene.files.begin_create();
+    scene.mandar(Message::Typed("z-novo.txt".to_owned()));
+    scene.mandar(Message::Submit);
+    assert_eq!(scene.selecionado().as_deref(), Some("z-novo.txt"));
+    assert!(
+        scene
+            .files
+            .layout
+            .range(scene.files.viewport.top(), scene.files.listing.len())
+            .contains(&scene.files.listing.cursor())
+    );
+}
