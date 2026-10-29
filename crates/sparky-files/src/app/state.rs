@@ -19,7 +19,7 @@ use crate::domain::icons::Icons;
 use crate::domain::listing::Listing;
 use crate::domain::places::Place;
 use crate::domain::properties::Properties;
-use crate::ports::{Archiver, Disk, IconSource, Opener, ThumbnailSource};
+use crate::ports::{Archiver, Disk, IconSource, Opener, ThumbnailSource, TrashStore};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Mode {
@@ -40,6 +40,7 @@ pub struct Services {
     pub volumes: Arc<dyn VolumeSource>,
     pub archiver: Arc<dyn Archiver>,
     pub thumbnails: Arc<dyn ThumbnailSource>,
+    pub trash: Box<dyn TrashStore>,
 }
 
 pub struct Setup {

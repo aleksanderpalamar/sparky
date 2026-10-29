@@ -21,7 +21,9 @@ pub fn entry(files: &mut Files, index: usize) {
     }
     files.listing.select(index);
     files.context = Some(ContextMenu {
-        target: if selected.is_directory() {
+        target: if files.in_trash() {
+            Target::Trashed
+        } else if selected.is_directory() {
             Target::Folder
         } else {
             Target::File
@@ -36,7 +38,11 @@ pub fn background(files: &mut Files) {
         return;
     }
     files.context = Some(ContextMenu {
-        target: Target::Background,
+        target: if files.in_trash() {
+            Target::TrashBackground
+        } else {
+            Target::Background
+        },
         name: None,
         point: files.pointer,
     });
@@ -81,7 +87,12 @@ pub fn open_with(files: &mut Files, id: &str) {
 }
 
 fn offered(files: &Files, target: Target, action: Action) -> bool {
-    context::entries(target, files.clip.is_some(), !files.listing.is_empty())
+    let has_entries = if target == Target::TrashBackground {
+        files.listing.total_len() > 0
+    } else {
+        !files.listing.is_empty()
+    };
+    context::entries(target, files.clip.is_some(), has_entries)
         .into_iter()
         .any(|row| matches!(row, Row::Item { action: listed, enabled: true, .. } if listed == action))
 }
@@ -108,6 +119,8 @@ fn run(files: &mut Files, action: Action, path: PathBuf) -> Task<Message> {
         Action::Properties => properties(files, &path),
         Action::Paste => files.paste(),
         Action::SelectAll => files.listing.select_all(),
+        Action::Restore => files.restore_selected(),
+        Action::RestoreAll => files.restore_all(),
     }
     Task::none()
 }

@@ -17,6 +17,7 @@ path = "src/lib.rs"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 gio = "0.22"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
+rustix = { version = "1", features = ["fs"] }
 iced = { version = "0.14", features = ["tokio", "image", "svg"] }
 tokio = { version = "1", features = ["rt"] }
 sparky-storage.workspace = true

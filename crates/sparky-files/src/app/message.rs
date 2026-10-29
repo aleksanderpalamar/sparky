@@ -27,9 +27,17 @@ pub enum Message {
     PreviewReady(PathBuf, Option<SystemTime>, Option<Thumbnail>),
     Resized(Size),
     Place(usize),
+    Trash(TrashEvent),
     Tick,
     View(ViewMode),
     OpenVolume(String),
     UnmountVolume(String),
     VolumesCompleted(Operation, Result<Vec<Volume>, String>),
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum TrashEvent {
+    Open,
+    RestoreSelected,
+    RestoreAll,
 }

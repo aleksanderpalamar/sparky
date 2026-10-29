@@ -9,6 +9,7 @@ pub mod properties;
 pub mod sidebar;
 pub mod status;
 pub mod style;
+pub mod trash_sidebar;
 
 use iced::widget::{column, container, row};
 use iced::{Element, Length};
@@ -35,5 +36,8 @@ pub fn view(files: &Files) -> Element<'_, Message> {
 }
 
 pub fn title(files: &Files) -> String {
+    if files.in_trash() {
+        return "Lixeira — Arquivos".to_owned();
+    }
     format!("{} — Arquivos", files.shown(&files.location))
 }

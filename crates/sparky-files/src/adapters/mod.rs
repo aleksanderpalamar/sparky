@@ -7,4 +7,6 @@ pub mod tree;
 pub mod xdg_open;
 
 #[cfg(test)]
+mod home_trash_tests;
+#[cfg(test)]
 mod local_disk_tests;

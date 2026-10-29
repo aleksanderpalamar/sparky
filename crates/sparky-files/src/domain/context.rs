@@ -3,6 +3,8 @@ pub enum Target {
     File,
     Folder,
     Background,
+    Trashed,
+    TrashBackground,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -22,6 +24,8 @@ pub enum Action {
     NewFile,
     Paste,
     SelectAll,
+    Restore,
+    RestoreAll,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -49,6 +53,12 @@ impl Row {
 }
 
 pub fn entries(target: Target, has_clip: bool, has_entries: bool) -> Vec<Row> {
+    if target == Target::Trashed {
+        return vec![item(Action::Restore, true), item(Action::Properties, true)];
+    }
+    if target == Target::TrashBackground {
+        return vec![item(Action::RestoreAll, has_entries)];
+    }
     if target == Target::Background {
         return background(has_clip, has_entries);
     }
@@ -99,6 +109,8 @@ fn item(action: Action, enabled: bool) -> Row {
         Action::NewFile => ("Novo documento...", ""),
         Action::Paste => ("Colar", "Ctrl+V"),
         Action::SelectAll => ("Selecionar tudo", "Ctrl+A"),
+        Action::Restore => ("Restaurar", ""),
+        Action::RestoreAll => ("Restaurar todos", ""),
     };
     Row::Item {
         action,

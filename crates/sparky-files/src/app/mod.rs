@@ -10,6 +10,7 @@ pub mod presentation;
 pub mod previews;
 pub mod state;
 pub mod transfer;
+pub mod trash;
 pub mod update;
 pub mod volumes;
 
@@ -31,6 +32,8 @@ mod previews_tests;
 mod test_scene;
 #[cfg(test)]
 mod test_sources;
+#[cfg(test)]
+mod trash_tests;
 #[cfg(test)]
 mod volume_pending_tests;
 #[cfg(test)]

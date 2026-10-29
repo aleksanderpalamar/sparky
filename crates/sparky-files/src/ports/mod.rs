@@ -1,3 +1,4 @@
+use std::ffi::{OsStr, OsString};
 use std::io;
 use std::path::Path;
 use std::path::PathBuf;
@@ -51,4 +52,14 @@ pub trait Archiver: Send + Sync {
 
 pub trait ThumbnailSource: Send + Sync {
     fn load(&self, path: &Path) -> Option<Thumbnail>;
+}
+
+pub trait TrashStore {
+    fn open(&self) -> io::Result<PathBuf>;
+
+    fn directory(&self) -> PathBuf;
+
+    fn names(&self) -> io::Result<Vec<OsString>>;
+
+    fn restore(&self, name: &OsStr) -> io::Result<PathBuf>;
 }
