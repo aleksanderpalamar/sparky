@@ -6,7 +6,7 @@ mod forms;
 mod network;
 mod style;
 
-use iced::widget::{button, column, container, row, rule, scrollable, text};
+use iced::widget::{button, column, container, rule, scrollable, text};
 use iced::{Element, Length};
 use sparky_theme::Skin;
 
@@ -25,14 +25,10 @@ pub fn view<'a>(
         PanelKind::Network => "Rede",
         PanelKind::Bluetooth => "Bluetooth",
     };
-    let header = row![
-        text(title)
-            .size(16)
-            .color(skin.foreground)
-            .width(Length::Fill),
-        action(skin, "×", Message::ClosePanel)
-    ]
-    .spacing(8);
+    let header = text(title)
+        .size(16)
+        .color(skin.foreground)
+        .width(Length::Fill);
     let normal = match kind {
         PanelKind::Clock => center::view(skin, center),
         PanelKind::Audio => audio::view(skin, panels),
@@ -55,7 +51,7 @@ pub fn view<'a>(
     container(
         content.push(
             text(match panels.input_focus {
-                crate::app::panel_state::InputFocus::Yielded => "Aguarde ou autentique · × fecha",
+                crate::app::panel_state::InputFocus::Yielded => "Aguarde ou autentique",
                 _ => "Esc fecha · clique no ícone alterna",
             })
             .size(11)
