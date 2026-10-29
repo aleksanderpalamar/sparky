@@ -25,6 +25,10 @@ impl Files {
     }
 
     pub fn open_selected(&mut self) {
+        if self.in_trash() {
+            self.inform("Restaure o item para abri-lo".to_owned());
+            return;
+        }
         let Some(entry) = self.listing.selected() else {
             return;
         };
@@ -38,6 +42,10 @@ impl Files {
     }
 
     pub fn parent(&mut self) {
+        if self.in_trash() {
+            self.home();
+            return;
+        }
         let Some(parent) = self.location.parent().map(Path::to_path_buf) else {
             return;
         };

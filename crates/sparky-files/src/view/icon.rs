@@ -1,9 +1,27 @@
-use iced::Element;
 use iced::widget::{image, svg};
+use iced::{ContentFit, Element};
 
 use crate::app::message::Message;
 use crate::app::state::Files;
+use crate::domain::entry::Entry;
 use crate::domain::icons::IconKind;
+
+pub fn entry_icon(
+    files: &Files,
+    entry: &Entry,
+    place: Option<&str>,
+    size: f32,
+) -> Element<'static, Message> {
+    let path = files.location.join(&entry.name);
+    if let Some(handle) = files.previews.handle(&path) {
+        return image(handle)
+            .width(size)
+            .height(size)
+            .content_fit(ContentFit::Contain)
+            .into();
+    }
+    icon(files, IconKind::for_entry(entry, place), size)
+}
 
 pub fn icon(files: &Files, kind: IconKind, size: f32) -> Element<'static, Message> {
     match files.icons.get(&kind) {
@@ -42,6 +60,9 @@ fn fallback(files: &Files, kind: IconKind, size: f32) -> Element<'static, Messag
             "<path d='M13 8h38v48H13z'/><circle cx='32' cy='28' r='12' fill='none' stroke='#ffffff' stroke-width='2'/><circle cx='32' cy='28' r='3' fill='#ffffff'/><path d='M21 47h22' stroke='#ffffff' stroke-width='3'/>"
         }
         IconKind::Eject => "<path d='M12 40l20-25 20 25zM12 47h40v7H12z'/>",
+        IconKind::Trash => {
+            "<path d='M14 17h36l-3 39H17z'/><path d='M10 12h44v5H10z'/><path d='M25 8h14v4H25z'/>"
+        }
         IconKind::Phone => {
             "<path d='M18 5h28v54H18z'/><path d='M22 12h20v35H22z' fill='#ffffff' opacity='.35'/><circle cx='32' cy='53' r='2' fill='#ffffff'/>"
         }

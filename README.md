@@ -15,7 +15,7 @@ Somente os temas vem do [Omarchy](https://github.com/basecamp/omarchy): como pal
 | `crates/sparky-config` | O `sparky.toml`: esquema, padrões do sparky, ações e a tabela de atalhos padrão |
 | `crates/sparky-ipc` | Protocolo do IPC do sparky (JSON por linha num socket Unix), o cliente usado pela barra e pelos aplicativos, e o `sparky-msg` |
 | `crates/sparky-shot` | O capturador de tela (`sparky-shot`): seletor de modo, seleção de região pelo teclado ou mouse, PNG salvo e copiado |
-| `crates/sparky-files` | O gerenciador de arquivos (`sparky-files`): grade e lista com ícones, dispositivos, lugares, filtro, copiar, recortar, colar, renomear, criar e lixeira |
+| `crates/sparky-files` | O gerenciador de arquivos (`sparky-files`): grade e lista com ícones e miniaturas, menus de contexto, dispositivos, lugares, filtro, copiar, recortar, colar, renomear, criar, compactar e lixeira |
 | `crates/sparky-storage` | Volumes de bloco pelo udisksctl e smartphones MTP pelo udev/GIO/GVfs; parser de discos compartilhado com o painel |
 | `crates/sparky-xdg` | Convenções XDG compartilhadas: pastas do usuário, leitura de `.desktop`, busca de programas e resolução de ícones dos temas |
 | `crates/sparky-settings` | O painel de configurações (`sparky-settings`): edita o `sparky.toml` e aplica na hora pelo IPC |
@@ -236,7 +236,11 @@ Se outro chaveiro (gnome-keyring, KWallet) já tiver o nome `org.freedesktop.sec
 
 O `sparky-files` abre pelo `SUPER + SHIFT + F` (ou `sparky-files <pasta>`). Abre em grade, com ícones e nomes de pastas e arquivos, e permite alternar para a lista com tamanho e data pelos botões Grade/Lista ou por `CTRL + 1`/`CTRL + 2`. A grade se adapta à largura da janela; as pastas vêm primeiro, e a visualização se atualiza quando a pasta muda. Trocar a visualização preserva filtro, seleção e itens marcados.
 
-Os ícones seguem o tema configurado pelo painel no GTK, incluindo sua herança (`index.theme`). Pastas especiais e tipos comuns de arquivo têm ícones próprios; sem um ícone instalado, o sparky desenha um ícone de reserva. Uma troca de tema atualiza os ícones sem fechar o gerenciador.
+Os ícones seguem o tema configurado pelo painel no GTK, incluindo sua herança (`index.theme`). O gerenciador prefere os tamanhos do tema mais próximos de 96 px, inclusive as pastas em escala dupla (`48x48@2x`), para os ícones não ficarem borrados. Pastas especiais e tipos comuns de arquivo têm ícones próprios; sem um ícone instalado, o sparky desenha um ícone de reserva. Uma troca de tema atualiza os ícones sem fechar o gerenciador.
+
+Imagens PNG, JPEG e WebP mostram uma miniatura do conteúdo no lugar do ícone. As miniaturas são geradas em segundo plano, duas por vez e só para os itens visíveis, a partir de arquivos de até 16 MiB e 8192 px de lado. Ficam em memória e são refeitas quando o arquivo muda; nada é gravado em disco. Arquivos maiores ou que não puderem ser lidos ficam com o ícone do tipo.
+
+A lateral também permite abrir a **Lixeira**. Ela mostra os itens de `~/.local/share/Trash/files`, incluindo os enviados por outros aplicativos para esse local. Selecione um item e use **Restaurar item** no topo ou no menu de contexto para devolvê-lo ao caminho registrado em seu `.trashinfo`; **Restaurar todos** devolve todos os itens da lixeira, inclusive os ocultos pelo filtro. Se o destino já existir ou o registro estiver ausente/inválido, o item permanece na lixeira e o erro é exibido. Dentro da lixeira, criar, renomear, recortar, colar e mover novamente para a lixeira ficam indisponíveis; restaure o item antes de abri-lo.
 
 Na lateral ficam os lugares e os dispositivos: SSDs, partições e unidades removíveis com sistema de arquivos, montados ou não. A lista se atualiza a cada dois segundos. Um clique abre o volume montado; se estiver desmontado, pede a montagem pelo `udisksctl` e abre o ponto retornado. O botão de desmontar é separado e nunca força a operação. `ALT + 1` a `9` montam/abrem os dispositivos correspondentes; `ALT + U` pede a desmontagem do volume aberto. A montagem depende do `udisks2` e das permissões do sistema; recusas e dispositivos ocupados aparecem como aviso. As consultas usam `lsblk` (`util-linux`). Partições do sistema, swap e contêineres criptografados ainda trancados não são oferecidos para montagem/desmontagem. Ao retirar o volume em que está navegando, o gerenciador volta à pasta pessoal.
 
@@ -266,7 +270,21 @@ As consultas periódicas de dispositivos não exibem indicador de atualização.
 | `F5` ou `CTRL + R` | Relê a pasta |
 | `q` ou `CTRL + Q` | Fecha |
 
+| `CTRL + SHIFT + N` | Cria uma pasta, com o nome sugerido selecionado |
+| `CTRL + A` | Marca todos os itens visíveis |
+| `ALT + Enter` | Mostra as propriedades do item selecionado ou, sem seleção, da pasta aberta |
+
 Com o mouse, um clique seleciona, dois cliques abrem e a roda rola a lista.
+
+O clique direito abre um menu de contexto nas cores do tema. Sobre um arquivo ou pasta, oferece abrir, abrir com outro aplicativo, recortar, copiar, mover para, copiar para, renomear, comprimir, e-mail, mover para a lixeira e propriedades. Na área vazia, oferece nova pasta, novo documento, abrir a pasta com outro aplicativo, colar, selecionar tudo e propriedades. Se o item já estiver marcado, o menu age sobre todos os marcados. Enquanto um menu ou diálogo está aberto, as teclas não agem sobre a lista; `Esc` ou um clique fora fecha.
+
+- **Abrir com** lista os aplicativos registrados para o tipo do arquivo, pelo GIO.
+- **Mover para** e **Copiar para** pedem o caminho da pasta de destino na barra inferior (aceitam `~` e caminhos relativos) e não alteram a área de transferência.
+- **Comprimir** cria um `.tar.gz` na pasta aberta pelo `tar`, sem travar a janela. O arquivo é escrito num temporário e nunca substitui um item existente.
+- **E-mail** abre o cliente de e-mail padrão pelo `xdg-email`, com os arquivos anexados; pastas precisam ser comprimidas antes.
+- **Propriedades** mostra nome, tipo, caminho, tamanho, data de modificação e permissões.
+
+Ao copiar uma única imagem PNG, JPEG ou WebP, o `sparky-files` também publica seus bytes na área de transferência do sistema. Assim, `CTRL + V` em outro aplicativo pode colar a imagem; a cópia de arquivos dentro do gerenciador continua disponível.
 
 ## Configurações
 

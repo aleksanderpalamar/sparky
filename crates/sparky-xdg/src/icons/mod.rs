@@ -12,39 +12,63 @@ pub struct IconTheme {
 
 impl IconTheme {
     pub fn new(roots: Vec<PathBuf>, preferred: &str) -> Self {
+        Self::build(roots, preferred, None)
+    }
+
+    pub fn with_size(roots: Vec<PathBuf>, preferred: &str, pixels: u32) -> Self {
+        Self::build(roots, preferred, Some(pixels))
+    }
+
+    fn build(roots: Vec<PathBuf>, preferred: &str, pixels: Option<u32>) -> Self {
         let mut directories = Vec::new();
         let mut visited = BTreeSet::new();
         for theme in [preferred, "hicolor", "Adwaita"] {
-            collect(theme, &roots, &mut visited, &mut directories);
+            collect(theme, &roots, pixels, &mut visited, &mut directories);
         }
         Self { directories }
     }
 
     pub fn resolve(&self, names: &[&str]) -> Option<PathBuf> {
-        names.iter().filter(|name| valid_name(name)).find_map(|name| {
-            self.directories.iter().find_map(|directory| {
-                ["svg", "png"].iter().map(|extension| directory.join(format!("{name}.{extension}"))).find(|path| path.is_file())
+        names
+            .iter()
+            .filter(|name| valid_name(name))
+            .find_map(|name| {
+                self.directories.iter().find_map(|directory| {
+                    ["svg", "png"]
+                        .iter()
+                        .map(|extension| directory.join(format!("{name}.{extension}")))
+                        .find(|path| path.is_file())
+                })
             })
-        })
     }
 }
 
-fn collect(theme: &str, roots: &[PathBuf], visited: &mut BTreeSet<String>, directories: &mut Vec<PathBuf>) {
+fn collect(
+    theme: &str,
+    roots: &[PathBuf],
+    pixels: Option<u32>,
+    visited: &mut BTreeSet<String>,
+    directories: &mut Vec<PathBuf>,
+) {
     if !valid_name(theme) || !visited.insert(theme.to_owned()) || visited.len() > 32 {
         return;
     }
     let mut inherited = Vec::new();
     for root in roots {
         let directory = root.join(theme);
-        let theme = index::read(&directory);
+        let theme = index::read(&directory, pixels);
         directories.extend(theme.directories);
         inherited.extend(theme.inherits);
     }
     for parent in inherited {
-        collect(&parent, roots, visited, directories);
+        collect(&parent, roots, pixels, visited, directories);
     }
 }
 
 fn valid_name(name: &str) -> bool {
-    !name.is_empty() && name != "." && name != ".." && Path::new(name).components().count() == 1 && !name.contains('/')
+    !name.is_empty()
+        && name != "."
+        && name != ".."
+        && Path::new(name).components().count() == 1
+        && !name.contains('/')
 }

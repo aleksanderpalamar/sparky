@@ -28,9 +28,10 @@ pub enum IconKind {
     Removable,
     Phone,
     Eject,
+    Trash,
 }
 
-pub const ALL: [IconKind; 23] = [
+pub const ALL: [IconKind; 24] = [
     IconKind::Folder,
     IconKind::Home,
     IconKind::Desktop,
@@ -54,6 +55,7 @@ pub const ALL: [IconKind; 23] = [
     IconKind::Removable,
     IconKind::Phone,
     IconKind::Eject,
+    IconKind::Trash,
 ];
 
 pub type Icons = BTreeMap<IconKind, PathBuf>;
@@ -129,6 +131,7 @@ impl IconKind {
             Self::Removable => &["drive-removable-media", "drive-harddisk"],
             Self::Phone => &["phone", "multimedia-player", "drive-removable-media"],
             Self::Eject => &["media-eject", "media-eject-symbolic"],
+            Self::Trash => &["user-trash", "user-trash-full"],
         }
     }
 }

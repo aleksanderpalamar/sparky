@@ -1,16 +1,22 @@
 use std::mem;
 use std::path::PathBuf;
 
+use iced::Task;
+
 use crate::app::keys::Answer;
+use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
 use crate::domain::clip::Clip;
+use crate::domain::entry::Kind;
 use crate::domain::naming::stem_length;
 use crate::domain::wording::{agreed, items};
-use crate::operations;
+use crate::operations::{self, Failure};
 
 impl Files {
     pub fn copy(&mut self) {
+        let paths = self.chosen_paths();
         self.hold(Clip::Copy);
+        self.publish_image(&paths);
     }
 
     pub fn cut(&mut self) {
@@ -32,7 +38,11 @@ impl Files {
                 if matches!(clip, Clip::Cut(_)) {
                     self.clip = None;
                 }
-                self.inform(format!("{} {}", items(names.len()), agreed("colado", names.len())));
+                self.inform(format!(
+                    "{} {}",
+                    items(names.len()),
+                    agreed("colado", names.len())
+                ));
             }
             Err(failure) => self.fail(failure),
         }
@@ -74,6 +84,16 @@ impl Files {
         self.mode = Mode::Create;
     }
 
+    pub fn begin_new(&mut self, kind: Kind) -> usize {
+        self.input = match kind {
+            Kind::Directory => "Nova pasta",
+            Kind::File => "Novo documento",
+        }
+        .to_owned();
+        self.mode = Mode::New(kind);
+        self.input.chars().count()
+    }
+
     pub fn begin_filter(&mut self) {
         self.input = self.listing.filter().to_owned();
         self.mode = Mode::Filter;
@@ -86,22 +106,48 @@ impl Files {
         self.input = text;
     }
 
-    pub fn submit(&mut self) {
+    pub fn submit(&mut self) -> Task<Message> {
         let input = mem::take(&mut self.input);
         match mem::replace(&mut self.mode, Mode::Browse) {
             Mode::Rename(original) => self.finish_rename(&original, input.trim()),
-            Mode::Create => self.finish_create(&input),
+            Mode::Create => {
+                let result =
+                    operations::create(&self.location, &input, self.services.disk.as_ref());
+                self.created(result);
+            }
+            Mode::New(kind) => {
+                let disk = self.services.disk.as_ref();
+                let result = operations::create_as(&self.location, &input, kind, disk);
+                self.created(result);
+            }
+            Mode::Destination(clip) => self.finish_destination(&clip, &input),
+            Mode::Compress(paths) => return self.start_archive(paths, &input),
             Mode::ConfirmTrash(names) => self.mode = Mode::ConfirmTrash(names),
             Mode::Browse | Mode::Filter => {}
         }
+        Task::none()
     }
 
     pub fn escape(&mut self) {
+        if self.open_with.take().is_some() {
+            return;
+        }
+        if self.details.take().is_some() {
+            return;
+        }
+        if self.context.take().is_some() {
+            return;
+        }
         match mem::replace(&mut self.mode, Mode::Browse) {
             Mode::Browse if !self.listing.filter().is_empty() => self.listing.set_filter(""),
             Mode::Browse => self.listing.clear_marks(),
             Mode::Filter => self.listing.set_filter(""),
-            Mode::Rename(_) | Mode::Create | Mode::ConfirmTrash(_) => {}
+            Mode::Rename(_)
+            | Mode::Create
+            | Mode::New(_)
+            | Mode::Destination(_)
+            | Mode::Compress(_)
+            | Mode::ConfirmTrash(_) => {}
         }
         self.input.clear();
     }
@@ -130,8 +176,7 @@ impl Files {
         }
     }
 
-    fn finish_create(&mut self, input: &str) {
-        let result = operations::create(&self.location, input, self.services.disk.as_ref());
+    fn created(&mut self, result: Result<String, Failure>) {
         self.refresh();
         match result {
             Ok(name) => {

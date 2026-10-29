@@ -2,7 +2,7 @@ use iced::alignment::Vertical;
 use iced::widget::{button, container, row, text, tooltip};
 use iced::{Element, Length};
 
-use crate::app::message::Message;
+use crate::app::message::{Message, TrashEvent};
 use crate::app::state::Files;
 use crate::domain::grid::ViewMode;
 use crate::domain::listing::Hidden;
@@ -11,7 +11,12 @@ use sparky_ui::style::{HEADER_HEIGHT, PADDING, SMALL_TEXT, SPACING, TITLE_SIZE};
 
 pub fn header(files: &Files) -> Element<'_, Message> {
     let skin = files.skin;
-    let path = text(files.shown(&files.location))
+    let label = if files.in_trash() {
+        "Lixeira".to_owned()
+    } else {
+        files.shown(&files.location)
+    };
+    let path = text(label)
         .size(TITLE_SIZE)
         .color(skin.bright_foreground)
         .width(Length::Fill);
@@ -23,9 +28,23 @@ pub fn header(files: &Files) -> Element<'_, Message> {
         view_button(files, ViewMode::List, "Lista", "Lista · Ctrl+2")
     ]
     .spacing(4);
+    let mut heading = row![path].extend(tags);
+    if files.in_trash() {
+        heading = heading.push(restore_button(
+            files,
+            "Restaurar item",
+            Message::Trash(TrashEvent::RestoreSelected),
+            files.listing.selected().is_some(),
+        ));
+        heading = heading.push(restore_button(
+            files,
+            "Restaurar todos",
+            Message::Trash(TrashEvent::RestoreAll),
+            files.listing.total_len() > 0,
+        ));
+    }
     container(
-        row![path]
-            .extend(tags)
+        heading
             .push(modes)
             .spacing(SPACING * 2.0)
             .align_y(Vertical::Center),
@@ -35,6 +54,20 @@ pub fn header(files: &Files) -> Element<'_, Message> {
     .padding([0.0, PADDING])
     .align_y(Vertical::Center)
     .into()
+}
+
+fn restore_button<'a>(
+    files: &'a Files,
+    label: &'static str,
+    message: Message,
+    enabled: bool,
+) -> Element<'a, Message> {
+    let skin = files.skin;
+    button(text(label).size(SMALL_TEXT))
+        .padding([6, 8])
+        .on_press_maybe(enabled.then_some(message))
+        .style(move |_, status| style::entry(skin, Highlight::Plain, status))
+        .into()
 }
 
 fn view_button<'a>(
