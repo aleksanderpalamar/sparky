@@ -2,7 +2,7 @@ use iced::keyboard::key::Named;
 use sparky_theme::Skin;
 use sparky_ui::notice::Notice;
 
-pub(super) use super::test_scene::Cena;
+use super::test_scene::Cena;
 use crate::app::message::Message;
 use crate::app::state::Mode;
 

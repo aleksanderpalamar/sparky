@@ -6,8 +6,8 @@ use iced::futures::StreamExt;
 use iced_runtime::Action;
 use sparky_storage::{Operation, Volume, VolumeSource};
 
-use super::files_tests::Cena;
 use super::message::Message;
+use super::test_scene::Cena;
 use super::update::update;
 use super::volumes;
 
@@ -29,7 +29,10 @@ struct Source {
 
 impl VolumeSource for Source {
     fn run(&self, operation: Operation) -> Result<Vec<Volume>, String> {
-        self.calls.lock().map_err(|error| error.to_string())?.push(operation);
+        self.calls
+            .lock()
+            .map_err(|error| error.to_string())?
+            .push(operation);
         self.result.clone()
     }
 }
@@ -38,10 +41,14 @@ fn complete(scene: &mut Cena, task: Task<Message>) {
     let Some(mut stream) = iced_runtime::task::into_stream(task) else {
         return;
     };
-    let runtime = tokio::runtime::Builder::new_current_thread().build().unwrap();
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .build()
+        .unwrap();
     runtime.block_on(async {
         while let Some(action) = stream.next().await {
-            let Action::Output(message) = action else { continue };
+            let Action::Output(message) = action else {
+                continue;
+            };
             let _ = update(&mut scene.files, message);
         }
     });
@@ -69,7 +76,10 @@ fn montagem_assincrona_abre_o_ponto_retornado_e_serializa_pedidos() {
     scene.files.services.volumes = source.clone();
     scene.files.volumes = vec![volume(None)];
     let task = volumes::open(&mut scene.files, "/dev/sda1");
-    assert_eq!(scene.files.volume_work, Some(Operation::Mount("/dev/sda1".to_owned())));
+    assert_eq!(
+        scene.files.volume_work,
+        Some(Operation::Mount("/dev/sda1".to_owned()))
+    );
     assert!(iced_runtime::task::into_stream(volumes::refresh(&mut scene.files)).is_none());
     complete(&mut scene, task);
     assert_eq!(
@@ -138,7 +148,9 @@ fn resposta_antiga_e_click_em_volume_removido_sao_ignorados() {
     );
     assert_eq!(scene.files.volume_work, Some(Operation::List));
     assert!(scene.files.volumes.is_empty());
-    assert!(iced_runtime::task::into_stream(volumes::open(&mut scene.files, "/dev/ausente")).is_none());
+    assert!(
+        iced_runtime::task::into_stream(volumes::open(&mut scene.files, "/dev/ausente")).is_none()
+    );
 }
 
 #[test]

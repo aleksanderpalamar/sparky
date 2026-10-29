@@ -24,6 +24,9 @@ pub enum Command {
     Paste,
     Rename,
     Create,
+    NewFolder,
+    SelectAll,
+    Properties,
     Trash,
     Refresh,
     Quit,
@@ -42,7 +45,7 @@ pub fn browse(key: &Key, modifiers: Modifiers) -> Option<Command> {
     match key.as_ref() {
         Key::Named(named) => named_command(named, modifiers),
         Key::Character(text) if modifiers.alt() => volume_command(text),
-        Key::Character(text) if modifiers.control() => control_command(text),
+        Key::Character(text) if modifiers.control() => control_command(text, modifiers),
         Key::Character(text) => letter_command(text),
         Key::Unidentified => None,
     }
@@ -71,6 +74,7 @@ fn named_command(named: Named, modifiers: Modifiers) -> Option<Command> {
     match named {
         Named::ArrowUp if modifiers.alt() => Some(Command::Parent),
         Named::Home if modifiers.alt() => Some(Command::Home),
+        Named::Enter if modifiers.alt() => Some(Command::Properties),
         Named::ArrowDown => Some(Command::Down),
         Named::ArrowUp => Some(Command::Up),
         Named::PageDown => Some(Command::PageDown),
@@ -89,8 +93,10 @@ fn named_command(named: Named, modifiers: Modifiers) -> Option<Command> {
     }
 }
 
-fn control_command(text: &str) -> Option<Command> {
+fn control_command(text: &str, modifiers: Modifiers) -> Option<Command> {
     match text.to_lowercase().as_str() {
+        "n" if modifiers.shift() => Some(Command::NewFolder),
+        "a" => Some(Command::SelectAll),
         "c" => Some(Command::Copy),
         "x" => Some(Command::Cut),
         "v" => Some(Command::Paste),

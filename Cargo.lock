@@ -4765,8 +4765,11 @@ name = "sparky-files"
 version = "0.26.0"
 dependencies = [
  "chrono",
+ "gio",
  "iced",
  "iced_runtime",
+ "image",
+ "rustix 1.1.5",
  "sparky-storage",
  "sparky-theme",
  "sparky-ui",

@@ -13,10 +13,12 @@ use tempfile::TempDir;
 use super::test_sources::{CopiedImages, NoIcons, NoVolumes};
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::local_disk::LocalDisk;
+use crate::adapters::thumbnail::FileThumbnail;
 use crate::app::message::Message;
 use crate::app::state::{Files, Services, Setup};
 use crate::app::update::update;
-use crate::ports::Opener;
+use crate::domain::application::Application;
+use crate::ports::{Archiver, Opener};
 
 #[derive(Clone, Default)]
 struct Abertos(Rc<RefCell<Vec<PathBuf>>>);
@@ -25,6 +27,30 @@ impl Opener for Abertos {
     fn open(&self, path: &Path) -> io::Result<()> {
         self.0.borrow_mut().push(path.to_path_buf());
         Ok(())
+    }
+
+    fn applications(&self, _path: &Path) -> Vec<Application> {
+        vec![Application {
+            id: "teste.desktop".to_owned(),
+            name: "Teste".to_owned(),
+        }]
+    }
+
+    fn open_with(&self, path: &Path, _id: &str) -> io::Result<()> {
+        self.open(path)
+    }
+
+    fn email(&self, paths: &[PathBuf]) -> io::Result<()> {
+        self.0.borrow_mut().extend(paths.iter().cloned());
+        Ok(())
+    }
+}
+
+struct ArquivosComprimidos;
+
+impl Archiver for ArquivosComprimidos {
+    fn create(&self, _paths: &[PathBuf], target: &Path) -> io::Result<()> {
+        fs::write(target, "arquivo de teste")
     }
 }
 
@@ -46,11 +72,15 @@ impl Cena {
         assert!(preparado.is_ok());
         let abertos = Abertos::default();
         let imagens = CopiedImages::default();
+        let trash = HomeTrash::new(dir.path().join("Trash"));
         let services = Services {
-            disk: Box::new(LocalDisk::new(HomeTrash::new(dir.path().join("Trash")))),
+            disk: Box::new(LocalDisk::new(trash.clone())),
             opener: Box::new(abertos.clone()),
             icons: Box::new(NoIcons),
             volumes: Arc::new(NoVolumes),
+            archiver: Arc::new(ArquivosComprimidos),
+            thumbnails: Arc::new(FileThumbnail),
+            trash: Box::new(trash),
             image_clipboard: Box::new(imagens.clone()),
         };
         let setup = Setup {

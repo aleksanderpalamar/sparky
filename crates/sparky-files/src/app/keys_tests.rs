@@ -37,7 +37,10 @@ fn atalhos_de_arquivo_por_letra_e_por_ctrl() {
         browse(&Key::Character("c".into()), Modifiers::CTRL),
         Some(Command::Copy)
     );
-    assert_eq!(browse(&Key::Character("X".into()), Modifiers::CTRL), Some(Command::Cut));
+    assert_eq!(
+        browse(&Key::Character("X".into()), Modifiers::CTRL),
+        Some(Command::Cut)
+    );
     assert_eq!(letra("p"), Some(Command::Paste));
     assert_eq!(nomeada(Named::F2), Some(Command::Rename));
     assert_eq!(nomeada(Named::Delete), Some(Command::Trash));
@@ -57,12 +60,18 @@ fn alt_com_seta_para_cima_sobe_e_alt_home_vai_para_casa() {
         browse(&Key::Named(Named::ArrowUp), Modifiers::ALT),
         Some(Command::Parent)
     );
-    assert_eq!(browse(&Key::Named(Named::Home), Modifiers::ALT), Some(Command::Home));
+    assert_eq!(
+        browse(&Key::Named(Named::Home), Modifiers::ALT),
+        Some(Command::Home)
+    );
 }
 
 #[test]
 fn no_filtro_so_as_setas_movem() {
-    assert_eq!(filtering(&Key::Named(Named::ArrowDown)), Some(Command::Down));
+    assert_eq!(
+        filtering(&Key::Named(Named::ArrowDown)),
+        Some(Command::Down)
+    );
     assert_eq!(filtering(&Key::Character("j".into())), None);
 }
 
@@ -100,4 +109,24 @@ fn visualizacoes_e_dispositivos_tem_atalhos_separados_dos_lugares() {
         Some(Command::UnmountCurrent)
     );
     assert_eq!(letra("1"), Some(Command::Place(0)));
+}
+
+#[test]
+fn atalhos_exibidos_nos_menus_de_contexto_existem() {
+    assert_eq!(
+        browse(
+            &Key::Character("N".into()),
+            Modifiers::CTRL | Modifiers::SHIFT
+        ),
+        Some(Command::NewFolder)
+    );
+    assert_eq!(browse(&Key::Character("n".into()), Modifiers::CTRL), None);
+    assert_eq!(
+        browse(&Key::Character("a".into()), Modifiers::CTRL),
+        Some(Command::SelectAll)
+    );
+    assert_eq!(
+        browse(&Key::Named(Named::Enter), Modifiers::ALT),
+        Some(Command::Properties)
+    );
 }
