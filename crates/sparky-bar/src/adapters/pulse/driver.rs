@@ -110,6 +110,7 @@ fn connected(
                                 context.subscribe(
                                     InterestMaskSet::SINK
                                         | InterestMaskSet::SOURCE
+                                        | InterestMaskSet::SINK_INPUT
                                         | InterestMaskSet::SERVER,
                                     |_| {},
                                 );

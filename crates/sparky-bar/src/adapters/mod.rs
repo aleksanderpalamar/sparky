@@ -5,6 +5,7 @@ pub mod icons;
 pub mod network;
 pub mod prompts;
 pub mod pulse;
+pub mod telemetry;
 pub mod tray_commands;
 pub mod tray_events;
 

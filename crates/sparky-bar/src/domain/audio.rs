@@ -13,12 +13,22 @@ pub struct AudioDevice {
     pub muted: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AudioApp {
+    pub index: u32,
+    pub label: String,
+    pub channels: u8,
+    pub volume: u16,
+    pub writable: bool,
+}
+
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct AudioState {
     pub outputs: Vec<AudioDevice>,
     pub inputs: Vec<AudioDevice>,
     pub default_output: Option<String>,
     pub default_input: Option<String>,
+    pub applications: Vec<AudioApp>,
 }
 
 impl AudioState {
@@ -82,5 +92,10 @@ pub enum AudioRequest {
     Default {
         direction: Direction,
         name: String,
+    },
+    AppVolume {
+        index: u32,
+        channels: u8,
+        percent: u16,
     },
 }

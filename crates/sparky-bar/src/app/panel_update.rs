@@ -36,6 +36,18 @@ pub fn update(bar: &mut Bar, message: Message) -> Task<Message> {
         Message::AudioReady(client) => bar.panels.audio_client = Some(client),
         Message::BluetoothReady(client) => bar.panels.bluetooth_client = Some(client),
         Message::NetworkReady(client) => bar.panels.network_client = Some(client),
+        Message::NetworkSample(window, result) => {
+            super::panel_network::received(bar, window, result)
+        }
+        Message::OpenNetworkSettings => {
+            return Task::batch([
+                panel_actions::close(bar),
+                super::panel_network::open_settings(),
+            ]);
+        }
+        Message::NetworkSettingsOpened(Err(error)) => {
+            bar.panels.errors.insert(PanelKind::Network, error);
+        }
         Message::PromptReady(client) => bar.panels.prompts = Some(client),
         Message::Audio(audio) => bar.panels.audio = audio,
         Message::Network(network) => bar.panels.network = network,
@@ -45,6 +57,13 @@ pub fn update(bar: &mut Bar, message: Message) -> Task<Message> {
         Message::VolumeDraft(direction, percent) => bar.panels.draft_volume(direction, percent),
         Message::VolumeCommit => {
             let Some(request) = bar.panels.volume_request() else {
+                return Task::none();
+            };
+            return super::audio::request(bar, request);
+        }
+        Message::AppVolumeDraft(index, percent) => bar.panels.draft_app_volume(index, percent),
+        Message::AppVolumeCommit(index) => {
+            let Some(request) = bar.panels.app_volume_request(index) else {
                 return Task::none();
             };
             return super::audio::request(bar, request);

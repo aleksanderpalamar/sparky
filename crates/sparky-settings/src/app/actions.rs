@@ -14,11 +14,18 @@ pub enum Opened {
 impl Settings {
     pub fn count(&self) -> usize {
         match self.section {
-            Section::Appearance | Section::Keyboard | Section::Apps => Field::of(self.section).len(),
+            Section::Appearance | Section::Keyboard | Section::Apps => {
+                Field::of(self.section).len()
+            }
             Section::Autostart => self.config.autostart.len() + 1,
             Section::Shortcuts => self.binds().len(),
             Section::Monitors => self.outputs.as_ref().map_or(0, Vec::len),
-            Section::Power | Section::DateTime | Section::Region | Section::Media | Section::Themes => self.system_rows().len(),
+            Section::Network => 0,
+            Section::Power
+            | Section::DateTime
+            | Section::Region
+            | Section::Media
+            | Section::Themes => self.system_rows().len(),
             Section::About => 0,
             Section::Users => self.users.len(),
         }
@@ -26,6 +33,9 @@ impl Settings {
 
     pub fn go(&mut self, section: Section) {
         self.section = section;
+        if section == Section::Network {
+            self.network = crate::domain::network::Network::load(self.services.commands.as_ref());
+        }
         self.focus = 0;
         self.mode = Mode::Browse;
         self.input.clear();
@@ -33,7 +43,10 @@ impl Settings {
     }
 
     pub fn move_focus(&mut self, delta: isize) {
-        self.focus = self.focus.saturating_add_signed(delta).min(self.count().saturating_sub(1));
+        self.focus = self
+            .focus
+            .saturating_add_signed(delta)
+            .min(self.count().saturating_sub(1));
         self.list.follow(self.focus, self.count());
     }
 
@@ -73,7 +86,12 @@ impl Settings {
             Some(_) => Slot::Existing(self.focus),
             None => Slot::New,
         };
-        self.input = self.config.autostart.get(self.focus).cloned().unwrap_or_default();
+        self.input = self
+            .config
+            .autostart
+            .get(self.focus)
+            .cloned()
+            .unwrap_or_default();
         self.mode = Mode::Editing(Target::Autostart(slot));
         Opened::Prompt
     }
@@ -128,7 +146,9 @@ impl Settings {
             (Slot::Existing(index), true) if index < entries.len() => {
                 entries.remove(index);
             }
-            (Slot::Existing(index), false) if index < entries.len() => entries[index] = command.to_owned(),
+            (Slot::Existing(index), false) if index < entries.len() => {
+                entries[index] = command.to_owned()
+            }
             (Slot::Existing(_), _) => return,
         }
         self.set_autostart(entries);

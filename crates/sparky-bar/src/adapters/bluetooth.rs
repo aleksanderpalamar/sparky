@@ -131,6 +131,7 @@ fn relevant(message: &zbus::Message) -> bool {
         "Adapter",
         "Discovering",
         "Paired",
+        "Icon",
     ]
     .iter()
     .any(|key| changed.contains_key(*key) || invalidated.iter().any(|value| value == key))

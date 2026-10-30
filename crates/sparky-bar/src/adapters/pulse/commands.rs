@@ -70,11 +70,28 @@ pub fn execute(context: &mut Context, request: AudioRequest, reply: Reply, wake:
                 context.set_default_source(&name, callback);
             }
         },
+        AudioRequest::AppVolume {
+            index,
+            channels,
+            percent,
+        } => {
+            let mut volume = ChannelVolumes::default();
+            volume.set(
+                channels,
+                Volume(u32::from(percent) * Volume::NORMAL.0 / 100),
+            );
+            context
+                .introspect()
+                .set_sink_input_volume(index, &volume, Some(callback));
+        }
     }
 }
 
 pub fn valid(request: &AudioRequest) -> bool {
     let name = match request {
+        AudioRequest::AppVolume {
+            channels, percent, ..
+        } => return (1..=32).contains(channels) && *percent <= 150,
         AudioRequest::Volume {
             name,
             channels,

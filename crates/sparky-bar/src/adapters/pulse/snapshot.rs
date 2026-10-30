@@ -8,13 +8,13 @@ use libpulse_binding::{
     volume::{ChannelVolumes, Volume},
 };
 
-use crate::domain::audio::{Audio, AudioDevice, AudioState};
+use crate::domain::audio::{Audio, AudioApp, AudioDevice, AudioState};
 
 #[derive(Default)]
 pub struct Store {
     generation: u64,
     state: AudioState,
-    completed: [bool; 3],
+    completed: [bool; 4],
     failed: bool,
     published: Option<Audio>,
 }
@@ -26,7 +26,7 @@ pub fn refresh(context: &Context, store: &Shared, output: &UnboundedSender<Audio
         let mut store = store.borrow_mut();
         store.generation = store.generation.wrapping_add(1);
         store.state = AudioState::default();
-        store.completed = [false; 3];
+        store.completed = [false; 4];
         store.failed = false;
         store.generation
     };
@@ -95,10 +95,42 @@ pub fn refresh(context: &Context, store: &Shared, output: &UnboundedSender<Audio
         }
         publish(&mut store, &sender);
     });
+    let applications = store.clone();
+    let sender = output.clone();
+    context
+        .introspect()
+        .get_sink_input_info_list(move |result| {
+            let mut store = applications.borrow_mut();
+            if store.generation != generation {
+                return;
+            }
+            match result {
+                ListResult::Item(info) if info.has_volume => {
+                    let label = info
+                        .proplist
+                        .get_str(libpulse_binding::proplist::properties::APPLICATION_NAME)
+                        .or_else(|| info.name.as_deref().map(str::to_owned))
+                        .unwrap_or_else(|| format!("Aplicativo {}", info.index));
+                    store.state.applications.push(AudioApp {
+                        index: info.index,
+                        label,
+                        channels: info.volume.len(),
+                        volume: percent(&info.volume),
+                        writable: info.volume_writable,
+                    });
+                }
+                ListResult::End => store.completed[3] = true,
+                ListResult::Error => {
+                    store.completed[3] = true;
+                }
+                _ => {}
+            }
+            publish(&mut store, &sender);
+        });
 }
 
 fn publish(store: &mut Store, output: &UnboundedSender<Audio>) {
-    if store.completed != [true; 3] {
+    if store.completed != [true; 4] {
         return;
     }
     store
@@ -109,6 +141,11 @@ fn publish(store: &mut Store, output: &UnboundedSender<Audio>) {
         .state
         .inputs
         .sort_by(|left, right| left.label.cmp(&right.label));
+    store.state.applications.sort_by(|left, right| {
+        left.label
+            .cmp(&right.label)
+            .then(left.index.cmp(&right.index))
+    });
     let state = match store.failed {
         true => {
             Audio::Unavailable("Não foi possível consultar os dispositivos de áudio".to_owned())
@@ -133,7 +170,11 @@ fn device(
         name: name.to_owned(),
         label: description.unwrap_or(name).to_owned(),
         channels: volume.len(),
-        volume: (u64::from(volume.avg().0) * 100 / u64::from(Volume::NORMAL.0)).min(150) as u16,
+        volume: percent(volume),
         muted,
     })
+}
+
+fn percent(volume: &ChannelVolumes) -> u16 {
+    (u64::from(volume.avg().0) * 100 / u64::from(Volume::NORMAL.0)).min(150) as u16
 }

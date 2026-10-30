@@ -52,7 +52,13 @@ const APPEARANCE: [Field; 7] = [
     Field::DefaultBinds,
     Field::Wallpaper,
 ];
-const KEYBOARD: [Field; 5] = [Field::Layout, Field::Variant, Field::Options, Field::RepeatRate, Field::RepeatDelay];
+const KEYBOARD: [Field; 5] = [
+    Field::Layout,
+    Field::Variant,
+    Field::Options,
+    Field::RepeatRate,
+    Field::RepeatDelay,
+];
 const APPS: [Field; 7] = [
     Field::Terminal,
     Field::Launcher,
@@ -73,7 +79,17 @@ impl Field {
             Section::Appearance => &APPEARANCE,
             Section::Keyboard => &KEYBOARD,
             Section::Apps => &APPS,
-            Section::Autostart | Section::Shortcuts | Section::Monitors | Section::Power | Section::DateTime | Section::Region | Section::Users | Section::Media | Section::Themes | Section::About => &[],
+            Section::Autostart
+            | Section::Shortcuts
+            | Section::Monitors
+            | Section::Network
+            | Section::Power
+            | Section::DateTime
+            | Section::Region
+            | Section::Users
+            | Section::Media
+            | Section::Themes
+            | Section::About => &[],
         }
     }
 
@@ -87,8 +103,17 @@ impl Field {
             Field::RepeatRate => bounds(1, 100, 5),
             Field::RepeatDelay => bounds(100, 1000, 25),
             Field::DefaultBinds => Kind::Flag,
-            Field::Layout | Field::Variant | Field::Options | Field::Terminal | Field::Wallpaper => Kind::Text(Blank::Allowed),
-            Field::Launcher | Field::Files | Field::Settings | Field::Screenshot | Field::Locker | Field::SystemMenu => Kind::Text(Blank::Refused),
+            Field::Layout
+            | Field::Variant
+            | Field::Options
+            | Field::Terminal
+            | Field::Wallpaper => Kind::Text(Blank::Allowed),
+            Field::Launcher
+            | Field::Files
+            | Field::Settings
+            | Field::Screenshot
+            | Field::Locker
+            | Field::SystemMenu => Kind::Text(Blank::Refused),
         }
     }
 
