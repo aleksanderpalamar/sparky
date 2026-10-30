@@ -37,6 +37,12 @@ pub fn status(files: &Files) -> Element<'_, Message> {
             .size(TEXT_SIZE)
             .color(skin.urgent)
             .into(),
+        Mode::ConfirmEmptyTrash(count) => text(format!(
+            "Excluir permanentemente {count} itens da lixeira? Enter confirma · Esc cancela"
+        ))
+        .size(TEXT_SIZE)
+        .color(skin.urgent)
+        .into(),
     };
     container(content)
         .height(STATUS_HEIGHT)

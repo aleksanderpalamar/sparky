@@ -1,6 +1,7 @@
 use crate::domain::context::Action;
 use crate::domain::grid::ViewMode;
 use crate::domain::thumbnail::Thumbnail;
+use crate::ports::EmptyReport;
 use iced::keyboard::{Key, Modifiers};
 use iced::{Point, Size};
 use sparky_storage::{Operation, Volume};
@@ -28,6 +29,7 @@ pub enum Message {
     Resized(Size),
     Place(usize),
     Trash(TrashEvent),
+    TrashEmptied(Result<EmptyReport, String>),
     Tick,
     View(ViewMode),
     OpenVolume(String),
@@ -40,4 +42,5 @@ pub enum TrashEvent {
     Open,
     RestoreSelected,
     RestoreAll,
+    Empty,
 }

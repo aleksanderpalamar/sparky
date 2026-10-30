@@ -12,6 +12,7 @@ impl Files {
             TrashEvent::Open => self.open_trash(),
             TrashEvent::RestoreSelected => self.restore_selected(),
             TrashEvent::RestoreAll => self.restore_all(),
+            TrashEvent::Empty => self.ask_empty_trash(),
         }
     }
 
@@ -43,7 +44,7 @@ impl Files {
     }
 
     pub fn restore_selected(&mut self) {
-        if !self.in_trash() {
+        if !self.in_trash() || self.emptying {
             return;
         }
         let Some(shown) = self.listing.selected().map(|entry| entry.name.clone()) else {
@@ -63,7 +64,7 @@ impl Files {
     }
 
     pub fn restore_all(&mut self) {
-        if !self.in_trash() {
+        if !self.in_trash() || self.emptying {
             return;
         }
         let names = match self.services.trash.names() {

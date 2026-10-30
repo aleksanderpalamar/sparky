@@ -40,7 +40,7 @@ pub fn boot() -> (Files, Task<Message>) {
         volumes: Arc::new(sparky_storage::desktop::system()),
         archiver: Arc::new(TarArchive),
         thumbnails: Arc::new(FileThumbnail),
-        trash: Box::new(trash),
+        trash: Arc::new(trash),
         image_clipboard: Box::new(WlImageClipboard),
     };
     let mut files = Files::new(setup, services);

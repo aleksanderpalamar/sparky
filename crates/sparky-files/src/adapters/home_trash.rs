@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 
 use crate::domain::naming::free_name;
 use crate::domain::trash_info::{info, original};
-use crate::ports::TrashStore;
+use crate::ports::{EmptyReport, TrashStore};
 
 #[derive(Clone)]
 pub struct HomeTrash {
@@ -63,6 +63,55 @@ impl TrashStore for HomeTrash {
         fs::remove_file(record)?;
         Ok(target)
     }
+
+    fn empty(&self) -> io::Result<EmptyReport> {
+        let files = self.directory();
+        let infos = self.root.join("info");
+        if !safe_directory(&files)? {
+            return Ok(EmptyReport::default());
+        }
+        safe_directory(&infos)?;
+        let mut report = EmptyReport::default();
+        for name in self.names()? {
+            let path = files.join(&name);
+            if let Err(error) = remove_item(&path) {
+                report
+                    .errors
+                    .push(format!("{}: {error}", name.to_string_lossy()));
+                continue;
+            }
+            report.removed += 1;
+            let mut record = name.clone();
+            record.push(".trashinfo");
+            if let Err(error) = fs::remove_file(infos.join(record))
+                && error.kind() != io::ErrorKind::NotFound
+            {
+                report
+                    .errors
+                    .push(format!("registro de {}: {error}", name.to_string_lossy()));
+            }
+        }
+        Ok(report)
+    }
+}
+
+fn safe_directory(path: &Path) -> io::Result<bool> {
+    match fs::symlink_metadata(path) {
+        Ok(metadata) if metadata.file_type().is_dir() => Ok(true),
+        Ok(_) => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "pasta da lixeira inválida",
+        )),
+        Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(false),
+        Err(error) => Err(error),
+    }
+}
+
+fn remove_item(path: &Path) -> io::Result<()> {
+    if fs::symlink_metadata(path)?.file_type().is_dir() {
+        return fs::remove_dir_all(path);
+    }
+    fs::remove_file(path)
 }
 
 impl HomeTrash {
