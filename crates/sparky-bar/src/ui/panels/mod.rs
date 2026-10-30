@@ -4,6 +4,8 @@ mod calendar;
 mod center;
 mod forms;
 mod network;
+mod network_metrics;
+mod parts;
 mod style;
 
 use iced::widget::{button, column, container, rule, scrollable, text};
@@ -19,16 +21,6 @@ pub fn view<'a>(
     center: &'a crate::app::center_state::CenterState,
     kind: PanelKind,
 ) -> Element<'a, Message> {
-    let title = match kind {
-        PanelKind::Clock => "Calendário e notificações",
-        PanelKind::Audio => "Som",
-        PanelKind::Network => "Rede",
-        PanelKind::Bluetooth => "Bluetooth",
-    };
-    let header = text(title)
-        .size(16)
-        .color(skin.foreground)
-        .width(Length::Fill);
     let normal = match kind {
         PanelKind::Clock => center::view(skin, center),
         PanelKind::Audio => audio::view(skin, panels),
@@ -40,7 +32,18 @@ pub fn view<'a>(
         PanelKind::Clock => body,
         _ => scrollable(body).height(Length::Fill).into(),
     };
-    let mut content = column![header, rule::horizontal(1), body].spacing(12);
+    let mut content = if kind == PanelKind::Clock {
+        column![
+            text("Calendário e notificações")
+                .size(16)
+                .color(skin.foreground),
+            rule::horizontal(1),
+            body
+        ]
+        .spacing(12)
+    } else {
+        column![body].spacing(10)
+    };
     if panels.pending.contains_key(&kind) {
         content = content.push(text("Operação em andamento…").size(12).color(skin.accent));
     }
@@ -48,21 +51,19 @@ pub fn view<'a>(
         content = content.push(text(error).size(12).color(skin.urgent));
     }
     let skin = *skin;
-    container(
-        content.push(
-            text(match panels.input_focus {
-                crate::app::panel_state::InputFocus::Yielded => "Aguarde ou autentique",
-                _ => "Esc fecha · clique no ícone alterna",
-            })
-            .size(11)
-            .color(skin.dark_foreground),
-        ),
-    )
-    .padding(14)
-    .width(Length::Fill)
-    .height(Length::Fill)
-    .style(move |_| style::surface(skin))
-    .into()
+    if kind == PanelKind::Clock {
+        content = content.push(
+            text("Esc fecha · clique no relógio alterna")
+                .size(11)
+                .color(skin.dark_foreground),
+        );
+    }
+    container(content)
+        .padding(14)
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .style(move |_| style::surface(skin))
+        .into()
 }
 
 pub fn action<'a>(skin: &Skin, label: impl Into<String>, message: Message) -> Element<'a, Message> {
@@ -82,6 +83,6 @@ pub fn action<'a>(skin: &Skin, label: impl Into<String>, message: Message) -> El
 }
 
 #[cfg(test)]
-mod fixtures;
+pub(crate) mod fixtures;
 #[cfg(test)]
 mod render_tests;

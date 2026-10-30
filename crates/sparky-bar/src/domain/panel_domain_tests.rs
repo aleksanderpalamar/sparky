@@ -1,6 +1,6 @@
 use super::{
     audio::{AudioDevice, AudioState, Direction},
-    network::{NetworkState, Security},
+    network::{DeviceKind, DeviceState, NetworkDevice, NetworkState, Security},
     secret::Secret,
 };
 
@@ -74,4 +74,45 @@ fn icone_de_audio_usa_a_saida_padrao_e_respeita_mudo() {
     assert_eq!(audio.icon(), "audio-volume-muted-symbolic");
     assert!(audio.selected(Direction::Input).is_none());
     assert_eq!(NetworkState::default().icon(), "network-offline-symbolic");
+}
+
+fn dispositivo(kind: DeviceKind, state: DeviceState) -> NetworkDevice {
+    NetworkDevice {
+        path: "/device/1".to_owned(),
+        interface: "dev0".to_owned(),
+        name: None,
+        speed: None,
+        kind,
+        state,
+        addresses: Vec::new(),
+        gateway: None,
+        active_connection: None,
+    }
+}
+
+#[test]
+fn codigos_do_networkmanager_viram_tipos_e_estados() {
+    assert_eq!(DeviceKind::from_nm(1), Some(DeviceKind::Ethernet));
+    assert_eq!(DeviceKind::from_nm(2), Some(DeviceKind::Wifi));
+    assert_eq!(DeviceKind::from_nm(14), None);
+    assert_eq!(DeviceState::from_nm(100), DeviceState::Activated);
+    assert_eq!(DeviceState::from_nm(30), DeviceState::Disconnected);
+    assert_eq!(DeviceState::from_nm(70), DeviceState::Other);
+}
+
+#[test]
+fn icone_de_rede_segue_o_tipo_do_dispositivo_ativado() {
+    let mut state = NetworkState {
+        devices: vec![dispositivo(DeviceKind::Wifi, DeviceState::Activated)],
+        ..NetworkState::default()
+    };
+    assert_eq!(state.icon(), "network-wireless-connected-symbolic");
+    state
+        .devices
+        .push(dispositivo(DeviceKind::Ethernet, DeviceState::Activated));
+    assert_eq!(state.icon(), "network-wired-symbolic");
+    state.devices.iter_mut().for_each(|device| {
+        device.state = DeviceState::Disconnected;
+    });
+    assert_eq!(state.icon(), "network-offline-symbolic");
 }

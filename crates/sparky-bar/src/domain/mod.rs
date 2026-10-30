@@ -11,6 +11,7 @@ pub mod prompt;
 pub mod reveal;
 pub mod secret;
 pub mod slots;
+pub mod telemetry;
 pub mod tray;
 pub mod tray_layout;
 

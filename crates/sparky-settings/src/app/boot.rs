@@ -24,5 +24,14 @@ pub fn boot() -> Settings {
         skin: Skin::new(sparky_theme::current_palette()),
         rows: rows_for(WINDOW_HEIGHT),
     };
-    Settings::new(services, context)
+    let mut settings = Settings::new(services, context);
+    if std::env::args()
+        .skip(1)
+        .collect::<Vec<_>>()
+        .windows(2)
+        .any(|args| args == ["--section", "network"])
+    {
+        settings.go(crate::domain::section::Section::Network);
+    }
+    settings
 }

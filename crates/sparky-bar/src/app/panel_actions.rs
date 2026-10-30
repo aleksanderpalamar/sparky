@@ -26,11 +26,7 @@ pub fn open(bar: &mut Bar, kind: PanelKind) -> Task<Message> {
     bar.panels.input_focus = super::panel_state::InputFocus::Interactive;
     bar.panels.errors.remove(&kind);
     let settings = NewLayerShellSettings {
-        size: Some(if kind == PanelKind::Clock {
-            (760, 520)
-        } else {
-            (400, 520)
-        }),
+        size: Some(kind.size()),
         layer: Layer::Overlay,
         anchor: if kind == PanelKind::Clock {
             Anchor::Top
@@ -57,9 +53,30 @@ pub fn open(bar: &mut Bar, kind: PanelKind) -> Task<Message> {
         }
         _ => Task::none(),
     };
+    let discovery = match (&kind, &bar.panels.bluetooth) {
+        (PanelKind::Bluetooth, Some(crate::domain::bluetooth::Bluetooth::Ready(adapters))) => {
+            adapters
+                .iter()
+                .find(|adapter| adapter.powered)
+                .map(|adapter| {
+                    Task::done(Message::BluetoothRequest(
+                        crate::domain::bluetooth::BluetoothRequest::Discover(adapter.path.clone()),
+                    ))
+                })
+                .unwrap_or_else(Task::none)
+        }
+        _ => Task::none(),
+    };
+    let telemetry = if kind == PanelKind::Network {
+        super::panel_network::sample(bar)
+    } else {
+        Task::none()
+    };
     Task::batch([
         previous,
         center,
+        discovery,
+        telemetry,
         menu,
         Task::done(Message::NewLayerShell {
             settings,
@@ -106,6 +123,8 @@ pub fn close(bar: &mut Bar) -> Task<Message> {
         prompts.0.cancel(open.kind);
     }
     bar.panels.clear_input();
+    bar.panels.sampling = false;
+    bar.panels.metrics = None;
     let cleanup = match (open.kind, bar.panels.bluetooth_client.clone()) {
         (PanelKind::Bluetooth, Some(client)) => Task::perform(
             async move {

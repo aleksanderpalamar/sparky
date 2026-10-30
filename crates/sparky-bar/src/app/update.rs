@@ -8,7 +8,10 @@ pub fn update(bar: &mut Bar, message: Message) -> Task<Message> {
     match message {
         Message::Palette(palette) => bar.apply_palette(palette),
         Message::WorkspacesChanged => bar.refresh_workspaces(),
-        Message::Tick => bar.tick(chrono::Local::now().naive_local()),
+        Message::Tick => {
+            bar.tick(chrono::Local::now().naive_local());
+            return super::panel_network::sample(bar);
+        }
         Message::FocusWorkspace(id) => report(bar.focus(id)),
         Message::ToggleClock => bar.toggle_clock(),
         Message::Notifications(event) => return super::notifications::event(bar, event),
