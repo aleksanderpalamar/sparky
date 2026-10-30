@@ -1,6 +1,6 @@
-use super::{fixtures::ready, style, view};
+use super::{fixtures::ready, parts, style, view};
 use crate::{
-    app::{panel_flow_tests::wifi, panel_state::Panels},
+    app::{message::Message, panel_flow_tests::wifi, panel_state::Panels},
     domain::{
         panel::PanelKind,
         prompt::{Prompt, PromptId, PromptKind},
@@ -8,7 +8,7 @@ use crate::{
     },
 };
 use iced::{
-    Pixels, Rectangle, Renderer, Size,
+    Element, Pixels, Rectangle, Renderer, Size,
     advanced::{
         layout::{Layout, Limits},
         renderer::{Headless, Style},
@@ -20,16 +20,18 @@ use iced::{
 use sparky_theme::{Palette, Skin};
 
 fn render(skin: Skin, panels: &Panels, kind: PanelKind) -> Vec<u8> {
+    let center = crate::app::center_state::CenterState::default();
+    draw(skin, view(&skin, panels, &center, kind), kind.size())
+}
+
+fn draw(skin: Skin, mut view: Element<'_, Message>, (width, height): (u32, u32)) -> Vec<u8> {
     let mut renderer = block_on(<Renderer as Headless>::new(
         sparky_ui::style::FONT,
         Pixels(12.0),
         Some("tiny-skia"),
     ))
     .unwrap();
-    let center = crate::app::center_state::CenterState::default();
-    let mut view = view(&skin, panels, &center, kind);
     let mut tree = Tree::new(&view);
-    let (width, height) = kind.size();
     let size = Size::new(width as f32, height as f32);
     let node = view
         .as_widget_mut()
@@ -109,6 +111,23 @@ fn superficie_opaca_e_controles_retangulares_seguem_o_skin() {
         volume.handle.shape,
         iced::widget::slider::HandleShape::Rectangle { .. }
     ));
+}
+
+#[test]
+fn interruptor_tem_trilho_e_botao_deslizante_como_a_referencia() {
+    let skin = Skin::new(Palette::from_colors(
+        "background = \"#1a1b26\"\nforeground = \"#a9b1d6\"",
+    ));
+    let rgb = |color: iced::Color| color.into_rgba8()[..3].to_vec();
+    let pixel = |pixels: &[u8], x: usize, y: usize| pixels[(y * 42 + x) * 4..][..3].to_vec();
+    let ligado = draw(skin, parts::switch(skin, true, Message::Ignore), (42, 22));
+    assert_eq!(pixel(&ligado, 0, 11), rgb(skin.foreground));
+    assert_eq!(pixel(&ligado, 21, 0), rgb(skin.foreground));
+    assert_eq!(pixel(&ligado, 31, 11), rgb(skin.foreground));
+    assert_ne!(pixel(&ligado, 10, 11), rgb(skin.foreground));
+    let desligado = draw(skin, parts::switch(skin, false, Message::Ignore), (42, 22));
+    assert_eq!(pixel(&desligado, 10, 11), rgb(skin.dark_foreground));
+    assert_eq!(pixel(&desligado, 31, 11), pixel(&ligado, 10, 11));
 }
 
 fn save(path: &str, pixels: &[u8], (width, height): (u32, u32)) {

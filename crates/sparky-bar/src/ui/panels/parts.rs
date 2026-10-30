@@ -1,5 +1,6 @@
 use std::sync::OnceLock;
 
+use iced::alignment::Horizontal;
 use iced::widget::{button, column, container, image, row, svg, text};
 use iced::{Alignment, Element, Length};
 use sparky_theme::Skin;
@@ -7,6 +8,10 @@ use sparky_theme::Skin;
 use crate::adapters::icons::Icons;
 use crate::app::message::Message;
 use crate::domain::tray::TrayIcon;
+
+const SWITCH_WIDTH: f32 = 42.0;
+const SWITCH_HEIGHT: f32 = 22.0;
+const SWITCH_KNOB: f32 = 16.0;
 
 pub fn icon<'a>(skin: &Skin, name: &str, size: f32) -> Element<'a, Message> {
     static ICONS: OnceLock<Icons> = OnceLock::new();
@@ -97,19 +102,35 @@ pub fn choice<'a>(
         .into()
 }
 
-fn switch<'a>(skin: Skin, on: bool, message: Message) -> Element<'a, Message> {
-    let mark = if on { "■" } else { "□" };
-    button(text(mark).size(19).color(skin.foreground))
-        .padding([0, 7])
-        .on_press(message)
-        .style(move |_, _| button::Style {
-            background: Some(skin.fill(if on { 0.3 } else { 0.1 }).into()),
-            border: iced::Border {
-                color: skin.foreground,
-                width: 1.0,
-                radius: 0.0.into(),
-            },
+pub(super) fn switch<'a>(skin: Skin, on: bool, message: Message) -> Element<'a, Message> {
+    let (knob_color, side) = if on {
+        (skin.foreground, Horizontal::Right)
+    } else {
+        (skin.dark_foreground, Horizontal::Left)
+    };
+    let knob = container(column![])
+        .width(SWITCH_KNOB)
+        .height(SWITCH_KNOB)
+        .style(move |_| container::Style {
+            background: Some(knob_color.into()),
             ..Default::default()
+        });
+    button(container(knob).width(Length::Fill).align_x(side))
+        .width(SWITCH_WIDTH)
+        .height(SWITCH_HEIGHT)
+        .padding(3)
+        .on_press(message)
+        .style(move |_, status| {
+            let hovered = matches!(status, button::Status::Hovered | button::Status::Pressed);
+            button::Style {
+                background: Some(skin.fill(if hovered { 0.24 } else { 0.16 }).into()),
+                border: iced::Border {
+                    color: skin.foreground,
+                    width: 1.0,
+                    radius: 0.0.into(),
+                },
+                ..Default::default()
+            }
         })
         .into()
 }
