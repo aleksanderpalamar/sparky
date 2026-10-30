@@ -1,2 +1,8 @@
 [Default Applications]
 inode/directory=sparky-files.desktop
+image/png=sparky-image.desktop
+image/jpeg=sparky-image.desktop
+image/webp=sparky-image.desktop
+image/gif=sparky-image.desktop
+image/bmp=sparky-image.desktop
+image/tiff=sparky-image.desktop

@@ -4779,6 +4779,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "sparky-image"
+version = "0.27.0"
+dependencies = [
+ "iced",
+ "iced_runtime",
+ "image",
+ "sparky-theme",
+ "sparky-ui",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
 name = "sparky-ipc"
 version = "0.27.0"
 dependencies = [
