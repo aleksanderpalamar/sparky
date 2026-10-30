@@ -4,7 +4,8 @@ use std::process::Command;
 use super::root_fs::RootFs;
 use super::signals::ProcessSignals;
 use super::statvfs::Statvfs;
-use crate::ports::{Filesystems, SignalError, Signals, Stop, SystemFiles};
+use crate::domain::process::parse_stat;
+use crate::ports::{Filesystems, Identity, SignalError, Signals, Stop, SystemFiles};
 
 #[test]
 fn le_lista_e_segue_links_de_verdade() {
@@ -36,12 +37,21 @@ fn capacidade_do_sistema_de_arquivos_tem_uso_menor_que_o_total() {
 }
 
 #[test]
-fn encerrar_processo_filho_e_relatar_processo_inexistente() {
+fn trava_o_processo_pelo_pidfd_e_recusa_pid_com_outro_inicio() {
     let mut filho = Command::new("sleep").arg("30").spawn().unwrap();
-    assert_eq!(ProcessSignals.send(filho.id(), Stop::Terminate), Ok(()));
+    let stat = fs::read_to_string(format!("/proc/{}/stat", filho.id())).unwrap();
+    let started = parse_stat(&stat).unwrap().started;
+    let outro = Identity {
+        pid: filho.id(),
+        started: started + 1,
+    };
+    assert_eq!(ProcessSignals.claim(outro).err(), Some(SignalError::Gone));
+    let identity = Identity {
+        pid: filho.id(),
+        started,
+    };
+    let trava = ProcessSignals.claim(identity).unwrap();
+    assert_eq!(trava.send(Stop::Terminate), Ok(()));
     assert!(!filho.wait().unwrap().success());
-    assert_eq!(
-        ProcessSignals.send(filho.id(), Stop::Kill),
-        Err(SignalError::Gone)
-    );
+    assert_eq!(trava.send(Stop::Kill), Err(SignalError::Gone));
 }

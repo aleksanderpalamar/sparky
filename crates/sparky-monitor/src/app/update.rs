@@ -19,7 +19,7 @@ pub fn update(monitor: &mut Monitor, message: Message) -> Task<Message> {
         Message::SortBy(column) => monitor.sort_by(column),
         Message::Select(selection) => monitor.select(selection),
         Message::Move(movement) => monitor.step(movement),
-        Message::Scrolled(lines) => monitor.scrolled(lines),
+        Message::Scrolled(table, lines) => monitor.scrolled(table, lines),
         Message::SwitchFocus => monitor.switch_focus(),
         Message::Ask(stop) => monitor.ask(stop),
         Message::Confirm => monitor.confirm(),

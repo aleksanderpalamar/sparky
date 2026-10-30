@@ -1,4 +1,4 @@
-use crate::domain::gpu::{GpuUse, combine, parse_fdinfo};
+use crate::domain::gpu::{DrmClient, clients, parse_fdinfo};
 use crate::domain::process::{
     display_name, io_bytes, kernel_thread, parse_stat, program, real_uid, resident_pages,
 };
@@ -41,8 +41,8 @@ fn process(files: &dyn SystemFiles, base: &str, page_size: u64) -> Option<Proces
     })
 }
 
-fn gpu_use(files: &dyn SystemFiles, base: &str) -> Option<GpuUse> {
-    let clients = files
+fn gpu_use(files: &dyn SystemFiles, base: &str) -> Vec<DrmClient> {
+    let found = files
         .list(&format!("{base}/fd"))
         .into_iter()
         .filter(|fd| {
@@ -55,5 +55,5 @@ fn gpu_use(files: &dyn SystemFiles, base: &str) -> Option<GpuUse> {
                 .read(&format!("{base}/fdinfo/{fd}"))
                 .and_then(|text| parse_fdinfo(&text))
         });
-    combine(clients)
+    clients(found)
 }

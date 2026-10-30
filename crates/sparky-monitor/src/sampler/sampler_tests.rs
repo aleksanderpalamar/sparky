@@ -3,7 +3,7 @@ use std::time::Instant;
 
 use super::Sampler;
 use super::fake_system::{Arvore, Discos};
-use crate::domain::gpu::GpuUse;
+use crate::domain::gpu::DrmClient;
 
 fn sistema() -> Arvore {
     Arvore::default()
@@ -143,16 +143,36 @@ fn gpu_e_processos_sem_threads_do_kernel() {
     assert_eq!(sparky.io, Some((7, 3)));
     assert_eq!(
         sparky.gpu,
-        Some(GpuUse {
+        [DrmClient {
+            id: 14,
             engine_ns: 500,
             vram: 2048
-        })
+        }]
     );
     let avahi = retrato
         .processes
         .iter()
         .find(|process| process.stat.pid == 700)
         .unwrap();
-    assert_eq!((avahi.io, avahi.gpu, avahi.user), (None, None, None));
+    assert_eq!((avahi.io, avahi.user), (None, None));
+    assert!(avahi.gpu.is_empty());
     assert_eq!(avahi.program, "avahi-daemon");
+}
+
+#[test]
+fn lvm_sobre_luks_chega_ao_disco_fisico_descendo_os_mapeamentos() {
+    let arvore = Arvore::default()
+        .com("/sys/block/nvme0n1/device/model", "KINGSTON\n")
+        .com("/sys/block/dm-1/slaves/dm-0", "")
+        .com("/sys/block/dm-0/slaves/nvme0n1p3", "")
+        .com("/proc/diskstats", "259 0 nvme0n1 1 0 10 0 1 0 20 0\n")
+        .com("/proc/mounts", "/dev/mapper/raiz / ext4 rw 0 0\n")
+        .link("/dev/mapper/raiz", "../dm-1");
+    let retrato = amostrar(arvore);
+    assert_eq!(retrato.disks.len(), 1);
+    assert_eq!(retrato.disks[0].mounts, ["/"]);
+    assert_eq!(
+        (retrato.disks[0].capacity, retrato.disks[0].used),
+        (1000, 400)
+    );
 }

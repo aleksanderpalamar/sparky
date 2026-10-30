@@ -33,6 +33,7 @@ fn sum<T: Add<Output = T>>(left: Option<T>, right: Option<T>) -> Option<T> {
 #[derive(Debug, Clone, PartialEq)]
 pub struct ProcessRow {
     pub pid: u32,
+    pub started: u64,
     pub ppid: u32,
     pub name: String,
     pub program: String,

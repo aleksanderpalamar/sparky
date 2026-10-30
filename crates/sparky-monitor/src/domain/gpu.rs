@@ -7,12 +7,6 @@ pub struct DrmClient {
     pub vram: u64,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub struct GpuUse {
-    pub engine_ns: u64,
-    pub vram: u64,
-}
-
 pub fn parse_fdinfo(text: &str) -> Option<DrmClient> {
     let mut id = None;
     let mut engine_ns = 0;
@@ -37,19 +31,29 @@ pub fn parse_fdinfo(text: &str) -> Option<DrmClient> {
     })
 }
 
-pub fn combine(clients: impl IntoIterator<Item = DrmClient>) -> Option<GpuUse> {
-    let unique: BTreeMap<u64, DrmClient> = clients
+pub fn clients(found: impl IntoIterator<Item = DrmClient>) -> Vec<DrmClient> {
+    let unique: BTreeMap<u64, DrmClient> = found
         .into_iter()
         .map(|client| (client.id, client))
         .collect();
-    (!unique.is_empty()).then(|| {
-        unique
-            .values()
-            .fold(GpuUse::default(), |total, client| GpuUse {
-                engine_ns: total.engine_ns + client.engine_ns,
-                vram: total.vram + client.vram,
-            })
-    })
+    unique.into_values().collect()
+}
+
+pub fn activity(previous: &[DrmClient], current: &[DrmClient]) -> u64 {
+    current
+        .iter()
+        .map(|client| {
+            let before = previous
+                .iter()
+                .find(|old| old.id == client.id)
+                .map_or(0, |old| old.engine_ns);
+            client.engine_ns.saturating_sub(before)
+        })
+        .sum()
+}
+
+pub fn vram(clients: &[DrmClient]) -> u64 {
+    clients.iter().map(|client| client.vram).sum()
 }
 
 fn amount(value: &str) -> u64 {

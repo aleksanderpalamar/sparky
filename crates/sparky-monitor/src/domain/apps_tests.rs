@@ -13,6 +13,7 @@ fn entrada(id: &str, program: &str) -> AppEntry {
 fn processo(pid: u32, ppid: u32, program: &str, user: u32, cpu: f32) -> ProcessRow {
     ProcessRow {
         pid,
+        started: 0,
         ppid,
         name: program.to_owned(),
         program: program.to_owned(),

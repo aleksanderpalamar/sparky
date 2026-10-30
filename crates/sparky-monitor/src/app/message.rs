@@ -2,6 +2,7 @@ use iced::Size;
 use sparky_theme::Palette;
 
 use super::page::Page;
+use super::state::Focus;
 use crate::domain::apps::AppEntry;
 use crate::domain::snapshot::Snapshot;
 use crate::domain::table::Column;
@@ -32,7 +33,7 @@ pub enum Message {
     SortBy(Column),
     Select(Selection),
     Move(Move),
-    Scrolled(isize),
+    Scrolled(Focus, isize),
     SwitchFocus,
     Ask(Stop),
     Confirm,

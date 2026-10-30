@@ -11,7 +11,7 @@ use crate::domain::measure::Reading;
 use crate::domain::snapshot::Snapshot;
 use crate::domain::table::Sort;
 use crate::domain::usage::{AppRow, ProcessRow};
-use crate::ports::{Catalog, Signals, Stop};
+use crate::ports::{Catalog, Claim, Signals, Stop};
 use crate::sampler::Sampler;
 
 pub struct Services {
@@ -39,10 +39,10 @@ pub enum Target {
     App { name: String, pids: Vec<u32> },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Confirm {
     pub target: Target,
     pub stop: Stop,
+    pub claims: Vec<Box<dyn Claim>>,
 }
 
 pub struct Monitor {

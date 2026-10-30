@@ -45,26 +45,34 @@ impl Monitor {
     }
 
     pub fn step(&mut self, movement: Move) {
-        match self.active_table() {
-            Some(Focus::Processes) => {
-                let pids: Vec<u32> = self.processes.iter().map(|row| row.pid).collect();
-                self.selected_process = moved(&pids, self.selected_process.as_ref(), movement);
-            }
-            Some(Focus::Applications) => {
-                let ids: Vec<String> = self.apps.iter().map(|app| app.id.clone()).collect();
-                self.selected_app = moved(&ids, self.selected_app.as_ref(), movement);
-            }
-            None => {}
+        if let Some(table) = self.active_table() {
+            self.step_in(table, movement);
         }
     }
 
-    pub fn scrolled(&mut self, lines: isize) {
+    pub fn scrolled(&mut self, table: Focus, lines: isize) {
+        if self.page == Page::Dashboard {
+            self.focus = table;
+        }
         let movement = match lines.is_negative() {
             true => Move::Up,
             false => Move::Down,
         };
         for _ in 0..lines.unsigned_abs() {
-            self.step(movement);
+            self.step_in(table, movement);
+        }
+    }
+
+    fn step_in(&mut self, table: Focus, movement: Move) {
+        match table {
+            Focus::Processes => {
+                let pids: Vec<u32> = self.processes.iter().map(|row| row.pid).collect();
+                self.selected_process = moved(&pids, self.selected_process.as_ref(), movement);
+            }
+            Focus::Applications => {
+                let ids: Vec<String> = self.apps.iter().map(|app| app.id.clone()).collect();
+                self.selected_app = moved(&ids, self.selected_app.as_ref(), movement);
+            }
         }
     }
 }

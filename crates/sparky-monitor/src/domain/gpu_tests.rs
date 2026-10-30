@@ -1,4 +1,4 @@
-use super::gpu::{DrmClient, GpuUse, combine, parse_fdinfo};
+use super::gpu::{DrmClient, activity, clients, parse_fdinfo, vram};
 
 const AMDGPU: &str = "pos:\t0\nflags:\t02104002\ndrm-driver:\tamdgpu\ndrm-client-id:\t14\ndrm-total-vram:\t114504 KiB\ndrm-resident-vram:\t104772 KiB\ndrm-memory-vram:\t104772 KiB\ndrm-memory-gtt: \t23616 KiB\ndrm-engine-gfx:\t10110769228 ns\ndrm-engine-compute:\t4035788 ns\n";
 
@@ -35,15 +35,25 @@ fn descritores_do_mesmo_cliente_contam_uma_vez() {
         engine_ns,
         vram,
     };
-    let total = combine([client(14, 100, 10), client(14, 100, 10), client(15, 50, 5)]);
-    assert_eq!(
-        total,
-        Some(GpuUse {
-            engine_ns: 150,
-            vram: 15
-        })
-    );
-    assert_eq!(combine([]), None);
+    let unicos = clients([client(15, 50, 5), client(14, 100, 10), client(14, 100, 10)]);
+    assert_eq!(unicos, [client(14, 100, 10), client(15, 50, 5)]);
+    assert_eq!(vram(&unicos), 15);
+    assert!(clients([]).is_empty());
+}
+
+#[test]
+fn atividade_e_calculada_por_cliente_antes_de_somar() {
+    let client = |id, engine_ns| DrmClient {
+        id,
+        engine_ns,
+        vram: 0,
+    };
+    let antes = [client(1, 10_000_000_000), client(2, 1_000_000_000)];
+    let depois = [client(2, 1_500_000_000)];
+    assert_eq!(activity(&antes, &depois), 500_000_000);
+    let novo = [client(2, 1_500_000_000), client(3, 200)];
+    assert_eq!(activity(&antes, &novo), 500_000_200);
+    assert_eq!(activity(&depois, &[client(2, 1_000_000_000)]), 0);
 }
 
 #[test]

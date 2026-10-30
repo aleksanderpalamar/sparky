@@ -4,9 +4,11 @@ use std::time::{Duration, Instant};
 use iced::Size;
 use sparky_theme::Skin;
 
+use super::message::Message;
 use super::state::{Monitor, Services};
+use super::update::update;
 use crate::domain::apps::AppEntry;
-use crate::ports::{Catalog, SignalError, Signals, Stop};
+use crate::ports::{Catalog, Claim, Identity, SignalError, Signals, Stop};
 use crate::sampler::Sampler;
 use crate::sampler::fake_system::{Arvore, Discos};
 
@@ -17,20 +19,49 @@ pub const JANELA: Size = Size {
 
 #[derive(Default)]
 pub struct Sinais {
-    pub enviados: Mutex<Vec<(u32, Stop)>>,
+    pub enviados: Arc<Mutex<Vec<(u32, Stop)>>>,
     pub negados: Vec<u32>,
+    pub mortos: Arc<Mutex<Vec<u32>>>,
 }
 
 impl Signals for Sinais {
-    fn send(&self, pid: u32, stop: Stop) -> Result<(), SignalError> {
-        if self.negados.contains(&pid) {
+    fn claim(&self, identity: Identity) -> Result<Box<dyn Claim>, SignalError> {
+        if morto(&self.mortos, identity.pid) {
+            return Err(SignalError::Gone);
+        }
+        Ok(Box::new(Trava {
+            pid: identity.pid,
+            negado: self.negados.contains(&identity.pid),
+            enviados: Arc::clone(&self.enviados),
+            mortos: Arc::clone(&self.mortos),
+        }))
+    }
+}
+
+struct Trava {
+    pid: u32,
+    negado: bool,
+    enviados: Arc<Mutex<Vec<(u32, Stop)>>>,
+    mortos: Arc<Mutex<Vec<u32>>>,
+}
+
+impl Claim for Trava {
+    fn send(&self, stop: Stop) -> Result<(), SignalError> {
+        if morto(&self.mortos, self.pid) {
+            return Err(SignalError::Gone);
+        }
+        if self.negado {
             return Err(SignalError::Denied);
         }
         if let Ok(mut enviados) = self.enviados.lock() {
-            enviados.push((pid, stop));
+            enviados.push((self.pid, stop));
         }
         Ok(())
     }
+}
+
+fn morto(mortos: &Mutex<Vec<u32>>, pid: u32) -> bool {
+    mortos.lock().is_ok_and(|mortos| mortos.contains(&pid))
 }
 
 pub struct Aplicativos;
@@ -100,4 +131,10 @@ pub fn monitor(sinais: Arc<Sinais>) -> Monitor {
         inicio + Duration::from_secs(1),
     ));
     monitor
+}
+
+pub fn enviar(monitor: &mut Monitor, messages: Vec<Message>) {
+    for message in messages {
+        let _ = update(monitor, message);
+    }
 }

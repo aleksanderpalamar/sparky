@@ -2,7 +2,7 @@ use std::time::{Duration, Instant};
 
 use super::cpu::CpuTimes;
 use super::disk::DiskCounters;
-use super::gpu::GpuUse;
+use super::gpu::DrmClient;
 use super::measure::{measure, per_second};
 use super::network::NetCounters;
 use super::process::ProcStat;
@@ -15,16 +15,18 @@ fn processo(pid: u32, ticks: u64, io: u64, engine_ns: u64) -> ProcessSample {
             comm: format!("p{pid}"),
             ppid: 1,
             ticks,
+            started: 0,
         },
         name: format!("p{pid}"),
         program: format!("p{pid}"),
         user: Some(1000),
         memory: 4096,
         io: Some((io, 0)),
-        gpu: Some(GpuUse {
+        gpu: vec![DrmClient {
+            id: 1,
             engine_ns,
             vram: 1024,
-        }),
+        }],
     }
 }
 
@@ -106,4 +108,23 @@ fn processos_usam_fatia_da_maquina_e_novos_comecam_em_zero() {
 fn contador_que_volta_ou_tempo_zero_nao_gera_taxa_negativa() {
     assert_eq!(per_second(500, 100, Duration::from_secs(1)), 0.0);
     assert_eq!(per_second(0, 100, Duration::ZERO), 0.0);
+}
+
+#[test]
+fn cliente_de_gpu_que_fecha_nao_apaga_a_atividade_do_que_continua() {
+    let inicio = Instant::now();
+    let client = |id, engine_ns| DrmClient {
+        id,
+        engine_ns,
+        vram: 0,
+    };
+    let mut antes = processo(10, 0, 0, 0);
+    antes.gpu = vec![client(1, 10_000_000_000), client(2, 1_000_000_000)];
+    let mut depois = processo(10, 0, 0, 0);
+    depois.gpu = vec![client(2, 1_500_000_000)];
+    let leitura = measure(
+        &retrato(inicio, 0, 1000, 0, vec![antes]),
+        &retrato(inicio + Duration::from_secs(1), 0, 1100, 0, vec![depois]),
+    );
+    assert_eq!(leitura.processes[0].usage.gpu, Some(50.0));
 }

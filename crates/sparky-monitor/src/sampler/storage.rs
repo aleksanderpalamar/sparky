@@ -4,6 +4,8 @@ use crate::ports::{Filesystems, SystemFiles};
 
 use super::millidegrees;
 
+const MAPPING_DEPTH: usize = 8;
+
 pub fn disks(files: &dyn SystemFiles, filesystems: &dyn Filesystems) -> Vec<DiskSample> {
     let mut names: Vec<String> = files
         .list("/sys/block")
@@ -46,18 +48,24 @@ pub fn disks(files: &dyn SystemFiles, filesystems: &dyn Filesystems) -> Vec<Disk
 
 fn disk_of<'a>(files: &dyn SystemFiles, device: &str, disks: &'a [String]) -> Option<&'a String> {
     let name = device.rsplit('/').next()?;
-    let mapped = files
+    let resolved = files
         .link(device)
         .and_then(|target| target.rsplit('/').next().map(str::to_owned))
-        .filter(|target| target.starts_with("dm-"));
-    let partition = match mapped {
-        Some(dm) => files
-            .list(&format!("/sys/block/{dm}/slaves"))
+        .unwrap_or_else(|| name.to_owned());
+    owning_disk(&underlying(files, resolved)?, disks)
+}
+
+fn underlying(files: &dyn SystemFiles, mut name: String) -> Option<String> {
+    for _ in 0..MAPPING_DEPTH {
+        if !name.starts_with("dm-") {
+            return Some(name);
+        }
+        name = files
+            .list(&format!("/sys/block/{name}/slaves"))
             .into_iter()
-            .next()?,
-        None => name.to_owned(),
-    };
-    owning_disk(&partition, disks)
+            .next()?;
+    }
+    None
 }
 
 fn model(files: &dyn SystemFiles, disk: &str) -> Option<String> {

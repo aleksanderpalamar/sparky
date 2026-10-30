@@ -303,7 +303,7 @@ Os dados vêm de `/proc` e `/sys`, lidos fora da interface. Aplicativos são os 
 | `Esc` ou `Backspace` | Cancela a confirmação ou volta ao painel |
 | `q` | Fecha |
 
-Encerrar um aplicativo envia o sinal a todos os seus processos. Processos de outros usuários só podem ser encerrados com permissão; a recusa aparece na barra de status.
+Encerrar um aplicativo envia o sinal a todos os seus processos. Cada processo é identificado pelo PID e pelo horário de início e fica travado por `pidfd` quando a confirmação aparece; se ele terminar antes do `Enter`, nenhum outro processo que reaproveite o PID recebe o sinal. Processos de outros usuários só podem ser encerrados com permissão; a recusa aparece na barra de status.
 
 ## Configurações
 

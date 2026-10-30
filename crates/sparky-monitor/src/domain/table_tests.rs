@@ -4,6 +4,7 @@ use super::usage::{ProcessRow, Usage};
 fn linha(name: &str, cpu: f32, memory: u64, gpu: Option<f32>) -> ProcessRow {
     ProcessRow {
         pid: memory as u32,
+        started: 0,
         ppid: 1,
         name: name.to_owned(),
         program: name.to_owned(),

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use super::cpu::usage;
+use super::gpu::{activity, vram};
 use super::memory::Memory;
 use super::snapshot::{CpuInfo, DiskSample, GpuDevice, ProcessSample, Snapshot};
 use super::usage::{ProcessRow, Usage};
@@ -126,15 +127,14 @@ fn row(old: &ProcessSample, new: &ProcessSample, machine: u64, elapsed: Duration
         machine => (ticks as f64 / machine as f64 * 100.0) as f32,
     };
     let io = |sample: &ProcessSample| sample.io.map_or(0, |(read, write)| read + write);
-    let gpu = new.gpu.map(|gpu| {
-        let engine = gpu
-            .engine_ns
-            .saturating_sub(old.gpu.map_or(gpu.engine_ns, |old| old.engine_ns));
+    let gpu = (!new.gpu.is_empty()).then(|| {
+        let engine = activity(&old.gpu, &new.gpu);
         let wall = elapsed.as_nanos().max(1) as f64;
         ((engine as f64 / wall * 100.0) as f32).min(100.0)
     });
     ProcessRow {
         pid: new.stat.pid,
+        started: new.stat.started,
         ppid: new.stat.ppid,
         name: new.name.clone(),
         program: new.program.clone(),
@@ -144,7 +144,7 @@ fn row(old: &ProcessSample, new: &ProcessSample, machine: u64, elapsed: Duration
             memory: new.memory,
             disk: per_second(io(old), io(new), elapsed),
             gpu,
-            vram: new.gpu.map(|gpu| gpu.vram),
+            vram: (!new.gpu.is_empty()).then(|| vram(&new.gpu)),
         },
     }
 }

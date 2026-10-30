@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use super::cpu::CpuTimes;
 use super::disk::DiskCounters;
-use super::gpu::GpuUse;
+use super::gpu::DrmClient;
 use super::memory::Memory;
 use super::network::NetCounters;
 use super::process::ProcStat;
@@ -40,7 +40,7 @@ pub struct ProcessSample {
     pub user: Option<u32>,
     pub memory: u64,
     pub io: Option<(u64, u64)>,
-    pub gpu: Option<GpuUse>,
+    pub gpu: Vec<DrmClient>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

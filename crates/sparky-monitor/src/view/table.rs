@@ -42,7 +42,7 @@ pub fn processes(monitor: &Monitor, rows: usize) -> Element<'_, Message> {
             Selection::Process(row.pid),
         )
     });
-    table(monitor, false, lines)
+    table(monitor, Focus::Processes, lines)
 }
 
 pub fn applications(monitor: &Monitor, rows: usize) -> Element<'_, Message> {
@@ -64,7 +64,7 @@ pub fn applications(monitor: &Monitor, rows: usize) -> Element<'_, Message> {
             Selection::App(app.id.clone()),
         )
     });
-    table(monitor, true, lines)
+    table(monitor, Focus::Applications, lines)
 }
 
 pub fn window(len: usize, selected: Option<usize>, rows: usize) -> Range<usize> {
@@ -75,21 +75,21 @@ pub fn window(len: usize, selected: Option<usize>, rows: usize) -> Range<usize> 
 
 fn table<'a>(
     monitor: &'a Monitor,
-    icons: bool,
+    kind: Focus,
     lines: impl Iterator<Item = Element<'a, Message>>,
 ) -> Element<'a, Message> {
     let body = column![
-        header(monitor.skin, monitor.sort, icons),
+        header(monitor.skin, monitor.sort, kind),
         Column::with_children(lines)
     ];
     mouse_area(body)
-        .on_scroll(|delta| Message::Scrolled(lines_of(delta)))
+        .on_scroll(move |delta| Message::Scrolled(kind, lines_of(delta)))
         .into()
 }
 
-fn header<'a>(skin: Skin, sort: Sort, icons: bool) -> Element<'a, Message> {
+fn header<'a>(skin: Skin, sort: Sort, kind: Focus) -> Element<'a, Message> {
     let mut cells = row![].spacing(SPACING).align_y(Vertical::Center);
-    if icons {
+    if kind == Focus::Applications {
         cells = cells.push(text("").width(ICON_SIZE));
     }
     cells = cells.push(title(skin, sort, Field::Name, "Nome", Length::Fill));

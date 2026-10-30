@@ -13,6 +13,8 @@ mod keys_tests;
 #[cfg(test)]
 mod monitor_tests;
 #[cfg(test)]
+mod stop_tests;
+#[cfg(test)]
 pub(crate) mod test_support;
 
 use std::sync::Arc;

@@ -12,7 +12,8 @@ fn le_stat_mesmo_com_parenteses_e_espacos_no_nome() {
             pid: 4242,
             comm: "Web (Content)".to_owned(),
             ppid: 4200,
-            ticks: 200
+            ticks: 200,
+            started: 3_731_314
         })
     );
     assert_eq!(parse_stat("lixo"), None);

@@ -4,6 +4,7 @@ pub struct ProcStat {
     pub comm: String,
     pub ppid: u32,
     pub ticks: u64,
+    pub started: u64,
 }
 
 const COMM_LIMIT: usize = 15;
@@ -18,6 +19,7 @@ pub fn parse_stat(text: &str) -> Option<ProcStat> {
         comm: text.get(open + 1..close)?.to_owned(),
         ppid: fields.get(1)?.parse().ok()?,
         ticks: number(11)? + number(12)?,
+        started: number(19).unwrap_or_default(),
     })
 }
 

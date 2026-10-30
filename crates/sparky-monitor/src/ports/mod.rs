@@ -39,6 +39,16 @@ impl fmt::Display for SignalError {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Identity {
+    pub pid: u32,
+    pub started: u64,
+}
+
+pub trait Claim: Send + Sync {
+    fn send(&self, stop: Stop) -> Result<(), SignalError>;
+}
+
 pub trait Signals: Send + Sync {
-    fn send(&self, pid: u32, stop: Stop) -> Result<(), SignalError>;
+    fn claim(&self, identity: Identity) -> Result<Box<dyn Claim>, SignalError>;
 }
