@@ -16,6 +16,7 @@ Somente os temas vem do [Omarchy](https://github.com/basecamp/omarchy): como pal
 | `crates/sparky-ipc` | Protocolo do IPC do sparky (JSON por linha num socket Unix), o cliente usado pela barra e pelos aplicativos, e o `sparky-msg` |
 | `crates/sparky-shot` | O capturador de tela (`sparky-shot`): seletor de modo, seleção de região pelo teclado ou mouse, PNG salvo e copiado |
 | `crates/sparky-files` | O gerenciador de arquivos (`sparky-files`): grade e lista com ícones e miniaturas, menus de contexto, dispositivos, lugares, filtro, copiar, recortar, colar, renomear, criar, compactar e lixeira |
+| `crates/sparky-image` | O visualizador de imagens (`sparky-image`): abre PNG, JPEG, WebP, GIF, BMP e TIFF, navega pela pasta, zoom, deslocamento e rotação pelo teclado |
 | `crates/sparky-storage` | Volumes de bloco pelo udisksctl e smartphones MTP pelo udev/GIO/GVfs; parser de discos compartilhado com o painel |
 | `crates/sparky-xdg` | Convenções XDG compartilhadas: pastas do usuário, leitura de `.desktop`, busca de programas e resolução de ícones dos temas |
 | `crates/sparky-settings` | O painel de configurações (`sparky-settings`): edita o `sparky.toml` e aplica na hora pelo IPC |
@@ -286,6 +287,23 @@ O clique direito abre um menu de contexto nas cores do tema. Sobre um arquivo ou
 
 Ao copiar uma única imagem PNG, JPEG ou WebP, o `sparky-files` também publica seus bytes na área de transferência do sistema. Assim, `CTRL + V` em outro aplicativo pode colar a imagem; a cópia de arquivos dentro do gerenciador continua disponível.
 
+## Imagens
+
+O `sparky-image` é o visualizador de imagens nativo. Abre pelo `sparky-files` (ou `sparky-image <arquivo ou pasta>`) e mostra PNG, JPEG, WebP, GIF, BMP e TIFF com a paleta e a fonte do tema ativo, acompanhando as trocas de tema. A imagem aparece ajustada à janela, sem ampliar as pequenas, e fotos com orientação EXIF ficam em pé. A barra de status mostra nome, posição na pasta, dimensões e zoom.
+
+| Tecla | Ação |
+|---|---|
+| `←`/`→` ou `h`/`l` | Imagem anterior e seguinte da pasta, na mesma ordem do `sparky-files` (com zoom, deslocam a imagem) |
+| `↑`/`↓` ou `k`/`j` | Deslocam a imagem quando ela passa da janela |
+| `Espaço`/`Backspace`, `PageDown`/`PageUp` | Seguinte e anterior, mesmo com zoom |
+| `Home`/`End` | Primeira e última imagem |
+| `+`/`-` | Aumenta e diminui o zoom (a roda do mouse também) |
+| `0` / `1` | Ajusta à janela / tamanho real |
+| `r` / `SHIFT + R` | Gira 90° no sentido horário / anti-horário, só na visualização |
+| `q` ou `Esc` | Fecha |
+
+Com zoom, arrastar com o botão esquerdo desloca a imagem. A decodificação roda fora da interface e recusa imagens acima de 16384 pixels por lado; arquivos corrompidos ou em formato não suportado mostram o motivo na tela. GIFs animados mostram o primeiro quadro.
+
 ## Configurações
 
 O `sparky-settings` abre pelo `SUPER + ALT + ESPAÇO`. As mudanças de configuração do sparky são gravadas no `~/.config/sparky/sparky.toml` na hora, só na chave mexida (os comentários do arquivo ficam), e o sparky recarrega pelo IPC. Se o sparky não estiver rodando, a mudança vale quando ele iniciar. As seções de sistema executam as ferramentas correspondentes e mostram o resultado ou o erro, sem gravar no TOML.
@@ -354,7 +372,7 @@ packaging/build.sh deb       # só um deles: deb, rpm ou pacman
 - O pacote do pacman sai do `packaging/arch/PKGBUILD`, que compila o que está commitado no repositório com `makepkg`.
 - Os papéis de parede saem num pacote à parte, `sparky-wallpapers` (variante `wallpapers` do `cargo-deb` e do `cargo-generate-rpm`, e pacote dividido no PKGBUILD), para o `sparky` continuar leve.
 
-Os três instalam os binários em `/usr/bin`, a sessão em `/usr/share/wayland-sessions` (aparece no SDDM e no GDM), os temas e o `sparky.toml` de exemplo em `/usr/share/sparky`, as entradas dos aplicativos e o `sparky-mimeapps.list`, que faz as pastas abrirem no `sparky-files` dentro da sessão.
+Os três instalam os binários em `/usr/bin`, a sessão em `/usr/share/wayland-sessions` (aparece no SDDM e no GDM), os temas e o `sparky.toml` de exemplo em `/usr/share/sparky`, as entradas dos aplicativos e o `sparky-mimeapps.list`, que faz as pastas abrirem no `sparky-files` e as imagens no `sparky-image` dentro da sessão. Escolhas feitas pelo usuário no `~/.config/mimeapps.list` continuam valendo; para voltar a abrir imagens no visualizador nativo, use `xdg-mime default sparky-image.desktop image/png image/jpeg image/webp image/gif image/bmp image/tiff`.
 
 O [workflow de Releases](ci/RELEASE.md) gera os pacotes pelo GitHub Actions ao
 enviar uma tag `vMAJOR.MINOR.PATCH`, como `v0.22.0`. A tag precisa corresponder
