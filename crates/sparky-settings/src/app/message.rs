@@ -14,6 +14,7 @@ pub enum Message {
     Section(Section),
     NetworkSelect(usize),
     NetworkMethod(crate::domain::network::Method),
+    NetworkAutoDns(crate::domain::network::AutoDns),
     NetworkInput(crate::domain::network::Field, String),
     NetworkSave,
     Point(usize),

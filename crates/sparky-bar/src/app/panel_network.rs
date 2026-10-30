@@ -1,7 +1,7 @@
 use iced::Task;
 
 use crate::app::{message::Message, state::Bar};
-use crate::domain::network::Network;
+use crate::domain::network::{DeviceState, Network};
 use crate::domain::panel::PanelKind;
 use crate::domain::telemetry::Metrics;
 
@@ -19,7 +19,11 @@ pub fn sample(bar: &mut Bar) -> Task<Message> {
     let Network::Ready(state) = &bar.panels.network else {
         return Task::none();
     };
-    let Some(device) = state.devices.iter().find(|device| device.state == 100) else {
+    let Some(device) = state
+        .devices
+        .iter()
+        .find(|device| device.state == DeviceState::Activated)
+    else {
         bar.panels.metrics = None;
         return Task::none();
     };

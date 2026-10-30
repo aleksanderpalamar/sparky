@@ -74,14 +74,47 @@ impl WifiNetwork {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DeviceKind {
+    Ethernet,
+    Wifi,
+}
+
+impl DeviceKind {
+    pub fn from_nm(value: u32) -> Option<Self> {
+        match value {
+            1 => Some(DeviceKind::Ethernet),
+            2 => Some(DeviceKind::Wifi),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DeviceState {
+    Disconnected,
+    Activated,
+    Other,
+}
+
+impl DeviceState {
+    pub fn from_nm(value: u32) -> Self {
+        match value {
+            30 => DeviceState::Disconnected,
+            100 => DeviceState::Activated,
+            _ => DeviceState::Other,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NetworkDevice {
     pub path: String,
     pub interface: String,
     pub name: Option<String>,
     pub speed: Option<u32>,
-    pub kind: u32,
-    pub state: u32,
+    pub kind: DeviceKind,
+    pub state: DeviceState,
     pub addresses: Vec<String>,
     pub gateway: Option<String>,
     pub active_connection: Option<String>,
@@ -108,10 +141,20 @@ impl NetworkState {
                 _ => "network-wireless-signal-excellent-symbolic",
             };
         }
-        match self.devices.iter().any(|device| device.state == 100) {
-            true => "network-wired-symbolic",
-            false => "network-offline-symbolic",
+        match (
+            self.activated(DeviceKind::Ethernet),
+            self.activated(DeviceKind::Wifi),
+        ) {
+            (true, _) => "network-wired-symbolic",
+            (false, true) => "network-wireless-connected-symbolic",
+            (false, false) => "network-offline-symbolic",
         }
+    }
+
+    fn activated(&self, kind: DeviceKind) -> bool {
+        self.devices
+            .iter()
+            .any(|device| device.kind == kind && device.state == DeviceState::Activated)
     }
 }
 

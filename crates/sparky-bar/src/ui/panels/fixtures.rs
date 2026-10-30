@@ -3,7 +3,7 @@ use crate::{
     domain::{
         audio::{Audio, AudioApp, AudioDevice, AudioState},
         bluetooth::{Adapter, Bluetooth, Device},
-        network::{Network, NetworkDevice, NetworkState},
+        network::{DeviceKind, DeviceState, Network, NetworkDevice, NetworkState},
     },
 };
 
@@ -44,8 +44,8 @@ pub fn ready() -> Panels {
             interface: "wlan0".to_owned(),
             name: Some("Rede de teste".to_owned()),
             speed: None,
-            kind: 2,
-            state: 100,
+            kind: DeviceKind::Wifi,
+            state: DeviceState::Activated,
             addresses: vec!["192.168.1.10/24".to_owned()],
             gateway: Some("192.168.1.1".to_owned()),
             active_connection: Some("/connection/1".to_owned()),

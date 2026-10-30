@@ -4,7 +4,9 @@ use sparky_theme::Skin;
 
 use super::{action, network_metrics, parts};
 use crate::app::{message::Message, panel_state::Panels};
-use crate::domain::network::{Network, NetworkDevice, NetworkRequest, NetworkState, Security};
+use crate::domain::network::{
+    DeviceKind, DeviceState, Network, NetworkDevice, NetworkRequest, NetworkState, Security,
+};
 use crate::domain::panel::PanelKind;
 
 pub fn view<'a>(skin: &Skin, panels: &'a Panels) -> Element<'a, Message> {
@@ -17,7 +19,10 @@ pub fn view<'a>(skin: &Skin, panels: &'a Panels) -> Element<'a, Message> {
     if let Some(wifi) = &panels.wifi {
         return super::forms::wifi(skin, wifi);
     }
-    let active = state.devices.iter().find(|device| device.state == 100);
+    let active = state
+        .devices
+        .iter()
+        .find(|device| device.state == DeviceState::Activated);
     let mut body = column![heading(skin, state, active)].spacing(10);
     if let Some(device) = active {
         body = body.push(network_metrics::view(skin, device, panels.metrics.as_ref()));
@@ -52,10 +57,9 @@ fn heading<'a>(
             None,
         );
     };
-    let icon = if device.kind == 1 {
-        "network-wired-symbolic"
-    } else {
-        state.icon()
+    let (icon, medium) = match device.kind {
+        DeviceKind::Ethernet => ("network-wired-symbolic", "Cabo"),
+        DeviceKind::Wifi => (state.icon(), "Wi-Fi"),
     };
     let speed = device
         .speed
@@ -67,18 +71,14 @@ fn heading<'a>(
             .name
             .clone()
             .unwrap_or_else(|| device.interface.clone()),
-        format!(
-            "{} · {}{speed}",
-            if device.kind == 1 { "Cabo" } else { "Wi-Fi" },
-            device.interface
-        ),
+        format!("{medium} · {}{speed}", device.interface),
         None,
     )
 }
 
 fn device_actions<'a>(skin: &Skin, device: &NetworkDevice) -> Element<'a, Message> {
     let mut body = column![].spacing(4);
-    if device.kind == 1 && device.state == 30 {
+    if device.kind == DeviceKind::Ethernet && device.state == DeviceState::Disconnected {
         body = body.push(action(
             skin,
             "Conectar cabo de rede",
@@ -89,7 +89,7 @@ fn device_actions<'a>(skin: &Skin, device: &NetworkDevice) -> Element<'a, Messag
             }),
         ));
     }
-    if device.state == 100 {
+    if device.state == DeviceState::Activated {
         body = body.push(action(
             skin,
             "Desconectar",
@@ -103,7 +103,7 @@ fn wireless<'a>(skin: &Skin, state: &'a NetworkState, panels: &Panels) -> Elemen
     let devices: Vec<_> = state
         .devices
         .iter()
-        .filter(|device| device.kind == 2)
+        .filter(|device| device.kind == DeviceKind::Wifi)
         .collect();
     if devices.is_empty() {
         return text("Nenhum adaptador Wi-Fi disponível")

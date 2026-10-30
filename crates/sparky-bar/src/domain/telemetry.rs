@@ -24,7 +24,7 @@ pub struct Metrics {
     pub sent: u64,
     pub receive_rate: u64,
     pub send_rate: u64,
-    pub ping_ms: Option<u32>,
+    pub ping: Option<Ping>,
     pub loss_percent: Option<u8>,
     at: Instant,
     history: VecDeque<bool>,
@@ -38,7 +38,7 @@ impl Metrics {
             sent: sample.sent,
             receive_rate: 0,
             send_rate: 0,
-            ping_ms: None,
+            ping: None,
             loss_percent: None,
             at: sample.at,
             history: VecDeque::with_capacity(10),
@@ -64,15 +64,10 @@ impl Metrics {
     }
 
     fn update_ping(&mut self, ping: Ping) {
+        self.ping = Some(ping);
         match ping {
-            Ping::Reply(milliseconds) => {
-                self.ping_ms = Some(milliseconds);
-                self.history.push_back(false);
-            }
-            Ping::Lost => {
-                self.ping_ms = None;
-                self.history.push_back(true);
-            }
+            Ping::Reply(_) => self.history.push_back(false),
+            Ping::Lost => self.history.push_back(true),
             Ping::Unavailable => return,
         }
         if self.history.len() > 10 {
@@ -147,6 +142,28 @@ mod tests {
             ping: Ping::Reply(5),
         });
         assert_eq!(metrics.receive_rate, 0);
+        assert_eq!(metrics.loss_percent, Some(0));
+    }
+
+    #[test]
+    fn ping_indisponivel_nao_mantem_latencia_antiga() {
+        let at = Instant::now();
+        let mut metrics = Metrics::begin(Sample {
+            interface: "eth0".to_owned(),
+            at,
+            received: 0,
+            sent: 0,
+            ping: Ping::Reply(8),
+        });
+        assert_eq!(metrics.ping, Some(Ping::Reply(8)));
+        metrics.update(Sample {
+            interface: "eth0".to_owned(),
+            at: at + Duration::from_secs(1),
+            received: 0,
+            sent: 0,
+            ping: Ping::Unavailable,
+        });
+        assert_eq!(metrics.ping, Some(Ping::Unavailable));
         assert_eq!(metrics.loss_percent, Some(0));
     }
 }

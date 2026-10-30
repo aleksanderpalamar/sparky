@@ -3,6 +3,7 @@ pub mod autostart;
 pub mod fields;
 pub mod monitors;
 pub mod network;
+mod network_fields;
 pub mod shortcuts;
 pub mod status;
 pub mod style;

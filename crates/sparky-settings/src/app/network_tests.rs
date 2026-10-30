@@ -6,21 +6,23 @@ use crate::app::message::Message;
 use crate::app::state::Settings;
 use crate::app::test_support::{Comandos, Sparky, painel_com};
 use crate::app::update::update;
-use crate::domain::network::{Draft, Field, Method};
+use crate::domain::network::{AutoDns, Draft, Field, Method};
 use crate::domain::section::Section;
 use crate::ports::fake::FakeCommands;
 
-const ATIVAS: &str = "nmcli -t -f UUID,DEVICE connection show --active";
-const DETALHES: &str =
-    "nmcli -e no -g connection.id,ipv4.method,ipv4.addresses,ipv4.gateway,ipv4.dns connection show";
+pub(super) const ATIVAS: &str = "nmcli -t -f UUID,DEVICE connection show --active";
+pub(super) const DETALHES: &str = "nmcli -e no -g connection.id,ipv4.method,ipv4.addresses,ipv4.gateway,ipv4.dns,ipv4.ignore-auto-dns connection show";
 const REAPLICAR: &str = "nmcli device reapply enp7s0";
+pub(super) const CONCESSAO: &str = "nmcli -g IP4.ADDRESS,IP4.GATEWAY,IP4.DNS device show enp7s0";
 
 fn gravacao() -> String {
     let draft = Draft {
         method: Method::Manual,
         address: "10.0.0.2/24".to_owned(),
         gateway: "10.0.0.1".to_owned(),
-        dns: "1.1.1.1".to_owned(),
+        primary_dns: "1.1.1.1".to_owned(),
+        secondary_dns: String::new(),
+        auto_dns: AutoDns::Use,
     };
     format!(
         "nmcli {}",
@@ -48,7 +50,7 @@ fn salvar_dns_da_segunda(commands: &Comandos) -> Settings {
     let _ = update(&mut settings, Message::NetworkSelect(1));
     let _ = update(
         &mut settings,
-        Message::NetworkInput(Field::Dns, "1.1.1.1".to_owned()),
+        Message::NetworkInput(Field::PrimaryDns, "1.1.1.1".to_owned()),
     );
     let _ = update(&mut settings, Message::NetworkSave);
     settings
@@ -99,4 +101,35 @@ fn endereco_invalido_nao_grava_nem_reaplica() {
             .iter()
             .all(|call| !call.contains("modify") && !call.contains("reapply"))
     );
+}
+
+#[test]
+fn dhcp_pode_usar_somente_os_dns_informados() {
+    let gravacao = Draft {
+        method: Method::Auto,
+        address: String::new(),
+        gateway: String::new(),
+        primary_dns: "9.9.9.9".to_owned(),
+        secondary_dns: String::new(),
+        auto_dns: AutoDns::Ignore,
+    }
+    .arguments("uuid-3")
+    .unwrap_or_default()
+    .join(" ");
+    let commands = Comandos(Rc::new(
+        FakeCommands::new()
+            .with(ATIVAS, "uuid-3:wlan0\n")
+            .with(&format!("{DETALHES} uuid-3"), "Casa\nauto\n\n\n\nno\n")
+            .accepting(&format!("nmcli {gravacao}")),
+    ));
+    let (mut settings, _) = painel_com(None, Sparky::default(), commands.clone());
+    let _ = update(&mut settings, Message::Section(Section::Network));
+    let _ = update(&mut settings, Message::NetworkAutoDns(AutoDns::Ignore));
+    let _ = update(
+        &mut settings,
+        Message::NetworkInput(Field::PrimaryDns, "9.9.9.9".to_owned()),
+    );
+    let _ = update(&mut settings, Message::NetworkSave);
+    assert!(commands.0.calls().contains(&format!("nmcli {gravacao}")));
+    assert!(gravacao.ends_with("ipv4.ignore-auto-dns yes"));
 }

@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use super::{message::Message, state::Bar, tray_test_support::bar, update::update};
-use crate::domain::network::Network;
+use crate::domain::network::{DeviceState, Network};
 use crate::domain::panel::PanelKind;
 use crate::domain::telemetry::{Ping, Sample};
 use crate::ui::panels::fixtures::ready;
@@ -71,7 +71,7 @@ fn resultado_de_janela_antiga_e_descartado() {
 fn sem_dispositivo_ativado_nao_mede() {
     let mut bar = com_rede_ativa();
     if let Network::Ready(state) = &mut bar.panels.network {
-        state.devices[0].state = 30;
+        state.devices[0].state = DeviceState::Disconnected;
     }
     let _ = update(&mut bar, Message::Panel(PanelKind::Network));
     assert!(bar.panels.open.is_some());

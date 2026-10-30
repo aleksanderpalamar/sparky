@@ -4,7 +4,7 @@ use sparky_theme::Skin;
 
 use crate::app::message::Message;
 use crate::domain::network::NetworkDevice;
-use crate::domain::telemetry::{Metrics, bytes};
+use crate::domain::telemetry::{Metrics, Ping, bytes};
 
 pub fn view<'a>(
     skin: &Skin,
@@ -12,9 +12,7 @@ pub fn view<'a>(
     metrics: Option<&Metrics>,
 ) -> Element<'a, Message> {
     let metrics = metrics.filter(|metrics| metrics.interface == device.interface);
-    let ping = metrics
-        .and_then(|metrics| metrics.ping_ms.map(|value| format!("{value} ms")))
-        .unwrap_or_else(|| "—".to_owned());
+    let ping = ping(metrics.and_then(|metrics| metrics.ping));
     let loss = metrics
         .and_then(|metrics| metrics.loss_percent.map(|value| format!("{value}%")))
         .unwrap_or_else(|| "—".to_owned());
@@ -50,6 +48,15 @@ pub fn view<'a>(
     .into()
 }
 
+fn ping(ping: Option<Ping>) -> String {
+    match ping {
+        Some(Ping::Reply(milliseconds)) => format!("{milliseconds} ms"),
+        Some(Ping::Lost) => "sem resposta".to_owned(),
+        Some(Ping::Unavailable) => "indisponível".to_owned(),
+        None => "—".to_owned(),
+    }
+}
+
 fn pair<'a>(
     skin: &Skin,
     left_label: &'static str,
@@ -73,4 +80,18 @@ fn cell<'a>(skin: &Skin, label: &'static str, value: String) -> Element<'a, Mess
     .spacing(2)
     .width(Length::Fill)
     .into()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ping;
+    use crate::domain::telemetry::Ping;
+
+    #[test]
+    fn ping_distingue_espera_perda_e_indisponibilidade() {
+        assert_eq!(ping(None), "—");
+        assert_eq!(ping(Some(Ping::Reply(8))), "8 ms");
+        assert_eq!(ping(Some(Ping::Lost)), "sem resposta");
+        assert_eq!(ping(Some(Ping::Unavailable)), "indisponível");
+    }
 }

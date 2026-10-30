@@ -32,15 +32,10 @@ fn apply(settings: &mut Settings, message: Message) {
         Message::Submit => settings.submit(),
         Message::Section(section) => settings.go(section),
         Message::NetworkSelect(index) => settings.network.select(index),
-        Message::NetworkMethod(method) => {
-            if let Some(draft) = &mut settings.network.draft {
-                draft.method = method;
-            }
-        }
+        Message::NetworkMethod(method) => settings.network.switch(method),
+        Message::NetworkAutoDns(choice) => settings.network.edit(|draft| draft.auto_dns = choice),
         Message::NetworkInput(field, value) => {
-            if let Some(draft) = &mut settings.network.draft {
-                draft.change(field, value);
-            }
+            settings.network.edit(|draft| draft.change(field, value))
         }
         Message::NetworkSave => settings.save_network(),
         Message::Point(index) => settings.point(index),
