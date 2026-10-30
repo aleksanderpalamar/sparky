@@ -6,7 +6,7 @@ out="$root/packaging/out"
 target="x86_64-unknown-linux-gnu"
 glibc="2.36"
 package_release="$(sed -n 's/^pkgrel=//p' "$root/packaging/arch/PKGBUILD")"
-binaries=(sparky sparky-bar sparky-msg sparky-shot sparky-files sparky-monitor sparky-settings sparky-launcher sparky-keyring sparky-keyring-prompt sparky-terminal sparky-notifications polkit-sparky)
+binaries=(sparky sparky-bar sparky-msg sparky-shot sparky-files sparky-image sparky-monitor sparky-settings sparky-launcher sparky-keyring sparky-keyring-prompt sparky-terminal sparky-notifications polkit-sparky)
 
 usage() {
   echo "uso: packaging/build.sh [deb|rpm|pacman|todos]" >&2

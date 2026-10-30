@@ -30,17 +30,23 @@ pub fn header(files: &Files) -> Element<'_, Message> {
     .spacing(4);
     let mut heading = row![path].extend(tags);
     if files.in_trash() {
-        heading = heading.push(restore_button(
+        heading = heading.push(trash_button(
             files,
             "Restaurar item",
             Message::Trash(TrashEvent::RestoreSelected),
-            files.listing.selected().is_some(),
+            files.listing.selected().is_some() && !files.emptying,
         ));
-        heading = heading.push(restore_button(
+        heading = heading.push(trash_button(
             files,
             "Restaurar todos",
             Message::Trash(TrashEvent::RestoreAll),
-            files.listing.total_len() > 0,
+            files.listing.total_len() > 0 && !files.emptying,
+        ));
+        heading = heading.push(trash_button(
+            files,
+            "Esvaziar lixeira",
+            Message::Trash(TrashEvent::Empty),
+            files.listing.total_len() > 0 && !files.emptying,
         ));
     }
     container(
@@ -56,7 +62,7 @@ pub fn header(files: &Files) -> Element<'_, Message> {
     .into()
 }
 
-fn restore_button<'a>(
+fn trash_button<'a>(
     files: &'a Files,
     label: &'static str,
     message: Message,

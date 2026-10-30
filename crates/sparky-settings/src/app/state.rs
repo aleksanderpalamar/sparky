@@ -13,13 +13,13 @@ use crate::domain::keymaps::Keymaps;
 use crate::domain::section::Section;
 use crate::domain::system::RowId;
 use crate::domain::system::datetime::DateTime;
+use crate::domain::system::media::Media;
 use crate::domain::system::power::Power;
 use crate::domain::system::region::Region;
-use crate::domain::system::users::User;
-use crate::domain::system::media::Media;
 use crate::domain::system::themes::Themes;
-use crate::ports::themes::ThemeStore;
+use crate::domain::system::users::User;
 use crate::ports::commands::CommandRunner;
+use crate::ports::themes::ThemeStore;
 use crate::ports::{Compositor, CompositorError, Store};
 
 #[derive(Debug, Clone)]
@@ -76,6 +76,7 @@ pub struct Settings {
     pub region: Region,
     pub users: Vec<User>,
     pub media: Media,
+    pub network: crate::domain::network::Network,
     pub themes: Themes,
     pub list: Viewport,
     pub context: Context,
@@ -98,6 +99,7 @@ impl Settings {
             region: Region::default(),
             users: Vec::new(),
             media: Media::default(),
+            network: crate::domain::network::Network::default(),
             themes: Themes::default(),
             list: Viewport::new(context.rows),
             context,
@@ -110,6 +112,9 @@ impl Settings {
     pub fn reload(&mut self) {
         self.outputs = self.services.compositor.outputs();
         self.reload_system();
+        if self.section == Section::Network {
+            self.network = crate::domain::network::Network::load(self.services.commands.as_ref());
+        }
         match self.services.store.load() {
             Ok(contents) => self.read(contents.as_deref().unwrap_or_default()),
             Err(error) => self.broken(format!("não deu para ler o sparky.toml: {error}")),
@@ -117,7 +122,12 @@ impl Settings {
     }
 
     pub fn binds(&self) -> Vec<Bind> {
-        let terminal = self.config.apps.terminal.clone().unwrap_or_else(|| "o terminal".to_owned());
+        let terminal = self
+            .config
+            .apps
+            .terminal
+            .clone()
+            .unwrap_or_else(|| "o terminal".to_owned());
         binds::merged(&self.config, &terminal)
     }
 

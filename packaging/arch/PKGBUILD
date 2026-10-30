@@ -82,7 +82,7 @@ check() {
 package_sparky() {
   cd "$pkgbase"
   local binary
-  for binary in sparky sparky-bar sparky-msg sparky-shot sparky-files sparky-monitor sparky-settings sparky-launcher sparky-keyring sparky-keyring-prompt sparky-terminal sparky-notifications polkit-sparky; do
+  for binary in sparky sparky-bar sparky-msg sparky-shot sparky-files sparky-image sparky-monitor sparky-settings sparky-launcher sparky-keyring sparky-keyring-prompt sparky-terminal sparky-notifications polkit-sparky; do
     install -Dm755 "target/release/$binary" -t "$pkgdir/usr/bin"
   done
   install -Dm644 data/session/sparky.desktop -t "$pkgdir/usr/share/wayland-sessions"

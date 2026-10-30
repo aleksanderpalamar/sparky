@@ -4712,6 +4712,7 @@ dependencies = [
  "iced_layershell",
  "iced_runtime",
  "libpulse-binding",
+ "socket2",
  "sparky-ipc",
  "sparky-notifications",
  "sparky-theme",
@@ -4774,6 +4775,19 @@ dependencies = [
  "sparky-theme",
  "sparky-ui",
  "sparky-xdg",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
+name = "sparky-image"
+version = "0.27.0"
+dependencies = [
+ "iced",
+ "iced_runtime",
+ "image",
+ "sparky-theme",
+ "sparky-ui",
  "tempfile",
  "tokio",
 ]

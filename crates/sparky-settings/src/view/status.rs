@@ -15,7 +15,9 @@ pub fn status(settings: &Settings) -> Element<'_, Message> {
     };
     let line = row![
         left.size(TEXT_SIZE).width(Length::Fill),
-        text(hints(settings.section, settings.mode)).size(SMALL_TEXT).color(skin.dark_foreground),
+        text(hints(settings.section, settings.mode))
+            .size(SMALL_TEXT)
+            .color(skin.dark_foreground),
     ]
     .spacing(SPACING)
     .align_y(Vertical::Center);
@@ -34,15 +36,32 @@ pub fn hints(section: Section, mode: Mode) -> &'static str {
         (Mode::Browse, Section::Appearance | Section::Keyboard | Section::Apps) => {
             "j/k escolhe · h/l ajusta · Enter edita · Tab troca de seção · q fecha"
         }
-        (Mode::Browse, Section::Autostart) => "j/k escolhe · Enter edita ou adiciona · d remove · Tab troca de seção",
-        (Mode::Browse, Section::Shortcuts) => "j/k rola · para mudar um atalho, escreva [[bind]] no sparky.toml",
+        (Mode::Browse, Section::Autostart) => {
+            "j/k escolhe · Enter edita ou adiciona · d remove · Tab troca de seção"
+        }
+        (Mode::Browse, Section::Shortcuts) => {
+            "j/k rola · para mudar um atalho, escreva [[bind]] no sparky.toml"
+        }
         (Mode::Browse, Section::Monitors) => "F5 atualiza · Tab troca de seção · q fecha",
-        (Mode::Browse, Section::Power) => "j/k escolhe · h/l ajusta · F5 atualiza · Tab troca de seção",
-        (Mode::Browse, Section::DateTime) => "j/k escolhe · Enter edita · h/l alterna · F5 atualiza · Tab troca de seção",
-        (Mode::Browse, Section::Region) => "j/k escolhe · Enter edita · h/l escolhe opção · F5 atualiza · Tab troca de seção",
+        (Mode::Browse, Section::Network) => {
+            "Edite os campos · Salvar e aplicar · Tab troca de seção"
+        }
+        (Mode::Browse, Section::Power) => {
+            "j/k escolhe · h/l ajusta · F5 atualiza · Tab troca de seção"
+        }
+        (Mode::Browse, Section::DateTime) => {
+            "j/k escolhe · Enter edita · h/l alterna · F5 atualiza · Tab troca de seção"
+        }
+        (Mode::Browse, Section::Region) => {
+            "j/k escolhe · Enter edita · h/l escolhe opção · F5 atualiza · Tab troca de seção"
+        }
         (Mode::Browse, Section::Users) => "j/k escolhe conta · F5 atualiza · Tab troca de seção",
-        (Mode::Browse, Section::Media) => "j/k escolhe volume · Enter alterna · h desmonta · l monta · F5 atualiza",
-        (Mode::Browse, Section::Themes) => "j/k escolhe · Enter aplica · h/l troca o papel de parede · Tab troca de seção",
+        (Mode::Browse, Section::Media) => {
+            "j/k escolhe volume · Enter alterna · h desmonta · l monta · F5 atualiza"
+        }
+        (Mode::Browse, Section::Themes) => {
+            "j/k escolhe · Enter aplica · h/l troca o papel de parede · Tab troca de seção"
+        }
         (Mode::Browse, Section::About) => "Tab troca de seção · q fecha",
     }
 }
@@ -55,7 +74,13 @@ mod tests {
 
     #[test]
     fn editando_as_dicas_sao_de_salvar_ou_cancelar() {
-        assert_eq!(hints(Section::Autostart, Mode::Editing(Target::Autostart(Slot::New))), "Enter salva · Esc cancela");
+        assert_eq!(
+            hints(
+                Section::Autostart,
+                Mode::Editing(Target::Autostart(Slot::New))
+            ),
+            "Enter salva · Esc cancela"
+        );
     }
 
     #[test]

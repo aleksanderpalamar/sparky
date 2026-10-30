@@ -64,8 +64,8 @@ license-file = ["../../LICENSE", "0"]
 extended-description = """\
 Sparky é um ambiente de desktop Wayland com compositor próprio: janelas em \
 mosaico (dwindle), áreas de trabalho por monitor, XWayland, barra com áreas, \
-relógio e bandeja, e aplicativos nativos (arquivos, capturador de tela, \
-terminal, monitor do sistema e configurações). Tudo tem atalho de teclado."""
+relógio e bandeja, e aplicativos nativos (arquivos, visualizador de imagens, \
+capturador de tela, terminal, monitor do sistema e configurações). Tudo tem atalho de teclado."""
 section = "x11"
 priority = "optional"
 depends = "libpulse0, libseat1, libinput10, libxkbcommon0, libgbm1, libdrm2, libudev1, libegl1, libgles2, libwayland-client0, libwayland-server0, libwayland-egl1, xwayland, xkb-data, wl-clipboard, libnotify-bin, xdg-utils, tar, util-linux, polkitd, libpolkit-agent-1-0, libglib2.0-0t64 | libglib2.0-0, zsh, zsh-autosuggestions, zsh-syntax-highlighting, xdg-desktop-portal, xdg-desktop-portal-gtk, xdg-desktop-portal-wlr, pipewire"
@@ -77,6 +77,7 @@ assets = [
     ["target/release/sparky-msg", "usr/bin/", "755"],
     ["target/release/sparky-shot", "usr/bin/", "755"],
     ["target/release/sparky-files", "usr/bin/", "755"],
+    ["target/release/sparky-image", "usr/bin/", "755"],
     ["target/release/sparky-monitor", "usr/bin/", "755"],
     ["target/release/sparky-settings", "usr/bin/", "755"],
     ["target/release/sparky-launcher", "usr/bin/", "755"],
@@ -89,6 +90,7 @@ assets = [
     ["../../data/portals/sparky-wlr.conf", "etc/xdg/xdg-desktop-portal-wlr/sparky", "644"],
     ["../../data/portals/sparky-keyring.portal", "usr/share/xdg-desktop-portal/portals/", "644"],
     ["../../data/applications/sparky-files.desktop", "usr/share/applications/", "644"],
+    ["../../data/applications/sparky-image.desktop", "usr/share/applications/", "644"],
     ["../../data/applications/sparky-monitor.desktop", "usr/share/applications/", "644"],
     ["../../data/applications/sparky-settings.desktop", "usr/share/applications/", "644"],
     ["../../data/applications/sparky-shot.desktop", "usr/share/applications/", "644"],
@@ -132,6 +134,7 @@ assets = [
     { source = "target/release/sparky-msg", dest = "/usr/bin/sparky-msg", mode = "755" },
     { source = "target/release/sparky-shot", dest = "/usr/bin/sparky-shot", mode = "755" },
     { source = "target/release/sparky-files", dest = "/usr/bin/sparky-files", mode = "755" },
+    { source = "target/release/sparky-image", dest = "/usr/bin/sparky-image", mode = "755" },
     { source = "target/release/sparky-monitor", dest = "/usr/bin/sparky-monitor", mode = "755" },
     { source = "target/release/sparky-settings", dest = "/usr/bin/sparky-settings", mode = "755" },
     { source = "target/release/sparky-launcher", dest = "/usr/bin/sparky-launcher", mode = "755" },
@@ -144,6 +147,7 @@ assets = [
     { source = "../../data/portals/sparky-wlr.conf", dest = "/etc/xdg/xdg-desktop-portal-wlr/sparky", mode = "644", config = "noreplace" },
     { source = "../../data/portals/sparky-keyring.portal", dest = "/usr/share/xdg-desktop-portal/portals/sparky-keyring.portal", mode = "644" },
     { source = "../../data/applications/sparky-files.desktop", dest = "/usr/share/applications/sparky-files.desktop", mode = "644" },
+    { source = "../../data/applications/sparky-image.desktop", dest = "/usr/share/applications/sparky-image.desktop", mode = "644" },
     { source = "../../data/applications/sparky-monitor.desktop", dest = "/usr/share/applications/sparky-monitor.desktop", mode = "644" },
     { source = "../../data/applications/sparky-settings.desktop", dest = "/usr/share/applications/sparky-settings.desktop", mode = "644" },
     { source = "../../data/applications/sparky-shot.desktop", dest = "/usr/share/applications/sparky-shot.desktop", mode = "644" },

@@ -1,0 +1,26 @@
+[package]
+name = "sparky-image"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "sparky-image"
+path = "src/main.rs"
+
+[lib]
+name = "sparky_image"
+path = "src/lib.rs"
+
+[dependencies]
+iced = { version = "0.14", features = ["canvas", "image", "tokio"] }
+image = { version = "0.25", default-features = false, features = ["bmp", "gif", "jpeg", "png", "tiff", "webp"] }
+tokio = { version = "1", features = ["rt"] }
+sparky-theme.workspace = true
+sparky-ui.workspace = true
+
+[dev-dependencies]
+iced = { version = "0.14", features = ["advanced"] }
+iced_runtime = "0.14"
+tempfile = "3"

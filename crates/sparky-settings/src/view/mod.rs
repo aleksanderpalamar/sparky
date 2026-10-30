@@ -2,6 +2,8 @@ pub mod about;
 pub mod autostart;
 pub mod fields;
 pub mod monitors;
+pub mod network;
+mod network_fields;
 pub mod shortcuts;
 pub mod status;
 pub mod style;
@@ -53,8 +55,12 @@ fn header(settings: &Settings) -> Element<'_, Message> {
     let skin = settings.context.skin;
     let section = settings.section;
     container(column![
-        text(section.label()).size(TITLE_SIZE).color(skin.bright_foreground),
-        text(section.summary()).size(SMALL_TEXT).color(skin.dark_foreground),
+        text(section.label())
+            .size(TITLE_SIZE)
+            .color(skin.bright_foreground),
+        text(section.summary())
+            .size(SMALL_TEXT)
+            .color(skin.dark_foreground),
     ])
     .height(SECTION_HEADER)
     .into()
@@ -66,7 +72,10 @@ fn content(settings: &Settings) -> Element<'_, Message> {
         Section::Autostart => autostart::view(settings),
         Section::Shortcuts => shortcuts::view(settings),
         Section::Monitors => monitors::view(settings),
-        Section::Power | Section::DateTime | Section::Region | Section::Media | Section::Themes => system::view(settings),
+        Section::Network => network::view(settings),
+        Section::Power | Section::DateTime | Section::Region | Section::Media | Section::Themes => {
+            system::view(settings)
+        }
         Section::About => about::view(settings),
         Section::Users => users::view(settings),
     }

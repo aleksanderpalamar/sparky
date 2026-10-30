@@ -22,4 +22,14 @@ fn comandos_rejeitam_canais_volume_e_nomes_invalidos_antes_de_chamar_libpulse() 
         name: "inva\0lido".to_owned(),
         muted: false
     }));
+    assert!(valid(&AudioRequest::AppVolume {
+        index: 7,
+        channels: 2,
+        percent: 100,
+    }));
+    assert!(!valid(&AudioRequest::AppVolume {
+        index: 7,
+        channels: 0,
+        percent: 100,
+    }));
 }
