@@ -123,6 +123,7 @@ impl Files {
             Mode::Destination(clip) => self.finish_destination(&clip, &input),
             Mode::Compress(paths) => return self.start_archive(paths, &input),
             Mode::ConfirmTrash(names) => self.mode = Mode::ConfirmTrash(names),
+            Mode::ConfirmEmptyTrash(count) => self.mode = Mode::ConfirmEmptyTrash(count),
             Mode::Browse | Mode::Filter => {}
         }
         Task::none()
@@ -147,7 +148,8 @@ impl Files {
             | Mode::New(_)
             | Mode::Destination(_)
             | Mode::Compress(_)
-            | Mode::ConfirmTrash(_) => {}
+            | Mode::ConfirmTrash(_)
+            | Mode::ConfirmEmptyTrash(_) => {}
         }
         self.input.clear();
     }

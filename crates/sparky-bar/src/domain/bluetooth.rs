@@ -18,6 +18,41 @@ pub struct Device {
     pub name: String,
     pub paired: bool,
     pub connected: bool,
+    pub kind: DeviceKind,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum DeviceKind {
+    Phone,
+    Display,
+    Audio,
+    Computer,
+    #[default]
+    Other,
+}
+
+impl DeviceKind {
+    pub fn from_bluez(icon: Option<&str>) -> Self {
+        match icon {
+            Some("phone" | "smartphone") => Self::Phone,
+            Some("video-display" | "television") => Self::Display,
+            Some("audio-headset" | "audio-headphones" | "audio-card" | "audio-speakers") => {
+                Self::Audio
+            }
+            Some("computer" | "input-tablet") => Self::Computer,
+            _ => Self::Other,
+        }
+    }
+
+    pub fn icon(self) -> &'static str {
+        match self {
+            Self::Phone => "phone-symbolic",
+            Self::Display => "video-display-symbolic",
+            Self::Audio => "audio-headphones-symbolic",
+            Self::Computer => "computer-symbolic",
+            Self::Other => "bluetooth-symbolic",
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

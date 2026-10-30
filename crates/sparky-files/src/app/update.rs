@@ -39,6 +39,7 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::ArchiveCompleted(path, result) => files.archive_completed(path, result),
         Message::PreviewReady(path, stamp, image) => files.preview_ready(path, stamp, image),
         Message::Trash(action) => files.handle_trash(action),
+        Message::TrashEmptied(result) => files.trash_emptied(result),
         Message::ContextAction(action) => return context::choose(files, action),
         Message::Submit => {
             let task = files.submit();
@@ -95,12 +96,7 @@ fn key_pressed(files: &mut Files, key: &Key, modifiers: Modifiers) -> Task<Messa
     let command = match &files.mode {
         Mode::Browse => keys::browse(key, modifiers),
         Mode::Filter => keys::filtering(key),
-        Mode::ConfirmTrash(_) => {
-            if let Some(answer) = keys::confirm(key) {
-                files.answer_trash(answer);
-            }
-            None
-        }
+        Mode::ConfirmTrash(_) | Mode::ConfirmEmptyTrash(_) => return files.confirm(key),
         Mode::Rename(_)
         | Mode::Create
         | Mode::New(_)

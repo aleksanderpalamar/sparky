@@ -32,6 +32,10 @@ impl TrashStore for ChildFirstTrash {
     fn restore(&self, name: &OsStr) -> io::Result<PathBuf> {
         self.0.restore(name)
     }
+
+    fn empty(&self) -> io::Result<crate::ports::EmptyReport> {
+        self.0.empty()
+    }
 }
 
 #[test]
@@ -120,7 +124,7 @@ fn restaurar_todos_recupera_pasta_antes_do_arquivo_filho() {
     fs::write(&child, "conteúdo").unwrap();
     trash.put(&child).unwrap();
     trash.put(&folder).unwrap();
-    scene.files.services.trash = Box::new(ChildFirstTrash(trash));
+    scene.files.services.trash = std::sync::Arc::new(ChildFirstTrash(trash));
     scene.mandar(Message::Trash(TrashEvent::Open));
     scene.mandar(Message::Trash(TrashEvent::RestoreAll));
     assert_eq!(fs::read_to_string(child).unwrap(), "conteúdo");

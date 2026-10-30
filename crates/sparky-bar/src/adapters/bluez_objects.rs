@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use zbus::fdo::ManagedObjects;
 use zbus::zvariant::OwnedValue;
 
-use crate::domain::bluetooth::{Adapter, Bluetooth, Device};
+use crate::domain::bluetooth::{Adapter, Bluetooth, Device, DeviceKind};
 
 pub const ADAPTER: &str = "org.bluez.Adapter1";
 pub const DEVICE: &str = "org.bluez.Device1";
@@ -63,6 +63,7 @@ fn devices(objects: &ManagedObjects, adapter: &str) -> Vec<Device> {
                     .unwrap_or_else(|| "Dispositivo Bluetooth".to_owned()),
                 paired: flag(properties, "Paired"),
                 connected: flag(properties, "Connected"),
+                kind: DeviceKind::from_bluez(text(properties, "Icon").as_deref()),
             })
         })
         .collect();

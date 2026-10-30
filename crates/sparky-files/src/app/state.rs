@@ -33,6 +33,7 @@ pub enum Mode {
     Destination(Clip),
     Compress(Vec<PathBuf>),
     ConfirmTrash(Vec<String>),
+    ConfirmEmptyTrash(usize),
 }
 
 pub struct Services {
@@ -42,7 +43,7 @@ pub struct Services {
     pub volumes: Arc<dyn VolumeSource>,
     pub archiver: Arc<dyn Archiver>,
     pub thumbnails: Arc<dyn ThumbnailSource>,
-    pub trash: Box<dyn TrashStore>,
+    pub trash: Arc<dyn TrashStore>,
     pub image_clipboard: Box<dyn ImageClipboard>,
 }
 
@@ -89,6 +90,7 @@ pub struct Files {
     pub details: Option<Properties>,
     pub open_with: Option<OpenWith>,
     pub archive_work: Option<PathBuf>,
+    pub emptying: bool,
     pub previews: Previews,
     pub notice: Option<Notice>,
     pub skin: Skin,
@@ -123,6 +125,7 @@ impl Files {
             details: None,
             open_with: None,
             archive_work: None,
+            emptying: false,
             previews: Previews::default(),
             notice: None,
             skin: setup.skin,
