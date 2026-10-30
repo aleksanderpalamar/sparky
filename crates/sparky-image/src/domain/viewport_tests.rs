@@ -112,3 +112,18 @@ fn janela_sem_area_nao_gera_valores_invalidos() {
             .all(|value| value.is_finite())
     );
 }
+
+#[test]
+fn arredondamento_do_ajuste_nao_conta_como_imagem_maior_que_a_janela() {
+    let area = Area {
+        width: 1000.0,
+        height: 664.0,
+    };
+    let mut viewport = Viewport::new(1578, 1052);
+    assert!(!viewport.overflows(area));
+    let antes = viewport.placement(area);
+    viewport.look(Direction::Down, area);
+    assert_eq!(viewport.placement(area), antes);
+    viewport.zoom_in(area);
+    assert!(viewport.overflows(area));
+}

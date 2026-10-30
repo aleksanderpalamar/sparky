@@ -1,9 +1,11 @@
 use std::path::Path;
+use std::sync::Arc;
+use std::sync::atomic::Ordering;
 
 use super::keys::Command;
 use super::message::Message;
 use super::state::{Shown, Viewer};
-use super::test_support::{abrir, concluir};
+use super::test_support::{Decodificador, abrir, abrir_com, concluir};
 use super::update::update;
 use crate::domain::album::Step;
 use crate::domain::viewport::Direction;
@@ -64,14 +66,29 @@ fn com_zoom_as_setas_deslocam_e_espaco_continua_trocando() {
 fn resultado_de_imagem_ja_deixada_para_tras_e_descartado() {
     let (mut viewer, _) = abrir(vec!["a.png", "b.png", "c.png"], Some("/fotos/a.png"));
     let _ = update(&mut viewer, Message::Command(Command::Step(Step::Next)));
-    let task = update(&mut viewer, Message::Command(Command::Step(Step::Next)));
-    let antigo = super::test_support::Decodificador;
-    let picture = crate::ports::Decoder::decode(&antigo, Path::new("/fotos/b.png"));
-    let _ = update(&mut viewer, Message::Loaded("/fotos/b.png".into(), picture));
+    let _ = update(&mut viewer, Message::Command(Command::Step(Step::Next)));
+    let antigo = Decodificador::default();
+    let picture = crate::ports::Decoder::decode(&antigo, Path::new("/fotos/a.png"));
+    let task = update(&mut viewer, Message::Loaded("/fotos/a.png".into(), picture));
     assert!(matches!(viewer.shown, Shown::Loading));
     concluir(&mut viewer, task);
     assert_eq!(atual(&viewer), Path::new("/fotos/c.png"));
     assert!(matches!(viewer.shown, Shown::Ready(_)));
+}
+
+#[test]
+fn navegar_rapido_mantem_uma_decodificacao_por_vez_e_so_a_ultima_pendente() {
+    let decoder = Arc::new(Decodificador::default());
+    let pasta = vec!["a.png", "b.png", "c.png", "d.png"];
+    let (mut viewer, primeira) = abrir_com(pasta, Some("/fotos/a.png"), decoder.clone());
+    for _ in 0..3 {
+        let task = update(&mut viewer, Message::Command(Command::Step(Step::Next)));
+        assert!(iced_runtime::task::into_stream(task).is_none());
+    }
+    assert_eq!(atual(&viewer), Path::new("/fotos/d.png"));
+    concluir(&mut viewer, primeira);
+    assert!(matches!(viewer.shown, Shown::Ready(_)));
+    assert_eq!(decoder.decodificadas.load(Ordering::SeqCst), 2);
 }
 
 #[test]

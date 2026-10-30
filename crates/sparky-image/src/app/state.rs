@@ -30,9 +30,16 @@ pub enum Shown {
     Failed(String),
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Decoding {
+    Idle,
+    Busy,
+}
+
 pub struct Viewer {
     pub album: Option<Album>,
     pub shown: Shown,
+    pub decoding: Decoding,
     pub size: Size,
     pub skin: Skin,
     pub services: Services,

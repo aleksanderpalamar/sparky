@@ -11,7 +11,7 @@ pub fn update(viewer: &mut Viewer, message: Message) -> Task<Message> {
         Message::Palette(palette) => viewer.skin = Skin::new(palette),
         Message::Resized(size) => viewer.size = size,
         Message::Dragged(x, y) => viewer.adjust(|viewport, area| viewport.drag(x, y, area)),
-        Message::Loaded(path, result) => viewer.loaded(&path, result),
+        Message::Loaded(path, result) => return viewer.loaded(&path, result),
         Message::Command(command) => return run(viewer, command),
     }
     Task::none()

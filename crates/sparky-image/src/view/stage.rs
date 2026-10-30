@@ -103,7 +103,8 @@ impl Program<Message> for Stage<'_> {
 }
 
 fn drag(grip: &mut Grip, position: Point) -> Option<canvas::Action<Message>> {
-    let last = grip.last.replace(position)?;
+    let last = grip.last?;
+    grip.last = Some(position);
     Some(canvas::Action::publish(Message::Dragged(
         position.x - last.x,
         position.y - last.y,
@@ -122,4 +123,22 @@ fn wheel(grip: &mut Grip, delta: ScrollDelta) -> Option<canvas::Action<Message>>
     };
     grip.scrolled = 0.0;
     Some(canvas::Action::publish(Message::Command(command)).and_capture())
+}
+
+#[cfg(test)]
+mod tests {
+    use iced::Point;
+
+    use super::{Grip, drag};
+
+    #[test]
+    fn mover_o_ponteiro_sem_botao_nao_arrasta_a_imagem() {
+        let mut grip = Grip::default();
+        assert!(drag(&mut grip, Point::new(10.0, 10.0)).is_none());
+        assert!(drag(&mut grip, Point::new(30.0, 10.0)).is_none());
+        assert_eq!(grip.last, None);
+        grip.last = Some(Point::new(30.0, 10.0));
+        assert!(drag(&mut grip, Point::new(40.0, 15.0)).is_some());
+        assert_eq!(grip.last, Some(Point::new(40.0, 15.0)));
+    }
 }

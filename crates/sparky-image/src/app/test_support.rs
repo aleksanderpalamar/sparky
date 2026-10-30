@@ -1,5 +1,6 @@
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use iced::futures::StreamExt;
 use iced::{Size, Task};
@@ -17,10 +18,14 @@ pub const JANELA: Size = Size {
     height: 836.0,
 };
 
-pub struct Decodificador;
+#[derive(Default)]
+pub struct Decodificador {
+    pub decodificadas: AtomicUsize,
+}
 
 impl Decoder for Decodificador {
     fn decode(&self, path: &Path) -> Result<Picture, DecodeError> {
+        self.decodificadas.fetch_add(1, Ordering::SeqCst);
         let name = path.to_string_lossy();
         let (width, height) = match () {
             _ if name.contains("quebrada") => return Err(DecodeError::Corrupted),
@@ -44,8 +49,16 @@ impl Gallery for Pasta {
 }
 
 pub fn abrir(pasta: Vec<&'static str>, alvo: Option<&str>) -> (Viewer, Task<Message>) {
+    abrir_com(pasta, alvo, Arc::new(Decodificador::default()))
+}
+
+pub fn abrir_com(
+    pasta: Vec<&'static str>,
+    alvo: Option<&str>,
+    decoder: Arc<Decodificador>,
+) -> (Viewer, Task<Message>) {
     let services = Services {
-        decoder: Arc::new(Decodificador),
+        decoder,
         gallery: Box::new(Pasta(pasta)),
     };
     Viewer::open(services, Skin::default(), alvo.map(PathBuf::from), JANELA)

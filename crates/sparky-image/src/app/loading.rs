@@ -6,7 +6,7 @@ use iced::{Size, Task};
 use sparky_theme::Skin;
 
 use super::message::Message;
-use super::state::{Ready, Services, Shown, Viewer};
+use super::state::{Decoding, Ready, Services, Shown, Viewer};
 use crate::domain::album::{Album, Edge};
 use crate::domain::picture::Picture;
 use crate::domain::viewport::Viewport;
@@ -25,6 +25,7 @@ impl Viewer {
         let mut viewer = Viewer {
             album: None,
             shown: Shown::Empty(NOTHING_OPEN),
+            decoding: Decoding::Idle,
             size,
             skin,
             services,
@@ -47,19 +48,23 @@ impl Viewer {
         };
         let path = album.current().to_path_buf();
         self.shown = Shown::Loading;
+        if self.decoding == Decoding::Busy {
+            return Task::none();
+        }
+        self.decoding = Decoding::Busy;
         Task::perform(
             decode(Arc::clone(&self.services.decoder), path),
             |(path, result)| Message::Loaded(path, result),
         )
     }
 
-    pub fn loaded(&mut self, path: &Path, result: Result<Picture, DecodeError>) {
-        if self
-            .album
-            .as_ref()
-            .is_none_or(|album| album.current() != path)
-        {
-            return;
+    pub fn loaded(&mut self, path: &Path, result: Result<Picture, DecodeError>) -> Task<Message> {
+        self.decoding = Decoding::Idle;
+        let Some(album) = &self.album else {
+            return Task::none();
+        };
+        if album.current() != path {
+            return self.load();
         }
         self.shown = match result {
             Ok(picture) => Shown::Ready(Ready {
@@ -70,6 +75,7 @@ impl Viewer {
             }),
             Err(error) => Shown::Failed(error.to_string()),
         };
+        Task::none()
     }
 
     fn album_for(&self, target: &Path) -> Option<Album> {

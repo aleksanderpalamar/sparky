@@ -3,6 +3,7 @@ use super::turn::{Spin, Turn};
 const ZOOM_STEP: f32 = 1.25;
 const MAX_SCALE: f32 = 32.0;
 const PAN_STEP: f32 = 80.0;
+const ROUNDING: f32 = 0.5;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Area {
@@ -148,8 +149,8 @@ impl Viewport {
         let scale = self.scale(area);
         let (width, height) = self.footprint();
         (
-            ((width * scale - area.width) / 2.0).max(0.0),
-            ((height * scale - area.height) / 2.0).max(0.0),
+            excess(width * scale, area.width),
+            excess(height * scale, area.height),
         )
     }
 
@@ -177,5 +178,12 @@ impl Viewport {
         self.zoom = zoom;
         self.offset_x = 0.0;
         self.offset_y = 0.0;
+    }
+}
+
+fn excess(size: f32, room: f32) -> f32 {
+    match (size - room) / 2.0 {
+        excess if excess > ROUNDING => excess,
+        _ => 0.0,
     }
 }
