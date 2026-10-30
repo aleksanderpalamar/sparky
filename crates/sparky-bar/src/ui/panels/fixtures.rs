@@ -1,7 +1,7 @@
 use crate::{
     app::{panel_flow_tests::wifi, panel_state::Panels},
     domain::{
-        audio::{Audio, AudioDevice, AudioState},
+        audio::{Audio, AudioApp, AudioDevice, AudioState},
         bluetooth::{Adapter, Bluetooth, Device},
         network::{Network, NetworkDevice, NetworkState},
     },
@@ -26,6 +26,13 @@ pub fn ready() -> Panels {
         }],
         default_output: Some("fone".to_owned()),
         default_input: Some("mic".to_owned()),
+        applications: vec![AudioApp {
+            index: 3,
+            label: "Jogo".to_owned(),
+            channels: 2,
+            volume: 100,
+            writable: true,
+        }],
     });
     panels.network = Network::Ready(NetworkState {
         enabled: true,
@@ -35,6 +42,8 @@ pub fn ready() -> Panels {
         devices: vec![NetworkDevice {
             path: "/wifi/1".to_owned(),
             interface: "wlan0".to_owned(),
+            name: Some("Rede de teste".to_owned()),
+            speed: None,
             kind: 2,
             state: 100,
             addresses: vec!["192.168.1.10/24".to_owned()],
@@ -53,6 +62,7 @@ pub fn ready() -> Panels {
             name: "Fone Bluetooth".to_owned(),
             paired: true,
             connected: true,
+            kind: crate::domain::bluetooth::DeviceKind::Audio,
         }],
         connected: vec!["Fone Bluetooth".to_owned()],
     }]));

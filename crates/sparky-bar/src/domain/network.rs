@@ -78,6 +78,8 @@ impl WifiNetwork {
 pub struct NetworkDevice {
     pub path: String,
     pub interface: String,
+    pub name: Option<String>,
+    pub speed: Option<u32>,
     pub kind: u32,
     pub state: u32,
     pub addresses: Vec<String>,

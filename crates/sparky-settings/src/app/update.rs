@@ -31,6 +31,18 @@ fn apply(settings: &mut Settings, message: Message) {
         Message::Typed(text) => settings.input = text,
         Message::Submit => settings.submit(),
         Message::Section(section) => settings.go(section),
+        Message::NetworkSelect(index) => settings.network.select(index),
+        Message::NetworkMethod(method) => {
+            if let Some(draft) = &mut settings.network.draft {
+                draft.method = method;
+            }
+        }
+        Message::NetworkInput(field, value) => {
+            if let Some(draft) = &mut settings.network.draft {
+                draft.change(field, value);
+            }
+        }
+        Message::NetworkSave => settings.save_network(),
         Message::Point(index) => settings.point(index),
         Message::Nudge(index, step) => {
             settings.point(index);

@@ -29,8 +29,8 @@ fn render(skin: Skin, panels: &Panels, kind: PanelKind) -> Vec<u8> {
     let center = crate::app::center_state::CenterState::default();
     let mut view = view(&skin, panels, &center, kind);
     let mut tree = Tree::new(&view);
-    let width = if kind == PanelKind::Clock { 760 } else { 400 };
-    let size = Size::new(width as f32, 520.0);
+    let (width, height) = kind.size();
+    let size = Size::new(width as f32, height as f32);
     let node = view
         .as_widget_mut()
         .layout(&mut tree, &renderer, &Limits::new(Size::ZERO, size));
@@ -46,7 +46,7 @@ fn render(skin: Skin, panels: &Panels, kind: PanelKind) -> Vec<u8> {
         mouse::Cursor::Unavailable,
         &Rectangle::with_size(size),
     );
-    renderer.screenshot(Size::new(width, 520), 1.0, iced::Color::TRANSPARENT)
+    renderer.screenshot(Size::new(width, height), 1.0, iced::Color::TRANSPARENT)
 }
 
 #[test]
@@ -71,11 +71,7 @@ fn paineis_e_formularios_renderizam_sem_servidor_grafico_nos_temas_claro_e_escur
             let pixels = render(skin, &ready(), kind);
             assert!(pixels.chunks_exact(4).all(|pixel| pixel[3] == 255));
             if let Ok(path) = std::env::var("SPARKY_PANEL_SNAPSHOTS") {
-                save(
-                    &format!("{path}/{name}-{kind:?}.ppm"),
-                    &pixels,
-                    if kind == PanelKind::Clock { 760 } else { 400 },
-                );
+                save(&format!("{path}/{name}-{kind:?}.ppm"), &pixels, kind.size());
             }
         }
         let mut panels = ready();
@@ -115,8 +111,8 @@ fn superficie_opaca_e_controles_retangulares_seguem_o_skin() {
     ));
 }
 
-fn save(path: &str, pixels: &[u8], width: u32) {
-    let mut bytes = format!("P6\n{width} 520\n255\n").into_bytes();
+fn save(path: &str, pixels: &[u8], (width, height): (u32, u32)) {
+    let mut bytes = format!("P6\n{width} {height}\n255\n").into_bytes();
     bytes.extend(
         pixels
             .chunks_exact(4)

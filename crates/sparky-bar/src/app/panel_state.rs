@@ -4,7 +4,7 @@ use std::sync::Arc;
 use iced::window;
 
 use crate::domain::{
-    audio::{Audio, AudioRequest, Direction},
+    audio::Audio,
     bluetooth::Bluetooth,
     network::{Network, NetworkRequest, WifiNetwork},
     panel::PanelKind,
@@ -35,15 +35,6 @@ pub struct WifiPassword {
     pub remember: bool,
 }
 
-#[derive(Debug, Clone)]
-pub struct VolumeDraft {
-    pub serial: u64,
-    pub direction: Direction,
-    pub name: String,
-    pub channels: u8,
-    pub percent: u16,
-}
-
 #[derive(Debug, Clone, Copy)]
 pub struct Pending {
     pub id: u64,
@@ -64,10 +55,13 @@ pub struct Panels {
     pub prompt: Option<Prompt>,
     pub prompt_input: Secret,
     pub wifi: Option<WifiPassword>,
-    pub volume: Option<VolumeDraft>,
+    pub volume: Option<super::panel_audio::VolumeDraft>,
+    pub app_volume: Option<super::panel_audio::AppVolumeDraft>,
+    pub metrics: Option<crate::domain::telemetry::Metrics>,
+    pub sampling: bool,
     pub pending: HashMap<PanelKind, Pending>,
     pub errors: HashMap<PanelKind, String>,
-    sequence: u64,
+    pub(super) sequence: u64,
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
@@ -117,27 +111,7 @@ impl Panels {
                 self.errors.insert(kind, error);
             }
         }
-        if kind == PanelKind::Audio && self.volume.as_ref().is_some_and(|draft| draft.serial <= id)
-        {
-            self.volume = None;
-        }
-    }
-
-    pub fn draft_volume(&mut self, direction: Direction, percent: u16) {
-        let Audio::Ready(audio) = &self.audio else {
-            return;
-        };
-        let Some(device) = audio.selected(direction) else {
-            return;
-        };
-        self.sequence = self.sequence.wrapping_add(1);
-        self.volume = Some(VolumeDraft {
-            serial: self.sequence,
-            direction,
-            name: device.name.clone(),
-            channels: device.channels,
-            percent: percent.min(150),
-        });
+        self.finish_audio(id, kind);
     }
 
     pub fn clear_input(&mut self) {
@@ -145,6 +119,7 @@ impl Panels {
         self.prompt = None;
         self.prompt_input = Secret::default();
         self.volume = None;
+        self.app_volume = None;
     }
 
     pub fn dismiss(&mut self, id: PromptId) {
@@ -153,16 +128,6 @@ impl Panels {
         }
         self.prompt = None;
         self.prompt_input = Secret::default();
-    }
-
-    pub fn volume_request(&self) -> Option<AudioRequest> {
-        let draft = self.volume.as_ref()?;
-        Some(AudioRequest::Volume {
-            direction: draft.direction,
-            name: draft.name.clone(),
-            channels: draft.channels,
-            percent: draft.percent,
-        })
     }
 
     pub fn wifi_request(&self) -> Option<NetworkRequest> {

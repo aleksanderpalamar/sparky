@@ -4,6 +4,7 @@ pub mod change;
 pub mod events;
 pub mod keys;
 pub mod message;
+mod network;
 pub mod state;
 pub mod system;
 pub mod themes;
@@ -15,6 +16,8 @@ mod about_tests;
 mod datetime_tests;
 #[cfg(test)]
 mod media_tests;
+#[cfg(test)]
+mod network_tests;
 #[cfg(test)]
 mod region_tests;
 #[cfg(test)]

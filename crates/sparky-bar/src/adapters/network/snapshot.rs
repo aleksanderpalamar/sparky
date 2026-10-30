@@ -49,12 +49,20 @@ async fn read_device(connection: &Connection, path: &str) -> zbus::Result<Networ
     let mut result = NetworkDevice {
         path: path.to_owned(),
         interface: device.get_property("Interface").await?,
+        name: None,
+        speed: None,
         kind: device.get_property("DeviceType").await?,
         state: device.get_property("State").await?,
         addresses: Vec::new(),
         gateway: None,
         active_connection: (active.as_str() != "/").then(|| active.to_string()),
     };
+    if active.as_str() != "/" {
+        result.name = read_connection_name(connection, active.as_str()).await;
+    }
+    if result.kind == 1 {
+        result.speed = read_wired_speed(connection, path).await;
+    }
     if ip.as_str() == "/" {
         return Ok(result);
     }
@@ -77,4 +85,26 @@ async fn read_device(connection: &Connection, path: &str) -> zbus::Result<Networ
     let gateway: String = config.get_property("Gateway").await?;
     result.gateway = (!gateway.is_empty()).then_some(gateway);
     Ok(result)
+}
+
+async fn read_connection_name(connection: &Connection, path: &str) -> Option<String> {
+    let active = proxy(
+        connection,
+        path,
+        "org.freedesktop.NetworkManager.Connection.Active",
+    )
+    .await
+    .ok()?;
+    active.get_property("Id").await.ok()
+}
+
+async fn read_wired_speed(connection: &Connection, path: &str) -> Option<u32> {
+    let wired = proxy(
+        connection,
+        path,
+        "org.freedesktop.NetworkManager.Device.Wired",
+    )
+    .await
+    .ok()?;
+    wired.get_property("Speed").await.ok()
 }

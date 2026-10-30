@@ -13,11 +13,12 @@ pub enum Section {
     Users,
     Media,
     Themes,
+    Network,
     About,
 }
 
 impl Section {
-    pub const ALL: [Section; 13] = [
+    pub const ALL: [Section; 14] = [
         Section::Appearance,
         Section::Keyboard,
         Section::Apps,
@@ -30,6 +31,7 @@ impl Section {
         Section::Users,
         Section::Media,
         Section::Themes,
+        Section::Network,
         Section::About,
     ];
 
@@ -47,6 +49,7 @@ impl Section {
             Section::Users => "Usuários",
             Section::Media => "Mídia",
             Section::Themes => "Temas",
+            Section::Network => "Rede",
             Section::About => "Sobre",
         }
     }
@@ -65,12 +68,16 @@ impl Section {
             Section::Users => "Contas, grupos e sessões abertas",
             Section::Media => "Montagem e desmontagem de volumes externos",
             Section::Themes => "Paletas nativas de cores do Sparky",
+            Section::Network => "Conexões e configuração IPv4",
             Section::About => "O sistema e o sparky",
         }
     }
 
     pub fn index(self) -> usize {
-        Section::ALL.iter().position(|section| *section == self).unwrap_or(0)
+        Section::ALL
+            .iter()
+            .position(|section| *section == self)
+            .unwrap_or(0)
     }
 
     pub fn nth(index: usize) -> Option<Self> {
@@ -106,8 +113,9 @@ mod tests {
         assert_eq!(Section::nth(9), Some(Section::Users));
         assert_eq!(Section::nth(10), Some(Section::Media));
         assert_eq!(Section::nth(11), Some(Section::Themes));
-        assert_eq!(Section::nth(12), Some(Section::About));
-        assert_eq!(Section::nth(13), None);
+        assert_eq!(Section::nth(12), Some(Section::Network));
+        assert_eq!(Section::nth(13), Some(Section::About));
+        assert_eq!(Section::nth(14), None);
         assert_eq!(Section::Monitors.index(), 5);
     }
 }
