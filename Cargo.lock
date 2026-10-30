@@ -4828,6 +4828,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "sparky-monitor"
+version = "0.27.0"
+dependencies = [
+ "iced",
+ "iced_runtime",
+ "rustix 1.1.5",
+ "sparky-theme",
+ "sparky-ui",
+ "sparky-xdg",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
 name = "sparky-notifications"
 version = "0.27.0"
 dependencies = [

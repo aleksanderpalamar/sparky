@@ -16,8 +16,9 @@ Somente os temas vem do [Omarchy](https://github.com/basecamp/omarchy): como pal
 | `crates/sparky-ipc` | Protocolo do IPC do sparky (JSON por linha num socket Unix), o cliente usado pela barra e pelos aplicativos, e o `sparky-msg` |
 | `crates/sparky-shot` | O capturador de tela (`sparky-shot`): seletor de modo, seleção de região pelo teclado ou mouse, PNG salvo e copiado |
 | `crates/sparky-files` | O gerenciador de arquivos (`sparky-files`): grade e lista com ícones e miniaturas, menus de contexto, dispositivos, lugares, filtro, copiar, recortar, colar, renomear, criar, compactar e lixeira |
+| `crates/sparky-monitor` | O monitor do sistema (`sparky-monitor`): aplicativos e processos com CPU, memória, GPU, VRAM e disco, gráficos de CPU, memória, disco, rede e GPU, e encerramento de processos pelo teclado |
 | `crates/sparky-storage` | Volumes de bloco pelo udisksctl e smartphones MTP pelo udev/GIO/GVfs; parser de discos compartilhado com o painel |
-| `crates/sparky-xdg` | Convenções XDG compartilhadas: pastas do usuário, leitura de `.desktop`, busca de programas e resolução de ícones dos temas |
+| `crates/sparky-xdg` | Convenções XDG compartilhadas: pastas do usuário, leitura e listagem dos `.desktop` instalados, busca de programas e resolução de ícones dos temas |
 | `crates/sparky-settings` | O painel de configurações (`sparky-settings`): edita o `sparky.toml` e aplica na hora pelo IPC |
 | `crates/sparky-ui` | Peças comuns dos aplicativos iced: teclas, prompt, estilos, lateral numerada, rolagem e janela |
 | `crates/sparky-launcher` | O lançador de aplicativos (`sparky-launcher`): busca nos `.desktop` instalados e abre pelo teclado |
@@ -285,6 +286,24 @@ O clique direito abre um menu de contexto nas cores do tema. Sobre um arquivo ou
 - **Propriedades** mostra nome, tipo, caminho, tamanho, data de modificação e permissões.
 
 Ao copiar uma única imagem PNG, JPEG ou WebP, o `sparky-files` também publica seus bytes na área de transferência do sistema. Assim, `CTRL + V` em outro aplicativo pode colar a imagem; a cópia de arquivos dentro do gerenciador continua disponível.
+
+## Monitor do sistema
+
+O `sparky-monitor` acompanha o computador a cada segundo, com a paleta, a fonte e os cantos retos do tema ativo. O painel mostra à esquerda as tabelas de **Aplicativos** e **Processos** e, à direita, cartões de CPU, memória, disco, rede e GPU com gráfico dos últimos 60 segundos, os valores atuais e o processo que mais usa cada recurso. Cada cartão leva à página de detalhes, com gráficos com escala, os números do recurso e os processos ordenados por ele: núcleos, frequência e temperatura da CPU; memória e swap; capacidade, uso, leitura, escrita e temperatura de cada disco; tráfego por interface de rede; uso e VRAM de cada GPU.
+
+Os dados vêm de `/proc` e `/sys`, lidos fora da interface. Aplicativos são os processos agrupados pelo `.desktop` instalado cujo programa os iniciou, somando os processos filhos (as abas do Firefox entram no Firefox). O uso de GPU e VRAM por processo vem do `fdinfo` dos clientes DRM, disponível em AMD e Intel; o disco por processo vem do `/proc/<pid>/io`, legível apenas para os processos do próprio usuário. A rede não é medida por processo.
+
+| Tecla | Ação |
+|---|---|
+| `1` a `8` | Painel, Aplicativos, Processos, CPU, Memória, Disco, Rede e GPU |
+| `Tab` | Troca entre as tabelas de aplicativos e processos no painel |
+| `j`/`k` ou `↓`/`↑`, `Home`/`End` | Escolhe o aplicativo ou processo (a roda do mouse também) |
+| `c` `m` `g` `v` `d` `n` | Ordena por CPU, memória, GPU, VRAM, disco ou nome; repetir inverte |
+| `Delete` / `SHIFT + Delete` | Encerra (SIGTERM) ou força o fim (SIGKILL) do escolhido, depois de confirmar com `Enter` |
+| `Esc` ou `Backspace` | Cancela a confirmação ou volta ao painel |
+| `q` | Fecha |
+
+Encerrar um aplicativo envia o sinal a todos os seus processos. Processos de outros usuários só podem ser encerrados com permissão; a recusa aparece na barra de status.
 
 ## Configurações
 
