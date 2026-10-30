@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Monitor do sistema
+GenericName=Monitor do sistema
+Comment=Acompanhe CPU, memória, disco, rede, GPU e processos pelo teclado
+Exec=sparky-monitor
+Icon=utilities-system-monitor
+Terminal=false
+Categories=System;Monitor;
+Keywords=processos;cpu;memória;desempenho;tarefas;

@@ -1,9 +1,12 @@
+pub mod applications;
 pub mod desktop_entry;
 pub mod icons;
 pub mod programs;
 pub mod tilde;
 pub mod user_dirs;
 
+#[cfg(test)]
+mod applications_tests;
 #[cfg(test)]
 mod desktop_entry_tests;
 #[cfg(test)]

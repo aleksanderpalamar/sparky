@@ -1,0 +1,27 @@
+[package]
+name = "sparky-monitor"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "sparky-monitor"
+path = "src/main.rs"
+
+[lib]
+name = "sparky_monitor"
+path = "src/lib.rs"
+
+[dependencies]
+iced = { version = "0.14", features = ["canvas", "image", "svg", "tokio"] }
+rustix = { version = "1", features = ["fs", "param", "process"] }
+tokio = { version = "1", features = ["rt"] }
+sparky-theme.workspace = true
+sparky-ui.workspace = true
+sparky-xdg.workspace = true
+
+[dev-dependencies]
+iced = { version = "0.14", features = ["advanced"] }
+iced_runtime = "0.14"
+tempfile = "3"
