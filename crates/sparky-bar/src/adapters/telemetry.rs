@@ -9,15 +9,25 @@ use socket2::{Domain, Protocol, Socket, Type};
 use crate::domain::telemetry::{Ping, Sample};
 
 pub fn sample(interface: String, gateway: Option<Ipv4Addr>) -> Result<Sample, String> {
-    let (received, sent) = counters(Path::new("/sys/class/net"), &interface)
-        .map_err(|error| format!("Contadores da rede: {error}"))?;
-    let ping = gateway.map_or(Ping::Unavailable, probe);
+    sample_with(Path::new("/sys/class/net"), interface, || {
+        gateway.map_or(Ping::Unavailable, probe)
+    })
+}
+
+fn sample_with(
+    base: &Path,
+    interface: String,
+    ping: impl FnOnce() -> Ping,
+) -> Result<Sample, String> {
+    let (received, sent) =
+        counters(base, &interface).map_err(|error| format!("Contadores da rede: {error}"))?;
+    let at = Instant::now();
     Ok(Sample {
         interface,
-        at: Instant::now(),
+        at,
         received,
         sent,
-        ping,
+        ping: ping(),
     })
 }
 
@@ -105,8 +115,36 @@ fn echo_reply(packet: &[u8], sequence: u16) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::{counters, echo, echo_reply};
+    use super::{counters, echo, echo_reply, sample_with};
+    use crate::domain::telemetry::Ping;
+    use std::cell::Cell;
     use std::fs;
+    use std::time::{Duration, Instant};
+
+    #[test]
+    fn horario_da_amostra_e_o_da_leitura_dos_contadores_e_nao_o_fim_do_ping() {
+        let dir = tempfile::tempdir().unwrap();
+        let stats = dir.path().join("eth0/statistics");
+        fs::create_dir_all(&stats).unwrap();
+        fs::write(stats.join("rx_bytes"), "10\n").unwrap();
+        fs::write(stats.join("tx_bytes"), "20\n").unwrap();
+        let inicio_do_ping = Cell::new(None);
+        let sample = sample_with(dir.path(), "eth0".to_owned(), || {
+            inicio_do_ping.set(Some(Instant::now()));
+            std::thread::sleep(Duration::from_millis(50));
+            Ping::Lost
+        })
+        .unwrap();
+        assert_eq!(
+            (sample.received, sample.sent, sample.ping),
+            (10, 20, Ping::Lost)
+        );
+        assert!(
+            inicio_do_ping
+                .get()
+                .is_some_and(|inicio| sample.at <= inicio)
+        );
+    }
 
     #[test]
     fn le_contadores_e_rejeita_escape_do_sysfs() {

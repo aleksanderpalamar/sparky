@@ -33,7 +33,10 @@ fn dhcp_mostra_o_que_o_roteador_entregou_e_manual_parte_dele() {
     let draft = network.draft.as_ref().unwrap();
     assert_eq!(draft.address, "192.168.0.70/24");
     assert_eq!(draft.primary_dns, "192.168.0.1");
-    let command = format!("nmcli {}", draft.arguments("uuid-1").unwrap().join(" "));
+    let command = format!(
+        "nmcli {}",
+        draft.arguments("uuid-1", Method::Auto).unwrap().join(" ")
+    );
     commands = commands.accepting(&command);
     assert!(network.save(&commands).is_ok());
     assert!(commands.calls().contains(&command));
@@ -85,7 +88,13 @@ fn conexao_selecionada_e_a_que_recebe_a_gravacao() {
         secondary_dns: String::new(),
         auto_dns: AutoDns::Use,
     };
-    let gravacao = format!("nmcli {}", segunda.arguments("uuid-2").unwrap().join(" "));
+    let gravacao = format!(
+        "nmcli {}",
+        segunda
+            .arguments("uuid-2", Method::Manual)
+            .unwrap()
+            .join(" ")
+    );
     let commands = FakeCommands::new()
         .with(ATIVAS, "uuid-1:wlan0\nuuid-2:enp7s0\n")
         .with(&detalhes("uuid-1"), "Wi-Fi\nmanual\n192.168.1.5/24\n\n\n")

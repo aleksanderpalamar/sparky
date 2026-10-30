@@ -1,52 +1,7 @@
 use std::net::Ipv4Addr;
 
 use super::Lease;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Method {
-    Auto,
-    Manual,
-}
-
-impl Method {
-    pub fn parse(value: &str) -> Option<Self> {
-        match value {
-            "auto" => Some(Method::Auto),
-            "manual" => Some(Method::Manual),
-            _ => None,
-        }
-    }
-
-    fn keyword(self) -> &'static str {
-        match self {
-            Method::Auto => "auto",
-            Method::Manual => "manual",
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AutoDns {
-    Use,
-    Ignore,
-}
-
-impl AutoDns {
-    pub fn parse(value: &str) -> Option<Self> {
-        match value {
-            "no" => Some(AutoDns::Use),
-            "yes" => Some(AutoDns::Ignore),
-            _ => None,
-        }
-    }
-
-    fn keyword(self) -> &'static str {
-        match self {
-            AutoDns::Use => "no",
-            AutoDns::Ignore => "yes",
-        }
-    }
-}
+use super::options::{AutoDns, Method};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Field {
@@ -140,27 +95,40 @@ impl Draft {
         split_servers(&self.primary_dns).chain(split_servers(&self.secondary_dns))
     }
 
-    pub fn arguments(&self, uuid: &str) -> Result<Vec<String>, String> {
+    pub fn arguments(&self, uuid: &str, saved: Method) -> Result<Vec<String>, String> {
         self.validate()?;
-        let (addresses, gateway) = match self.method {
-            Method::Manual => (self.addresses().join(", "), self.gateway.trim()),
-            Method::Auto => (String::new(), ""),
-        };
-        Ok(vec![
+        let mut arguments = vec![
             "connection".to_owned(),
             "modify".to_owned(),
             uuid.to_owned(),
             "ipv4.method".to_owned(),
             self.method.keyword().to_owned(),
-            "ipv4.addresses".to_owned(),
-            addresses,
-            "ipv4.gateway".to_owned(),
-            gateway.to_owned(),
+        ];
+        if let Some((addresses, gateway)) = self.addressing(saved) {
+            arguments.extend([
+                "ipv4.addresses".to_owned(),
+                addresses,
+                "ipv4.gateway".to_owned(),
+                gateway,
+            ]);
+        }
+        arguments.extend([
             "ipv4.dns".to_owned(),
             self.servers().collect::<Vec<_>>().join(" "),
             "ipv4.ignore-auto-dns".to_owned(),
             self.auto_dns.keyword().to_owned(),
-        ])
+        ]);
+        Ok(arguments)
+    }
+
+    fn addressing(&self, saved: Method) -> Option<(String, String)> {
+        match (saved, self.method) {
+            (_, Method::Manual) => {
+                Some((self.addresses().join(", "), self.gateway.trim().to_owned()))
+            }
+            (Method::Manual, Method::Auto) => Some((String::new(), String::new())),
+            (Method::Auto, Method::Auto) => None,
+        }
     }
 }
 

@@ -39,7 +39,12 @@ pub fn update(bar: &mut Bar, message: Message) -> Task<Message> {
         Message::NetworkSample(window, result) => {
             super::panel_network::received(bar, window, result)
         }
-        Message::OpenNetworkSettings => return super::panel_network::open_settings(),
+        Message::OpenNetworkSettings => {
+            return Task::batch([
+                panel_actions::close(bar),
+                super::panel_network::open_settings(),
+            ]);
+        }
         Message::NetworkSettingsOpened(Err(error)) => {
             bar.panels.errors.insert(PanelKind::Network, error);
         }

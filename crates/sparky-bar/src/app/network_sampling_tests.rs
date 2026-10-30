@@ -78,3 +78,13 @@ fn sem_dispositivo_ativado_nao_mede() {
     assert!(!bar.panels.sampling);
     assert!(bar.panels.metrics.is_none());
 }
+
+#[test]
+fn abrir_configuracoes_de_rede_fecha_o_painel_e_libera_o_teclado() {
+    let mut bar = com_rede_ativa();
+    let _ = update(&mut bar, Message::Panel(PanelKind::Network));
+    assert!(bar.panels.open.is_some());
+    let _ = update(&mut bar, Message::OpenNetworkSettings);
+    assert!(bar.panels.open.is_none());
+    assert!(!bar.panels.sampling);
+}

@@ -26,7 +26,10 @@ fn gravacao() -> String {
     };
     format!(
         "nmcli {}",
-        draft.arguments("uuid-2").unwrap_or_default().join(" ")
+        draft
+            .arguments("uuid-2", Method::Manual)
+            .unwrap_or_default()
+            .join(" ")
     )
 }
 
@@ -113,7 +116,7 @@ fn dhcp_pode_usar_somente_os_dns_informados() {
         secondary_dns: String::new(),
         auto_dns: AutoDns::Ignore,
     }
-    .arguments("uuid-3")
+    .arguments("uuid-3", Method::Auto)
     .unwrap_or_default()
     .join(" ");
     let commands = Comandos(Rc::new(

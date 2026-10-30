@@ -1,8 +1,10 @@
 mod draft;
 mod lease;
+mod options;
 
-pub use draft::{AutoDns, Draft, Field, Method};
+pub use draft::{Draft, Field};
 pub use lease::Lease;
+pub use options::{AutoDns, Method};
 
 use crate::ports::commands::CommandRunner;
 
@@ -86,7 +88,7 @@ impl Network {
             .draft
             .as_ref()
             .ok_or("Configuração IPv4 indisponível")?;
-        let arguments = draft.arguments(&profile.uuid)?;
+        let arguments = draft.arguments(&profile.uuid, profile.ipv4.method)?;
         let arguments = arguments.iter().map(String::as_str).collect::<Vec<_>>();
         commands
             .run("nmcli", &arguments)
