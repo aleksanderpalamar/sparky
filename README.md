@@ -334,16 +334,17 @@ O `sparky-settings` abre pelo `SUPER + ALT + ESPAÇO`. As mudanças de configura
 | Aplicativos | Terminal, lançador, arquivos, configurações, capturador e bloqueio de tela que os atalhos abrem |
 | Inicialização | Comandos rodados quando a sessão começa |
 | Atalhos | Lista dos atalhos em uso, com o que cada um faz |
-| Monitores | Monitores que o sparky está usando |
+| Monitores | Desenho da posição e do tamanho dos monitores que o sparky está usando, com os dados de cada um |
 | Energia | Perfil de energia (`powerprofilesctl`), brilho da tela (`brightnessctl`) e bateria (`upower`) |
 | Data e hora | Fuso horário, hora local, sincronização pela rede e relógio do hardware (`timedatectl`) |
 | Região e idioma | Idioma, teclado do console e layout padrão do sistema (`localectl`) |
 | Usuários | Consulta de contas, identificadores, grupos e sessões (`getent` e `loginctl`) |
 | Mídia | Volumes externos, montagem e desmontagem (`lsblk` e `udisksctl`) |
-| Temas | Catálogo e aplicação de paletas nativas do Sparky |
+| Temas | Tema atual e papel de parede do tema, escolhidos em listas |
+| Rede | Conexão ativa, DHCP ou IPv4 manual e DNS (`nmcli`) |
 | Sobre | Versão do sparky, sistema, kernel, computador, processador, GPUs e RAM total |
 
-`Tab` e `SHIFT + Tab` (ou `1` a `9`) trocam de seção, `j`/`k` escolhem o item, `h`/`l` diminuem e aumentam números ou ligam e desligam, `Enter` edita um texto ou um número, `d` remove um comando da inicialização, `Esc` desiste da edição e `q` fecha. O mouse também funciona: `−`/`+`, clique no valor para editar e clique duplo na inicialização.
+A janela tem cabeçalho com o botão × para fechar, barra lateral com o ícone de cada seção e itens agrupados por legendas. `Tab` e `SHIFT + Tab` (ou `1` a `9`) trocam de seção, `j`/`k` escolhem o item, `h`/`l` ajustam números, ligam e desligam ou passam para a opção vizinha de uma lista, `Enter` edita um texto ou um número e permite digitar o valor de uma lista, `d` remove um comando da inicialização, `Esc` desiste da edição e `q` fecha; o rodapé mostra as teclas de cada seção. O mouse também funciona: controles deslizantes (o valor é gravado ao soltar), interruptores, listas suspensas que filtram pela digitação, opções marcadas com ✓, botões como Montar/Desmontar e clique duplo na inicialização.
 
 Em Data e hora, `Enter` ou um clique no fuso abre a edição; o nome precisa existir na lista de `timedatectl list-timezones`. A hora local é somente leitura. `Enter` ou `h`/`l` alternam a hora pela rede e o uso de hora local no relógio do hardware; sem serviço NTP disponível, a linha da rede é somente leitura. `F5` atualiza os dados. Alterações dependem das permissões do sistema, e recusas aparecem no aviso do painel.
 

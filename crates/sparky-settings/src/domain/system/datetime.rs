@@ -18,7 +18,9 @@ pub struct DateTime {
 impl DateTime {
     pub fn load(commands: &dyn CommandRunner) -> Self {
         let show = commands.run("timedatectl", &["show"]).unwrap_or_default();
-        let zones = commands.run("timedatectl", &["list-timezones"]).unwrap_or_default();
+        let zones = commands
+            .run("timedatectl", &["list-timezones"])
+            .unwrap_or_default();
         Self {
             timezone: key_value::value(&show, "Timezone"),
             local_time: key_value::value(&show, "TimeUSec"),
@@ -26,7 +28,12 @@ impl DateTime {
             synchronized: key_value::flag(&show, "NTPSynchronized"),
             can_network_time: key_value::flag(&show, "CanNTP"),
             local_clock: key_value::flag(&show, "LocalRTC"),
-            timezones: zones.lines().map(str::trim).filter(|zone| !zone.is_empty()).map(str::to_owned).collect(),
+            timezones: zones
+                .lines()
+                .map(str::trim)
+                .filter(|zone| !zone.is_empty())
+                .map(str::to_owned)
+                .collect(),
         }
     }
 
@@ -36,7 +43,7 @@ impl DateTime {
                 id: RowId::Timezone,
                 label: "Fuso horário".to_owned(),
                 value: self.timezone.as_deref().unwrap_or(UNSET).to_owned(),
-                control: Control::Text,
+                control: self.timezone_control(),
             },
             Row {
                 id: RowId::LocalTime,
@@ -59,7 +66,8 @@ impl DateTime {
                 value: match self.local_clock {
                     true => "ligado",
                     false => "desligado",
-                }.to_owned(),
+                }
+                .to_owned(),
                 control: Control::Toggle(self.local_clock),
             },
         ]
@@ -73,8 +81,17 @@ impl DateTime {
             (RowId::NetworkTime, Change::Activate | Change::Step(_)) if self.can_network_time => {
                 Some(Request::SetNetworkTime(!self.network_time))
             }
-            (RowId::LocalClock, Change::Activate | Change::Step(_)) => Some(Request::SetLocalClock(!self.local_clock)),
+            (RowId::LocalClock, Change::Activate | Change::Step(_)) => {
+                Some(Request::SetLocalClock(!self.local_clock))
+            }
             _ => None,
+        }
+    }
+
+    fn timezone_control(&self) -> Control {
+        match self.timezones.is_empty() {
+            true => Control::Text,
+            false => Control::Choice(self.timezones.clone()),
         }
     }
 

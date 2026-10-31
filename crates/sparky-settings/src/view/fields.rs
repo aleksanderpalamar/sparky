@@ -1,84 +1,74 @@
-use iced::alignment::{Horizontal, Vertical};
-use iced::widget::{Column, button, column, container, mouse_area, row, text, text_input};
-use iced::{Element, Length};
-use sparky_theme::Skin;
-use sparky_ui::prompt::PROMPT;
-use sparky_ui::style::{self, Highlight, PADDING, SMALL_TEXT, SPACING, TEXT_SIZE};
+use iced::Element;
 
 use crate::app::message::Message;
 use crate::app::state::{Mode, Settings, Target};
 use crate::domain::field::{Field, Kind};
-use crate::domain::value::{Step, Value, read, shown};
-use crate::view::style::{NUMBER_WIDTH, VALUE_WIDTH};
-
-const ROW_PADDING: f32 = 8.0;
+use crate::domain::value::{Value, read, shown};
+use crate::view::kit::controls::{boxed, editor};
+use crate::view::kit::inputs::{Level, level, switch};
+use crate::view::kit::rows::{Line, focusable, grouped};
+use crate::view::kit::tokens::CONTROL_WIDTH;
 
 pub fn view(settings: &Settings) -> Element<'_, Message> {
+    let skin = settings.context.skin;
     let rows = Field::of(settings.section)
         .iter()
         .enumerate()
-        .map(|(index, field)| field_row(settings, index, *field));
-    Column::with_children(rows).spacing(2).into()
+        .map(|(index, field)| {
+            let line =
+                Line::new(field.label(), control(settings, index, *field)).note(field.help());
+            (
+                group(*field),
+                focusable(skin, index, settings.focus == index, line.view(skin)),
+            )
+        });
+    grouped(skin, rows)
 }
 
-fn field_row(settings: &Settings, index: usize, field: Field) -> Element<'_, Message> {
+pub fn group(field: Field) -> &'static str {
+    match field {
+        Field::GapsInner | Field::GapsOuter | Field::Border => "Janelas",
+        Field::FloatWidth | Field::FloatHeight => "Janelas flutuantes",
+        Field::DefaultBinds => "Atalhos",
+        Field::Wallpaper => "Papel de parede",
+        Field::Layout | Field::Variant | Field::Options => "Layout",
+        Field::RepeatRate | Field::RepeatDelay => "Repetição",
+        Field::Terminal
+        | Field::Launcher
+        | Field::Files
+        | Field::Settings
+        | Field::Screenshot
+        | Field::Locker
+        | Field::SystemMenu => "Programas dos atalhos",
+    }
+}
+
+fn control(settings: &Settings, index: usize, field: Field) -> Element<'_, Message> {
     let skin = settings.context.skin;
-    let labels = column![
-        text(field.label()).size(TEXT_SIZE).color(skin.bright_foreground),
-        text(field.help()).size(SMALL_TEXT).color(skin.dark_foreground),
-    ]
-    .width(Length::Fill);
-    let value = match settings.mode {
-        Mode::Editing(Target::Field(editing)) if editing == field => input(settings),
-        _ => control(skin, index, field, read(field, &settings.config)),
-    };
-    let highlight = Highlight::when(settings.focus == index);
-    let line = row![labels, value].spacing(SPACING).align_y(Vertical::Center);
-    let cell = container(line)
-        .padding([ROW_PADDING, PADDING])
-        .width(Length::Fill)
-        .style(move |_| style::row(skin, highlight));
-    mouse_area(cell).on_press(Message::Point(index)).into()
-}
-
-pub fn input(settings: &Settings) -> Element<'_, Message> {
-    text_input("", &settings.input)
-        .id(PROMPT)
-        .on_input(Message::Typed)
-        .on_submit(Message::Submit)
-        .size(TEXT_SIZE)
-        .width(VALUE_WIDTH)
-        .style(style::input)
-        .into()
-}
-
-fn control(skin: Skin, index: usize, field: Field, value: Value) -> Element<'static, Message> {
-    let control: Element<'static, Message> = match field.kind() {
-        Kind::Number(_) => row![
-            small(skin, "−", Message::Nudge(index, Step::Less)),
-            text(shown(&value)).size(TEXT_SIZE).width(NUMBER_WIDTH).align_x(Horizontal::Center),
-            small(skin, "+", Message::Nudge(index, Step::More)),
-        ]
-        .align_y(Vertical::Center)
-        .into(),
-        Kind::Flag | Kind::Text(_) => {
-            let color = match &value {
-                Value::Flag(true) => skin.accent,
-                Value::Text(text) if text.is_empty() => skin.dark_foreground,
-                _ => skin.foreground,
+    if settings.mode == Mode::Editing(Target::Field(field)) {
+        return editor(skin, &settings.input, CONTROL_WIDTH);
+    }
+    let value = read(field, &settings.config);
+    match (field.kind(), value) {
+        (Kind::Number(bounds), Value::Number(number)) => {
+            let target = Target::Field(field);
+            let value = sliding(settings, target).unwrap_or(number);
+            let range = Level {
+                target,
+                range: bounds.min..=bounds.max,
+                step: bounds.step,
+                value,
             };
-            button(text(shown(&value)).size(TEXT_SIZE).color(color))
-                .on_press(Message::Activate(index))
-                .style(move |_, status| style::entry(skin, Highlight::Plain, status))
-                .into()
+            level(skin, range, value.to_string())
         }
-    };
-    container(control).width(VALUE_WIDTH).align_x(Horizontal::Right).into()
+        (_, Value::Flag(on)) => switch(skin, on, Message::Activate(index)),
+        (_, value) => boxed(skin, shown(&value), Message::Activate(index)),
+    }
 }
 
-pub fn small(skin: Skin, label: &'static str, message: Message) -> Element<'static, Message> {
-    button(text(label).size(TEXT_SIZE).color(skin.accent))
-        .on_press(message)
-        .style(move |_, status| style::entry(skin, Highlight::Plain, status))
-        .into()
+pub fn sliding(settings: &Settings, target: Target) -> Option<i32> {
+    settings
+        .sliding
+        .filter(|(sliding, _)| *sliding == target)
+        .map(|(_, value)| value)
 }

@@ -6,9 +6,10 @@ use sparky_ui::notice::Notice;
 
 use crate::app::message::Message;
 use crate::app::state::{Mode, Settings};
-use crate::app::test_support::{Comandos, Sparky, enter, painel_com, salvo, tecla};
+use crate::app::test_support::{Comandos, Sparky, digitar, enter, painel_com, salvo, tecla};
 use crate::app::update::update;
 use crate::domain::section::Section;
+use crate::domain::system::RowId;
 use crate::domain::system::themes::Theme;
 use crate::ports::fake::FakeCommands;
 use crate::ports::fake_themes::FakeThemes;
@@ -19,15 +20,21 @@ fn painel() -> (Settings, Rc<FakeThemes>, Comandos) {
     painel_com_tema(None, Comandos::default())
 }
 
-fn painel_com_tema(icones: Option<&str>, commands: Comandos) -> (Settings, Rc<FakeThemes>, Comandos) {
+fn painel_com_tema(
+    icones: Option<&str>,
+    commands: Comandos,
+) -> (Settings, Rc<FakeThemes>, Comandos) {
     let (mut settings, _) = painel_com(None, Sparky::default(), commands.clone());
     let store = Rc::new(FakeThemes::default());
     let theme = Theme::parse("azul", "accent = \"#010203\"").unwrap_or_else(|_| Theme::builtin());
-    store.catalog.borrow_mut().themes.push(theme.with_icons(icones.map(str::to_owned)));
+    store
+        .catalog
+        .borrow_mut()
+        .themes
+        .push(theme.with_icons(icones.map(str::to_owned)));
     settings.services.themes = Box::new(store.clone());
     settings.reload_system();
     settings.go(Section::Themes);
-    settings.point(1);
     (settings, store, commands)
 }
 
@@ -35,13 +42,19 @@ fn painel_com_tema(icones: Option<&str>, commands: Comandos) -> (Settings, Rc<Fa
 fn aplicar_paleta_atualiza_o_painel_sem_comandos_externos() {
     let (mut settings, store, commands) = painel();
     let before = commands.0.calls();
-    enter(&mut settings);
+    tecla(&mut settings, "l");
     assert_eq!(*store.applied.borrow(), ["azul"]);
-    assert_eq!(settings.context.skin, Skin::new(store.catalog.borrow().current));
+    assert_eq!(
+        settings.context.skin,
+        Skin::new(store.catalog.borrow().current)
+    );
     assert_eq!(commands.0.calls(), before);
-    assert_eq!(settings.notice, Some(Notice::Info("Paleta azul aplicada.".to_owned())));
+    assert_eq!(
+        settings.notice,
+        Some(Notice::Info("Paleta azul aplicada.".to_owned()))
+    );
     assert_eq!(settings.mode, Mode::Browse);
-    enter(&mut settings);
+    settings.choose(RowId::Theme, "azul (escuro)".to_owned());
     assert_eq!(store.applied.borrow().len(), 1);
 }
 
@@ -50,7 +63,7 @@ fn falha_de_gravacao_preserva_as_cores_anteriores() {
     let (mut settings, store, _) = painel();
     let original = settings.context.skin;
     store.failure.set(Some(io::ErrorKind::PermissionDenied));
-    enter(&mut settings);
+    tecla(&mut settings, "l");
     assert_eq!(settings.context.skin, original);
     assert!(store.applied.borrow().is_empty());
     assert!(matches!(&settings.notice, Some(Notice::Error(text)) if text.contains("Paleta azul:")));
@@ -76,63 +89,89 @@ fn evento_de_paleta_tambem_atualiza_a_marca_em_uso() {
     let (mut settings, store, _) = painel();
     let palette = store.catalog.borrow().themes[1].palette();
     let _ = update(&mut settings, Message::Palette(palette));
-    let rows = settings.themes.rows();
-    assert_eq!(rows[0].control, crate::domain::system::Control::Toggle(false));
-    assert_eq!(rows[1].control, crate::domain::system::Control::Toggle(true));
+    assert_eq!(settings.themes.rows()[0].value, "azul (escuro)");
 }
 
 #[test]
 fn aplicar_um_tema_com_icones_troca_os_icones_pelo_gsettings() {
     let commands = Comandos(Rc::new(FakeCommands::new().accepting(ICONES)));
     let (mut settings, store, commands) = painel_com_tema(Some("Yaru-blue"), commands);
-    enter(&mut settings);
+    tecla(&mut settings, "l");
     assert_eq!(*store.applied.borrow(), ["azul"]);
     assert!(commands.0.calls().iter().any(|call| call == ICONES));
-    assert_eq!(settings.notice, Some(Notice::Info("Paleta azul aplicada com os ícones Yaru-blue.".to_owned())));
+    assert_eq!(
+        settings.notice,
+        Some(Notice::Info(
+            "Paleta azul aplicada com os ícones Yaru-blue.".to_owned()
+        ))
+    );
 }
 
 #[test]
 fn sem_gsettings_a_paleta_fica_e_o_aviso_explica_os_icones() {
     let (mut settings, store, _) = painel_com_tema(Some("Yaru-blue"), Comandos::default());
-    enter(&mut settings);
+    tecla(&mut settings, "l");
     assert_eq!(*store.applied.borrow(), ["azul"]);
-    assert_eq!(settings.context.skin, Skin::new(store.catalog.borrow().current));
-    assert!(matches!(&settings.notice, Some(Notice::Error(text)) if text.starts_with("Paleta azul aplicada, mas os ícones Yaru-blue não:")));
+    assert_eq!(
+        settings.context.skin,
+        Skin::new(store.catalog.borrow().current)
+    );
+    assert!(
+        matches!(&settings.notice, Some(Notice::Error(text)) if text.starts_with("Paleta azul aplicada, mas os ícones Yaru-blue não:"))
+    );
 }
 
 fn painel_com_fundos() -> (Settings, crate::app::test_support::Arquivo, Rc<FakeThemes>) {
     let (mut settings, arquivo) = painel_com(None, Sparky::default(), Comandos::default());
     let store = Rc::new(FakeThemes::default());
-    let fundos = ["/w/azul/1-a.jpg", "/w/azul/2-b.jpg"].map(std::path::PathBuf::from).to_vec();
+    let fundos = ["/w/azul/1-a.jpg", "/w/azul/2-b.jpg"]
+        .map(std::path::PathBuf::from)
+        .to_vec();
     let theme = Theme::parse("azul", "accent = \"#010203\"").unwrap_or_else(|_| Theme::builtin());
-    store.catalog.borrow_mut().themes.push(theme.with_wallpapers(fundos));
+    store
+        .catalog
+        .borrow_mut()
+        .themes
+        .push(theme.with_wallpapers(fundos));
     settings.services.themes = Box::new(store.clone());
     settings.reload_system();
     settings.go(Section::Themes);
-    settings.point(1);
     (settings, arquivo, store)
 }
 
 #[test]
 fn aplicar_um_tema_com_fundos_escolhe_o_primeiro() {
     let (mut settings, arquivo, store) = painel_com_fundos();
-    enter(&mut settings);
+    tecla(&mut settings, "l");
     assert_eq!(*store.applied.borrow(), ["azul"]);
     assert!(salvo(&arquivo).contains("wallpaper = \"/w/azul/1-a.jpg\""));
-    assert_eq!(settings.config.general.wallpaper.as_deref(), Some("/w/azul/1-a.jpg"));
-    assert_eq!(settings.notice, Some(Notice::Info("Paleta azul aplicada.".to_owned())));
+    assert_eq!(
+        settings.config.general.wallpaper.as_deref(),
+        Some("/w/azul/1-a.jpg")
+    );
+    assert_eq!(
+        settings.notice,
+        Some(Notice::Info("Paleta azul aplicada.".to_owned()))
+    );
 }
 
 #[test]
 fn a_linha_do_papel_de_parede_troca_entre_os_fundos_do_tema() {
     let (mut settings, arquivo, _) = painel_com_fundos();
-    enter(&mut settings);
-    settings.point(0);
-    assert_eq!(settings.system_rows()[0].value, "1 de 2 · 1-a.jpg");
     tecla(&mut settings, "l");
-    assert_eq!(settings.config.general.wallpaper.as_deref(), Some("/w/azul/2-b.jpg"));
+    settings.point(1);
+    assert_eq!(settings.system_rows()[1].value, "1 de 2 · 1-a.jpg");
+    tecla(&mut settings, "l");
+    assert_eq!(
+        settings.config.general.wallpaper.as_deref(),
+        Some("/w/azul/2-b.jpg")
+    );
     assert!(salvo(&arquivo).contains("wallpaper = \"/w/azul/2-b.jpg\""));
-    assert_eq!(settings.system_rows()[0].value, "2 de 2 · 2-b.jpg");
+    assert_eq!(settings.system_rows()[1].value, "2 de 2 · 2-b.jpg");
     enter(&mut settings);
-    assert_eq!(settings.config.general.wallpaper.as_deref(), Some("/w/azul/1-a.jpg"));
+    digitar(&mut settings, "1-a.jpg");
+    assert_eq!(
+        settings.config.general.wallpaper.as_deref(),
+        Some("/w/azul/1-a.jpg")
+    );
 }

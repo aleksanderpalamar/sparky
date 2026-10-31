@@ -114,7 +114,7 @@ impl Settings {
                 Err(invalid) => self.fail(invalid),
             },
             Mode::Editing(Target::Autostart(slot)) => self.save_entry(slot, input.trim()),
-            Mode::Editing(Target::System(id)) => self.submit_system(id, input),
+            Mode::Editing(Target::System(id)) => self.choose(id, input),
             Mode::Browse => {}
         }
     }

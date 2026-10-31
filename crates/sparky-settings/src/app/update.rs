@@ -11,8 +11,15 @@ use crate::domain::value::Step;
 use crate::view::style::rows_for;
 
 pub fn update(settings: &mut Settings, message: Message) -> Task<Message> {
+    let task = dispatch(settings, message);
+    settings.refresh_pickers();
+    task
+}
+
+fn dispatch(settings: &mut Settings, message: Message) -> Task<Message> {
     match message {
         Message::Key(key, modifiers) => key_pressed(settings, &key, modifiers),
+        Message::Close => iced::exit(),
         Message::Activate(index) => {
             settings.point(index);
             opened(settings.activate())
@@ -52,7 +59,10 @@ fn apply(settings: &mut Settings, message: Message) {
             let (focus, count) = (settings.focus, settings.count());
             settings.list.resize(rows_for(size.height), focus, count);
         }
-        Message::Key(..) | Message::Activate(_) => {}
+        Message::Slide(target, value) => settings.sliding = Some((target, value)),
+        Message::Release => settings.release(),
+        Message::Choose(id, value) => settings.choose(id, value),
+        Message::Key(..) | Message::Activate(_) | Message::Close => {}
     }
 }
 

@@ -1,6 +1,6 @@
 use sparky_config::{Editor, parse};
 
-use crate::app::state::{Settings, Source};
+use crate::app::state::{Settings, Source, Target};
 use crate::domain::field::Field;
 use crate::domain::value::{Value, read, shown, store};
 use crate::ports::CompositorError;
@@ -14,8 +14,21 @@ impl Settings {
         self.edit(&label, |editor| store(field, &value, editor));
     }
 
+    pub fn release(&mut self) {
+        let Some((target, value)) = self.sliding.take() else {
+            return;
+        };
+        match target {
+            Target::Field(field) => self.set(field, Value::Number(value)),
+            Target::System(id) => self.choose(id, value.to_string()),
+            Target::Autostart(_) => {}
+        }
+    }
+
     pub fn set_autostart(&mut self, entries: Vec<String>) {
-        self.edit("Inicialização", |editor| editor.set_list("autostart", &entries));
+        self.edit("Inicialização", |editor| {
+            editor.set_list("autostart", &entries)
+        });
     }
 
     fn check(&self, field: Field, value: &Value) -> Result<(), String> {
@@ -24,8 +37,12 @@ impl Settings {
             Value::Number(_) | Value::Flag(_) => String::new(),
         };
         let checked = match (field, value) {
-            (Field::Layout, Value::Text(layout)) => self.context.keymaps.check(layout, &text(Field::Variant)),
-            (Field::Variant, Value::Text(variant)) => self.context.keymaps.check(&text(Field::Layout), variant),
+            (Field::Layout, Value::Text(layout)) => {
+                self.context.keymaps.check(layout, &text(Field::Variant))
+            }
+            (Field::Variant, Value::Text(variant)) => {
+                self.context.keymaps.check(&text(Field::Layout), variant)
+            }
             _ => Ok(()),
         };
         checked.map_err(|unknown| unknown.to_string())
@@ -33,7 +50,8 @@ impl Settings {
 
     fn edit(&mut self, what: &str, change: impl FnOnce(&mut Editor)) {
         let Source::Editable(editor) = &self.source else {
-            return self.fail("o sparky.toml não pôde ser lido; corrija o arquivo antes de mudar algo");
+            return self
+                .fail("o sparky.toml não pôde ser lido; corrija o arquivo antes de mudar algo");
         };
         let mut draft = editor.clone();
         change(&mut draft);
@@ -53,7 +71,9 @@ impl Settings {
     fn announce(&mut self, what: &str) {
         match self.services.compositor.reload() {
             Ok(()) => self.inform(format!("{what} (salvo e aplicado)")),
-            Err(CompositorError::Unreachable(_)) => self.inform(format!("{what} (salvo; vale quando o sparky iniciar)")),
+            Err(CompositorError::Unreachable(_)) => {
+                self.inform(format!("{what} (salvo; vale quando o sparky iniciar)"))
+            }
             Err(refused) => self.fail(refused),
         }
     }

@@ -1,92 +1,84 @@
-use iced::widget::{button, column, row, scrollable, text};
+use iced::widget::{Column, Space, column, row};
 use iced::{Element, Length};
-use sparky_ui::style::{self, Highlight, SPACING, TEXT_SIZE};
+use sparky_theme::Skin;
 
-use super::network_fields::{auto_dns, caption, choice, input, lease};
+use super::network_fields::{auto_dns, input, lease};
 use crate::app::message::Message;
 use crate::app::state::Settings;
 use crate::domain::network::{Draft, Field, Method};
+use crate::view::kit::controls::{action, option_row};
+use crate::view::kit::rows::{caption, hint};
+use crate::view::kit::tokens::space;
 
 pub fn view(settings: &Settings) -> Element<'_, Message> {
     let skin = settings.context.skin;
     if let Some(error) = &settings.network.error {
-        return text(format!("NetworkManager indisponível: {error}"))
-            .size(TEXT_SIZE)
-            .color(skin.urgent)
-            .into();
+        return hint(skin, format!("NetworkManager indisponível: {error}"));
     }
     if settings.network.profiles.is_empty() {
-        return text("Nenhuma conexão de rede ativa para configurar")
-            .size(TEXT_SIZE)
-            .color(skin.dark_foreground)
-            .into();
+        return hint(skin, "Nenhuma conexão de rede ativa para configurar");
     }
     let Some(draft) = &settings.network.draft else {
-        return text("Configuração IPv4 indisponível")
-            .size(TEXT_SIZE)
-            .color(skin.urgent)
-            .into();
+        return hint(skin, "Configuração IPv4 indisponível");
     };
-    let body = column![
-        caption(settings, "Conexão ativa"),
+    column![
+        caption(skin, "Conexão ativa"),
         profiles(settings),
-        caption(settings, "Método IPv4"),
-        methods(settings, draft),
+        caption(skin, "Método IPv4"),
+        methods(skin, draft),
         addressing(settings, draft),
-        dns(settings, draft),
-        caption(settings, "As configurações IPv6 permanecem como estão."),
-        button(text("Salvar e aplicar").size(TEXT_SIZE))
-            .on_press(Message::NetworkSave)
-            .style(move |_, status| style::entry(skin, Highlight::Selected, status)),
+        dns(skin, draft),
+        hint(skin, "As configurações IPv6 permanecem como estão."),
+        row![
+            Space::new().width(Length::Fill),
+            action(skin, "Salvar e aplicar", Message::NetworkSave)
+        ],
     ]
-    .spacing(SPACING);
-    scrollable(body)
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .into()
+    .spacing(space::MD)
+    .into()
 }
 
-fn profiles<'a>(settings: &'a Settings) -> Element<'a, Message> {
+fn profiles(settings: &Settings) -> Element<'_, Message> {
     let skin = settings.context.skin;
-    settings
+    let options = settings
         .network
         .profiles
         .iter()
         .enumerate()
-        .fold(column![].spacing(4), |body, (index, profile)| {
-            let selected = index == settings.network.selected;
-            body.push(
-                button(text(format!("{} · {}", profile.name, profile.interface)).size(TEXT_SIZE))
-                    .on_press(Message::NetworkSelect(index))
-                    .style(move |_, status| style::entry(skin, Highlight::when(selected), status)),
+        .map(|(index, profile)| {
+            let label = format!("{} · {}", profile.name, profile.interface);
+            option_row(
+                skin,
+                label,
+                index == settings.network.selected,
+                Message::NetworkSelect(index),
             )
-        })
-        .into()
+        });
+    Column::with_children(options).spacing(space::XXS).into()
 }
 
-fn methods<'a>(settings: &Settings, draft: &Draft) -> Element<'a, Message> {
-    row![
-        choice(
-            settings,
-            "Automático (DHCP)",
-            draft.method == Method::Auto,
-            Message::NetworkMethod(Method::Auto),
-        ),
-        choice(
-            settings,
-            "Manual",
-            draft.method == Method::Manual,
-            Message::NetworkMethod(Method::Manual),
-        ),
+fn methods<'a>(skin: Skin, draft: &Draft) -> Element<'a, Message> {
+    let options = [
+        ("Automático (DHCP)", Method::Auto),
+        ("Manual", Method::Manual),
     ]
-    .spacing(SPACING)
-    .into()
+    .into_iter()
+    .map(|(label, method)| {
+        option_row(
+            skin,
+            label,
+            draft.method == method,
+            Message::NetworkMethod(method),
+        )
+    });
+    Column::with_children(options).spacing(space::XXS).into()
 }
 
 fn addressing<'a>(settings: &Settings, draft: &'a Draft) -> Element<'a, Message> {
+    let skin = settings.context.skin;
     match draft.method {
         Method::Auto => lease(
-            settings,
+            skin,
             settings
                 .network
                 .profiles
@@ -95,49 +87,46 @@ fn addressing<'a>(settings: &Settings, draft: &'a Draft) -> Element<'a, Message>
                 .unwrap_or_default(),
         ),
         Method::Manual => column![
+            caption(skin, "Endereço"),
             input(
-                settings,
+                skin,
                 "Endereço IPv4 / prefixo",
                 "ex.: 192.168.1.10/24",
                 Field::Address,
-                &draft.address,
+                &draft.address
             ),
             input(
-                settings,
+                skin,
                 "Gateway",
                 "ex.: 192.168.1.1",
                 Field::Gateway,
                 &draft.gateway
             ),
         ]
-        .spacing(SPACING)
+        .spacing(space::XXS)
         .into(),
     }
 }
 
-fn dns<'a>(settings: &Settings, draft: &'a Draft) -> Element<'a, Message> {
-    let mut body = column![].spacing(SPACING);
+fn dns<'a>(skin: Skin, draft: &'a Draft) -> Element<'a, Message> {
+    let mut body = column![].spacing(space::MD);
     if draft.method == Method::Auto {
-        body = body.push(auto_dns(settings, draft));
+        body = body.push(auto_dns(skin, draft));
     }
-    body.push(
-        row![
-            input(
-                settings,
-                "DNS primário",
-                "ex.: 1.1.1.1",
-                Field::PrimaryDns,
-                &draft.primary_dns,
-            ),
-            input(
-                settings,
-                "DNS secundário",
-                "ex.: 8.8.8.8",
-                Field::SecondaryDns,
-                &draft.secondary_dns,
-            ),
-        ]
-        .spacing(SPACING),
-    )
-    .into()
+    body.push(caption(skin, "Servidores DNS"))
+        .push(input(
+            skin,
+            "DNS primário",
+            "ex.: 1.1.1.1",
+            Field::PrimaryDns,
+            &draft.primary_dns,
+        ))
+        .push(input(
+            skin,
+            "DNS secundário",
+            "ex.: 8.8.8.8",
+            Field::SecondaryDns,
+            &draft.secondary_dns,
+        ))
+        .into()
 }

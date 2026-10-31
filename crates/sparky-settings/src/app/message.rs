@@ -1,7 +1,9 @@
 use iced::Size;
 use iced::keyboard::{Key, Modifiers};
 
+use crate::app::state::Target;
 use crate::domain::section::Section;
+use crate::domain::system::RowId;
 use crate::domain::value::Step;
 
 #[derive(Debug, Clone)]
@@ -23,4 +25,8 @@ pub enum Message {
     Remove(usize),
     Scrolled(isize),
     Resized(Size),
+    Close,
+    Slide(Target, i32),
+    Release,
+    Choose(RowId, String),
 }

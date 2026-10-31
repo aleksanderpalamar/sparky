@@ -28,7 +28,9 @@ pub struct Power {
 
 impl Power {
     pub fn load(commands: &dyn CommandRunner) -> Self {
-        let listing = commands.run("powerprofilesctl", &["list"]).unwrap_or_default();
+        let listing = commands
+            .run("powerprofilesctl", &["list"])
+            .unwrap_or_default();
         Self {
             profiles: profiles::parse(&listing),
             battery: battery(commands),
@@ -39,11 +41,21 @@ impl Power {
     pub fn rows(&self) -> Vec<Row> {
         let mut rows = vec![self.profile_row()];
         if let Some(light) = &self.backlight {
-            rows.push(Row { id: RowId::Brightness, label: "Brilho da tela".to_owned(), value: format!("{}%", light.percent), control: Control::Level });
+            rows.push(Row {
+                id: RowId::Brightness,
+                label: "Brilho da tela".to_owned(),
+                value: format!("{}%", light.percent),
+                control: Control::Level,
+            });
         }
         if let Some(battery) = &self.battery {
             let value = format!("{}% · {}", battery.percent, state_label(&battery.state));
-            rows.push(Row { id: RowId::Battery, label: "Bateria".to_owned(), value, control: Control::Reading });
+            rows.push(Row {
+                id: RowId::Battery,
+                label: "Bateria".to_owned(),
+                value,
+                control: Control::Reading,
+            });
         }
         rows
     }
@@ -52,16 +64,36 @@ impl Power {
         match (id, change) {
             (RowId::PowerProfile, Change::Step(step)) => self.neighbor_profile(step),
             (RowId::PowerProfile, Change::Activate) => self.neighbor_profile(Step::More),
-            (RowId::Brightness, Change::Step(step)) => {
-                let light = self.backlight.as_ref()?;
-                let percent = match step {
-                    Step::Less => light.percent.saturating_sub(BRIGHTNESS_STEP).max(DIMMEST),
-                    Step::More => light.percent.saturating_add(BRIGHTNESS_STEP).min(BRIGHTEST),
-                };
-                Some(Request::SetBrightness { device: light.device.clone(), percent })
-            }
+            (RowId::PowerProfile, Change::Text(label)) => self.named_profile(&label),
+            (RowId::Brightness, Change::Step(step)) => self.stepped_brightness(step),
+            (RowId::Brightness, Change::Text(value)) => self.brightness(value.trim().parse().ok()?),
             _ => None,
         }
+    }
+
+    fn named_profile(&self, label: &str) -> Option<Request> {
+        let profile = self
+            .profiles
+            .iter()
+            .find(|profile| label_of(&profile.name) == label.trim())?;
+        (!profile.active).then(|| Request::SetProfile(profile.name.clone()))
+    }
+
+    fn stepped_brightness(&self, step: Step) -> Option<Request> {
+        let current = self.backlight.as_ref()?.percent;
+        self.brightness(match step {
+            Step::Less => current.saturating_sub(BRIGHTNESS_STEP),
+            Step::More => current.saturating_add(BRIGHTNESS_STEP),
+        })
+    }
+
+    fn brightness(&self, percent: u8) -> Option<Request> {
+        let light = self.backlight.as_ref()?;
+        let percent = percent.clamp(DIMMEST, BRIGHTEST);
+        (percent != light.percent).then(|| Request::SetBrightness {
+            device: light.device.clone(),
+            percent,
+        })
     }
 
     fn profile_row(&self) -> Row {
@@ -76,15 +108,26 @@ impl Power {
             (false, current) => Row {
                 id: RowId::PowerProfile,
                 label: "Perfil de energia".to_owned(),
-                value: current.map_or("nenhum", |profile| label_of(&profile.name)).to_owned(),
-                control: Control::Choice,
+                value: current
+                    .map_or("nenhum", |profile| label_of(&profile.name))
+                    .to_owned(),
+                control: Control::Options(
+                    self.profiles
+                        .iter()
+                        .map(|profile| label_of(&profile.name).to_owned())
+                        .collect(),
+                ),
             },
         }
     }
 
     fn neighbor_profile(&self, step: Step) -> Option<Request> {
         let count = self.profiles.len();
-        let current = self.profiles.iter().position(|profile| profile.active).unwrap_or(0);
+        let current = self
+            .profiles
+            .iter()
+            .position(|profile| profile.active)
+            .unwrap_or(0);
         let next = match step {
             Step::Less => (current + count.checked_sub(1)?) % count,
             Step::More => (current + 1) % count,
@@ -96,7 +139,10 @@ impl Power {
 
 fn battery(commands: &dyn CommandRunner) -> Option<Battery> {
     let devices = commands.run("upower", &["-e"]).ok()?;
-    let path = devices.lines().map(str::trim).find(|line| line.contains("battery_"))?;
+    let path = devices
+        .lines()
+        .map(str::trim)
+        .find(|line| line.contains("battery_"))?;
     let info = commands.run("upower", &["-i", path]).ok()?;
     Some(Battery {
         percent: field(&info, "percentage").as_deref().and_then(percentage)?,
@@ -105,8 +151,13 @@ fn battery(commands: &dyn CommandRunner) -> Option<Battery> {
 }
 
 fn backlight(commands: &dyn CommandRunner) -> Option<Backlight> {
-    let listing = commands.run("brightnessctl", &["-m", "-c", "backlight", "-l"]).ok()?;
-    let line = listing.lines().map(str::trim).find(|line| !line.is_empty())?;
+    let listing = commands
+        .run("brightnessctl", &["-m", "-c", "backlight", "-l"])
+        .ok()?;
+    let line = listing
+        .lines()
+        .map(str::trim)
+        .find(|line| !line.is_empty())?;
     let mut parts = line.split(',');
     let device = parts.next()?.to_owned();
     let percent = percentage(parts.nth(2)?)?;

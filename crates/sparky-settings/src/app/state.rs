@@ -7,6 +7,7 @@ use sparky_theme::Skin;
 use sparky_ui::notice::Notice;
 use sparky_ui::viewport::Viewport;
 
+use crate::app::pickers::Pickers;
 use crate::domain::about::About;
 use crate::domain::field::Field;
 use crate::domain::keymaps::Keymaps;
@@ -78,6 +79,8 @@ pub struct Settings {
     pub media: Media,
     pub network: crate::domain::network::Network,
     pub themes: Themes,
+    pub pickers: Pickers,
+    pub sliding: Option<(Target, i32)>,
     pub list: Viewport,
     pub context: Context,
     pub services: Services,
@@ -101,11 +104,14 @@ impl Settings {
             media: Media::default(),
             network: crate::domain::network::Network::default(),
             themes: Themes::default(),
+            pickers: Pickers::default(),
+            sliding: None,
             list: Viewport::new(context.rows),
             context,
             services,
         };
         settings.reload();
+        settings.refresh_pickers();
         settings
     }
 
