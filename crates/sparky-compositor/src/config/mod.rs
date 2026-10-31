@@ -51,7 +51,7 @@ impl Sparky {
         let outputs_changed = config.output != self.config.output;
         self.config = config;
         match outputs_changed {
-            true => self.apply_output_scales(),
+            true => self.apply_outputs(),
             false => self.relayout(),
         }
         self.refresh_wallpaper();

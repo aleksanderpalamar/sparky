@@ -1,9 +1,13 @@
+mod configure;
 mod connectors;
 pub mod crtcs;
 pub mod cursor;
+pub mod edid;
 pub mod gpu;
+pub mod modes;
 pub mod placement;
 pub mod render;
+pub mod screens;
 pub mod session;
 pub mod vt;
 
@@ -60,7 +64,10 @@ pub fn init(state: &mut Sparky) -> Result<(), Box<dyn std::error::Error>> {
 fn find_gpu(seat: &str) -> Result<(DrmNode, PathBuf), Box<dyn std::error::Error>> {
     let path = match primary_gpu(seat)? {
         Some(path) => path,
-        None => all_gpus(seat)?.into_iter().next().ok_or("nenhuma placa de vídeo encontrada")?,
+        None => all_gpus(seat)?
+            .into_iter()
+            .next()
+            .ok_or("nenhuma placa de vídeo encontrada")?,
     };
     let node = DrmNode::from_path(&path)?;
     Ok((node, path))

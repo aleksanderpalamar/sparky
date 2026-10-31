@@ -49,6 +49,7 @@ impl Store for Arquivo {
 pub struct Sparky {
     pub recargas: Rc<Cell<usize>>,
     pub fora_do_ar: bool,
+    pub monitores: Vec<OutputInfo>,
 }
 
 impl Compositor for Sparky {
@@ -61,7 +62,7 @@ impl Compositor for Sparky {
     }
 
     fn outputs(&self) -> Result<Vec<OutputInfo>, CompositorError> {
-        Ok(Vec::new())
+        Ok(self.monitores.clone())
     }
 }
 
@@ -71,22 +72,40 @@ pub fn painel(conteudo: Option<&str>, sparky: Sparky) -> (Settings, Arquivo) {
     painel_com(conteudo, sparky, Comandos::default())
 }
 
-pub fn painel_com(conteudo: Option<&str>, sparky: Sparky, comandos: Comandos) -> (Settings, Arquivo) {
+pub fn painel_com(
+    conteudo: Option<&str>,
+    sparky: Sparky,
+    comandos: Comandos,
+) -> (Settings, Arquivo) {
     let arquivo = Arquivo(Rc::new(RefCell::new(conteudo.map(str::to_owned))));
     let services = Services {
-        store: Box::new(arquivo.clone()), compositor: Box::new(sparky), commands: Box::new(comandos),
+        store: Box::new(arquivo.clone()),
+        compositor: Box::new(sparky),
+        commands: Box::new(comandos),
         themes: Box::new(Rc::new(FakeThemes::default())),
     };
-    let context = Context { home: PathBuf::from("/h"), about: About::default(), keymaps: Keymaps::parse(REGRAS), skin: Skin::default(), rows: 10 };
+    let context = Context {
+        home: PathBuf::from("/h"),
+        about: About::default(),
+        keymaps: Keymaps::parse(REGRAS),
+        skin: Skin::default(),
+        rows: 10,
+    };
     (Settings::new(services, context), arquivo)
 }
 
 pub fn tecla(settings: &mut Settings, texto: &str) {
-    let _ = update(settings, Message::Key(Key::Character(texto.into()), Modifiers::empty()));
+    let _ = update(
+        settings,
+        Message::Key(Key::Character(texto.into()), Modifiers::empty()),
+    );
 }
 
 pub fn enter(settings: &mut Settings) {
-    let _ = update(settings, Message::Key(Key::Named(Named::Enter), Modifiers::empty()));
+    let _ = update(
+        settings,
+        Message::Key(Key::Named(Named::Enter), Modifiers::empty()),
+    );
 }
 
 pub fn digitar(settings: &mut Settings, texto: &str) {
@@ -97,4 +116,3 @@ pub fn digitar(settings: &mut Settings, texto: &str) {
 pub fn salvo(arquivo: &Arquivo) -> String {
     arquivo.0.borrow().clone().unwrap_or_default()
 }
-

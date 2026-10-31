@@ -19,20 +19,35 @@ pub struct Image {
     pub rgba: Vec<u8>,
 }
 
-pub fn read(state: &mut Sparky, renderer: &mut GlesRenderer, output: &Output, region: Rect) -> Result<Image, CaptureError> {
+pub fn read(
+    state: &mut Sparky,
+    renderer: &mut GlesRenderer,
+    output: &Output,
+    region: Rect,
+) -> Result<Image, CaptureError> {
     let mode = output.current_mode().ok_or(CaptureError::NoOutput)?;
     let scale = output.current_scale().fractional_scale();
     let elements = output_elements(state, renderer, output);
+    let size = output.current_transform().transform_size(mode.size);
     let mut texture: GlesTexture = renderer
-        .create_buffer(Fourcc::Abgr8888, (mode.size.w, mode.size.h).into())
+        .create_buffer(Fourcc::Abgr8888, (size.w, size.h).into())
         .map_err(failure)?;
     let mut framebuffer = renderer.bind(&mut texture).map_err(failure)?;
-    let mut damage = OutputDamageTracker::new(mode.size, scale, Transform::Normal);
+    let mut damage = OutputDamageTracker::new(size, scale, Transform::Normal);
     damage
-        .render_output(renderer, &mut framebuffer, 0, &elements, state.colors.background)
+        .render_output(
+            renderer,
+            &mut framebuffer,
+            0,
+            &elements,
+            state.colors.background,
+        )
         .map_err(|error| CaptureError::Render(format!("{error:?}")))?;
     let physical = scaled(region, scale);
-    let area = Rectangle::new((physical.x, physical.y).into(), (physical.width, physical.height).into());
+    let area = Rectangle::new(
+        (physical.x, physical.y).into(),
+        (physical.width, physical.height).into(),
+    );
     let mapping = renderer
         .copy_framebuffer(&framebuffer, area, Fourcc::Abgr8888)
         .map_err(failure)?;
@@ -51,7 +66,12 @@ pub fn read(state: &mut Sparky, renderer: &mut GlesRenderer, output: &Output, re
 
 pub fn scaled(region: Rect, scale: f64) -> Rect {
     let value = |number: i32| (number as f64 * scale).round() as i32;
-    Rect::new(value(region.x), value(region.y), value(region.width), value(region.height))
+    Rect::new(
+        value(region.x),
+        value(region.y),
+        value(region.width),
+        value(region.height),
+    )
 }
 
 fn failure(error: impl std::fmt::Display) -> CaptureError {

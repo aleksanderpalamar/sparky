@@ -11,8 +11,8 @@ use crate::domain::delay::Delay;
 use crate::domain::mode::{Invocation, Mode};
 use crate::domain::pictures::file_name;
 use crate::flow::{self, Ports};
-use crate::picker::{self, Choice};
 use crate::overlay;
+use crate::picker::{self, Choice};
 
 const SETTLE: Duration = Duration::from_millis(200);
 
@@ -99,15 +99,32 @@ mod tests {
     #[test]
     fn janela_e_monitor_nao_precisam_de_selecao() {
         assert_eq!(area(Mode::Window), Ok(Some(CaptureArea::Window)));
-        assert_eq!(area(Mode::Output), Ok(Some(CaptureArea::Output { output: None })));
+        assert_eq!(
+            area(Mode::Output),
+            Ok(Some(CaptureArea::Output { output: None }))
+        );
     }
 
     #[test]
     fn a_regiao_vai_para_o_monitor_onde_foi_desenhada() {
-        let output = OutputInfo { name: "DP-1".to_owned(), x: 1920, y: 0, width: 2560, height: 1440, focused: true };
+        let output = OutputInfo {
+            name: "DP-1".to_owned(),
+            x: 1920,
+            y: 0,
+            width: 2560,
+            height: 1440,
+            focused: true,
+            ..OutputInfo::default()
+        };
         assert_eq!(
             region_of(output, Rect::new(10, 20, 300, 400)),
-            CaptureArea::Region { output: Some("DP-1".to_owned()), x: 10, y: 20, width: 300, height: 400 }
+            CaptureArea::Region {
+                output: Some("DP-1".to_owned()),
+                x: 10,
+                y: 20,
+                width: 300,
+                height: 400
+            }
         );
     }
 }

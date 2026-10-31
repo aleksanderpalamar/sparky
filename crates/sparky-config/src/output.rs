@@ -3,6 +3,8 @@ use std::fmt;
 use serde::de::{self, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+use crate::screen::{OutputMode, Rotation};
+
 const UNITS: f64 = 120.0;
 const MIN: f64 = 60.0;
 const MAX: f64 = 480.0;
@@ -39,10 +41,43 @@ pub struct OutputRule {
     pub name: String,
     #[serde(default)]
     pub scale: OutputScale,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mode: Option<OutputMode>,
+    #[serde(default, skip_serializing_if = "Rotation::is_normal")]
+    pub rotation: Rotation,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vrr: Option<bool>,
+    #[serde(default = "enabled", skip_serializing_if = "is_enabled")]
+    pub enabled: bool,
+}
+
+impl OutputRule {
+    pub fn new(name: &str) -> Self {
+        Self {
+            name: name.to_owned(),
+            scale: OutputScale::ONE,
+            mode: None,
+            rotation: Rotation::Normal,
+            vrr: None,
+            enabled: true,
+        }
+    }
+}
+
+pub fn rule_for<'a>(rules: &'a [OutputRule], name: &str) -> Option<&'a OutputRule> {
+    rules.iter().rev().find(|rule| rule.name == name)
 }
 
 pub fn scale_for(rules: &[OutputRule], name: &str) -> OutputScale {
-    rules.iter().rev().find(|rule| rule.name == name).map_or(OutputScale::ONE, |rule| rule.scale)
+    rule_for(rules, name).map_or(OutputScale::ONE, |rule| rule.scale)
+}
+
+const fn enabled() -> bool {
+    true
+}
+
+fn is_enabled(enabled: &bool) -> bool {
+    *enabled
 }
 
 impl Serialize for OutputScale {
@@ -61,7 +96,8 @@ struct Factor;
 
 impl Factor {
     fn scale<E: de::Error>(factor: f64) -> Result<OutputScale, E> {
-        OutputScale::from_factor(factor).ok_or_else(|| E::custom(format!("escala {factor} fora de 0.5 a 4")))
+        OutputScale::from_factor(factor)
+            .ok_or_else(|| E::custom(format!("escala {factor} fora de 0.5 a 4")))
     }
 }
 
