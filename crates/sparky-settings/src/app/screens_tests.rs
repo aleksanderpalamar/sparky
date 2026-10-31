@@ -1,5 +1,5 @@
 use sparky_config::{OutputMode, OutputScale};
-use sparky_ipc::{OutputInfo, Vrr};
+use sparky_ipc::{Hdr, OutputInfo, Vrr};
 use sparky_ui::notice::Notice;
 
 use crate::app::message::Message;
@@ -109,4 +109,23 @@ fn a_unica_tela_ligada_nao_e_desligada() {
     assert!(matches!(&settings.notice, Some(Notice::Error(text)) if text.contains("única tela")));
     assert!(salvo(&arquivo).is_empty());
     assert_eq!(sparky.recargas.get(), 0);
+}
+
+#[test]
+fn ligar_o_hdr_grava_na_regra_do_monitor() {
+    let sparky = Sparky {
+        monitores: vec![OutputInfo {
+            hdr: Hdr::Off,
+            ..monitor()
+        }],
+        ..Sparky::default()
+    };
+    let (mut settings, arquivo) = painel(None, sparky);
+    let _ = update(&mut settings, Message::Section(Section::Monitors));
+    mudar(&mut settings, ScreenChange::Hdr(true));
+    assert!(
+        salvo(&arquivo).contains("hdr = true"),
+        "{}",
+        salvo(&arquivo)
+    );
 }

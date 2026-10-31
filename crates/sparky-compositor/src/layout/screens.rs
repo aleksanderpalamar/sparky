@@ -1,6 +1,6 @@
 use smithay::output::Mode;
 use sparky_config::OutputMode;
-use sparky_ipc::Vrr;
+use sparky_ipc::{Hdr, Vrr};
 
 use crate::backend::Backend;
 use crate::state::Sparky;
@@ -11,6 +11,7 @@ pub struct Screen {
     pub modes: Vec<OutputMode>,
     pub vrr: Vrr,
     pub enabled: bool,
+    pub hdr: Hdr,
 }
 
 pub fn output_mode(mode: Mode) -> OutputMode {
@@ -34,6 +35,7 @@ impl Sparky {
                 modes: output.current_mode().map(output_mode).into_iter().collect(),
                 vrr: Vrr::Unsupported,
                 enabled: true,
+                hdr: Hdr::Unsupported,
             })
             .collect()
     }

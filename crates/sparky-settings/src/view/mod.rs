@@ -3,6 +3,7 @@ pub mod autostart;
 pub mod fields;
 pub mod kit;
 pub mod media;
+mod monitor_controls;
 pub mod monitors;
 pub mod network;
 mod network_fields;

@@ -11,6 +11,7 @@ use crate::backend::drm::Drm;
 use crate::backend::drm::configure::{chosen_mode, preferred_mode, set_vrr};
 use crate::backend::drm::crtcs::{self, Candidate};
 use crate::backend::drm::gpu::{Gpu, Surface};
+use crate::backend::drm::hdr::{self, HdrState};
 use crate::backend::drm::modes;
 use crate::backend::drm::placement;
 use crate::backend::drm::screens::{description, output_name};
@@ -77,17 +78,19 @@ impl Sparky {
             }
         };
         tracing::info!("monitor {} ligado", output.name());
-        let surface = Surface {
+        let mut surface = Surface {
             output,
             global,
             drm_output,
             connector,
             frame_pending: false,
             idle_timer: None,
+            hdr: HdrState::Off,
         };
         if let Some(on) = rule.vrr {
             set_vrr(&surface, on);
         }
+        hdr::set(&gpu.video(), &mut surface, rule.hdr);
         gpu.surfaces.insert(crtc, surface);
         Ok(())
     }
@@ -136,9 +139,11 @@ impl Sparky {
             .iter()
             .find(|(_, surface)| surface.connector == connector)
             .map(|(crtc, _)| *crtc);
-        let Some(surface) = crtc.and_then(|crtc| gpu.surfaces.remove(&crtc)) else {
+        let Some(mut surface) = crtc.and_then(|crtc| gpu.surfaces.remove(&crtc)) else {
             return;
         };
+        hdr::set(&gpu.video(), &mut surface, false);
+        hdr::release(gpu.manager.device(), &surface);
         tracing::info!("monitor {} desligado", surface.output.name());
         self.space.unmap_output(&surface.output);
         self.display_handle.remove_global::<Sparky>(surface.global);

@@ -1,17 +1,23 @@
 use smithay::backend::input::InputEvent;
 use smithay::backend::libinput::{LibinputInputBackend, LibinputSessionInterface};
-use smithay::backend::session::libseat::{LibSeatSession, LibSeatSessionNotifier};
 use smithay::backend::session::Event as SessionEvent;
+use smithay::backend::session::libseat::{LibSeatSession, LibSeatSessionNotifier};
 use smithay::backend::udev::{UdevBackend, UdevEvent};
 use smithay::reexports::calloop::LoopHandle;
 use smithay::reexports::input::{ClickMethod, Device, Libinput};
 use smithay::reexports::rustix::fs::Dev;
 
 use crate::backend::Backend;
+use crate::backend::drm::hdr;
 use crate::state::Sparky;
 
-pub fn start_input(session: &LibSeatSession, seat: &str, handle: &LoopHandle<'static, Sparky>) -> Result<Libinput, Box<dyn std::error::Error>> {
-    let mut libinput = Libinput::new_with_udev::<LibinputSessionInterface<LibSeatSession>>(session.clone().into());
+pub fn start_input(
+    session: &LibSeatSession,
+    seat: &str,
+    handle: &LoopHandle<'static, Sparky>,
+) -> Result<Libinput, Box<dyn std::error::Error>> {
+    let mut libinput =
+        Libinput::new_with_udev::<LibinputSessionInterface<LibSeatSession>>(session.clone().into());
     libinput
         .udev_assign_seat(seat)
         .map_err(|_| format!("o libinput não assumiu o seat {seat}"))?;
@@ -25,7 +31,10 @@ pub fn start_input(session: &LibSeatSession, seat: &str, handle: &LoopHandle<'st
     Ok(libinput)
 }
 
-pub fn watch_session(notifier: LibSeatSessionNotifier, handle: &LoopHandle<'static, Sparky>) -> Result<(), Box<dyn std::error::Error>> {
+pub fn watch_session(
+    notifier: LibSeatSessionNotifier,
+    handle: &LoopHandle<'static, Sparky>,
+) -> Result<(), Box<dyn std::error::Error>> {
     handle.insert_source(notifier, |event, _, state| match event {
         SessionEvent::PauseSession => state.pause_session(),
         SessionEvent::ActivateSession => state.activate_session(),
@@ -33,7 +42,10 @@ pub fn watch_session(notifier: LibSeatSessionNotifier, handle: &LoopHandle<'stat
     Ok(())
 }
 
-pub fn watch_devices(seat: &str, handle: &LoopHandle<'static, Sparky>) -> Result<(), Box<dyn std::error::Error>> {
+pub fn watch_devices(
+    seat: &str,
+    handle: &LoopHandle<'static, Sparky>,
+) -> Result<(), Box<dyn std::error::Error>> {
     let udev = UdevBackend::new(seat)?;
     handle.insert_source(udev, |event, _, state| {
         if let UdevEvent::Changed { device_id } = event {
@@ -50,7 +62,10 @@ fn configure(device: &mut Device) {
     if device.config_tap_set_enabled(true).is_err() {
         tracing::warn!("toque para clicar indisponível em {}", device.name());
     }
-    if device.config_click_set_method(ClickMethod::Clickfinger).is_err() {
+    if device
+        .config_click_set_method(ClickMethod::Clickfinger)
+        .is_err()
+    {
         tracing::warn!("clique por dedos indisponível em {}", device.name());
     }
 }
@@ -76,6 +91,9 @@ impl Sparky {
         }
         for surface in drm.gpu.surfaces.values_mut() {
             surface.frame_pending = false;
+        }
+        for surface in drm.gpu.surfaces.values() {
+            hdr::restore(drm.gpu.manager.device(), surface);
         }
         drm.active = true;
         self.needs_render = true;

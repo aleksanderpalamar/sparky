@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use smithay::backend::allocator::Fourcc;
+use smithay::backend::allocator::format::FormatSet;
 use smithay::backend::allocator::gbm::{GbmAllocator, GbmBufferFlags, GbmDevice};
 use smithay::backend::drm::exporter::gbm::GbmFramebufferExporter;
 use smithay::backend::drm::output::{DrmOutput, DrmOutputManager};
@@ -17,6 +18,7 @@ use smithay::reexports::rustix::fs::OFlags;
 use smithay::reexports::wayland_server::backend::GlobalId;
 use smithay::utils::DeviceFd;
 
+use crate::backend::drm::hdr::{HdrState, Video};
 use crate::state::Sparky;
 
 const COLOR_FORMATS: [Fourcc; 2] = [Fourcc::Argb8888, Fourcc::Abgr8888];
@@ -33,6 +35,7 @@ pub struct Surface {
     pub connector: connector::Handle,
     pub frame_pending: bool,
     pub idle_timer: Option<RegistrationToken>,
+    pub hdr: HdrState,
 }
 
 pub struct Gpu {
@@ -41,6 +44,8 @@ pub struct Gpu {
     pub renderer: GlesRenderer,
     pub surfaces: HashMap<crtc::Handle, Surface>,
     pub events: RegistrationToken,
+    pub allocator: Allocator,
+    pub formats: FormatSet,
 }
 
 impl Gpu {
@@ -57,9 +62,19 @@ impl Gpu {
         let display = unsafe { EGLDisplay::new(gbm.clone())? };
         let renderer = unsafe { GlesRenderer::new(EGLContext::new(&display)?)? };
         let render_formats = renderer.egl_context().dmabuf_render_formats().clone();
-        let allocator = GbmAllocator::new(gbm.clone(), GbmBufferFlags::RENDERING | GbmBufferFlags::SCANOUT);
+        let allocator = GbmAllocator::new(
+            gbm.clone(),
+            GbmBufferFlags::RENDERING | GbmBufferFlags::SCANOUT,
+        );
         let exporter = GbmFramebufferExporter::new(gbm.clone(), Some(node));
-        let manager = DrmOutputManager::new(drm, allocator, exporter, Some(gbm), COLOR_FORMATS, render_formats);
+        let manager = DrmOutputManager::new(
+            drm,
+            allocator.clone(),
+            exporter,
+            Some(gbm),
+            COLOR_FORMATS,
+            render_formats.clone(),
+        );
         let events = handle.insert_source(notifier, |event, _, state| match event {
             DrmEvent::VBlank(crtc) => state.on_vblank(crtc),
             DrmEvent::Error(error) => tracing::warn!("erro no dispositivo de vídeo: {error}"),
@@ -70,7 +85,17 @@ impl Gpu {
             renderer,
             surfaces: HashMap::new(),
             events,
+            allocator,
+            formats: render_formats,
         })
+    }
+
+    pub fn video(&self) -> Video<'_> {
+        Video {
+            device: self.manager.device(),
+            allocator: &self.allocator,
+            formats: &self.formats,
+        }
     }
 
     pub fn assigned(&self) -> Vec<(connector::Handle, crtc::Handle)> {

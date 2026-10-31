@@ -1,5 +1,5 @@
 use sparky_config::{OutputMode, OutputRule, OutputScale, Rotation};
-use sparky_ipc::{OutputInfo, Vrr};
+use sparky_ipc::{Hdr, OutputInfo, Vrr};
 
 use super::screens::{
     ScreenChange, changed, mode_options, rotation_label, rotation_options, scale_label,
@@ -145,4 +145,29 @@ fn a_unica_tela_ligada_nao_pode_ser_desligada() {
         panic!("desligar")
     };
     assert!(!desligada.enabled);
+}
+
+#[test]
+fn hdr_so_liga_no_monitor_que_suporta() {
+    let suportado = OutputInfo {
+        hdr: Hdr::Off,
+        ..monitor("HDMI-A-1", Vrr::Unsupported)
+    };
+    let Ok(ligado) = changed(
+        &suportado,
+        &[],
+        std::slice::from_ref(&suportado),
+        ScreenChange::Hdr(true),
+    ) else {
+        panic!("HDR suportado")
+    };
+    assert!(ligado.hdr);
+    let sem_hdr = monitor("DP-1", Vrr::Off);
+    let erro = changed(
+        &sem_hdr,
+        &[],
+        std::slice::from_ref(&sem_hdr),
+        ScreenChange::Hdr(true),
+    );
+    assert!(erro.is_err_and(|erro| erro.contains("HDR")));
 }

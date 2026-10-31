@@ -58,6 +58,7 @@ impl Editor {
         replace(table, "rotation", rotation);
         replace(table, "vrr", rule.vrr.map(value));
         replace(table, "enabled", enabled);
+        replace(table, "hdr", rule.hdr.then(|| value(true)));
     }
 
     pub fn contents(&self) -> String {

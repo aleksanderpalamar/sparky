@@ -90,3 +90,21 @@ fn modo_ou_giro_invalidos_sao_recusados() {
     assert!(parse("[[output]]\nname = \"DP-1\"\nmode = \"grande\"\n").is_err());
     assert!(parse("[[output]]\nname = \"DP-1\"\nrotation = 45\n").is_err());
 }
+
+#[test]
+fn hdr_e_opcional_e_desligado_por_padrao() {
+    let Ok(config) = parse("[[output]]\nname = \"HDMI-A-1\"\nhdr = true\n") else {
+        panic!("hdr válido")
+    };
+    assert_eq!(
+        rule_for(&config.output, "HDMI-A-1").map(|regra| regra.hdr),
+        Some(true)
+    );
+    let Ok(config) = parse("[[output]]\nname = \"HDMI-A-1\"\n") else {
+        panic!("hdr opcional")
+    };
+    assert_eq!(
+        rule_for(&config.output, "HDMI-A-1").map(|regra| regra.hdr),
+        Some(false)
+    );
+}

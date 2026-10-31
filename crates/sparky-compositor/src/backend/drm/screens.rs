@@ -7,6 +7,7 @@ use sparky_ipc::Vrr;
 use crate::backend::drm::Drm;
 use crate::backend::drm::edid;
 use crate::backend::drm::gpu::Surface;
+use crate::backend::drm::hdr;
 use crate::layout::screens::{Screen, output_mode};
 
 impl Drm {
@@ -47,6 +48,7 @@ impl Drm {
                 .collect(),
             vrr: surface.map_or(Vrr::Unsupported, |surface| vrr(surface, handle)),
             enabled: surface.is_some(),
+            hdr: hdr::state(device, handle, surface),
         }
     }
 }
@@ -61,7 +63,7 @@ pub fn description(device: &DrmDevice, handle: connector::Handle) -> String {
         .unwrap_or_default()
 }
 
-fn edid_blob(device: &DrmDevice, handle: connector::Handle) -> Option<Vec<u8>> {
+pub fn edid_blob(device: &DrmDevice, handle: connector::Handle) -> Option<Vec<u8>> {
     let properties = device.get_properties(handle).ok()?;
     let (handles, values) = properties.as_props_and_values();
     let blob = handles.iter().zip(values).find_map(|(property, value)| {

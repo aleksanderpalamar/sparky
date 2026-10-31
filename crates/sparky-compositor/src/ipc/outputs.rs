@@ -56,6 +56,7 @@ fn details(screen: Option<&Screen>) -> OutputInfo {
         description: screen.description.clone(),
         modes: screen.modes.clone(),
         vrr: screen.vrr,
+        hdr: screen.hdr,
         enabled: screen.enabled,
         ..OutputInfo::default()
     }

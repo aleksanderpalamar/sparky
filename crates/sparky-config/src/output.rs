@@ -49,6 +49,8 @@ pub struct OutputRule {
     pub vrr: Option<bool>,
     #[serde(default = "enabled", skip_serializing_if = "is_enabled")]
     pub enabled: bool,
+    #[serde(default, skip_serializing_if = "is_off")]
+    pub hdr: bool,
 }
 
 impl OutputRule {
@@ -60,6 +62,7 @@ impl OutputRule {
             rotation: Rotation::Normal,
             vrr: None,
             enabled: true,
+            hdr: false,
         }
     }
 }
@@ -78,6 +81,10 @@ const fn enabled() -> bool {
 
 fn is_enabled(enabled: &bool) -> bool {
     *enabled
+}
+
+fn is_off(hdr: &bool) -> bool {
+    !*hdr
 }
 
 impl Serialize for OutputScale {
