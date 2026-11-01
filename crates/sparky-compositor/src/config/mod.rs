@@ -52,7 +52,10 @@ impl Sparky {
         self.config = config;
         match outputs_changed {
             true => self.apply_outputs(),
-            false => self.relayout(),
+            false => {
+                self.relayout();
+                self.apply_hdr();
+            }
         }
         self.refresh_wallpaper();
     }

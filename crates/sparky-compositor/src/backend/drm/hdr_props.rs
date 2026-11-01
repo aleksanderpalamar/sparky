@@ -16,10 +16,31 @@ pub struct HdrProperties {
     pub current_bpc: u64,
 }
 
+const HDR_BPC: u64 = 10;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Signal {
     pub blob: u64,
     pub colorspace: u64,
     pub bpc: u64,
+}
+
+impl Signal {
+    pub const fn hdr(properties: &HdrProperties, blob: u64) -> Self {
+        Self {
+            blob,
+            colorspace: properties.bt2020,
+            bpc: HDR_BPC,
+        }
+    }
+
+    pub const fn sdr(properties: &HdrProperties) -> Self {
+        Self {
+            blob: 0,
+            colorspace: properties.default_colorspace,
+            bpc: properties.current_bpc,
+        }
+    }
 }
 
 pub fn colorspaces(entries: &[(String, u64)]) -> Option<(u64, u64)> {
@@ -102,8 +123,41 @@ fn enum_entries(info: &property::Info) -> Option<Vec<(String, u64)>> {
 }
 
 #[cfg(test)]
+pub fn exemplo() -> HdrProperties {
+    let handle = property::Handle::from(std::num::NonZeroU32::MIN);
+    HdrProperties {
+        colorspace: handle,
+        bt2020: 9,
+        default_colorspace: 0,
+        max_bpc: handle,
+        metadata: handle,
+        current_bpc: 12,
+    }
+}
+
+#[cfg(test)]
 mod tests {
-    use super::colorspaces;
+    use super::{Signal, colorspaces, exemplo};
+
+    #[test]
+    fn o_sinal_hdr_leva_metadados_bt2020_e_dez_bits() {
+        let esperado = Signal {
+            blob: 77,
+            colorspace: 9,
+            bpc: 10,
+        };
+        assert_eq!(Signal::hdr(&exemplo(), 77), esperado);
+    }
+
+    #[test]
+    fn o_sinal_sdr_tira_os_metadados_e_devolve_cor_e_bits_de_antes() {
+        let esperado = Signal {
+            blob: 0,
+            colorspace: 0,
+            bpc: 12,
+        };
+        assert_eq!(Signal::sdr(&exemplo()), esperado);
+    }
 
     fn lista(nomes: &[(&str, u64)]) -> Vec<(String, u64)> {
         nomes

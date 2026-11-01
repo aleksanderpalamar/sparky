@@ -11,7 +11,8 @@ use crate::backend::drm::Drm;
 use crate::backend::drm::configure::{chosen_mode, preferred_mode, set_vrr};
 use crate::backend::drm::crtcs::{self, Candidate};
 use crate::backend::drm::gpu::{Gpu, Surface};
-use crate::backend::drm::hdr::{self, HdrState};
+use crate::backend::drm::hdr;
+use crate::backend::drm::hdr_state::HdrState;
 use crate::backend::drm::modes;
 use crate::backend::drm::placement;
 use crate::backend::drm::screens::{description, output_name};
@@ -90,20 +91,19 @@ impl Sparky {
             }
         };
         tracing::info!("monitor {} ligado", output.name());
-        let mut surface = Surface {
+        let surface = Surface {
             output,
             global,
             drm_output,
             connector,
             frame_pending: false,
             idle_timer: None,
-            hdr: HdrState::Off,
+            hdr: HdrState::requested(rule.hdr),
             composite: None,
         };
         if let Some(on) = rule.vrr {
             set_vrr(&surface, on);
         }
-        hdr::set(&gpu.video(), &mut surface, rule.hdr);
         gpu.surfaces.insert(crtc, surface);
         Ok(())
     }
