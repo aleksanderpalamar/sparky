@@ -1,4 +1,5 @@
 mod frame;
+pub mod orient;
 pub mod rules;
 
 use std::sync::atomic::AtomicBool;
@@ -14,6 +15,7 @@ use smithay::reexports::wayland_server::{Client, DataInit, Dispatch, DisplayHand
 use sparky_tiling::Rect;
 
 use crate::capture::render::scaled;
+use crate::screencopy::orient::buffer_size;
 use crate::state::Sparky;
 
 const VERSION: u32 = 3;
@@ -134,10 +136,14 @@ impl Sparky {
         let geometry = self.space.output_geometry(&output)?;
         let region = rules::region((geometry.size.w, geometry.size.h), requested)?;
         let physical = scaled(region, output.current_scale().fractional_scale());
+        let size = buffer_size(
+            (physical.width, physical.height),
+            output.current_transform(),
+        );
         Some(Frame {
             output,
             region,
-            size: (physical.width, physical.height),
+            size,
             cursor: false,
             used: AtomicBool::new(false),
         })
