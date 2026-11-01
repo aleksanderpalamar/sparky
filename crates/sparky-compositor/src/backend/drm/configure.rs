@@ -41,6 +41,7 @@ impl Sparky {
             surfaces,
             allocator,
             formats,
+            pq,
             ..
         } = &mut drm.gpu;
         for surface in surfaces.values_mut() {
@@ -56,6 +57,7 @@ impl Sparky {
                 device: manager.device(),
                 allocator,
                 formats,
+                pq: pq.as_ref(),
             };
             hdr::set(&video, surface, rule.hdr);
         }

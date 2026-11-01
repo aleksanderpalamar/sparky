@@ -1,6 +1,7 @@
 use smithay::backend::allocator::Fourcc;
 use smithay::backend::allocator::format::FormatSet;
 use smithay::backend::drm::DrmDevice;
+use smithay::backend::renderer::gles::GlesTexProgram;
 use smithay::reexports::drm::control::{Device as ControlDevice, connector, property};
 use sparky_ipc::Hdr;
 
@@ -28,6 +29,7 @@ pub struct Video<'a> {
     pub device: &'a DrmDevice,
     pub allocator: &'a Allocator,
     pub formats: &'a FormatSet,
+    pub pq: Option<&'a GlesTexProgram>,
 }
 
 pub fn state(device: &DrmDevice, handle: connector::Handle, surface: Option<&Surface>) -> Hdr {
@@ -76,6 +78,9 @@ fn capability(device: &DrmDevice, handle: connector::Handle) -> HdrCapability {
 }
 
 fn enable(video: &Video, surface: &mut Surface) -> Result<(), String> {
+    if video.pq.is_none() {
+        return Err("a conversão para PQ não está disponível".to_owned());
+    }
     let capability = capability(video.device, surface.connector);
     if !capability.supported() {
         return Err("o monitor não anuncia HDR10 (PQ e BT.2020)".to_owned());
@@ -97,7 +102,10 @@ fn enable(video: &Video, surface: &mut Surface) -> Result<(), String> {
         return Err(error.to_string());
     }
     surface.hdr = HdrState::On { properties, blob };
-    switch_format(video, surface, &HDR_FORMATS);
+    if let Err(error) = switch_format(video, surface, &HDR_FORMATS) {
+        disable(video, surface, properties, blob)?;
+        return Err(error);
+    }
     Ok(())
 }
 
@@ -117,7 +125,9 @@ fn disable(
     forget(video.device, blob);
     surface.hdr = HdrState::Off;
     surface.composite = None;
-    switch_format(video, surface, &SDR_FORMATS);
+    if let Err(error) = switch_format(video, surface, &SDR_FORMATS) {
+        tracing::warn!(output = %surface.output.name(), "formato SDR mantido: {error}");
+    }
     Ok(())
 }
 
@@ -127,21 +137,52 @@ fn forget(device: &DrmDevice, blob: u64) {
     }
 }
 
-fn switch_format(video: &Video, surface: &Surface, formats: &[Fourcc]) {
+fn switch_format(video: &Video, surface: &Surface, formats: &[Fourcc]) -> Result<Fourcc, String> {
     let chosen = surface.drm_output.with_compositor(|compositor| {
-        formats.iter().copied().find(|code| {
+        first_accepted(formats, |code| {
             let modifiers = video
                 .formats
                 .iter()
-                .filter(|format| format.code == *code)
+                .filter(|format| format.code == code)
                 .map(|format| format.modifier);
             compositor
-                .set_format(video.allocator.clone(), *code, modifiers)
+                .set_format(video.allocator.clone(), code, modifiers)
                 .is_ok()
         })
-    });
-    match chosen {
-        Some(code) => tracing::info!(output = %surface.output.name(), "formato de saída {code:?}"),
-        None => tracing::warn!(output = %surface.output.name(), "formato de saída mantido"),
+    })?;
+    tracing::info!(output = %surface.output.name(), "formato de saída {chosen:?}");
+    Ok(chosen)
+}
+
+fn first_accepted(
+    formats: &[Fourcc],
+    mut accept: impl FnMut(Fourcc) -> bool,
+) -> Result<Fourcc, String> {
+    formats
+        .iter()
+        .copied()
+        .find(|code| accept(*code))
+        .ok_or_else(|| format!("nenhum formato aceito entre {formats:?}"))
+}
+
+#[cfg(test)]
+mod tests {
+    use smithay::backend::allocator::Fourcc;
+
+    use super::{HDR_FORMATS, first_accepted};
+
+    #[test]
+    fn nenhum_formato_de_10_bits_aceito_vira_erro() {
+        assert!(first_accepted(&HDR_FORMATS, |_| false).is_err());
+    }
+
+    #[test]
+    fn usa_o_primeiro_formato_aceito_na_ordem() {
+        let segundo = first_accepted(&HDR_FORMATS, |code| code == Fourcc::Xbgr2101010);
+        assert_eq!(segundo, Ok(Fourcc::Xbgr2101010));
+        assert_eq!(
+            first_accepted(&HDR_FORMATS, |_| true),
+            Ok(Fourcc::Xrgb2101010)
+        );
     }
 }

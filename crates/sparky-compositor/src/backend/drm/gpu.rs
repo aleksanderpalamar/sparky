@@ -101,6 +101,7 @@ impl Gpu {
             device: self.manager.device(),
             allocator: &self.allocator,
             formats: &self.formats,
+            pq: self.pq.as_ref(),
         }
     }
 
