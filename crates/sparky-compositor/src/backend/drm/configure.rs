@@ -8,6 +8,7 @@ use sparky_config::{OutputMode, OutputRule, rule_for};
 
 use crate::backend::drm::Drm;
 use crate::backend::drm::gpu::{Gpu, Surface};
+use crate::backend::drm::hdr::{self, Video};
 use crate::backend::drm::modes;
 use crate::layout::rotation::transform;
 use crate::layout::screens::output_mode;
@@ -38,6 +39,9 @@ impl Sparky {
             manager,
             renderer,
             surfaces,
+            allocator,
+            formats,
+            pq,
             ..
         } = &mut drm.gpu;
         for surface in surfaces.values_mut() {
@@ -49,6 +53,13 @@ impl Sparky {
             if let Some(on) = rule.vrr {
                 set_vrr(surface, on);
             }
+            let video = Video {
+                device: manager.device(),
+                allocator,
+                formats,
+                pq: pq.as_ref(),
+            };
+            hdr::set(&video, surface, rule.hdr);
         }
         self.needs_render = true;
     }

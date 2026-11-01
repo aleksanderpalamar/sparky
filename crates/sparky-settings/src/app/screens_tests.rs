@@ -1,11 +1,12 @@
 use sparky_config::{OutputMode, OutputScale};
-use sparky_ipc::{OutputInfo, Vrr};
+use sparky_ipc::{Hdr, OutputInfo, Vrr};
 use sparky_ui::notice::Notice;
 
 use crate::app::message::Message;
 use crate::app::pickers::ScreenField;
 use crate::app::state::Settings;
 use crate::app::test_support::{Arquivo, Sparky, painel, salvo};
+use crate::app::text_probe::visible_texts;
 use crate::app::update::update;
 use crate::domain::screens::ScreenChange;
 use crate::domain::section::Section;
@@ -109,4 +110,50 @@ fn a_unica_tela_ligada_nao_e_desligada() {
     assert!(matches!(&settings.notice, Some(Notice::Error(text)) if text.contains("única tela")));
     assert!(salvo(&arquivo).is_empty());
     assert_eq!(sparky.recargas.get(), 0);
+}
+
+#[test]
+fn ligar_o_hdr_grava_na_regra_do_monitor() {
+    let sparky = Sparky {
+        monitores: vec![OutputInfo {
+            hdr: Hdr::Off,
+            ..monitor()
+        }],
+        ..Sparky::default()
+    };
+    let (mut settings, arquivo) = painel(None, sparky);
+    let _ = update(&mut settings, Message::Section(Section::Monitors));
+    mudar(&mut settings, ScreenChange::Hdr(true));
+    assert!(
+        salvo(&arquivo).contains("hdr = true"),
+        "{}",
+        salvo(&arquivo)
+    );
+}
+
+#[test]
+fn hdr_aparece_sem_descricao_embaixo() {
+    let textos = |hdr| {
+        let sparky = Sparky {
+            monitores: vec![OutputInfo { hdr, ..monitor() }],
+            ..Sparky::default()
+        };
+        let (mut settings, _) = painel(None, sparky);
+        let _ = update(&mut settings, Message::Section(Section::Monitors));
+        visible_texts(crate::view::monitors::view(&settings))
+    };
+    for hdr in [Hdr::On, Hdr::Off] {
+        let textos = textos(hdr);
+        assert!(textos.iter().any(|texto| texto == "HDR"), "{textos:?}");
+        assert!(
+            textos.iter().all(|texto| !texto.contains("HDR10")),
+            "{textos:?}"
+        );
+    }
+    let sem_hdr = textos(Hdr::Unsupported);
+    assert!(
+        sem_hdr
+            .iter()
+            .any(|texto| texto.contains("não anuncia HDR10"))
+    );
 }

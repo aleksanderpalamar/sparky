@@ -1,5 +1,5 @@
 use sparky_config::{OutputMode, OutputRule, OutputScale, Rotation, rule_for};
-use sparky_ipc::{OutputInfo, Vrr};
+use sparky_ipc::{Hdr, OutputInfo, Vrr};
 
 const COMMON_SCALES: [f64; 6] = [1.0, 1.25, 1.5, 1.75, 2.0, 2.5];
 
@@ -10,6 +10,7 @@ pub enum ScreenChange {
     Rotation(String),
     Vrr(bool),
     Enabled(bool),
+    Hdr(bool),
 }
 
 pub fn mode_options(info: &OutputInfo) -> Vec<String> {
@@ -76,6 +77,10 @@ pub fn changed(
             return Err("é a única tela ligada; desligá-la deixaria você sem imagem".to_owned());
         }
         ScreenChange::Enabled(on) => rule.enabled = on,
+        ScreenChange::Hdr(on) if info.hdr != Hdr::Unsupported => rule.hdr = on,
+        ScreenChange::Hdr(_) => {
+            return Err("este monitor não anuncia HDR10 (PQ e BT.2020)".to_owned());
+        }
     }
     Ok(rule)
 }

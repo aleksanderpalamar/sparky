@@ -8,7 +8,9 @@ use smithay::reexports::drm::control::crtc;
 use smithay::utils::Scale;
 
 use crate::backend::drm::Drm;
-use crate::backend::drm::gpu::Surface;
+use crate::backend::drm::gpu::{Gpu, Surface};
+use crate::backend::drm::hdr::HdrState;
+use crate::backend::drm::hdr_frame;
 use crate::backend::nested::send_frames;
 use crate::diagnostics::metrics::{Metrics, Phase};
 use crate::render::cursor::{Pointer, cursor_elements};
@@ -45,19 +47,30 @@ fn render_surface(state: &mut Sparky, drm: &mut Drm, crtc: crtc::Handle) {
     let mut elements = pointer(state, drm, &output);
     elements.extend(output_elements(state, &mut drm.gpu.renderer, &output));
     let clear = state.colors.background;
-    let gpu = &mut drm.gpu;
-    let Some(surface) = gpu.surfaces.get_mut(&crtc) else {
+    let Gpu {
+        renderer,
+        surfaces,
+        pq,
+        ..
+    } = &mut drm.gpu;
+    let Some(surface) = surfaces.get_mut(&crtc) else {
         metrics.phase(Phase::Dispatch);
         return;
     };
-    let result =
-        surface
+    let result = match (surface.hdr, pq.as_ref()) {
+        (HdrState::On { .. }, Some(program)) => {
+            hdr_frame::render(renderer, surface, &elements, clear, program)
+        }
+        _ => surface
             .drm_output
-            .render_frame(&mut gpu.renderer, &elements, clear, FrameFlags::DEFAULT);
+            .render_frame(renderer, &elements, clear, FrameFlags::DEFAULT)
+            .map(|result| result.is_empty)
+            .map_err(|error| error.to_string()),
+    };
     metrics.rendered(started.elapsed());
     match result {
-        Ok(result) if !result.is_empty => queue(surface, &metrics),
-        Ok(_) => schedule_idle_frames(state, surface, crtc),
+        Ok(false) => queue(surface, &metrics),
+        Ok(true) => schedule_idle_frames(state, surface, crtc),
         Err(error) => {
             metrics.error();
             tracing::warn!(output = %output.name(), "quadro não desenhado: {error}");

@@ -10,6 +10,15 @@ pub enum Vrr {
     On,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Hdr {
+    #[default]
+    Unsupported,
+    Off,
+    On,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct OutputInfo {
     pub name: String,
@@ -32,6 +41,8 @@ pub struct OutputInfo {
     pub vrr: Vrr,
     #[serde(default = "enabled")]
     pub enabled: bool,
+    #[serde(default)]
+    pub hdr: Hdr,
 }
 
 const fn enabled() -> bool {
@@ -40,8 +51,18 @@ const fn enabled() -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::{OutputInfo, Vrr};
+    use super::{Hdr, OutputInfo, Vrr};
     use sparky_config::{OutputMode, OutputScale, Rotation};
+
+    #[test]
+    fn hdr_vira_texto_e_falta_vale_nao_suportado() {
+        let json = r#"{"name":"DP-1","x":0,"y":0,"width":1,"height":1,"focused":false,"hdr":"on"}"#;
+        let Ok(output) = serde_json::from_str::<OutputInfo>(json) else {
+            panic!("deveria ler")
+        };
+        assert_eq!(output.hdr, Hdr::On);
+        assert_eq!(OutputInfo::default().hdr, Hdr::Unsupported);
+    }
 
     #[test]
     fn resposta_antiga_sem_os_detalhes_continua_valida() {

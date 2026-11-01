@@ -17,6 +17,7 @@ impl Editor {
         replace(table, "rotation", rotation);
         replace(table, "vrr", rule.vrr.map(value));
         replace(table, "enabled", enabled);
+        replace(table, "hdr", rule.hdr.then(|| value(true)));
     }
 
     fn output_table(&mut self, name: &str) -> Option<&mut Table> {

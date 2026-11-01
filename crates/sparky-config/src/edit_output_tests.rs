@@ -17,6 +17,7 @@ fn regra(name: &str) -> OutputRule {
         rotation: Rotation::Left,
         vrr: Some(true),
         enabled: true,
+        hdr: false,
     }
 }
 
@@ -77,6 +78,21 @@ fn valores_padrao_saem_do_arquivo() {
         ..padrao
     };
     assert!(editado(&[desligada]).contains("enabled = false"));
+}
+
+#[test]
+fn hdr_ligado_e_gravado_e_desligado_sai_do_arquivo() {
+    let ligado = OutputRule {
+        hdr: true,
+        ..regra("HDMI-A-1")
+    };
+    assert!(editado(std::slice::from_ref(&ligado)).contains("hdr = true"));
+    let desligado = OutputRule {
+        hdr: false,
+        ..ligado
+    };
+    let contents = editado(&[regra("HDMI-A-1"), desligado]);
+    assert!(!contents.contains("hdr"), "{contents}");
 }
 
 #[test]

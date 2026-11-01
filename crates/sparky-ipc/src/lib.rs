@@ -9,4 +9,4 @@ pub mod socket;
 pub use client::{Client, Events};
 pub use error::IpcError;
 pub use message::{CaptureArea, Event, Reply, Request, SessionAction, WorkspaceInfo};
-pub use output::{OutputInfo, Vrr};
+pub use output::{Hdr, OutputInfo, Vrr};
