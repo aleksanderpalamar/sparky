@@ -8,6 +8,7 @@ use crate::app::message::Message;
 use crate::app::state::{Mode, Settings};
 use crate::domain::section::Section;
 use crate::domain::value::Step;
+use crate::view::kit::reveal;
 use crate::view::style::rows_for;
 
 pub fn update(settings: &mut Settings, message: Message) -> Task<Message> {
@@ -78,8 +79,8 @@ fn key_pressed(settings: &mut Settings, key: &Key, modifiers: Modifiers) -> Task
     match command {
         Command::Activate => return opened(settings.activate()),
         Command::Quit => return iced::exit(),
-        Command::Down => settings.move_focus(1),
-        Command::Up => settings.move_focus(-1),
+        Command::Down => return follow(settings, 1),
+        Command::Up => return follow(settings, -1),
         Command::Less => settings.nudge(Step::Less),
         Command::More => settings.nudge(Step::More),
         Command::Remove => settings.remove(),
@@ -93,6 +94,11 @@ fn key_pressed(settings: &mut Settings, key: &Key, modifiers: Modifiers) -> Task
         Command::Refresh => settings.reload(),
     }
     Task::none()
+}
+
+fn follow(settings: &mut Settings, delta: isize) -> Task<Message> {
+    settings.move_focus(delta);
+    reveal::task()
 }
 
 fn opened(opened: Opened) -> Task<Message> {

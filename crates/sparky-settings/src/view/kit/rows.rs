@@ -4,6 +4,7 @@ use sparky_theme::Skin;
 use sparky_ui::notice::Notice;
 
 use super::look::border;
+use super::reveal::FOCUSED;
 use super::tokens::{alpha, size, space};
 use crate::app::message::Message;
 
@@ -82,9 +83,11 @@ pub fn focusable<'a>(
     focused: bool,
     content: Element<'a, Message>,
 ) -> Element<'a, Message> {
-    mouse_area(cell(skin, focused, content))
-        .on_press(Message::Point(index))
-        .into()
+    let area = container(mouse_area(cell(skin, focused, content)).on_press(Message::Point(index)));
+    match focused {
+        true => area.id(FOCUSED).into(),
+        false => area.into(),
+    }
 }
 
 pub fn cell<'a>(skin: Skin, focused: bool, content: Element<'a, Message>) -> Element<'a, Message> {
