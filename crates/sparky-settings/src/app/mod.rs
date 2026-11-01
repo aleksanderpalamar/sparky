@@ -26,6 +26,8 @@ mod network_view_tests;
 #[cfg(test)]
 mod region_tests;
 #[cfg(test)]
+mod reveal_tests;
+#[cfg(test)]
 mod settings_tests;
 #[cfg(test)]
 mod system_tests;
