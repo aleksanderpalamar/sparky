@@ -1,29 +1,31 @@
 pub mod datetime;
+pub mod icons;
 pub mod key_value;
 pub mod localectl;
+pub mod media;
+pub mod passwd;
 pub mod power;
 pub mod profiles;
 pub mod region;
-pub mod users;
-pub mod passwd;
-pub mod media;
-pub mod volumes;
-pub mod icons;
 pub mod themes;
+pub mod users;
+pub mod volumes;
 pub mod wallpaper;
 
 #[cfg(test)]
 mod datetime_tests;
 #[cfg(test)]
+mod datetime_zone_tests;
+#[cfg(test)]
+mod media_tests;
+#[cfg(test)]
 mod power_tests;
 #[cfg(test)]
 mod region_tests;
 #[cfg(test)]
-mod users_tests;
-#[cfg(test)]
-mod media_tests;
-#[cfg(test)]
 mod themes_tests;
+#[cfg(test)]
+mod users_tests;
 #[cfg(test)]
 mod wallpaper_tests;
 
@@ -32,14 +34,15 @@ use crate::ports::commands::{CommandError, CommandRunner};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Control {
-    Choice,
+    Choice(Vec<String>),
+    Options(Vec<String>),
     Level,
     Text,
     Toggle(bool),
     Reading,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum RowId {
     PowerProfile,
     Brightness,
@@ -53,7 +56,7 @@ pub enum RowId {
     SystemLayout,
     Volume(usize),
     MediaStatus,
-    Theme(usize),
+    Theme,
     ThemeStatus,
     Wallpaper,
 }
@@ -91,21 +94,58 @@ pub enum Request {
 impl Request {
     pub fn command(&self) -> (&'static str, Vec<String>) {
         match self {
-            Request::SetProfile(profile) => ("powerprofilesctl", vec!["set".to_owned(), profile.clone()]),
-            Request::SetBrightness { device, percent } => {
-                ("brightnessctl", vec!["-d".to_owned(), device.clone(), "set".to_owned(), format!("{percent}%")])
+            Request::SetProfile(profile) => {
+                ("powerprofilesctl", vec!["set".to_owned(), profile.clone()])
             }
-            Request::SetTimezone(timezone) => ("timedatectl", vec!["set-timezone".to_owned(), timezone.clone()]),
-            Request::SetNetworkTime(enabled) => ("timedatectl", vec!["set-ntp".to_owned(), enabled.to_string()]),
-            Request::SetLocalClock(enabled) => ("timedatectl", vec!["set-local-rtc".to_owned(), enabled.to_string()]),
-            Request::SetLocale(locale) => ("localectl", vec!["set-locale".to_owned(), format!("LANG={locale}")]),
-            Request::SetConsoleKeymap(keymap) => ("localectl", vec!["set-keymap".to_owned(), keymap.clone()]),
-            Request::SetSystemLayout(layout) => ("localectl", vec!["set-x11-keymap".to_owned(), layout.clone()]),
-            Request::SetIconTheme(name) => {
-                ("gsettings", vec!["set".to_owned(), "org.gnome.desktop.interface".to_owned(), "icon-theme".to_owned(), name.clone()])
+            Request::SetBrightness { device, percent } => (
+                "brightnessctl",
+                vec![
+                    "-d".to_owned(),
+                    device.clone(),
+                    "set".to_owned(),
+                    format!("{percent}%"),
+                ],
+            ),
+            Request::SetTimezone(timezone) => (
+                "timedatectl",
+                vec!["set-timezone".to_owned(), timezone.clone()],
+            ),
+            Request::SetNetworkTime(enabled) => (
+                "timedatectl",
+                vec!["set-ntp".to_owned(), enabled.to_string()],
+            ),
+            Request::SetLocalClock(enabled) => (
+                "timedatectl",
+                vec!["set-local-rtc".to_owned(), enabled.to_string()],
+            ),
+            Request::SetLocale(locale) => (
+                "localectl",
+                vec!["set-locale".to_owned(), format!("LANG={locale}")],
+            ),
+            Request::SetConsoleKeymap(keymap) => {
+                ("localectl", vec!["set-keymap".to_owned(), keymap.clone()])
             }
-            Request::MountVolume(path) => ("udisksctl", vec!["mount".to_owned(), "-b".to_owned(), path.clone()]),
-            Request::UnmountVolume(path) => ("udisksctl", vec!["unmount".to_owned(), "-b".to_owned(), path.clone()]),
+            Request::SetSystemLayout(layout) => (
+                "localectl",
+                vec!["set-x11-keymap".to_owned(), layout.clone()],
+            ),
+            Request::SetIconTheme(name) => (
+                "gsettings",
+                vec![
+                    "set".to_owned(),
+                    "org.gnome.desktop.interface".to_owned(),
+                    "icon-theme".to_owned(),
+                    name.clone(),
+                ],
+            ),
+            Request::MountVolume(path) => (
+                "udisksctl",
+                vec!["mount".to_owned(), "-b".to_owned(), path.clone()],
+            ),
+            Request::UnmountVolume(path) => (
+                "udisksctl",
+                vec!["unmount".to_owned(), "-b".to_owned(), path.clone()],
+            ),
         }
     }
 }

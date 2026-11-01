@@ -1,42 +1,54 @@
-use iced::alignment::Vertical;
-use iced::widget::{Column, column, row, text};
-use iced::{Element, Length};
-use sparky_ui::style::{SMALL_TEXT, SPACING, TEXT_SIZE};
+use iced::Element;
+use iced::widget::{Column, column};
+use sparky_theme::Skin;
 
 use crate::app::message::Message;
 use crate::app::state::Settings;
-use crate::view::fields::small;
-use crate::view::style::KEYS_WIDTH;
+use crate::domain::system::users::User;
+use crate::view::kit::controls::reading;
+use crate::view::kit::rows::{Line, caption, focusable, hint};
+use crate::view::kit::tokens::space;
+
+const NOTE: &str =
+    "Criar conta, trocar senha e mudar grupos continuam no terminal: useradd, passwd e usermod.";
 
 pub fn view(settings: &Settings) -> Element<'_, Message> {
-    let Some(user) = settings.users.get(settings.focus) else {
-        return text("Nenhuma conta de usuário encontrada.").into();
-    };
     let skin = settings.context.skin;
-    let previous = settings.focus.saturating_sub(1);
-    let next = (settings.focus + 1).min(settings.users.len() - 1);
-    let header = row![
-        small(skin, "◂", Message::Point(previous)),
-        text(format!("{} · {} de {}", user.title(), settings.focus + 1, settings.users.len()))
-            .size(TEXT_SIZE).color(skin.accent).width(Length::Fill),
-        small(skin, "▸", Message::Point(next)),
-    ].spacing(SPACING).align_y(Vertical::Center);
+    if settings.users.is_empty() {
+        return hint(skin, "Nenhuma conta de usuário encontrada.");
+    }
+    let accounts =
+        settings.users.iter().enumerate().map(|(index, user)| {
+            focusable(skin, index, settings.focus == index, account(skin, user))
+        });
+    Column::with_children(accounts)
+        .push(hint(skin, NOTE))
+        .spacing(space::XXL)
+        .into()
+}
+
+fn account<'a>(skin: Skin, user: &User) -> Element<'a, Message> {
+    let groups = user
+        .groups
+        .as_ref()
+        .map(|groups| groups.join(", "))
+        .unwrap_or_else(|| "não disponível".to_owned());
     let facts = [
         ("Identificador", user.account.uid.to_string()),
         ("Tipo", user.role().to_owned()),
         ("Sessão", user.session().to_owned()),
         ("Pasta pessoal", user.account.home.clone()),
         ("Interpretador", user.account.shell.clone()),
-        ("Grupos", user.groups.as_ref().map(|groups| groups.join(", ")).unwrap_or_else(|| "não disponível".to_owned())),
+        ("Grupos", groups),
     ];
-    let details = facts.into_iter().map(|(label, value)| row![
-        text(label).size(TEXT_SIZE).color(skin.accent).width(KEYS_WIDTH),
-        text(value).size(TEXT_SIZE).color(skin.foreground).width(Length::Fill),
-    ].spacing(SPACING).into());
+    let rows = facts
+        .into_iter()
+        .map(|(label, value)| Line::new(label, reading(skin, value)).view(skin));
     column![
-        header,
-        Column::with_children(details).spacing(SPACING),
-        text("Consulta de contas. Criação, senhas e grupos são administrados fora deste painel.")
-            .size(SMALL_TEXT).color(skin.dark_foreground),
-    ].spacing(SPACING).into()
+        caption(skin, &user.title()),
+        Column::with_children(rows).spacing(space::XXS)
+    ]
+    .spacing(space::XXS)
+    .padding(space::SM)
+    .into()
 }

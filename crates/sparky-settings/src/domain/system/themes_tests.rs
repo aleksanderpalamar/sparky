@@ -15,22 +15,56 @@ fn paletas_parciais_usam_os_padroes_nas_cores_ausentes() {
 
 #[test]
 fn arquivos_sem_cores_ou_com_valores_invalidos_sao_recusados() {
-    for contents in ["", "mode = \"light\"", "accent = \"azul\"", "mode = \"sepia\"\naccent = \"#010203\""] {
+    for contents in [
+        "",
+        "mode = \"light\"",
+        "accent = \"azul\"",
+        "mode = \"sepia\"\naccent = \"#010203\"",
+    ] {
         assert!(Theme::parse("invalido", contents).is_err());
     }
 }
 
+fn catalogo() -> Themes {
+    let tema =
+        |nome: &str, cores: &str| Theme::parse(nome, cores).unwrap_or_else(|_| Theme::builtin());
+    let azul = tema("azul", "accent = \"#010203\"");
+    let claro = tema("claro", "mode = \"light\"\naccent = \"#040506\"");
+    Themes::Ready(Catalog {
+        themes: vec![Theme::builtin(), azul, claro],
+        current: Palette::TOKYO_NIGHT,
+    })
+}
+
 #[test]
-fn o_catalogo_marca_a_paleta_em_uso_e_so_aplica_outra() {
-    let theme = Theme::parse("azul", "accent = \"#010203\"");
-    assert!(theme.is_ok());
-    let themes = Themes::Ready(Catalog { themes: vec![Theme::builtin(), theme.unwrap_or_else(|_| Theme::builtin())], current: Palette::TOKYO_NIGHT });
-    assert_eq!(themes.rows()[0].control, Control::Toggle(true));
-    assert_eq!(themes.rows()[1].control, Control::Toggle(false));
-    assert_eq!(themes.request(RowId::Theme(0), Change::Activate), None);
-    assert!(themes.request(RowId::Theme(1), Change::Activate).is_some());
-    assert_eq!(themes.request(RowId::Theme(99), Change::Activate), None);
-    assert_eq!(themes.request(RowId::Theme(1), Change::Step(Step::More)), None);
+fn o_catalogo_vira_uma_escolha_com_o_tema_em_uso() {
+    let rows = catalogo().rows();
+    assert_eq!(rows.len(), 1);
+    assert_eq!(rows[0].id, RowId::Theme);
+    assert_eq!(rows[0].label, "Tema atual");
+    assert_eq!(rows[0].value, "tokyo-night (escuro)");
+    let opcoes = ["tokyo-night (escuro)", "azul (escuro)", "claro (claro)"]
+        .map(str::to_owned)
+        .to_vec();
+    assert_eq!(rows[0].control, Control::Choice(opcoes));
+}
+
+#[test]
+fn escolher_pelo_nome_ou_pelas_setas_so_aplica_outro_tema() {
+    let themes = catalogo();
+    let escolha = |change| themes.request(RowId::Theme, change).map(|theme| theme.name);
+    assert_eq!(
+        escolha(Change::Text("azul (escuro)".to_owned())),
+        Some("azul".to_owned())
+    );
+    assert_eq!(
+        escolha(Change::Text("tokyo-night (escuro)".to_owned())),
+        None
+    );
+    assert_eq!(escolha(Change::Text("roxo (escuro)".to_owned())), None);
+    assert_eq!(escolha(Change::Step(Step::More)), Some("azul".to_owned()));
+    assert_eq!(escolha(Change::Step(Step::Less)), Some("claro".to_owned()));
+    assert_eq!(escolha(Change::Activate), None);
 }
 
 #[test]
@@ -38,7 +72,7 @@ fn falhas_de_catalogo_sao_somente_leitura() {
     let themes = Themes::Unavailable("sem permissão".to_owned());
     assert_eq!(themes.rows()[0].control, Control::Reading);
     assert_eq!(themes.rows()[0].value, "sem permissão");
-    assert_eq!(themes.request(RowId::Theme(0), Change::Activate), None);
+    assert_eq!(themes.request(RowId::Theme, Change::Step(Step::More)), None);
 }
 
 #[test]
@@ -51,6 +85,13 @@ fn o_tema_leva_o_nome_dos_icones() {
 #[test]
 fn trocar_os_icones_vai_pelo_gsettings() {
     let pedido = Request::SetIconTheme("Yaru-blue".to_owned());
-    let argumentos = ["set", "org.gnome.desktop.interface", "icon-theme", "Yaru-blue"].map(str::to_owned).to_vec();
+    let argumentos = [
+        "set",
+        "org.gnome.desktop.interface",
+        "icon-theme",
+        "Yaru-blue",
+    ]
+    .map(str::to_owned)
+    .to_vec();
     assert_eq!(pedido.command(), ("gsettings", argumentos));
 }

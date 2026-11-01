@@ -1,58 +1,66 @@
-use iced::alignment::Vertical;
-use iced::widget::{Column, container, row, text};
-use iced::{Element, Length};
+use iced::Element;
+use iced::widget::{Column, column};
 use sparky_ipc::OutputInfo;
 use sparky_theme::Skin;
-use sparky_ui::style::{self, Highlight, PADDING, SMALL_TEXT, SPACING, TEXT_SIZE};
 
 use crate::app::message::Message;
 use crate::app::state::Settings;
-use crate::view::style::{KEYS_WIDTH, LINE_HEIGHT};
+use crate::view::kit::controls::reading;
+use crate::view::kit::rows::{Line, caption, focusable, hint};
+use crate::view::kit::tokens::space;
+use crate::view::screens::screens;
+
+const NOTE: &str = "A escala de cada monitor vem do sparky.toml, na tabela [[output]].";
 
 pub fn view(settings: &Settings) -> Element<'_, Message> {
     let skin = settings.context.skin;
-    match &settings.outputs {
-        Ok(outputs) if outputs.is_empty() => note(skin, "Nenhum monitor informado pelo sparky."),
-        Ok(outputs) => Column::with_children(
-            outputs
-                .iter()
-                .enumerate()
-                .map(|(index, output)| line(skin, output, Highlight::when(settings.focus == index))),
+    let outputs = match &settings.outputs {
+        Ok(outputs) if outputs.is_empty() => {
+            return hint(skin, "Nenhum monitor informado pelo sparky.");
+        }
+        Ok(outputs) => outputs,
+        Err(error) => return hint(skin, error.to_string()),
+    };
+    let details = outputs.iter().enumerate().map(|(index, output)| {
+        focusable(
+            skin,
+            index,
+            settings.focus == index,
+            details(skin, index, output),
         )
-        .spacing(2)
-        .into(),
-        Err(error) => note(skin, &error.to_string()),
-    }
+    });
+    column![
+        caption(skin, "Tela"),
+        screens(skin, outputs),
+        Column::with_children(details).spacing(space::XXL),
+        hint(skin, NOTE),
+    ]
+    .spacing(space::MD)
+    .into()
 }
 
 pub fn describe(output: &OutputInfo) -> String {
+    format!("{} × {}", output.width, output.height)
+}
+
+fn details<'a>(skin: Skin, index: usize, output: &OutputInfo) -> Element<'a, Message> {
     let focus = match output.focused {
-        true => " · em foco",
-        false => "",
+        true => "sim",
+        false => "não",
     };
-    format!("{} × {} na posição ({}, {}){focus}", output.width, output.height, output.x, output.y)
-}
-
-fn line(skin: Skin, output: &OutputInfo, highlight: Highlight) -> Element<'static, Message> {
-    let content = row![
-        text(output.name.clone()).size(TEXT_SIZE).color(skin.accent).width(KEYS_WIDTH),
-        text(describe(output)).size(TEXT_SIZE).width(Length::Fill),
+    column![
+        caption(skin, &format!("{} · {}", index + 1, output.name)),
+        Line::new("Tamanho", reading(skin, describe(output))).view(skin),
+        Line::new(
+            "Posição",
+            reading(skin, format!("{}, {}", output.x, output.y))
+        )
+        .view(skin),
+        Line::new("Em foco", reading(skin, focus)).view(skin),
     ]
-    .spacing(SPACING)
-    .align_y(Vertical::Center);
-    container(content)
-        .height(LINE_HEIGHT)
-        .padding([0.0, PADDING])
-        .width(Length::Fill)
-        .align_y(Vertical::Center)
-        .style(move |_| style::row(skin, highlight))
-        .into()
-}
-
-fn note<'a>(skin: Skin, message: &str) -> Element<'a, Message> {
-    container(text(message.to_owned()).size(SMALL_TEXT).color(skin.dark_foreground))
-        .padding(PADDING)
-        .into()
+    .spacing(space::XXS)
+    .padding(space::SM)
+    .into()
 }
 
 #[cfg(test)]
@@ -61,8 +69,15 @@ mod tests {
     use sparky_ipc::OutputInfo;
 
     #[test]
-    fn descreve_tamanho_posicao_e_foco() {
-        let output = OutputInfo { name: "DP-1".to_owned(), x: 1920, y: 0, width: 2560, height: 1440, focused: true };
-        assert_eq!(describe(&output), "2560 × 1440 na posição (1920, 0) · em foco");
+    fn descreve_o_tamanho_do_monitor() {
+        let output = OutputInfo {
+            name: "DP-1".to_owned(),
+            x: 1920,
+            y: 0,
+            width: 2560,
+            height: 1440,
+            focused: true,
+        };
+        assert_eq!(describe(&output), "2560 × 1440");
     }
 }

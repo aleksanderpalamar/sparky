@@ -1,68 +1,39 @@
-use iced::alignment::Vertical;
-use iced::widget::{container, row, text};
-use iced::{Element, Length};
-use sparky_ui::style::{self, PADDING, SMALL_TEXT, SPACING, STATUS_HEIGHT, TEXT_SIZE};
-
-use crate::app::message::Message;
-use crate::app::state::{Mode, Settings};
+use crate::app::state::Mode;
 use crate::domain::section::Section;
 
-pub fn status(settings: &Settings) -> Element<'_, Message> {
-    let skin = settings.context.skin;
-    let left = match &settings.notice {
-        Some(notice) => text(notice.text().to_owned()).color(notice.color(skin)),
-        None => text(""),
-    };
-    let line = row![
-        left.size(TEXT_SIZE).width(Length::Fill),
-        text(hints(settings.section, settings.mode))
-            .size(SMALL_TEXT)
-            .color(skin.dark_foreground),
-    ]
-    .spacing(SPACING)
-    .align_y(Vertical::Center);
-    container(line)
-        .height(STATUS_HEIGHT)
-        .width(Length::Fill)
-        .padding([0.0, PADDING])
-        .align_y(Vertical::Center)
-        .style(move |_| style::panel(skin))
-        .into()
+const SECTIONS: &str = "1–9 seções";
+
+pub fn hints(section: Section, mode: Mode) -> String {
+    match mode {
+        Mode::Editing(_) => "Enter salva · Esc cancela".to_owned(),
+        Mode::Browse => format!("{} · {SECTIONS}", browsing(section)),
+    }
 }
 
-pub fn hints(section: Section, mode: Mode) -> &'static str {
-    match (mode, section) {
-        (Mode::Editing(_), _) => "Enter salva · Esc cancela",
-        (Mode::Browse, Section::Appearance | Section::Keyboard | Section::Apps) => {
+fn browsing(section: Section) -> &'static str {
+    match section {
+        Section::Appearance | Section::Keyboard | Section::Apps => {
             "j/k escolhe · h/l ajusta · Enter edita · Tab troca de seção · q fecha"
         }
-        (Mode::Browse, Section::Autostart) => {
+        Section::Autostart => {
             "j/k escolhe · Enter edita ou adiciona · d remove · Tab troca de seção"
         }
-        (Mode::Browse, Section::Shortcuts) => {
-            "j/k rola · para mudar um atalho, escreva [[bind]] no sparky.toml"
+        Section::Shortcuts => "j/k rola · para mudar um atalho, escreva [[bind]] no sparky.toml",
+        Section::Monitors => "F5 atualiza · Tab troca de seção · q fecha",
+        Section::Network => "Edite os campos · Salvar e aplicar · Tab troca de seção",
+        Section::Power => "j/k escolhe · h/l ajusta · F5 atualiza · Tab troca de seção",
+        Section::DateTime => {
+            "j/k escolhe · h/l alterna · Enter digita o fuso · F5 atualiza · Tab troca de seção"
         }
-        (Mode::Browse, Section::Monitors) => "F5 atualiza · Tab troca de seção · q fecha",
-        (Mode::Browse, Section::Network) => {
-            "Edite os campos · Salvar e aplicar · Tab troca de seção"
+        Section::Region => {
+            "j/k escolhe · h/l troca · Enter digita · F5 atualiza · Tab troca de seção"
         }
-        (Mode::Browse, Section::Power) => {
-            "j/k escolhe · h/l ajusta · F5 atualiza · Tab troca de seção"
+        Section::Users => "j/k escolhe conta · F5 atualiza · Tab troca de seção",
+        Section::Media => "j/k escolhe volume · Enter alterna · h desmonta · l monta · F5 atualiza",
+        Section::Themes => {
+            "j/k escolhe · h/l troca o tema ou o papel de parede · Enter digita · Tab troca de seção"
         }
-        (Mode::Browse, Section::DateTime) => {
-            "j/k escolhe · Enter edita · h/l alterna · F5 atualiza · Tab troca de seção"
-        }
-        (Mode::Browse, Section::Region) => {
-            "j/k escolhe · Enter edita · h/l escolhe opção · F5 atualiza · Tab troca de seção"
-        }
-        (Mode::Browse, Section::Users) => "j/k escolhe conta · F5 atualiza · Tab troca de seção",
-        (Mode::Browse, Section::Media) => {
-            "j/k escolhe volume · Enter alterna · h desmonta · l monta · F5 atualiza"
-        }
-        (Mode::Browse, Section::Themes) => {
-            "j/k escolhe · Enter aplica · h/l troca o papel de parede · Tab troca de seção"
-        }
-        (Mode::Browse, Section::About) => "Tab troca de seção · q fecha",
+        Section::About => "Tab troca de seção · q fecha",
     }
 }
 

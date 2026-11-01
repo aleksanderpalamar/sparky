@@ -2,16 +2,19 @@ use crate::app::actions::Opened;
 use crate::app::state::{Mode, Settings, Target};
 use crate::domain::section::Section;
 use crate::domain::system::datetime::DateTime;
+use crate::domain::system::media::Media;
 use crate::domain::system::power::Power;
 use crate::domain::system::region::Region;
-use crate::domain::system::users;
-use crate::domain::system::media::Media;
 use crate::domain::system::themes::Themes;
+use crate::domain::system::users;
 use crate::domain::system::{Change, Control, Request, Row, RowId, perform};
 
 impl Settings {
     pub fn is_system(&self) -> bool {
-        matches!(self.section, Section::Power | Section::DateTime | Section::Region | Section::Media | Section::Themes)
+        matches!(
+            self.section,
+            Section::Power | Section::DateTime | Section::Region | Section::Media | Section::Themes
+        )
     }
 
     pub fn system_rows(&self) -> Vec<Row> {
@@ -23,6 +26,17 @@ impl Settings {
             Section::Themes => self.theme_rows(),
             _ => Vec::new(),
         }
+    }
+
+    pub fn refresh_pickers(&mut self) {
+        let rows = [
+            self.power.rows(),
+            self.datetime.rows(),
+            self.region.rows(),
+            self.theme_rows(),
+        ]
+        .concat();
+        self.pickers.refresh(&rows);
     }
 
     pub fn reload_system(&mut self) {
@@ -39,7 +53,7 @@ impl Settings {
         let Some(row) = self.system_rows().into_iter().nth(self.focus) else {
             return Opened::Nothing;
         };
-        if row.control == Control::Text {
+        if matches!(row.control, Control::Text | Control::Choice(_)) {
             self.input = row.value;
             self.mode = Mode::Editing(Target::System(row.id));
             return Opened::Prompt;
@@ -58,11 +72,12 @@ impl Settings {
         self.apply_system(&row, change);
     }
 
-    pub fn submit_system(&mut self, id: RowId, input: String) {
-        let Some(row) = self.system_rows().into_iter().find(|row| row.id == id) else {
+    pub fn choose(&mut self, id: RowId, value: String) {
+        let Some(index) = self.system_rows().iter().position(|row| row.id == id) else {
             return;
         };
-        self.apply_system(&row, Change::Text(input));
+        self.focus = index;
+        self.change_system(Change::Text(value));
     }
 
     fn apply_system(&mut self, row: &Row, change: Change) {
@@ -72,7 +87,11 @@ impl Settings {
         match perform(self.services.commands.as_ref(), &request) {
             Ok(()) => {
                 self.reload_system();
-                let value = self.system_rows().into_iter().find(|fresh| fresh.id == row.id).map(|fresh| fresh.value);
+                let value = self
+                    .system_rows()
+                    .into_iter()
+                    .find(|fresh| fresh.id == row.id)
+                    .map(|fresh| fresh.value);
                 self.inform(format!("{}: {}", row.label, value.unwrap_or_default()));
             }
             Err(error) => self.fail(format!("{}: {error}", row.label)),
@@ -82,7 +101,9 @@ impl Settings {
     fn system_request(&mut self, row: &Row, change: Change) -> Option<Request> {
         match (self.section, row.id, change) {
             (Section::Power, id, change) => self.power.request(id, change),
-            (Section::DateTime, RowId::Timezone, Change::Text(input)) => self.timezone_request(input),
+            (Section::DateTime, RowId::Timezone, Change::Text(input)) => {
+                self.timezone_request(input)
+            }
             (Section::DateTime, id, change) => self.datetime.request(id, change),
             (Section::Region, id, change) => self.region_request(id, change),
             (Section::Media, id, change) => self.media.request(id, change),

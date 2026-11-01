@@ -51,10 +51,10 @@ fn dhcp_mostra_ip_gateway_e_dns_recebidos_do_roteador() {
     confere(
         &textos,
         &[
-            "Recebido do roteador",
+            "RECEBIDO DO ROTEADOR",
             "192.168.0.70/24",
             "192.168.0.1",
-            "DNS do DHCP",
+            "DNS DO DHCP",
             "DNS primário",
             "DNS secundário",
         ],
@@ -74,6 +74,6 @@ fn manual_mostra_campos_editaveis_e_dois_dns() {
             "DNS primário",
             "DNS secundário",
         ],
-        &["Recebido do roteador", "DNS do DHCP"],
+        &["RECEBIDO DO ROTEADOR", "DNS DO DHCP"],
     );
 }

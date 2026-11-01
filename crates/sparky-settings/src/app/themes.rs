@@ -18,15 +18,23 @@ impl Settings {
 
     pub fn theme_rows(&self) -> Vec<Row> {
         let configured = self.config.general.wallpaper.as_deref();
-        wallpaper::row(&self.themes, configured).into_iter().chain(self.themes.rows()).collect()
+        self.themes
+            .rows()
+            .into_iter()
+            .chain(wallpaper::row(&self.themes, configured))
+            .collect()
     }
 
     pub fn change_theme(&mut self, change: Change) {
-        let Some(row) = self.system_rows().into_iter().nth(self.focus) else { return };
+        let Some(row) = self.system_rows().into_iter().nth(self.focus) else {
+            return;
+        };
         if row.id == RowId::Wallpaper {
-            return self.step_wallpaper(change);
+            return self.change_wallpaper(change);
         }
-        let Some(theme) = self.themes.request(row.id, change) else { return };
+        let Some(theme) = self.themes.request(row.id, change) else {
+            return;
+        };
         if let Err(error) = self.services.themes.apply(&theme) {
             self.fail(format!("Paleta {}: {error}", theme.name));
             return;
@@ -43,18 +51,23 @@ impl Settings {
         }
     }
 
-    fn step_wallpaper(&mut self, change: Change) {
-        let step = match change {
-            Change::Step(step) => step,
-            Change::Activate | Change::Text(_) => Step::More,
+    fn change_wallpaper(&mut self, change: Change) {
+        let configured = self.config.general.wallpaper.as_deref();
+        let path = match change {
+            Change::Text(name) => wallpaper::chosen(&self.themes, &name),
+            Change::Step(step) => wallpaper::step(&self.themes, configured, step),
+            Change::Activate => wallpaper::step(&self.themes, configured, Step::More),
         };
-        if let Some(path) = wallpaper::step(&self.themes, self.config.general.wallpaper.as_deref(), step) {
+        if let Some(path) = path {
             self.choose_wallpaper(&path);
         }
     }
 
     fn choose_wallpaper(&mut self, path: &Path) {
-        self.set(Field::Wallpaper, Value::Text(path.to_string_lossy().into_owned()));
+        self.set(
+            Field::Wallpaper,
+            Value::Text(path.to_string_lossy().into_owned()),
+        );
     }
 
     fn focus_row(&mut self, id: RowId) {
@@ -67,9 +80,18 @@ impl Settings {
         let Some(icons) = theme.icons() else {
             return self.inform(format!("Paleta {} aplicada.", theme.name));
         };
-        match perform(self.services.commands.as_ref(), &Request::SetIconTheme(icons.to_owned())) {
-            Ok(()) => self.inform(format!("Paleta {} aplicada com os ícones {icons}.", theme.name)),
-            Err(error) => self.fail(format!("Paleta {} aplicada, mas os ícones {icons} não: {error}", theme.name)),
+        match perform(
+            self.services.commands.as_ref(),
+            &Request::SetIconTheme(icons.to_owned()),
+        ) {
+            Ok(()) => self.inform(format!(
+                "Paleta {} aplicada com os ícones {icons}.",
+                theme.name
+            )),
+            Err(error) => self.fail(format!(
+                "Paleta {} aplicada, mas os ícones {icons} não: {error}",
+                theme.name
+            )),
         }
     }
 }

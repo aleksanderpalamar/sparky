@@ -31,7 +31,9 @@ impl Region {
             (RowId::Locale, "Idioma do sistema"),
             (RowId::ConsoleKeymap, "Teclado do console"),
             (RowId::SystemLayout, "Layout do sistema"),
-        ].into_iter().filter_map(|(id, label)| {
+        ]
+        .into_iter()
+        .filter_map(|(id, label)| {
             let (current, choices) = self.selection(id)?;
             Some(Row {
                 id,
@@ -39,16 +41,19 @@ impl Region {
                 value: current.as_deref().unwrap_or("não definido").to_owned(),
                 control: match choices.is_empty() {
                     true => Control::Reading,
-                    false => Control::Text,
+                    false => Control::Choice(choices.to_vec()),
                 },
             })
-        }).collect()
+        })
+        .collect()
     }
 
     pub fn request(&self, id: RowId, change: Change) -> Option<Request> {
         let (current, choices) = self.selection(id)?;
         let value = match change {
-            Change::Text(input) if self.unknown_value(id, &input).is_none() => input.trim().to_owned(),
+            Change::Text(input) if self.unknown_value(id, &input).is_none() => {
+                input.trim().to_owned()
+            }
             Change::Step(step) => neighbor(current.as_deref(), choices, step)?,
             _ => return None,
         };
@@ -83,12 +88,17 @@ fn neighbor(current: Option<&str>, choices: &[String], step: Step) -> Option<Str
     if choices.is_empty() {
         return None;
     }
-    let index = choices.iter().position(|choice| Some(choice.as_str()) == current);
+    let index = choices
+        .iter()
+        .position(|choice| Some(choice.as_str()) == current);
     let next = match (index, step) {
         (None, _) => 0,
         (Some(0), Step::Less) => choices.len() - 1,
         (Some(index), Step::Less) => index - 1,
         (Some(index), Step::More) => (index + 1) % choices.len(),
     };
-    choices.get(next).filter(|choice| Some(choice.as_str()) != current).cloned()
+    choices
+        .get(next)
+        .filter(|choice| Some(choice.as_str()) != current)
+        .cloned()
 }

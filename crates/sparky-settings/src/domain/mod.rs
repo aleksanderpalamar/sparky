@@ -1,5 +1,6 @@
 pub mod about;
 pub mod describe;
+pub mod diagram;
 pub mod field;
 pub mod hardware;
 pub mod keymaps;
@@ -10,5 +11,7 @@ pub mod section;
 pub mod system;
 pub mod value;
 
+#[cfg(test)]
+mod diagram_tests;
 #[cfg(test)]
 mod value_tests;

@@ -11,26 +11,65 @@ pub struct Media {
 
 impl Media {
     pub fn load(commands: &dyn CommandRunner) -> Self {
-        let arguments = ["-J", "-o", "NAME,PATH,SIZE,TYPE,MOUNTPOINT,LABEL,RM,HOTPLUG,FSTYPE"];
+        let arguments = [
+            "-J",
+            "-o",
+            "NAME,PATH,SIZE,TYPE,MOUNTPOINT,LABEL,RM,HOTPLUG,FSTYPE",
+        ];
         match commands.run("lsblk", &arguments) {
             Ok(output) => match volumes::parse(&output) {
-                Ok(volumes) => Self { volumes, error: None },
-                Err(_) => Self { error: Some("resposta inválida do lsblk".to_owned()), ..Self::default() },
+                Ok(volumes) => Self {
+                    volumes,
+                    error: None,
+                },
+                Err(_) => Self {
+                    error: Some("resposta inválida do lsblk".to_owned()),
+                    ..Self::default()
+                },
             },
-            Err(error) => Self { error: Some(error.to_string()), ..Self::default() },
+            Err(error) => Self {
+                error: Some(error.to_string()),
+                ..Self::default()
+            },
         }
+    }
+
+    pub fn volumes(&self) -> &[Volume] {
+        &self.volumes
+    }
+
+    pub fn error(&self) -> Option<&str> {
+        self.error.as_deref()
     }
 
     pub fn rows(&self) -> Vec<Row> {
         if let Some(error) = &self.error {
-            return vec![Row { id: RowId::MediaStatus, label: "Volumes externos".to_owned(), value: error.clone(), control: Control::Reading }];
+            return vec![Row {
+                id: RowId::MediaStatus,
+                label: "Volumes externos".to_owned(),
+                value: error.clone(),
+                control: Control::Reading,
+            }];
         }
-        self.volumes.iter().enumerate().map(|(index, volume)| Row {
-            id: RowId::Volume(index),
-            label: format!("{} · {} · {}", volume.name(), volume.size, volume.filesystem),
-            value: volume.mountpoint.as_ref().map(|point| format!("montado em {point}")).unwrap_or_else(|| "não montado".to_owned()),
-            control: Control::Toggle(volume.mounted()),
-        }).collect()
+        self.volumes
+            .iter()
+            .enumerate()
+            .map(|(index, volume)| Row {
+                id: RowId::Volume(index),
+                label: format!(
+                    "{} · {} · {}",
+                    volume.name(),
+                    volume.size,
+                    volume.filesystem
+                ),
+                value: volume
+                    .mountpoint
+                    .as_ref()
+                    .map(|point| format!("montado em {point}"))
+                    .unwrap_or_else(|| "não montado".to_owned()),
+                control: Control::Toggle(volume.mounted()),
+            })
+            .collect()
     }
 
     pub fn request(&self, id: RowId, change: Change) -> Option<Request> {
