@@ -116,6 +116,7 @@ fn disable(
         .map_err(|error| error.to_string())?;
     forget(video.device, blob);
     surface.hdr = HdrState::Off;
+    surface.composite = None;
     switch_format(video, surface, &SDR_FORMATS);
     Ok(())
 }

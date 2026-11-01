@@ -8,7 +8,7 @@ use smithay::backend::drm::exporter::gbm::GbmFramebufferExporter;
 use smithay::backend::drm::output::{DrmOutput, DrmOutputManager};
 use smithay::backend::drm::{DrmDevice, DrmDeviceFd, DrmEvent, DrmNode};
 use smithay::backend::egl::{EGLContext, EGLDisplay};
-use smithay::backend::renderer::gles::GlesRenderer;
+use smithay::backend::renderer::gles::{GlesRenderer, GlesTexProgram};
 use smithay::backend::session::Session;
 use smithay::backend::session::libseat::LibSeatSession;
 use smithay::output::Output;
@@ -19,6 +19,8 @@ use smithay::reexports::wayland_server::backend::GlobalId;
 use smithay::utils::DeviceFd;
 
 use crate::backend::drm::hdr::{HdrState, Video};
+use crate::backend::drm::hdr_frame;
+use crate::render::hdr::composite::Composite;
 use crate::state::Sparky;
 
 const COLOR_FORMATS: [Fourcc; 2] = [Fourcc::Argb8888, Fourcc::Abgr8888];
@@ -36,6 +38,7 @@ pub struct Surface {
     pub frame_pending: bool,
     pub idle_timer: Option<RegistrationToken>,
     pub hdr: HdrState,
+    pub composite: Option<Composite>,
 }
 
 pub struct Gpu {
@@ -46,6 +49,7 @@ pub struct Gpu {
     pub events: RegistrationToken,
     pub allocator: Allocator,
     pub formats: FormatSet,
+    pub pq: Option<GlesTexProgram>,
 }
 
 impl Gpu {
@@ -60,7 +64,8 @@ impl Gpu {
         let (drm, notifier) = DrmDevice::new(fd.clone(), true)?;
         let gbm = GbmDevice::new(fd)?;
         let display = unsafe { EGLDisplay::new(gbm.clone())? };
-        let renderer = unsafe { GlesRenderer::new(EGLContext::new(&display)?)? };
+        let mut renderer = unsafe { GlesRenderer::new(EGLContext::new(&display)?)? };
+        let pq = hdr_frame::program(&mut renderer);
         let render_formats = renderer.egl_context().dmabuf_render_formats().clone();
         let allocator = GbmAllocator::new(
             gbm.clone(),
@@ -87,6 +92,7 @@ impl Gpu {
             events,
             allocator,
             formats: render_formats,
+            pq,
         })
     }
 

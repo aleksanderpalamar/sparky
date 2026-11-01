@@ -86,6 +86,7 @@ impl Sparky {
             frame_pending: false,
             idle_timer: None,
             hdr: HdrState::Off,
+            composite: None,
         };
         if let Some(on) = rule.vrr {
             set_vrr(&surface, on);

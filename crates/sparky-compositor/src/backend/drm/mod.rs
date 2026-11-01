@@ -6,6 +6,7 @@ pub mod edid;
 pub mod gpu;
 pub mod hdr;
 pub mod hdr_edid;
+pub mod hdr_frame;
 pub mod hdr_metadata;
 pub mod hdr_props;
 pub mod modes;
