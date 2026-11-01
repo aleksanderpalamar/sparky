@@ -1,7 +1,8 @@
-use toml_edit::{Array, ArrayOfTables, DocumentMut, Item, Table, TableLike, value};
+use toml_edit::{Array, DocumentMut, Item, Table, TableLike, value};
 
 use crate::load::ConfigError;
-use crate::output::OutputRule;
+
+mod output;
 
 #[derive(Debug, Clone, Default)]
 pub struct Editor {
@@ -45,49 +46,8 @@ impl Editor {
         put(self.document.as_table_mut(), key, value(array));
     }
 
-    pub fn set_output(&mut self, rule: &OutputRule) {
-        let Some(table) = self.output_table(&rule.name) else {
-            return;
-        };
-        put(table, "name", value(rule.name.as_str()));
-        put(table, "scale", value(rule.scale.factor()));
-        let rotation =
-            (!rule.rotation.is_normal()).then(|| value(i64::from(rule.rotation.degrees())));
-        let enabled = (!rule.enabled).then(|| value(false));
-        replace(table, "mode", rule.mode.map(|mode| value(mode.to_string())));
-        replace(table, "rotation", rotation);
-        replace(table, "vrr", rule.vrr.map(value));
-        replace(table, "enabled", enabled);
-    }
-
     pub fn contents(&self) -> String {
         self.document.to_string()
-    }
-
-    fn output_table(&mut self, name: &str) -> Option<&mut Table> {
-        if !self
-            .document
-            .get("output")
-            .is_some_and(Item::is_array_of_tables)
-        {
-            self.document
-                .insert("output", Item::ArrayOfTables(ArrayOfTables::new()));
-        }
-        let outputs = self.document.get_mut("output")?.as_array_of_tables_mut()?;
-        let found = outputs
-            .iter()
-            .enumerate()
-            .filter(|(_, table)| table.get("name").and_then(Item::as_str) == Some(name))
-            .map(|(index, _)| index)
-            .last();
-        let index = match found {
-            Some(index) => index,
-            None => {
-                outputs.push(Table::new());
-                outputs.len() - 1
-            }
-        };
-        outputs.get_mut(index)
     }
 
     fn table(&mut self, name: &str) -> Option<&mut dyn TableLike> {

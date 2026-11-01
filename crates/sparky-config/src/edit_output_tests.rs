@@ -78,3 +78,26 @@ fn valores_padrao_saem_do_arquivo() {
     };
     assert!(editado(&[desligada]).contains("enabled = false"));
 }
+
+#[test]
+fn regras_em_tabelas_em_linha_sao_preservadas() {
+    let arquivo =
+        "output = [{ name = \"DP-1\", scale = 1.5 }, { name = \"HDMI-A-1\", enabled = false }]\n";
+    let Ok(antes) = parse(arquivo) else {
+        panic!("formato aceito pelo carregador")
+    };
+    assert_eq!(antes.output.len(), 2);
+    let Ok(mut editor) = Editor::parse(arquivo) else {
+        panic!("arquivo de exemplo inválido")
+    };
+    editor.set_output(&regra("DP-1"));
+    let contents = editor.contents();
+    let Ok(config) = parse(&contents) else {
+        panic!("inválido: {contents}")
+    };
+    assert_eq!(config.output.len(), 2, "{contents}");
+    let hdmi = rule_for(&config.output, "HDMI-A-1");
+    assert_eq!(hdmi.map(|regra| regra.enabled), Some(false), "{contents}");
+    let dp = rule_for(&config.output, "DP-1");
+    assert_eq!(dp.map(|regra| regra.rotation), Some(Rotation::Left));
+}
