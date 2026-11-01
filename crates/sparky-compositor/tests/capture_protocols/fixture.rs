@@ -11,6 +11,8 @@ use std::{
     time::{Duration, Instant},
 };
 
+use super::ready;
+
 pub type Error = Box<dyn std::error::Error>;
 
 pub struct Server {
@@ -40,9 +42,8 @@ impl Server {
         let mut server = Self { child, directory };
         let started = Instant::now();
         while started.elapsed() < Duration::from_secs(15) {
-            if let Ok(name) = fs::read_to_string(server.directory.path().join("ready")) {
-                let socket =
-                    std::os::unix::net::UnixStream::connect(server.directory.path().join(name))?;
+            if let Some(path) = ready::socket(server.directory.path()) {
+                let socket = std::os::unix::net::UnixStream::connect(path)?;
                 return Ok((server, wayland_client::Connection::from_socket(socket)?));
             }
             if let Some(status) = server.child.try_wait()? {
@@ -121,10 +122,7 @@ fn private_capture_server() -> Result<(), Error> {
         .desktop
         .add_monitor("capture-fixture", sparky_tiling::Rect::new(0, 0, 800, 600));
     let directory = PathBuf::from(directory);
-    fs::write(
-        directory.join("ready"),
-        state.socket_name.as_encoded_bytes(),
-    )?;
+    ready::publish(&directory, &state.socket_name)?;
     loop {
         if directory.join("resize").exists() {
             fs::remove_file(directory.join("resize"))?;
