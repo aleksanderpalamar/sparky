@@ -9,7 +9,6 @@ use crate::view::kit::controls::reading;
 use crate::view::kit::inputs::{locked_switch, picker, switch};
 use crate::view::kit::rows::Line;
 
-const HDR_NOTE: &str = "Envia HDR10 à tela: cores BT.2020, curva PQ e 10 bits por cor.";
 const NO_HDR_NOTE: &str = "Este monitor não anuncia HDR10 (curva PQ e cores BT.2020).";
 
 pub fn choice<'a>(
@@ -59,15 +58,16 @@ pub fn active<'a>(
 
 pub fn high_dynamic_range<'a>(settings: &Settings, output: &OutputInfo) -> Element<'a, Message> {
     let skin = settings.context.skin;
-    let (control, note) = match output.hdr {
-        Hdr::Unsupported => (locked_switch(skin, false), NO_HDR_NOTE),
+    match output.hdr {
+        Hdr::Unsupported => Line::new("HDR", locked_switch(skin, false))
+            .note(NO_HDR_NOTE)
+            .view(skin),
         state => {
             let on = state == Hdr::On;
             let change = Message::Screen(output.name.clone(), ScreenChange::Hdr(!on));
-            (switch(skin, on, change), HDR_NOTE)
+            Line::new("HDR", switch(skin, on, change)).view(skin)
         }
-    };
-    Line::new("HDR", control).note(note).view(skin)
+    }
 }
 
 pub fn variable_rate<'a>(settings: &Settings, output: &OutputInfo) -> Element<'a, Message> {
