@@ -11,7 +11,8 @@ use smithay::utils::{Clock, Monotonic};
 use smithay::wayland::dmabuf::get_dmabuf;
 use smithay::wayland::shm::with_buffer_contents_mut;
 
-use crate::screencopy::rules::{Shape, accepts, copy_bgra, orient};
+use crate::screencopy::orient::orient;
+use crate::screencopy::rules::{Shape, accepts, copy_bgra};
 use crate::screencopy::{Frame, FrameData};
 use crate::state::Sparky;
 
@@ -113,8 +114,8 @@ impl Sparky {
             }
             let pool = unsafe { std::slice::from_raw_parts_mut(pointer, length) };
             copy_bgra(
-                &pixels,
-                image.width as usize,
+                &pixels.rgba,
+                pixels.width,
                 &mut pool[offset..],
                 info.stride as usize,
             )

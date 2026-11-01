@@ -10,6 +10,8 @@ fn monitor(name: &str, x: i32, width: i32, height: i32, focused: bool) -> Output
         width,
         height,
         focused,
+        enabled: true,
+        ..OutputInfo::default()
     }
 }
 
@@ -48,4 +50,19 @@ fn monitores_lado_a_lado_mantem_ordem_e_posicao() {
 #[test]
 fn sem_monitores_nao_ha_desenho() {
     assert!(map(&[], 400.0, 176.0).is_empty());
+}
+
+#[test]
+fn tela_desligada_fica_fora_do_desenho() {
+    let desligada = OutputInfo {
+        enabled: false,
+        ..monitor("DP-1", 0, 0, 0, false)
+    };
+    let places = map(
+        &[monitor("HDMI-A-1", 0, 1920, 1080, true), desligada],
+        424.0,
+        176.0,
+    );
+    assert_eq!(places.len(), 1);
+    assert!((places[0].height - 150.0).abs() < 0.01);
 }

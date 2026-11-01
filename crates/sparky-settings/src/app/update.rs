@@ -63,6 +63,7 @@ fn apply(settings: &mut Settings, message: Message) {
         Message::Slide(target, value) => settings.sliding = Some((target, value)),
         Message::Release => settings.release(),
         Message::Choose(id, value) => settings.choose(id, value),
+        Message::Screen(name, change) => settings.change_screen(&name, change),
         Message::Key(..) | Message::Activate(_) | Message::Close => {}
     }
 }

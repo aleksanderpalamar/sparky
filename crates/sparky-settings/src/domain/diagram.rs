@@ -21,7 +21,8 @@ struct Extent {
 }
 
 pub fn map(outputs: &[OutputInfo], width: f32, height: f32) -> Vec<Placement> {
-    let Some(extent) = extent(outputs) else {
+    let outputs: Vec<&OutputInfo> = outputs.iter().filter(|output| output.enabled).collect();
+    let Some(extent) = extent(&outputs) else {
         return Vec::new();
     };
     let usable = (width - MARGIN * 2.0).max(1.0);
@@ -43,7 +44,7 @@ pub fn map(outputs: &[OutputInfo], width: f32, height: f32) -> Vec<Placement> {
         .collect()
 }
 
-fn extent(outputs: &[OutputInfo]) -> Option<Extent> {
+fn extent(outputs: &[&OutputInfo]) -> Option<Extent> {
     let left = outputs.iter().map(|output| output.x).min()? as f32;
     let top = outputs.iter().map(|output| output.y).min()? as f32;
     let right = outputs.iter().map(|output| output.x + output.width).max()? as f32;

@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::output::OutputInfo;
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "request", rename_all = "snake_case")]
 pub enum Request {
@@ -76,16 +78,6 @@ pub struct WorkspaceInfo {
     pub focused: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct OutputInfo {
-    pub name: String,
-    pub x: i32,
-    pub y: i32,
-    pub width: i32,
-    pub height: i32,
-    pub focused: bool,
-}
-
 #[cfg(test)]
 mod tests {
     use super::{Event, Reply, Request, WorkspaceInfo};
@@ -99,7 +91,13 @@ mod tests {
     #[test]
     fn a_captura_leva_a_area_e_o_caminho() {
         let request = super::Request::Capture {
-            area: super::CaptureArea::Region { output: None, x: 1, y: 2, width: 3, height: 4 },
+            area: super::CaptureArea::Region {
+                output: None,
+                x: 1,
+                y: 2,
+                width: 3,
+                height: 4,
+            },
             path: "/tmp/a.png".to_owned(),
         };
         let json = serde_json::to_string(&request).unwrap_or_default();
@@ -107,7 +105,10 @@ mod tests {
             json,
             r#"{"request":"capture","area":{"kind":"region","output":null,"x":1,"y":2,"width":3,"height":4},"path":"/tmp/a.png"}"#
         );
-        assert_eq!(serde_json::from_str::<super::Request>(&json).ok(), Some(request));
+        assert_eq!(
+            serde_json::from_str::<super::Request>(&json).ok(),
+            Some(request)
+        );
     }
 
     #[test]
@@ -135,13 +136,12 @@ mod tests {
                 width: 2560,
                 height: 1440,
                 focused: true,
+                ..super::OutputInfo::default()
             }],
         };
         let json = serde_json::to_string(&reply).unwrap_or_default();
-        assert_eq!(
-            json,
-            r#"{"reply":"outputs","outputs":[{"name":"DP-1","x":1920,"y":0,"width":2560,"height":1440,"focused":true}]}"#
-        );
+        let inicio = r#"{"reply":"outputs","outputs":[{"name":"DP-1","x":1920,"y":0,"width":2560,"height":1440,"focused":true,"#;
+        assert!(json.starts_with(inicio), "{json}");
         assert_eq!(serde_json::from_str::<Reply>(&json).ok(), Some(reply));
     }
 
@@ -163,11 +163,16 @@ mod tests {
     #[test]
     fn o_pedido_de_sessao_leva_a_acao_pelo_nome() {
         use super::{Request, SessionAction};
-        let pedido = Request::Session { action: SessionAction::Poweroff };
+        let pedido = Request::Session {
+            action: SessionAction::Poweroff,
+        };
         let json = serde_json::to_string(&pedido).unwrap_or_default();
         assert_eq!(json, r#"{"request":"session","action":"poweroff"}"#);
         assert_eq!(serde_json::from_str::<Request>(&json).ok(), Some(pedido));
-        assert_eq!(SessionAction::named("suspend"), Some(SessionAction::Suspend));
+        assert_eq!(
+            SessionAction::named("suspend"),
+            Some(SessionAction::Suspend)
+        );
         assert_eq!(SessionAction::named("voar"), None);
     }
 }

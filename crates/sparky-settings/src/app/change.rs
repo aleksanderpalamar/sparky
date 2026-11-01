@@ -48,7 +48,7 @@ impl Settings {
         checked.map_err(|unknown| unknown.to_string())
     }
 
-    fn edit(&mut self, what: &str, change: impl FnOnce(&mut Editor)) {
+    pub(crate) fn edit(&mut self, what: &str, change: impl FnOnce(&mut Editor)) {
         let Source::Editable(editor) = &self.source else {
             return self
                 .fail("o sparky.toml não pôde ser lido; corrija o arquivo antes de mudar algo");

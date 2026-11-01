@@ -37,6 +37,9 @@ impl Settings {
         ]
         .concat();
         self.pickers.refresh(&rows);
+        if let Ok(outputs) = &self.outputs {
+            self.pickers.refresh_screens(outputs);
+        }
     }
 
     pub fn reload_system(&mut self) {

@@ -2,6 +2,8 @@ use toml_edit::{Array, DocumentMut, Item, Table, TableLike, value};
 
 use crate::load::ConfigError;
 
+mod output;
+
 #[derive(Debug, Clone, Default)]
 pub struct Editor {
     document: DocumentMut,
@@ -52,7 +54,18 @@ impl Editor {
         if !self.document.get(name).is_some_and(Item::is_table_like) {
             self.document.insert(name, Item::Table(Table::new()));
         }
-        self.document.get_mut(name).and_then(Item::as_table_like_mut)
+        self.document
+            .get_mut(name)
+            .and_then(Item::as_table_like_mut)
+    }
+}
+
+fn replace(table: &mut dyn TableLike, key: &str, new: Option<Item>) {
+    match new {
+        Some(new) => put(table, key, new),
+        None => {
+            table.remove(key);
+        }
     }
 }
 
@@ -118,12 +131,17 @@ mod tests {
     fn a_lista_fica_no_topo_antes_das_tabelas() {
         let mut editor = Editor::default();
         editor.set_number("general", "border", 3);
-        editor.set_list("autostart", &["mako".to_owned(), "nm-applet --indicator".to_owned()]);
+        editor.set_list(
+            "autostart",
+            &["mako".to_owned(), "nm-applet --indicator".to_owned()],
+        );
         let contents = editor.contents();
         let lista = contents.find("autostart");
         let tabela = contents.find("[general]");
         assert!(lista < tabela, "{contents}");
-        let Ok(config) = parse(&contents) else { panic!("inválido: {contents}") };
+        let Ok(config) = parse(&contents) else {
+            panic!("inválido: {contents}")
+        };
         assert_eq!(config.autostart, ["mako", "nm-applet --indicator"]);
     }
 

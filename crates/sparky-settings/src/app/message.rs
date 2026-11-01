@@ -2,6 +2,7 @@ use iced::Size;
 use iced::keyboard::{Key, Modifiers};
 
 use crate::app::state::Target;
+use crate::domain::screens::ScreenChange;
 use crate::domain::section::Section;
 use crate::domain::system::RowId;
 use crate::domain::value::Step;
@@ -29,4 +30,5 @@ pub enum Message {
     Slide(Target, i32),
     Release,
     Choose(RowId, String),
+    Screen(String, ScreenChange),
 }

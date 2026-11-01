@@ -28,6 +28,13 @@ pub fn switch<'a>(skin: Skin, on: bool, message: Message) -> Element<'a, Message
         .into()
 }
 
+pub fn locked_switch<'a>(skin: Skin, on: bool) -> Element<'a, Message> {
+    toggler(on)
+        .size(SWITCH_SIZE)
+        .style(switch_look(skin))
+        .into()
+}
+
 pub fn level<'a>(skin: Skin, level: Level, reading: String) -> Element<'a, Message> {
     let Level {
         target,
