@@ -34,13 +34,16 @@ impl Sparky {
         rule_for(&self.config.output, name).is_some_and(|rule| !rule.enabled)
     }
 
+    pub fn apply_hdr(&mut self) {
+        self.with_drm(|state, drm| state.adjust_hdr(&mut drm.gpu));
+        self.needs_render = true;
+    }
+
     fn adjust_surfaces(&mut self, drm: &mut Drm) {
         let Gpu {
             manager,
             renderer,
             surfaces,
-            allocator,
-            formats,
             ..
         } = &mut drm.gpu;
         for surface in surfaces.values_mut() {
@@ -52,14 +55,31 @@ impl Sparky {
             if let Some(on) = rule.vrr {
                 set_vrr(surface, on);
             }
-            let video = Video {
-                device: manager.device(),
-                allocator,
-                formats,
-            };
-            hdr::set(&video, surface, rule.hdr);
         }
+        self.adjust_hdr(&mut drm.gpu);
         self.needs_render = true;
+    }
+
+    fn adjust_hdr(&self, gpu: &mut Gpu) {
+        let Gpu {
+            manager,
+            surfaces,
+            allocator,
+            formats,
+            ..
+        } = gpu;
+        let video = Video {
+            device: manager.device(),
+            allocator,
+            formats,
+        };
+        for surface in surfaces.values_mut() {
+            hdr::set(
+                &video,
+                surface,
+                self.output_rule(&surface.output.name()).hdr,
+            );
+        }
     }
 }
 

@@ -9,8 +9,9 @@ use smithay::utils::Scale;
 
 use crate::backend::drm::Drm;
 use crate::backend::drm::gpu::{Gpu, Surface};
-use crate::backend::drm::hdr::HdrState;
+use crate::backend::drm::hdr::{self, Video};
 use crate::backend::drm::hdr_frame;
+use crate::backend::drm::hdr_state::HdrState;
 use crate::backend::nested::send_frames;
 use crate::diagnostics::metrics::{Metrics, Phase};
 use crate::render::cursor::{Pointer, cursor_elements};
@@ -48,8 +49,11 @@ fn render_surface(state: &mut Sparky, drm: &mut Drm, crtc: crtc::Handle) {
     elements.extend(output_elements(state, &mut drm.gpu.renderer, &output));
     let clear = state.colors.background;
     let Gpu {
+        manager,
         renderer,
         surfaces,
+        allocator,
+        formats,
         pq,
         ..
     } = &mut drm.gpu;
@@ -69,7 +73,16 @@ fn render_surface(state: &mut Sparky, drm: &mut Drm, crtc: crtc::Handle) {
     };
     metrics.rendered(started.elapsed());
     match result {
-        Ok(false) => queue(surface, &metrics),
+        Ok(false) => {
+            if let Err(error) = queue(surface, &metrics) {
+                let video = Video {
+                    device: manager.device(),
+                    allocator,
+                    formats,
+                };
+                state.needs_render |= hdr::fall_back(&video, surface, &error);
+            }
+        }
         Ok(true) => schedule_idle_frames(state, surface, crtc),
         Err(error) => {
             metrics.error();
@@ -101,7 +114,7 @@ fn pointer(state: &Sparky, drm: &mut Drm, output: &Output) -> Vec<SparkyElement<
     cursor_elements(&mut drm.gpu.renderer, &pointer, scale)
 }
 
-fn queue(surface: &mut Surface, metrics: &Metrics) {
+fn queue(surface: &mut Surface, metrics: &Metrics) -> Result<(), String> {
     metrics.phase(Phase::Queue);
     let started = Instant::now();
     match surface.drm_output.queue_frame(()) {
@@ -109,10 +122,12 @@ fn queue(surface: &mut Surface, metrics: &Metrics) {
             surface.frame_pending = true;
             metrics.queued(started.elapsed());
             tracing::trace!(output = %surface.output.name(), "quadro enfileirado");
+            Ok(())
         }
         Err(error) => {
             metrics.error();
             tracing::warn!(output = %surface.output.name(), "quadro não enfileirado: {error}");
+            Err(error.to_string())
         }
     }
 }
@@ -156,6 +171,7 @@ impl Sparky {
             surface.frame_pending = false;
             let output = surface.output.clone();
             send_frames(state, &output);
+            drm.gpu.start_hdr(crtc);
             render_surface(state, drm, crtc);
         });
     }

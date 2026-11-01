@@ -18,8 +18,9 @@ use smithay::reexports::rustix::fs::OFlags;
 use smithay::reexports::wayland_server::backend::GlobalId;
 use smithay::utils::DeviceFd;
 
-use crate::backend::drm::hdr::{HdrState, Video};
+use crate::backend::drm::hdr::{self, Video};
 use crate::backend::drm::hdr_frame;
+use crate::backend::drm::hdr_state::HdrState;
 use crate::render::hdr::composite::Composite;
 use crate::state::Sparky;
 
@@ -102,6 +103,25 @@ impl Gpu {
             allocator: &self.allocator,
             formats: &self.formats,
         }
+    }
+
+    pub fn start_hdr(&mut self, crtc: crtc::Handle) {
+        let Self {
+            manager,
+            surfaces,
+            allocator,
+            formats,
+            ..
+        } = self;
+        let Some(surface) = surfaces.get_mut(&crtc) else {
+            return;
+        };
+        let video = Video {
+            device: manager.device(),
+            allocator,
+            formats,
+        };
+        hdr::start(&video, surface);
     }
 
     pub fn assigned(&self) -> Vec<(connector::Handle, crtc::Handle)> {
