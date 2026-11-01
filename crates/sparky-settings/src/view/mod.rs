@@ -22,6 +22,7 @@ use crate::domain::section::Section;
 use crate::view::kit::chrome::{TITLE, footer, header, separator};
 use crate::view::kit::look::surface;
 use crate::view::kit::nav::sidebar;
+use crate::view::kit::reveal::CONTENT;
 use crate::view::kit::rows::notice_bar;
 use crate::view::kit::tokens::space;
 
@@ -56,6 +57,7 @@ fn content(settings: &Settings) -> Element<'_, Message> {
             .width(Length::Fill)
             .padding(gutter),
     )
+    .id(CONTENT)
     .height(Length::Fill);
     let mut body = Column::new().push(scrolled).spacing(space::XXL);
     if let Some(notice) = &settings.notice {
