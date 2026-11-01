@@ -107,3 +107,36 @@ fn escolher_um_fundo_pelo_nome_do_arquivo() {
     assert_eq!(chosen(&nord, "outro.jpg"), None);
     assert_eq!(chosen(&temas("liso"), "2-b.webp"), None);
 }
+
+#[test]
+fn fundos_com_o_mesmo_nome_viram_opcoes_distintas() {
+    let nord = tema(
+        "nord",
+        "#010203",
+        &[
+            "/pessoal/nord/a.jpg",
+            "/pessoal/nord/b.jpg",
+            "/sistema/nord/a.jpg",
+        ],
+    );
+    let temas = Themes::Ready(Catalog {
+        current: nord.palette(),
+        themes: vec![nord],
+    });
+    let Some(linha) = row(&temas, Some("/sistema/nord/a.jpg")) else {
+        panic!("sem linha")
+    };
+    let Control::Choice(opcoes) = linha.control else {
+        panic!("sem lista")
+    };
+    assert_eq!(opcoes, ["a.jpg", "b.jpg", "a.jpg (2)"]);
+    assert_eq!(linha.value, "3 de 3 · a.jpg (2)");
+    assert_eq!(
+        chosen(&temas, "a.jpg (2)"),
+        Some(PathBuf::from("/sistema/nord/a.jpg"))
+    );
+    assert_eq!(
+        chosen(&temas, "a.jpg"),
+        Some(PathBuf::from("/pessoal/nord/a.jpg"))
+    );
+}
