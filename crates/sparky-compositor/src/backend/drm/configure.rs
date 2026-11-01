@@ -66,12 +66,14 @@ impl Sparky {
             surfaces,
             allocator,
             formats,
+            pq,
             ..
         } = gpu;
         let video = Video {
             device: manager.device(),
             allocator,
             formats,
+            pq: pq.as_ref(),
         };
         for surface in surfaces.values_mut() {
             hdr::set(

@@ -102,6 +102,7 @@ impl Gpu {
             device: self.manager.device(),
             allocator: &self.allocator,
             formats: &self.formats,
+            pq: self.pq.as_ref(),
         }
     }
 
@@ -111,6 +112,7 @@ impl Gpu {
             surfaces,
             allocator,
             formats,
+            pq,
             ..
         } = self;
         let Some(surface) = surfaces.get_mut(&crtc) else {
@@ -120,6 +122,7 @@ impl Gpu {
             device: manager.device(),
             allocator,
             formats,
+            pq: pq.as_ref(),
         };
         hdr::start(&video, surface);
     }

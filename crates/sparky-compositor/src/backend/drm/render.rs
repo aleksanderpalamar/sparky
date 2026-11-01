@@ -79,6 +79,7 @@ fn render_surface(state: &mut Sparky, drm: &mut Drm, crtc: crtc::Handle) {
                     device: manager.device(),
                     allocator,
                     formats,
+                    pq: pq.as_ref(),
                 };
                 state.needs_render |= hdr::fall_back(&video, surface, &error);
             }

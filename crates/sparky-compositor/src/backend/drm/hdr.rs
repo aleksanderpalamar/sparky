@@ -1,23 +1,22 @@
-use smithay::backend::allocator::Fourcc;
 use smithay::backend::allocator::format::FormatSet;
 use smithay::backend::drm::DrmDevice;
+use smithay::backend::renderer::gles::GlesTexProgram;
 use smithay::reexports::drm::control::{Device as ControlDevice, connector, property};
 use sparky_ipc::Hdr;
 
 use crate::backend::drm::gpu::{Allocator, Surface};
 use crate::backend::drm::hdr_edid::{HdrCapability, hdr_capability};
+use crate::backend::drm::hdr_format::{HDR_FORMATS, SDR_FORMATS, switch_format};
 use crate::backend::drm::hdr_metadata::hdr10;
 use crate::backend::drm::hdr_props::{self, HdrProperties, Signal};
 use crate::backend::drm::hdr_state::{HdrState, Step};
 use crate::backend::drm::screens::edid_blob;
 
-const HDR_FORMATS: [Fourcc; 2] = [Fourcc::Xrgb2101010, Fourcc::Xbgr2101010];
-const SDR_FORMATS: [Fourcc; 2] = [Fourcc::Argb8888, Fourcc::Abgr8888];
-
 pub struct Video<'a> {
     pub device: &'a DrmDevice,
     pub allocator: &'a Allocator,
     pub formats: &'a FormatSet,
+    pub pq: Option<&'a GlesTexProgram>,
 }
 
 pub fn state(device: &DrmDevice, handle: connector::Handle, surface: Option<&Surface>) -> Hdr {
@@ -50,7 +49,9 @@ pub fn start(video: &Video, surface: &mut Surface) {
         return;
     }
     if let Err(error) = enable(video, surface) {
-        surface.hdr = HdrState::Off;
+        if surface.hdr == HdrState::Pending {
+            surface.hdr = HdrState::Off;
+        }
         tracing::warn!(output = %surface.output.name(), "HDR não aplicado: {error}");
     }
 }
@@ -86,7 +87,10 @@ fn capability(device: &DrmDevice, handle: connector::Handle) -> HdrCapability {
     edid_blob(device, handle).map_or_else(HdrCapability::default, |bytes| hdr_capability(&bytes))
 }
 
-fn signal_on(device: &DrmDevice, connector: connector::Handle) -> Result<HdrState, String> {
+fn signal_on(
+    device: &DrmDevice,
+    connector: connector::Handle,
+) -> Result<(HdrProperties, u64), String> {
     let capability = capability(device, connector);
     if !capability.supported() {
         return Err("o monitor não anuncia HDR10 (PQ e BT.2020)".to_owned());
@@ -103,13 +107,20 @@ fn signal_on(device: &DrmDevice, connector: connector::Handle) -> Result<HdrStat
         forget(device, blob);
         return Err(error.to_string());
     }
-    Ok(HdrState::On { properties, blob })
+    Ok((properties, blob))
 }
 
 fn enable(video: &Video, surface: &mut Surface) -> Result<(), String> {
-    surface.hdr = signal_on(video.device, surface.connector)?;
+    if video.pq.is_none() {
+        return Err("a conversão para PQ não está disponível".to_owned());
+    }
+    let (properties, blob) = signal_on(video.device, surface.connector)?;
+    surface.hdr = HdrState::On { properties, blob };
     resync(surface);
-    switch_format(video, surface, &HDR_FORMATS);
+    if let Err(error) = switch_format(video, surface, &HDR_FORMATS) {
+        disable(video, surface, properties, blob)?;
+        return Err(error);
+    }
     Ok(())
 }
 
@@ -126,7 +137,9 @@ fn disable(
     surface.hdr = HdrState::Off;
     surface.composite = None;
     resync(surface);
-    switch_format(video, surface, &SDR_FORMATS);
+    if let Err(error) = switch_format(video, surface, &SDR_FORMATS) {
+        tracing::warn!(output = %surface.output.name(), "formato SDR mantido: {error}");
+    }
     Ok(())
 }
 
@@ -142,24 +155,5 @@ fn resync(surface: &Surface) {
 fn forget(device: &DrmDevice, blob: u64) {
     if let Err(error) = device.destroy_property_blob(blob) {
         tracing::warn!("metadados HDR não liberados: {error}");
-    }
-}
-
-fn switch_format(video: &Video, surface: &Surface, formats: &[Fourcc]) {
-    let chosen = surface.drm_output.with_compositor(|compositor| {
-        formats.iter().copied().find(|code| {
-            let modifiers = video
-                .formats
-                .iter()
-                .filter(|format| format.code == *code)
-                .map(|format| format.modifier);
-            compositor
-                .set_format(video.allocator.clone(), *code, modifiers)
-                .is_ok()
-        })
-    });
-    match chosen {
-        Some(code) => tracing::info!(output = %surface.output.name(), "formato de saída {code:?}"),
-        None => tracing::warn!(output = %surface.output.name(), "formato de saída mantido"),
     }
 }

@@ -14,19 +14,11 @@ pub fn row(themes: &Themes, configured: Option<&str>) -> Option<Row> {
     if total == 0 {
         return None;
     }
+    let names = labels(theme);
     let value = match position(theme, configured) {
-        Some(index) => format!(
-            "{} de {total} · {}",
-            index + 1,
-            file_name(theme.wallpapers().get(index)?)
-        ),
+        Some(index) => format!("{} de {total} · {}", index + 1, names.get(index)?),
         None => format!("{total} do tema · outro em uso"),
     };
-    let names = theme
-        .wallpapers()
-        .iter()
-        .map(|path| file_name(path))
-        .collect();
     Some(Row {
         id: RowId::Wallpaper,
         label: LABEL.to_owned(),
@@ -35,12 +27,12 @@ pub fn row(themes: &Themes, configured: Option<&str>) -> Option<Row> {
     })
 }
 
-pub fn chosen(themes: &Themes, name: &str) -> Option<PathBuf> {
-    current(themes)?
-        .wallpapers()
+pub fn chosen(themes: &Themes, label: &str) -> Option<PathBuf> {
+    let theme = current(themes)?;
+    let index = labels(theme)
         .iter()
-        .find(|path| file_name(path) == name.trim())
-        .cloned()
+        .position(|candidate| candidate == label.trim())?;
+    theme.wallpapers().get(index).cloned()
 }
 
 pub fn step(themes: &Themes, configured: Option<&str>, step: Step) -> Option<PathBuf> {
@@ -77,6 +69,26 @@ fn position(theme: &Theme, configured: Option<&str>) -> Option<usize> {
         None if theme.name == DEFAULT_THEME => Some(0),
         None => None,
     }
+}
+
+fn labels(theme: &Theme) -> Vec<String> {
+    let names: Vec<String> = theme
+        .wallpapers()
+        .iter()
+        .map(|path| file_name(path))
+        .collect();
+    names
+        .iter()
+        .enumerate()
+        .map(|(index, name)| match repeated(&names[..index], name) {
+            0 => name.clone(),
+            earlier => format!("{name} ({})", earlier + 1),
+        })
+        .collect()
+}
+
+fn repeated(earlier: &[String], name: &str) -> usize {
+    earlier.iter().filter(|other| *other == name).count()
 }
 
 fn file_name(path: &Path) -> String {

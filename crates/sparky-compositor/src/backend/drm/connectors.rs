@@ -26,6 +26,7 @@ impl Sparky {
         let Some((names, found)) = candidates(drm.gpu.manager.device()) else {
             return;
         };
+        let present: Vec<_> = found.iter().map(|candidate| candidate.connector).collect();
         let kept = modes::kept(&names, |name| self.output_disabled(name));
         let found: Vec<_> = found
             .into_iter()
@@ -33,7 +34,7 @@ impl Sparky {
             .filter(|(_, kept)| *kept)
             .map(|(candidate, _)| candidate)
             .collect();
-        let plan = crtcs::plan(&found, &drm.gpu.assigned());
+        let plan = crtcs::plan(&found, &present, &drm.gpu.assigned());
         for connector in plan.disconnect {
             self.disconnect(&mut drm.gpu, connector);
         }
@@ -42,9 +43,20 @@ impl Sparky {
                 tracing::warn!("monitor não ligado: {error}");
             }
         }
+        self.release_disabled(&mut drm.gpu, &plan.release);
         self.sync_outputs();
         self.relayout();
         self.needs_render = true;
+    }
+
+    fn release_disabled(&mut self, gpu: &mut Gpu, release: &[connector::Handle]) {
+        let allowed = crtcs::releasable(release, gpu.surfaces.len());
+        if allowed.len() < release.len() {
+            tracing::warn!("a tela continua ligada: nenhuma outra tela ligou no lugar dela");
+        }
+        for connector in allowed {
+            self.disconnect(gpu, connector);
+        }
     }
 
     fn connect(
