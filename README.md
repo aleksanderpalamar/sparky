@@ -26,6 +26,7 @@ Somente os temas vem do [Omarchy](https://github.com/basecamp/omarchy): como pal
 | `crates/sparky-terminal` | O terminal padrão (`sparky-terminal`): abre o shell do usuário com as cores, a fonte e o layout do tema do sparky |
 | `crates/sparky-keyring` | O chaveiro (`sparky-keyring`): guarda as senhas dos aplicativos num cofre cifrado e atende a API Secret Service do D-Bus |
 | `crates/sparky-keyring-prompt` | A janela que pede a senha do cofre (`sparky-keyring-prompt`) |
+| `crates/sparky-login-greeter` | A tela de login (`sparky-login-greeter`): relógio, usuário, senha, energia e escolha da sessão |
 | `crates/polkit-sparky` | Agente de autenticação do sistema, com janela nativa, temas e integração polkit/PAM |
 | `crates/sparky-theme` | Paleta de cores compartilhada pelos aplicativos, lida do `colors.toml` do tema |
 | `data/themes` | Temas no formato `colors.toml` |
@@ -233,6 +234,18 @@ O `sparky-keyring` guarda as senhas e tokens que os aplicativos pedem para lembr
 - Há um cofre só, o padrão (`default`/`login`). O transporte das senhas pelo D-Bus usa o algoritmo `plain` da especificação; aplicativos que pedem o algoritmo cifrado recebem a recusa e repetem com `plain`, como manda a especificação.
 
 Se outro chaveiro (gnome-keyring, KWallet) já tiver o nome `org.freedesktop.secrets` quando a sessão subir, o `sparky-keyring` avisa no log e não sobe; as senhas continuam com o outro chaveiro. As senhas que já estavam no gnome-keyring não são copiadas: cada aplicativo pede login uma vez dentro do sparky.
+
+## Tela de login
+
+O `sparky-login-greeter` é a tela de login própria do sparky, feita para substituir o SDDM, o GDM e afins. À esquerda, em 40% da largura, ficam o relógio em 12 horas (`06:19 PM`), a data (`Monday 2 November`), o usuário, a senha, o botão **Login**, os botões **Desligar**, **Reiniciar** e **Suspend** e a sessão (`Session (Sparky)`); essa faixa recebe um desfoque leve do papel de parede, que cobre a tela sem distorcer. Os tamanhos seguem a altura da tela (em 1080 linhas, o relógio tem 156 px e os campos 39 px) e as cores vêm do tema do sparky.
+
+- O nome de usuário fica em minúsculas; com o último usuário já preenchido, o foco começa na senha.
+- `Tab` e `SHIFT + Tab` passam por usuário, senha, Login, energia e sessão; `Enter` confirma o que está em foco, e na sessão passa para a próxima.
+- O olho no campo da senha mostra e esconde o que foi digitado.
+- As sessões vêm dos `.desktop` de `wayland-sessions` em `$XDG_DATA_DIRS` (sem a variável, `/usr/local/share` e `/usr/share`), sem as ocultas e as que não estão instaladas; a primeira pasta vence quando o arquivo se repete, e sem preferência vale o Sparky.
+- Senha errada apaga a senha e mostra `Falha no login!` acima do usuário.
+
+Por enquanto só existe a prévia, que abre em qualquer sessão Wayland com layer-shell: `sparky-login-greeter --preview [--wallpaper <imagem>]`. Sem `--wallpaper`, vale o primeiro papel de parede do tema padrão. Na prévia nenhuma senha entra, os botões de energia não fazem nada e `Esc` fecha. O serviço que autentica pelo PAM e abre a sessão vem na próxima etapa.
 
 ## Arquivos
 
