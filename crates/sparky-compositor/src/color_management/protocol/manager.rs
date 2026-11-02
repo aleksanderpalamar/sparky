@@ -16,10 +16,11 @@ use crate::color_management::presets;
 use crate::state::Sparky;
 
 pub const VERSION: u32 = 2;
-const FEATURES: [Feature; 4] = [
+const FEATURES: [Feature; 5] = [
     Feature::Parametric,
     Feature::SetLuminances,
     Feature::SetMasteringDisplayPrimaries,
+    Feature::ExtendedTargetVolume,
     Feature::WindowsScrgb,
 ];
 

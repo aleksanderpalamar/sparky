@@ -1,6 +1,8 @@
 pub mod description;
 pub mod params;
 #[cfg(test)]
+mod params_light_tests;
+#[cfg(test)]
 mod params_tests;
 mod placement;
 pub mod presets;

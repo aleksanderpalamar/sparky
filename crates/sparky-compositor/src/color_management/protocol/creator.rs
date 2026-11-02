@@ -27,7 +27,7 @@ impl Dispatch<WpImageDescriptionCreatorParamsV1, Mutex<Params>> for Sparky {
         };
         let result = match request {
             Request::Create { image_description } => {
-                let built = std::mem::take(&mut *params).build(creator.version());
+                let built = std::mem::take(&mut *params).build();
                 return create(state, creator, init, image_description, built);
             }
             Request::SetTfNamed { tf } => names::supported_transfer(tf)

@@ -4,7 +4,7 @@ use super::description::{
 };
 use super::standards::PQ_SWING;
 
-const RELAXED_LIGHT_VERSION: u32 = 2;
+const UNKNOWN: u32 = 0;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ParamsError {
@@ -50,7 +50,7 @@ impl Params {
     }
 
     pub fn set_mastering_luminance(&mut self, luminance: Range) -> Result<(), ParamsError> {
-        if !brighter(luminance.min, luminance.max) {
+        if known_range(&luminance) && !brighter(luminance.min, luminance.max) {
             return Err(ParamsError::InvalidLuminance);
         }
         fill(&mut self.mastering_luminance, luminance)
@@ -64,7 +64,7 @@ impl Params {
         fill(&mut self.max_fall, value)
     }
 
-    pub fn build(self, version: u32) -> Result<ImageDescription, ParamsError> {
+    pub fn build(self) -> Result<ImageDescription, ParamsError> {
         let (Some(transfer), Some(primaries)) = (self.transfer, self.primaries) else {
             return Err(ParamsError::IncompleteSet);
         };
@@ -76,13 +76,16 @@ impl Params {
             primaries: self
                 .mastering_primaries
                 .unwrap_or(standard.target.primaries),
-            luminance: self.mastering_luminance.unwrap_or(luminances.range()),
+            luminance: self
+                .mastering_luminance
+                .filter(known_range)
+                .unwrap_or(luminances.range()),
         };
         let light = ContentLight {
-            max_cll: self.max_cll,
-            max_fall: self.max_fall,
+            max_cll: self.max_cll.filter(known),
+            max_fall: self.max_fall.filter(known),
         };
-        check_light(light, target.luminance, version)?;
+        check_light(light)?;
         Ok(ImageDescription {
             luminances,
             target,
@@ -118,22 +121,17 @@ fn swing(transfer: TransferFunction, luminances: Luminances) -> Luminances {
     }
 }
 
-fn check_light(light: ContentLight, target: Range, version: u32) -> Result<(), ParamsError> {
-    if let (Some(max_cll), Some(max_fall)) = (light.max_cll, light.max_fall)
-        && max_fall > max_cll
-    {
-        return Err(ParamsError::InvalidLuminance);
-    }
-    if version >= RELAXED_LIGHT_VERSION {
-        return Ok(());
-    }
-    let inside = |nits: u32| brighter(target.min, nits) && nits <= target.max;
-    match [light.max_cll, light.max_fall]
-        .into_iter()
-        .flatten()
-        .all(inside)
-    {
-        true => Ok(()),
-        false => Err(ParamsError::InvalidLuminance),
+fn known(nits: &u32) -> bool {
+    *nits != UNKNOWN
+}
+
+fn known_range(range: &Range) -> bool {
+    known(&range.max)
+}
+
+fn check_light(light: ContentLight) -> Result<(), ParamsError> {
+    match (light.max_cll, light.max_fall) {
+        (Some(max_cll), Some(max_fall)) if max_fall > max_cll => Err(ParamsError::InvalidLuminance),
+        _ => Ok(()),
     }
 }
