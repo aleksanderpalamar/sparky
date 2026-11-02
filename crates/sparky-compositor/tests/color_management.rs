@@ -46,6 +46,7 @@ fn anuncia_versao_2_com_intencao_recursos_curvas_e_primarias() -> Result<(), Err
             Feature::Parametric,
             Feature::SetLuminances,
             Feature::SetMasteringDisplayPrimaries,
+            Feature::ExtendedTargetVolume,
             Feature::WindowsScrgb,
         ]
         .map(WEnum::Value)

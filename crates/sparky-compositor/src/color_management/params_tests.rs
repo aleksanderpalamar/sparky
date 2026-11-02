@@ -12,19 +12,19 @@ fn named(transfer: TransferFunction, primaries: NamedPrimaries) -> Result<Params
 
 #[test]
 fn sem_curva_ou_primarias_o_conjunto_esta_incompleto() -> Result<(), ParamsError> {
-    assert_eq!(Params::default().build(2), Err(ParamsError::IncompleteSet));
+    assert_eq!(Params::default().build(), Err(ParamsError::IncompleteSet));
     let mut curva = Params::default();
     curva.set_transfer(TransferFunction::Srgb)?;
-    assert_eq!(curva.build(2), Err(ParamsError::IncompleteSet));
+    assert_eq!(curva.build(), Err(ParamsError::IncompleteSet));
     let mut primarias = Params::default();
     primarias.set_primaries(NamedPrimaries::Srgb)?;
-    assert_eq!(primarias.build(2), Err(ParamsError::IncompleteSet));
+    assert_eq!(primarias.build(), Err(ParamsError::IncompleteSet));
     Ok(())
 }
 
 #[test]
 fn curva_e_primarias_bastam_e_usam_as_luminancias_padrao() -> Result<(), ParamsError> {
-    let description = named(TransferFunction::Srgb, NamedPrimaries::Srgb)?.build(2)?;
+    let description = named(TransferFunction::Srgb, NamedPrimaries::Srgb)?.build()?;
     let luminances = Luminances {
         min: 2_000,
         max: 80,
@@ -51,7 +51,7 @@ fn curva_e_primarias_bastam_e_usam_as_luminancias_padrao() -> Result<(), ParamsE
 
 #[test]
 fn pq_assume_as_luminancias_do_hdr10() -> Result<(), ParamsError> {
-    let description = named(TransferFunction::St2084Pq, NamedPrimaries::Bt2020)?.build(2)?;
+    let description = named(TransferFunction::St2084Pq, NamedPrimaries::Bt2020)?.build()?;
     let esperado = Luminances {
         min: 50,
         max: 10_000,
@@ -131,7 +131,7 @@ fn com_pq_o_maximo_e_o_minimo_mais_dez_mil() -> Result<(), ParamsError> {
         max: 400,
         reference: 203,
     })?;
-    let description = params.build(2)?;
+    let description = params.build()?;
     assert_eq!(description.luminances.max, 10_005);
     assert_eq!(
         description.target.luminance,
@@ -153,7 +153,7 @@ fn mastering_define_o_volume_alvo() -> Result<(), ParamsError> {
     })?;
     params.set_max_cll(900)?;
     params.set_max_fall(400)?;
-    let description = params.build(2)?;
+    let description = params.build()?;
     assert_eq!(
         description.target,
         Target {
@@ -179,22 +179,6 @@ fn media_de_quadro_acima_do_pico_e_invalida() -> Result<(), ParamsError> {
     let mut params = named(TransferFunction::St2084Pq, NamedPrimaries::Bt2020)?;
     params.set_max_cll(500)?;
     params.set_max_fall(600)?;
-    assert_eq!(params.build(2), Err(ParamsError::InvalidLuminance));
-    Ok(())
-}
-
-#[test]
-fn na_versao_1_a_luz_do_conteudo_fica_dentro_do_mastering() -> Result<(), ParamsError> {
-    let fora = || -> Result<Params, ParamsError> {
-        let mut params = named(TransferFunction::St2084Pq, NamedPrimaries::Bt2020)?;
-        params.set_mastering_luminance(Range {
-            min: 50,
-            max: 1_000,
-        })?;
-        params.set_max_cll(1_200)?;
-        Ok(params)
-    };
-    assert_eq!(fora()?.build(1), Err(ParamsError::InvalidLuminance));
-    assert!(fora()?.build(2).is_ok());
+    assert_eq!(params.build(), Err(ParamsError::InvalidLuminance));
     Ok(())
 }

@@ -138,3 +138,28 @@ fn perfil_icc_nao_e_aceito() -> Result<(), Error> {
     );
     Ok(())
 }
+
+#[test]
+fn metadados_desconhecidos_da_mesa_e_do_firefox_nao_derrubam_o_cliente() -> Result<(), Error> {
+    let mut client = Client::with_version(1)?;
+    let qh = client.queue.handle();
+    let mesa = creator(&client);
+    mesa.set_primaries_named(manager::Primaries::Bt2020);
+    mesa.set_tf_named(manager::TransferFunction::St2084Pq);
+    mesa.set_max_cll(0);
+    mesa.set_max_fall(0);
+    mesa.set_mastering_display_primaries(
+        708_000, 292_000, 170_000, 797_000, 131_000, 46_000, 312_700, 329_000,
+    );
+    let video = mesa.create(&qh, ());
+    let firefox = creator(&client);
+    firefox.set_primaries_named(manager::Primaries::Bt2020);
+    firefox.set_tf_named(manager::TransferFunction::St2084Pq);
+    firefox.set_mastering_luminance(50, 0);
+    firefox.set_max_cll(1_200);
+    let pagina = firefox.create(&qh, ());
+    client.ready(&video)?;
+    client.ready(&pagina)?;
+    assert_eq!(client.protocol_error(), None);
+    Ok(())
+}
