@@ -56,7 +56,7 @@ fn anuncia_versao_2_com_intencao_recursos_curvas_e_primarias() -> Result<(), Err
     assert_eq!(
         events.transfers,
         [
-            TransferFunction::Srgb,
+            TransferFunction::CompoundPower24,
             TransferFunction::Gamma22,
             TransferFunction::ExtLinear,
             TransferFunction::St2084Pq,
@@ -86,12 +86,28 @@ fn monitor_sdr_descreve_srgb_com_todos_os_detalhes() -> Result<(), Error> {
     let info = &client.events.info;
     assert_eq!(info.primaries, Some(SRGB));
     assert_eq!(info.primaries_named, Some(WEnum::Value(Primaries::Srgb)));
-    assert_eq!(info.transfer, Some(WEnum::Value(TransferFunction::Srgb)));
+    assert_eq!(
+        info.transfer,
+        Some(WEnum::Value(TransferFunction::CompoundPower24))
+    );
     assert_eq!(info.luminances, Some((2_000, 80, 80)));
     assert_eq!(info.target_primaries, Some(SRGB));
     assert_eq!(info.target_luminance, Some((2_000, 80)));
     assert!(info.done);
     let (_, de_novo) = client.output_image()?;
     assert_eq!(de_novo, identity);
+    Ok(())
+}
+
+#[test]
+fn versao_1_recebe_a_curva_srgb_antiga_no_anuncio_e_no_monitor() -> Result<(), Error> {
+    let mut client = Client::with_version(1)?;
+    let srgb = WEnum::Value(TransferFunction::Srgb);
+    let transfers = &client.events.transfers;
+    assert_eq!(transfers.first(), Some(&srgb));
+    assert!(!transfers.contains(&WEnum::Value(TransferFunction::CompoundPower24)));
+    let (image, _) = client.output_image()?;
+    client.information(&image)?;
+    assert_eq!(client.events.info.transfer, Some(srgb));
     Ok(())
 }

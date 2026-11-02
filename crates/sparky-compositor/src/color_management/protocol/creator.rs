@@ -30,7 +30,7 @@ impl Dispatch<WpImageDescriptionCreatorParamsV1, Mutex<Params>> for Sparky {
                 let built = std::mem::take(&mut *params).build();
                 return create(state, creator, init, image_description, built);
             }
-            Request::SetTfNamed { tf } => names::supported_transfer(tf)
+            Request::SetTfNamed { tf } => names::supported_transfer(tf, creator.version())
                 .ok_or(Error::InvalidTf)
                 .and_then(|transfer| params.set_transfer(transfer).map_err(code)),
             Request::SetPrimariesNamed { primaries } => names::supported_primaries(primaries)

@@ -86,7 +86,7 @@ fn erro(code: u32) -> Option<(u32, String)> {
 fn conjunto_sem_primarias_e_recusado_ao_criar() -> Result<(), Error> {
     let mut client = Client::connect()?;
     let creator = creator(&client);
-    creator.set_tf_named(manager::TransferFunction::Srgb);
+    creator.set_tf_named(manager::TransferFunction::CompoundPower24);
     creator.create(&client.queue.handle(), ());
     let error = client.protocol_error().map(|(code, _)| code);
     assert_eq!(error, Some(INCOMPLETE_SET));
@@ -96,7 +96,7 @@ fn conjunto_sem_primarias_e_recusado_ao_criar() -> Result<(), Error> {
 #[test]
 fn curva_repetida_e_recusada() -> Result<(), Error> {
     let error = rejected(|creator, _| {
-        creator.set_tf_named(manager::TransferFunction::Srgb);
+        creator.set_tf_named(manager::TransferFunction::CompoundPower24);
         creator.set_tf_named(manager::TransferFunction::Gamma22);
     })?;
     assert_eq!(error, erro(ALREADY_SET));
@@ -105,8 +105,27 @@ fn curva_repetida_e_recusada() -> Result<(), Error> {
 
 #[test]
 fn curva_nao_anunciada_e_recusada() -> Result<(), Error> {
-    let error = rejected(|creator, _| creator.set_tf_named(manager::TransferFunction::Bt1886))?;
-    assert_eq!(error, erro(INVALID_TF));
+    for curva in [
+        manager::TransferFunction::Bt1886,
+        manager::TransferFunction::Srgb,
+    ] {
+        let error = rejected(|creator, _| creator.set_tf_named(curva))?;
+        assert_eq!(error, erro(INVALID_TF), "{curva:?}");
+    }
+    Ok(())
+}
+
+#[test]
+fn versao_1_aceita_a_curva_srgb_antiga_e_recusa_a_nova() -> Result<(), Error> {
+    let mut client = Client::with_version(1)?;
+    let antiga = creator(&client);
+    antiga.set_tf_named(manager::TransferFunction::Srgb);
+    antiga.set_primaries_named(manager::Primaries::Srgb);
+    let image = antiga.create(&client.queue.handle(), ());
+    client.ready(&image)?;
+    let nova = creator(&client);
+    nova.set_tf_named(manager::TransferFunction::CompoundPower24);
+    assert_eq!(client.protocol_error(), erro(INVALID_TF));
     Ok(())
 }
 

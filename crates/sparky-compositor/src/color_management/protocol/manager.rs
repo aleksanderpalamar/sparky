@@ -34,7 +34,7 @@ fn announce(manager: &WpColorManagerV1) {
         manager.supported_feature(feature);
     }
     for transfer in TransferFunction::ALL {
-        manager.supported_tf_named(names::transfer(transfer));
+        manager.supported_tf_named(names::transfer(transfer, manager.version()));
     }
     for primaries in NamedPrimaries::ALL {
         manager.supported_primaries_named(names::primaries(primaries));
