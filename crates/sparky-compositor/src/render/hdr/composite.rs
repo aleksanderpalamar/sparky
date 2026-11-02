@@ -23,7 +23,7 @@ impl Composite {
     pub fn new(renderer: &mut GlesRenderer, output: &Output) -> Result<Self, String> {
         let (size, scale) = target(output).ok_or("monitor sem modo de vídeo")?;
         let texture = renderer
-            .create_buffer(Fourcc::Abgr8888, (size.w, size.h).into())
+            .create_buffer(Fourcc::Abgr16161616f, (size.w, size.h).into())
             .map_err(|error| error.to_string())?;
         Ok(Self {
             id: Id::new(),

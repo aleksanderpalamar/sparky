@@ -39,9 +39,10 @@ uniform float tint;
 #endif
 
 vec3 linear(vec3 color) {
-    vec3 low = color / 12.92;
-    vec3 high = pow((color + 0.055) / 1.055, vec3(2.4));
-    return mix(low, high, step(vec3(0.04045), color));
+    vec3 magnitude = abs(color);
+    vec3 low = magnitude / 12.92;
+    vec3 high = pow((magnitude + 0.055) / 1.055, vec3(2.4));
+    return sign(color) * mix(low, high, step(vec3(0.04045), magnitude));
 }
 
 vec3 perceptual(vec3 nits) {
@@ -51,16 +52,18 @@ vec3 perceptual(vec3 nits) {
 
 void main() {
     vec4 color = texture2D(tex, v_coords);
-    vec3 wide = BT2020 * linear(clamp(color.rgb, 0.0, 1.0));
+    vec3 wide = BT2020 * linear(color.rgb);
     gl_FragColor = vec4(perceptual(wide * SDR_WHITE), 1.0) * alpha;
 }
 "#;
 
 pub fn srgb_to_linear(value: f64) -> f64 {
-    match value <= 0.04045 {
-        true => value / 12.92,
-        false => ((value + 0.055) / 1.055).powf(2.4),
-    }
+    let magnitude = value.abs();
+    let linear = match magnitude <= 0.04045 {
+        true => magnitude / 12.92,
+        false => ((magnitude + 0.055) / 1.055).powf(2.4),
+    };
+    linear.copysign(value)
 }
 
 pub fn pq(nits: f64) -> f64 {
@@ -140,6 +143,22 @@ mod tests {
     }
 
     #[test]
+    fn srgb_estendido_continua_a_curva_e_preserva_o_sinal() {
+        let acima = ((2.0_f64 + 0.055) / 1.055).powf(2.4);
+        assert!(perto(srgb_to_linear(2.0), acima));
+        assert!(perto(srgb_to_linear(-0.5), -srgb_to_linear(0.5)));
+        assert!(perto(srgb_to_linear(-0.02), -0.02 / 12.92));
+    }
+
+    #[test]
+    fn valor_acima_do_branco_passa_do_branco_do_sdr() {
+        let branco = encode([1.0, 1.0, 1.0])[0];
+        let acima = encode([2.0, 2.0, 2.0])[0];
+        assert!(acima > branco, "{acima} <= {branco}");
+        assert!(encode([-0.5, -0.5, -0.5]).iter().all(|canal| *canal < 1e-5));
+    }
+
+    #[test]
     fn branco_continua_branco_e_cores_perdem_o_exagero() {
         let branco = to_bt2020([1.0, 1.0, 1.0]);
         assert!(branco.iter().all(|canal| (canal - 1.0).abs() < 1e-5));
@@ -167,5 +186,7 @@ mod tests {
         );
         assert_eq!(fonte.matches("#define SDR_WHITE 203.0000000000").count(), 2);
         assert!(!fonte.contains("uniform float sdr_white;"));
+        assert!(!fonte.contains("clamp(color.rgb, 0.0, 1.0)"));
+        assert!(fonte.contains("sign(color)"));
     }
 }
