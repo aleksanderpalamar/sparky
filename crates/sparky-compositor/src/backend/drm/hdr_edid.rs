@@ -1,3 +1,5 @@
+use crate::color_management::description::Range;
+
 const BLOCK: usize = 128;
 const CTA: u8 = 0x02;
 const EXTENDED: u8 = 7;
@@ -5,6 +7,8 @@ const COLORIMETRY: u8 = 5;
 const STATIC_METADATA: u8 = 6;
 const BT2020_RGB: u8 = 0x80;
 const SMPTE_ST2084: u8 = 0x04;
+const FALLBACK_MAX_NITS: f64 = 1000.0;
+const FALLBACK_MIN_NITS: f64 = 0.005;
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct HdrCapability {
@@ -18,6 +22,18 @@ pub struct HdrCapability {
 impl HdrCapability {
     pub fn supported(&self) -> bool {
         self.pq && self.bt2020
+    }
+
+    pub fn peak_nits(&self) -> f64 {
+        self.max_nits.unwrap_or(FALLBACK_MAX_NITS)
+    }
+
+    pub fn black_nits(&self) -> f64 {
+        self.min_nits.unwrap_or(FALLBACK_MIN_NITS)
+    }
+
+    pub fn luminance(&self) -> Range {
+        Range::from_nits(self.black_nits(), self.peak_nits())
     }
 }
 
@@ -78,6 +94,7 @@ fn luminance(code: Option<&u8>) -> Option<f64> {
 #[cfg(test)]
 mod tests {
     use super::hdr_capability;
+    use crate::color_management::description::Range;
 
     fn edid(blocks: &[&[u8]]) -> Vec<u8> {
         let mut bytes = vec![0u8; 256];
@@ -118,6 +135,23 @@ mod tests {
         assert!(capability.supported());
         assert_eq!(capability.max_nits, None);
         assert_eq!(capability.min_nits, None);
+    }
+
+    #[test]
+    fn brilho_da_tela_vem_do_edid_ou_do_padrao_hdr10() {
+        let hdr = [0xe6, 0x06, 0x05, 0x01, 0x78, 0x5a, 0x10];
+        let tv = hdr_capability(&edid(&[&COLORIMETRIA, &hdr]));
+        let max = tv.max_nits.unwrap_or_default();
+        let min = tv.min_nits.unwrap_or_default();
+        assert_eq!(tv.luminance(), Range::from_nits(min, max));
+        let sem_dados = hdr_capability(&edid(&[&[0xe3, 0x06, 0x05, 0x01], &COLORIMETRIA]));
+        assert_eq!(
+            sem_dados.luminance(),
+            Range {
+                min: 50,
+                max: 1_000
+            }
+        );
     }
 
     #[test]

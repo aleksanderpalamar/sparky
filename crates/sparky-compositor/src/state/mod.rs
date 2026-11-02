@@ -33,6 +33,7 @@ use crate::windows::registry::Registry;
 
 pub struct Sparky {
     pub image_capture: crate::image_capture::state::ImageCaptureState,
+    pub color_management: crate::color_management::state::ColorManagementState,
     pub(crate) diagnostics: Arc<Metrics>,
     pub display_handle: DisplayHandle,
     pub loop_handle: LoopHandle<'static, Sparky>,
@@ -97,6 +98,7 @@ impl Sparky {
         let wallpaper = Wallpaper::new(&loop_handle);
         Ok(Self {
             image_capture: crate::image_capture::state::ImageCaptureState::default(),
+            color_management: crate::color_management::state::ColorManagementState::default(),
             diagnostics,
             display_handle,
             loop_handle,
@@ -142,6 +144,7 @@ impl Sparky {
         self.broadcast_changes();
         self.space.refresh();
         self.popups.cleanup();
+        self.refresh_color_management();
         if let Err(error) = self.display_handle.flush_clients() {
             tracing::warn!("falha ao enviar aos clientes: {error}");
         }

@@ -4,6 +4,7 @@ pub mod backend;
 pub mod bindings;
 pub mod capture;
 pub mod cli;
+pub mod color_management;
 pub mod config;
 pub mod cursor;
 mod diagnostics;

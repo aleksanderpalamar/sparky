@@ -1,6 +1,7 @@
 use super::{
     events::*,
-    fixture::{Error, Server},
+    fixture::{Error, NAME, Server},
+    server::wait,
 };
 use std::os::fd::AsFd;
 use wayland_client::globals::{GlobalList, registry_queue_init};
@@ -25,7 +26,7 @@ pub struct Client {
 
 impl Client {
     pub fn connect(scenario: &str) -> Result<Self, Error> {
-        let (server, connection) = Server::connect(scenario)?;
+        let (server, connection) = Server::connect(NAME, scenario)?;
         let (globals, mut queue) = registry_queue_init::<Events>(&connection)?;
         let qh = queue.handle();
         let output: wl_output::WlOutput = globals.bind(&qh, 1..=4, ())?;
@@ -74,15 +75,12 @@ impl Client {
     }
 
     pub fn await_event(&mut self, ready: impl Fn(&Events) -> bool) -> Result<(), Error> {
-        let started = std::time::Instant::now();
-        while started.elapsed() < std::time::Duration::from_secs(3) {
-            self.roundtrip()?;
-            if ready(&self.events) {
-                return Ok(());
-            }
-            std::thread::sleep(std::time::Duration::from_millis(10));
-        }
-        Err("evento de captura não recebido".into())
+        wait(
+            &mut self.queue,
+            &mut self.events,
+            ready,
+            "evento de captura não recebido",
+        )
     }
 
     pub fn roundtrip(&mut self) -> Result<(), Error> {

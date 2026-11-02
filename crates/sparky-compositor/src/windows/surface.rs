@@ -1,5 +1,6 @@
 use smithay::desktop::{Window, WindowSurface};
 use smithay::reexports::wayland_server::protocol::wl_surface::WlSurface;
+use smithay::wayland::compositor::get_parent;
 
 use crate::focus::KeyboardFocus;
 
@@ -15,6 +16,14 @@ pub fn root_surface(window: &Window) -> Option<WlSurface> {
         WindowSurface::Wayland(toplevel) => Some(toplevel.wl_surface().clone()),
         WindowSurface::X11(x11) => x11.wl_surface(),
     }
+}
+
+pub fn root_of(surface: &WlSurface) -> WlSurface {
+    let mut root = surface.clone();
+    while let Some(parent) = get_parent(&root) {
+        root = parent;
+    }
+    root
 }
 
 pub fn close(window: &Window) {

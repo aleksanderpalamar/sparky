@@ -1,3 +1,4 @@
+mod color;
 mod dmabuf;
 pub mod drm;
 pub mod host_cursor;

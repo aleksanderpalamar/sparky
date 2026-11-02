@@ -3,13 +3,15 @@ use smithay::reexports::wayland_server::Client;
 use smithay::reexports::wayland_server::protocol::wl_buffer::WlBuffer;
 use smithay::reexports::wayland_server::protocol::wl_surface::WlSurface;
 use smithay::wayland::buffer::BufferHandler;
-use smithay::wayland::compositor::{CompositorClientState, CompositorHandler, CompositorState, get_parent, is_sync_subsurface};
+use smithay::wayland::compositor::{
+    CompositorClientState, CompositorHandler, CompositorState, is_sync_subsurface,
+};
 use smithay::wayland::shm::{ShmHandler, ShmState};
 use smithay::{delegate_compositor, delegate_shm};
 
 use crate::state::Sparky;
 use crate::state::client::compositor_state_of;
-use crate::windows::surface::root_surface;
+use crate::windows::surface::{root_of, root_surface};
 
 impl CompositorHandler for Sparky {
     fn compositor_state(&mut self) -> &mut CompositorState {
@@ -25,10 +27,17 @@ impl CompositorHandler for Sparky {
         self.needs_render = true;
         if !is_sync_subsurface(surface) {
             let root = root_of(surface);
-            if let Some((_, window)) = self.windows.find(|window| root_surface(window).as_ref() == Some(&root)) {
+            if let Some((_, window)) = self
+                .windows
+                .find(|window| root_surface(window).as_ref() == Some(&root))
+            {
                 window.on_commit();
             }
-            for window in self.unmanaged.iter().filter(|window| root_surface(window).as_ref() == Some(&root)) {
+            for window in self
+                .unmanaged
+                .iter()
+                .filter(|window| root_surface(window).as_ref() == Some(&root))
+            {
                 window.on_commit();
             }
         }
@@ -47,14 +56,6 @@ impl ShmHandler for Sparky {
     fn shm_state(&self) -> &ShmState {
         &self.protocols.shm
     }
-}
-
-fn root_of(surface: &WlSurface) -> WlSurface {
-    let mut root = surface.clone();
-    while let Some(parent) = get_parent(&root) {
-        root = parent;
-    }
-    root
 }
 
 delegate_compositor!(Sparky);

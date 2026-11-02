@@ -11,6 +11,7 @@ use crate::backend::drm::hdr_metadata::hdr10;
 use crate::backend::drm::hdr_props::{self, HdrProperties, Signal};
 use crate::backend::drm::hdr_state::{HdrState, Step};
 use crate::backend::drm::screens::edid_blob;
+use crate::color_management::description::Range;
 
 pub struct Video<'a> {
     pub device: &'a DrmDevice,
@@ -66,7 +67,10 @@ pub fn fall_back(video: &Video, surface: &mut Surface, error: &str) -> bool {
 }
 
 pub fn restore(device: &DrmDevice, surface: &Surface) {
-    let HdrState::On { properties, blob } = surface.hdr else {
+    let HdrState::On {
+        properties, blob, ..
+    } = surface.hdr
+    else {
         return;
     };
     let signal = Signal::hdr(&properties, blob);
@@ -90,7 +94,7 @@ fn capability(device: &DrmDevice, handle: connector::Handle) -> HdrCapability {
 fn signal_on(
     device: &DrmDevice,
     connector: connector::Handle,
-) -> Result<(HdrProperties, u64), String> {
+) -> Result<(HdrProperties, u64, Range), String> {
     let capability = capability(device, connector);
     if !capability.supported() {
         return Err("o monitor não anuncia HDR10 (PQ e BT.2020)".to_owned());
@@ -107,15 +111,19 @@ fn signal_on(
         forget(device, blob);
         return Err(error.to_string());
     }
-    Ok((properties, blob))
+    Ok((properties, blob, capability.luminance()))
 }
 
 fn enable(video: &Video, surface: &mut Surface) -> Result<(), String> {
     if video.pq.is_none() {
         return Err("a conversão para PQ não está disponível".to_owned());
     }
-    let (properties, blob) = signal_on(video.device, surface.connector)?;
-    surface.hdr = HdrState::On { properties, blob };
+    let (properties, blob, display) = signal_on(video.device, surface.connector)?;
+    surface.hdr = HdrState::On {
+        properties,
+        blob,
+        display,
+    };
     resync(surface);
     if let Err(error) = switch_format(video, surface, &HDR_FORMATS) {
         disable(video, surface, properties, blob)?;

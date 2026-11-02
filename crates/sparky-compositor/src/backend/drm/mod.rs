@@ -1,3 +1,4 @@
+mod color;
 mod configure;
 mod connectors;
 pub mod crtcs;

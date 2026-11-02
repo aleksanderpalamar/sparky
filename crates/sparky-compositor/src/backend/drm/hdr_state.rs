@@ -1,4 +1,5 @@
 use crate::backend::drm::hdr_props::HdrProperties;
+use crate::color_management::description::Range;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum HdrState {
@@ -8,6 +9,7 @@ pub enum HdrState {
     On {
         properties: HdrProperties,
         blob: u64,
+        display: Range,
     },
 }
 
@@ -34,7 +36,12 @@ impl HdrState {
         match (wanted, self) {
             (true, Self::Off) => Step::Enable,
             (false, Self::Pending) => Step::Cancel,
-            (false, Self::On { properties, blob }) => Step::Disable { properties, blob },
+            (
+                false,
+                Self::On {
+                    properties, blob, ..
+                },
+            ) => Step::Disable { properties, blob },
             _ => Step::Keep,
         }
     }
@@ -44,11 +51,16 @@ impl HdrState {
 mod tests {
     use super::{HdrState, Step};
     use crate::backend::drm::hdr_props::exemplo;
+    use crate::color_management::description::Range;
 
     fn ligado() -> HdrState {
         HdrState::On {
             properties: exemplo(),
             blob: 7,
+            display: Range {
+                min: 50,
+                max: 1_000,
+            },
         }
     }
 
