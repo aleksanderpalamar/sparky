@@ -11,8 +11,6 @@ const PRIMARIES: [(f64, f64); 4] = [
     (0.131, 0.046),
     (0.3127, 0.3290),
 ];
-const FALLBACK_MAX_NITS: f64 = 1000.0;
-const FALLBACK_MIN_NITS: f64 = 0.005;
 
 pub fn hdr10(capability: &HdrCapability) -> [u8; SIZE] {
     let mut bytes = [0u8; SIZE];
@@ -22,8 +20,8 @@ pub fn hdr10(capability: &HdrCapability) -> [u8; SIZE] {
         put(&mut bytes, 6 + index * 4, units(x, CHROMATICITY_UNIT));
         put(&mut bytes, 8 + index * 4, units(y, CHROMATICITY_UNIT));
     }
-    let max = capability.max_nits.unwrap_or(FALLBACK_MAX_NITS);
-    let min = capability.min_nits.unwrap_or(FALLBACK_MIN_NITS);
+    let max = capability.peak_nits();
+    let min = capability.black_nits();
     put(&mut bytes, 22, units(max, 1.0));
     put(&mut bytes, 24, units(min, MIN_LUMINANCE_UNIT));
     put(&mut bytes, 26, units(max, 1.0));

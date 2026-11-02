@@ -9,6 +9,8 @@ use smithay::utils::{Physical, Size, Transform};
 
 use crate::render::hdr::element::PqElement;
 
+const FORMAT: Fourcc = Fourcc::Abgr16161616f;
+
 pub struct Composite {
     id: Id,
     commit: CommitCounter,
@@ -23,7 +25,7 @@ impl Composite {
     pub fn new(renderer: &mut GlesRenderer, output: &Output) -> Result<Self, String> {
         let (size, scale) = target(output).ok_or("monitor sem modo de vídeo")?;
         let texture = renderer
-            .create_buffer(Fourcc::Abgr8888, (size.w, size.h).into())
+            .create_buffer(FORMAT, (size.w, size.h).into())
             .map_err(|error| error.to_string())?;
         Ok(Self {
             id: Id::new(),
@@ -61,15 +63,26 @@ impl Composite {
         Ok(())
     }
 
-    pub fn element(&self, program: &GlesTexProgram) -> PqElement {
+    pub fn element(&self, program: &GlesTexProgram, peak: f32) -> PqElement {
         PqElement {
             id: self.id.clone(),
             commit: self.commit,
             texture: self.texture.clone(),
             size: self.size,
             program: program.clone(),
+            peak,
         }
     }
+}
+
+pub fn probe(renderer: &mut GlesRenderer) -> Result<(), String> {
+    let mut texture: GlesTexture = renderer
+        .create_buffer(FORMAT, (1, 1).into())
+        .map_err(|error| error.to_string())?;
+    renderer
+        .bind(&mut texture)
+        .map(drop)
+        .map_err(|error| error.to_string())
 }
 
 fn target(output: &Output) -> Option<(Size<i32, Physical>, f64)> {

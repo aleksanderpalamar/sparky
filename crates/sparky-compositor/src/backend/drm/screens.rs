@@ -48,7 +48,7 @@ impl Drm {
                 .collect(),
             vrr: surface.map_or(Vrr::Unsupported, |surface| vrr(surface, handle)),
             enabled: surface.is_some(),
-            hdr: hdr::state(device, handle, surface),
+            hdr: hdr::state(&self.gpu.video(), handle, surface),
         }
     }
 }

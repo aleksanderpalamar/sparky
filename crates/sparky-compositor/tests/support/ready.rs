@@ -2,7 +2,7 @@ use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use super::fixture::Error;
+use super::server::Error;
 
 pub fn publish(directory: &Path, name: &OsStr) -> std::io::Result<()> {
     let pending = directory.join("ready.tmp");

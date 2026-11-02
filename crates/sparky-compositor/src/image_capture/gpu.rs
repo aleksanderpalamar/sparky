@@ -2,6 +2,7 @@ use super::queue::Job;
 use super::types::Target;
 use crate::backend::drm::cursor::Cursors;
 use crate::render::elements::SparkyElement;
+use crate::render::hdr::colorize::colorize;
 use crate::state::Sparky;
 use smithay::backend::allocator::Buffer;
 use smithay::backend::renderer::Bind;
@@ -71,7 +72,7 @@ pub fn render(
         .region
         .map(|r| Point::from((-r.x, -r.y)).to_physical_precise_round(scale))
         .unwrap_or_default();
-    let elements: Vec<_> = elements
+    let elements: Vec<_> = colorize(state, renderer, elements)
         .into_iter()
         .map(|e| RelocateRenderElement::from_element(e, offset, Relocate::Relative))
         .collect();

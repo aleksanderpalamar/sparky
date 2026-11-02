@@ -47,6 +47,7 @@ pub struct Protocols {
 impl Protocols {
     pub fn new(display: &DisplayHandle) -> Self {
         crate::image_capture::manager::register(display);
+        crate::color_management::protocol::manager::register(display);
         let primary_selection = PrimarySelectionState::new::<Sparky>(display);
         let data_control =
             DataControlState::new::<Sparky, _>(display, Some(&primary_selection), |_| true);

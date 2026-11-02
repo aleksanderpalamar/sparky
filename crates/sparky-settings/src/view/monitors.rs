@@ -90,10 +90,10 @@ fn block<'a>(
             )
         )
         .view(skin),
-        high_dynamic_range(settings, output),
     ]
     .spacing(space::XXS)
-    .padding(space::SM);
+    .padding(space::SM)
+    .extend(high_dynamic_range(settings, output));
     if outputs.len() > 1 {
         body = body.push(active(settings, output, outputs));
     }

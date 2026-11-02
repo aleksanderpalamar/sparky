@@ -1,6 +1,6 @@
 use smithay::backend::renderer::element::{Element, Id, RenderElement};
 use smithay::backend::renderer::gles::{
-    GlesError, GlesFrame, GlesRenderer, GlesTexProgram, GlesTexture,
+    GlesError, GlesFrame, GlesRenderer, GlesTexProgram, GlesTexture, Uniform,
 };
 use smithay::backend::renderer::utils::{CommitCounter, OpaqueRegions};
 use smithay::utils::{Buffer as BufferCoords, Physical, Rectangle, Scale, Size, Transform};
@@ -11,6 +11,7 @@ pub struct PqElement {
     pub texture: GlesTexture,
     pub size: Size<i32, Physical>,
     pub program: GlesTexProgram,
+    pub peak: f32,
 }
 
 impl Element for PqElement {
@@ -53,7 +54,7 @@ impl RenderElement<GlesRenderer> for PqElement {
             Transform::Normal,
             1.0,
             Some(&self.program),
-            &[],
+            &[Uniform::new("peak", self.peak)],
         )
     }
 }
