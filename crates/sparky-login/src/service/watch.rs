@@ -1,7 +1,5 @@
 use std::time::Duration;
 
-use nix::sys::signal::{Signal, kill};
-use nix::unistd::Pid;
 use tokio::io::BufReader;
 use tokio::net::unix::OwnedReadHalf;
 use tokio::process::Child;
@@ -11,7 +9,7 @@ use tokio::sync::oneshot;
 use crate::domain::job::Report;
 use crate::domain::machine::Event;
 use crate::service::link::Input;
-use crate::service::workers::{Link, next};
+use crate::service::workers::{Link, next, terminate};
 
 const GRACE: Duration = Duration::from_secs(10);
 
@@ -27,7 +25,7 @@ pub async fn greeter(link: Link, mut stop: oneshot::Receiver<()>, inputs: Unboun
         Ok(()) = &mut stop => {
             if tokio::time::timeout(GRACE, child.wait()).await.is_err() {
                 eprintln!("sparky-login: a tela de login não fechou sozinha; encerrando");
-                terminate(&child);
+                terminate(child.id());
                 let _ = child.wait().await;
             }
         }
@@ -74,11 +72,5 @@ fn describe(report: &Report) {
         Report::Ended => eprintln!("sparky-login: sessão encerrada"),
         Report::Failed { message } => eprintln!("sparky-login: a sessão falhou: {message}"),
         Report::Authenticated | Report::Refused { .. } => {}
-    }
-}
-
-fn terminate(child: &Child) {
-    if let Some(pid) = child.id().and_then(|pid| i32::try_from(pid).ok()) {
-        let _ = kill(Pid::from_raw(pid), Signal::SIGTERM);
     }
 }

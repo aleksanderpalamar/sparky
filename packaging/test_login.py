@@ -68,6 +68,10 @@ class LoginPackagingTest(unittest.TestCase):
         for line in ["ExecStart=/usr/bin/sparky-login", "Conflicts=getty@tty1.service", "Alias=display-manager.service", "StateDirectory=sparky-login", "RuntimeDirectory=sparky-login"]:
             self.assertIn(line, unit)
 
+    def test_a_copia_da_aparencia_so_e_lida_pelo_root_e_pela_tela(self):
+        tmpfiles = (ROOT / "data/login/sparky-login.tmpfiles").read_text().splitlines()
+        self.assertIn("d /var/lib/sparky-login/appearance 0750 root sparky-login -", tmpfiles)
+
     def test_o_pam_proprio_nao_liga_o_gnome_keyring(self):
         for distro in ["arch", "debian", "fedora"]:
             text = (ROOT / f"packaging/pam/{distro}/sparky-login").read_text()

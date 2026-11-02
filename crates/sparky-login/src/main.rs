@@ -2,6 +2,7 @@ use std::io::{self, BufReader};
 use std::process::ExitCode;
 
 use sparky_login::adapters::accounts::SystemAccounts;
+use sparky_login::adapters::appearance::UserAppearance;
 use sparky_login::adapters::launcher::UserLauncher;
 use sparky_login::adapters::pam::LinuxPam;
 use sparky_login::adapters::stop;
@@ -40,6 +41,7 @@ fn work() -> Result<(), String> {
         pam: &pam,
         accounts: &SystemAccounts,
         launcher: &UserLauncher,
+        appearance: &UserAppearance,
     };
     let mut input = BufReader::new(io::stdin().lock());
     worker.run(&mut input, &mut io::stdout().lock())

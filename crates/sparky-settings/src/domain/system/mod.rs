@@ -59,6 +59,7 @@ pub enum RowId {
     Theme,
     ThemeStatus,
     Wallpaper,
+    LoginWallpaper,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

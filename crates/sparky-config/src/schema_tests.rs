@@ -18,12 +18,19 @@ fn o_que_nao_foi_escrito_continua_no_padrao() {
     };
     assert_eq!(config.general.gaps_outer, 20);
     assert_eq!(config.general.gaps_inner, 5);
-    assert_eq!(config.general.style().gaps, Gaps { inner: 5, outer: 20 });
+    assert_eq!(
+        config.general.style().gaps,
+        Gaps {
+            inner: 5,
+            outer: 20
+        }
+    );
 }
 
 #[test]
 fn le_o_teclado_e_a_repeticao() {
-    let Ok(config) = parse("[input]\nlayout = \"br\"\nvariant = \"abnt2\"\nrepeat_rate = 30\n") else {
+    let Ok(config) = parse("[input]\nlayout = \"br\"\nvariant = \"abnt2\"\nrepeat_rate = 30\n")
+    else {
         panic!("deveria ler");
     };
     assert_eq!(config.input.layout.as_deref(), Some("br"));
@@ -62,10 +69,19 @@ workspace = 3
     assert_eq!(
         actions,
         vec![
-            Action::Spawn { command: "firefox".to_owned() },
-            Action::Focus { direction: Direction::Left },
-            Action::Fullscreen { mode: Fullscreen::Maximized },
-            Action::MoveToWorkspace { workspace: 3, follow: true },
+            Action::Spawn {
+                command: "firefox".to_owned()
+            },
+            Action::Focus {
+                direction: Direction::Left
+            },
+            Action::Fullscreen {
+                mode: Fullscreen::Maximized
+            },
+            Action::MoveToWorkspace {
+                workspace: 3,
+                follow: true
+            },
         ]
     );
 }
@@ -80,7 +96,10 @@ fn le_o_autostart_extra() {
 
 #[test]
 fn chave_desconhecida_e_erro_para_nao_esconder_erro_de_digitacao() {
-    assert!(matches!(parse("[general]\ngap_outer = 20\n"), Err(ConfigError::Invalid(_))));
+    assert!(matches!(
+        parse("[general]\ngap_outer = 20\n"),
+        Err(ConfigError::Invalid(_))
+    ));
 }
 
 #[test]
@@ -114,7 +133,15 @@ fn le_as_acoes_de_grupo_com_os_campos() {
         panic!("as ações de grupo deveriam ser aceitas");
     };
     let acoes: Vec<Action> = config.bind.into_iter().map(|bind| bind.action).collect();
-    assert_eq!(acoes, [Action::MoveIntoGroup { direction: Direction::Left }, Action::SelectInGroup { index: 2 }]);
+    assert_eq!(
+        acoes,
+        [
+            Action::MoveIntoGroup {
+                direction: Direction::Left
+            },
+            Action::SelectInGroup { index: 2 }
+        ]
+    );
 }
 
 #[test]
@@ -125,7 +152,9 @@ fn o_lancador_padrao_e_o_do_sparky() {
 #[test]
 fn o_locker_padrao_e_o_swaylock_e_pode_trocar() {
     assert_eq!(Config::default().apps.locker, "swaylock");
-    let Ok(config) = parse("[apps]\nlocker = \"hyprlock\"\n") else { panic!("deveria ler o locker") };
+    let Ok(config) = parse("[apps]\nlocker = \"hyprlock\"\n") else {
+        panic!("deveria ler o locker")
+    };
     assert_eq!(config.apps.locker, "hyprlock");
 }
 
@@ -135,14 +164,36 @@ fn o_papel_de_parede_e_opcional_no_general() {
     let Ok(config) = parse("[general]\nwallpaper = \"~/Imagens/fundo.webp\"\n") else {
         panic!("o sparky.toml com papel de parede deveria ser aceito");
     };
-    assert_eq!(config.general.wallpaper.as_deref(), Some("~/Imagens/fundo.webp"));
+    assert_eq!(
+        config.general.wallpaper.as_deref(),
+        Some("~/Imagens/fundo.webp")
+    );
 }
 
 #[test]
 fn o_menu_do_sistema_padrao_e_o_lancador_no_modo_sistema() {
-    assert_eq!(Config::default().apps.system_menu, "sparky-launcher --system");
+    assert_eq!(
+        Config::default().apps.system_menu,
+        "sparky-launcher --system"
+    );
     let Ok(config) = parse("[apps]\nsystem_menu = \"wlogout\"\n") else {
         panic!("system_menu deveria ser aceito");
     };
     assert_eq!(config.apps.system_menu, "wlogout");
+}
+
+#[test]
+fn o_papel_de_parede_do_login_segue_o_da_area_de_trabalho_ate_ser_escolhido() {
+    assert_eq!(Config::default().login.wallpaper, None);
+    assert_eq!(Config::default().login_wallpaper(), None);
+    let Ok(desktop) = parse("[general]\nwallpaper = \"/w/a.jpg\"\n") else {
+        panic!("o sparky.toml deveria ser aceito");
+    };
+    assert_eq!(desktop.login_wallpaper(), Some("/w/a.jpg"));
+    let Ok(both) =
+        parse("[general]\nwallpaper = \"/w/a.jpg\"\n\n[login]\nwallpaper = \"/w/b.jpg\"\n")
+    else {
+        panic!("a seção login deveria ser aceita");
+    };
+    assert_eq!(both.login_wallpaper(), Some("/w/b.jpg"));
 }

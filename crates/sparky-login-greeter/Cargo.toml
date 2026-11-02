@@ -27,3 +27,4 @@ zeroize = { version = "1", features = ["std"] }
 
 [dev-dependencies]
 iced_test = "0.14"
+tempfile = "3"

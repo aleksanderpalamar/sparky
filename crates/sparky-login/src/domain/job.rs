@@ -14,12 +14,16 @@ pub enum Job {
         vt: u32,
         socket: PathBuf,
     },
-    Login {
-        username: String,
-        password: Zeroizing<String>,
-        session: Session,
-        vt: u32,
-    },
+    Login(LoginJob),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LoginJob {
+    pub username: String,
+    pub password: Zeroizing<String>,
+    pub session: Session,
+    pub vt: u32,
+    pub appearance: PathBuf,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

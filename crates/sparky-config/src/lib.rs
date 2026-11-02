@@ -23,5 +23,5 @@ pub use action::{Action, Bind};
 pub use edit::Editor;
 pub use load::{ConfigError, parse, path};
 pub use output::{OutputRule, OutputScale, rule_for, scale_for};
-pub use schema::{Apps, Config, General, Input};
+pub use schema::{Apps, Config, General, Input, Login};
 pub use screen::{OutputMode, Rotation};

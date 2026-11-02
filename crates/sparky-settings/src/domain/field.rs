@@ -21,6 +21,7 @@ pub enum Field {
     Locker,
     SystemMenu,
     Wallpaper,
+    LoginWallpaper,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -107,7 +108,8 @@ impl Field {
             | Field::Variant
             | Field::Options
             | Field::Terminal
-            | Field::Wallpaper => Kind::Text(Blank::Allowed),
+            | Field::Wallpaper
+            | Field::LoginWallpaper => Kind::Text(Blank::Allowed),
             Field::Launcher
             | Field::Files
             | Field::Settings
@@ -138,6 +140,7 @@ impl Field {
             Field::Locker => ("apps", "locker"),
             Field::SystemMenu => ("apps", "system_menu"),
             Field::Wallpaper => ("general", "wallpaper"),
+            Field::LoginWallpaper => ("login", "wallpaper"),
         }
     }
 }

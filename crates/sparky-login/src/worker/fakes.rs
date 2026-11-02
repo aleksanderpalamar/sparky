@@ -7,6 +7,7 @@ use zeroize::Zeroizing;
 
 use crate::domain::environment::Account;
 use crate::ports::accounts::Accounts;
+use crate::ports::appearance::Appearance;
 use crate::ports::launcher::{Launcher, Process};
 use crate::ports::pam::{Pam, Transaction};
 
@@ -136,5 +137,17 @@ impl Process for FakeProcess {
     fn wait(&mut self) -> Result<(), String> {
         self.log.borrow_mut().push("wait".into());
         Ok(())
+    }
+}
+
+pub struct FakeAppearance {
+    pub log: Log,
+}
+
+impl Appearance for FakeAppearance {
+    fn capture(&self, account: &Account, _environment: &[(String, String)], folder: &Path) {
+        self.log
+            .borrow_mut()
+            .push(format!("capture {} {}", account.name, folder.display()));
     }
 }

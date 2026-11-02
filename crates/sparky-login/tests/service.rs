@@ -56,6 +56,7 @@ fn cena() -> Cena {
         greeter_command: vec!["true".into()],
         worker,
         data_dirs: Some(dir.path().join("dados").to_string_lossy().into_owned()),
+        appearance: dir.path().join("aparencia"),
     };
     Cena { dir, settings }
 }

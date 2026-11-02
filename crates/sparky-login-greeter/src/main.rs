@@ -2,9 +2,11 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::sync::Arc;
 
+use sparky_login_core::appearance::FOLDER;
 use sparky_login_core::protocol::SOCKET_VARIABLE;
 use sparky_login_core::session_files;
 use sparky_login_core::sessions::{Session, Sessions, sessions};
+use sparky_login_greeter::adapters::appearance;
 use sparky_login_greeter::adapters::daemon::Daemon;
 use sparky_login_greeter::adapters::preview::Preview;
 use sparky_login_greeter::app::{self, Mode, Start};
@@ -56,8 +58,8 @@ fn greeter() -> Result<Start, String> {
         backend: Arc::new(daemon),
         sessions: Sessions::new(installed_sessions(), last_session.as_deref()),
         last_user,
-        wallpaper: default_wallpaper(),
-        palette: sparky_theme::current_palette(),
+        wallpaper: appearance::wallpaper(Path::new(FOLDER)).or_else(default_wallpaper),
+        palette: appearance::palette(Path::new(FOLDER)),
     })
 }
 

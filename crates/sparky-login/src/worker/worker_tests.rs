@@ -38,8 +38,10 @@ fn senha_certa_espera_a_ordem_e_abre_a_sessao_pelo_shell_de_login() {
             "tty /dev/tty1",
             "establish",
             "open",
+            "capture palamar /aparencia",
             "launch palamar",
             "wait",
+            "capture palamar /aparencia",
             "close"
         ]
     );

@@ -1,19 +1,17 @@
 use std::time::{Duration, Instant};
 
-use nix::sys::signal::{Signal, kill};
-use nix::unistd::Pid;
 use sparky_login_core::protocol::{Power, Refusal, Reply};
 use tokio::net::unix::OwnedWriteHalf;
 use tokio::sync::mpsc::UnboundedSender;
 use tokio::sync::oneshot;
 
 use crate::adapters::{logind, memory_file};
-use crate::domain::job::{Job, Order};
+use crate::domain::job::{Job, LoginJob, Order};
 use crate::domain::machine::{Effect, Event, Login};
 use crate::service::link::Input;
 use crate::service::settings::Settings;
 use crate::service::watch::{greeter, login};
-use crate::service::workers::{send, spawn};
+use crate::service::workers::{send, spawn, terminate};
 
 const COOLDOWN: Duration = Duration::from_secs(2);
 
@@ -140,12 +138,13 @@ impl Runtime {
             password,
             session,
         } = login_request;
-        let job = Job::Login {
+        let job = Job::Login(LoginJob {
             username,
             password,
             session,
             vt: self.settings.vt,
-        };
+            appearance: self.settings.appearance.clone(),
+        });
         match spawn(&self.settings.worker, &job).await {
             Ok(link) => {
                 self.attempts += 1;
@@ -190,11 +189,4 @@ impl Runtime {
             terminate(session.pid);
         }
     }
-}
-
-fn terminate(pid: Option<u32>) {
-    let Some(pid) = pid.and_then(|pid| i32::try_from(pid).ok()) else {
-        return;
-    };
-    let _ = kill(Pid::from_raw(pid), Signal::SIGTERM);
 }

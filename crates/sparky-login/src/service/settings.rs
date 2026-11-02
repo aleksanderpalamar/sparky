@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+use sparky_login_core::appearance;
+
 pub const SOCKET: &str = "/run/sparky-login/greeter.sock";
 pub const MEMORY: &str = "/var/lib/sparky-login/memory.json";
 pub const GREETER_USER: &str = "sparky-login";
@@ -14,6 +16,7 @@ pub struct Settings {
     pub greeter_command: Vec<String>,
     pub worker: PathBuf,
     pub data_dirs: Option<String>,
+    pub appearance: PathBuf,
 }
 
 impl Settings {
@@ -29,6 +32,7 @@ impl Settings {
                 .collect(),
             worker,
             data_dirs: std::env::var("XDG_DATA_DIRS").ok(),
+            appearance: PathBuf::from(appearance::FOLDER),
         }
     }
 }

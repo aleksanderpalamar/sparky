@@ -2,6 +2,8 @@ use std::os::fd::OwnedFd;
 use std::path::Path;
 use std::process::Stdio;
 
+use nix::sys::signal::{Signal, kill};
+use nix::unistd::Pid;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use sparky_login_core::codec::{LIMIT, decode, encode};
@@ -67,4 +69,11 @@ pub async fn next<T: DeserializeOwned>(reader: &mut BufReader<OwnedReadHalf>) ->
             None
         }
     }
+}
+
+pub fn terminate(pid: Option<u32>) {
+    let Some(pid) = pid.and_then(|pid| i32::try_from(pid).ok()) else {
+        return;
+    };
+    let _ = kill(Pid::from_raw(pid), Signal::SIGTERM);
 }

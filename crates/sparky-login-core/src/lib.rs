@@ -1,3 +1,4 @@
+pub mod appearance;
 pub mod codec;
 pub mod protocol;
 pub mod session_files;

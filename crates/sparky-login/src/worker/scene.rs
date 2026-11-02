@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::io::{BufReader, Cursor};
+use std::path::PathBuf;
 use std::rc::Rc;
 
 use sparky_login_core::codec::{receive, send};
@@ -7,14 +8,15 @@ use sparky_login_core::protocol::Refusal;
 use sparky_login_core::sessions::Session;
 use zeroize::Zeroizing;
 
-use crate::domain::job::{Job, Order, Report};
+use crate::domain::job::{Job, LoginJob, Order, Report};
 use crate::worker::Worker;
-use crate::worker::fakes::{FakeAccounts, FakeLauncher, FakePam, Log};
+use crate::worker::fakes::{FakeAccounts, FakeAppearance, FakeLauncher, FakePam, Log};
 
 pub struct Cena {
     pub log: Log,
     pub pam: FakePam,
     pub launcher: FakeLauncher,
+    pub appearance: FakeAppearance,
 }
 
 pub fn cena(verdict: Result<(), Refusal>) -> Cena {
@@ -27,7 +29,15 @@ pub fn cena(verdict: Result<(), Refusal>) -> Cena {
         log: Rc::clone(&log),
         launched: RefCell::new(Vec::new()),
     };
-    Cena { log, pam, launcher }
+    let appearance = FakeAppearance {
+        log: Rc::clone(&log),
+    };
+    Cena {
+        log,
+        pam,
+        launcher,
+        appearance,
+    }
 }
 
 pub fn entrada(job: &Job, orders: &[Order]) -> Vec<u8> {
@@ -44,6 +54,7 @@ pub fn rodar(cena: &Cena, bytes: Vec<u8>) -> (Result<(), String>, Vec<Report>) {
         pam: &cena.pam,
         accounts: &FakeAccounts,
         launcher: &cena.launcher,
+        appearance: &cena.appearance,
     };
     let mut output = Vec::new();
     let result = worker.run(&mut BufReader::new(Cursor::new(bytes)), &mut output);
@@ -62,12 +73,13 @@ pub fn login(username: &str) -> Job {
         exec: "Hyprland".into(),
         desktop_names: vec!["Hyprland".into()],
     };
-    Job::Login {
+    Job::Login(LoginJob {
         username: username.into(),
         password: Zeroizing::new("segredo".into()),
         session,
         vt: 1,
-    }
+        appearance: PathBuf::from("/aparencia"),
+    })
 }
 
 pub fn par(name: &str, value: &str) -> (String, String) {

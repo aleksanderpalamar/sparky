@@ -8,8 +8,9 @@ use std::thread;
 use std::time::Duration;
 
 use nix::sys::signal::{Signal, kill};
-use nix::unistd::{Gid, Pid, Uid, chdir, getgrouplist, setgid, setgroups, setsid, setuid};
+use nix::unistd::{Gid, Pid, Uid, chdir, setgid, setgroups, setsid, setuid};
 
+use crate::adapters::identity::groups;
 use crate::adapters::stop;
 use crate::domain::environment::Account;
 use crate::ports::launcher::{Launcher, Process};
@@ -81,10 +82,8 @@ impl Process for Running {
 }
 
 fn identity(account: &Account) -> Result<Identity, String> {
-    let name = CString::new(account.name.as_str()).map_err(|error| error.to_string())?;
     let gid = Gid::from_raw(account.gid);
-    let groups =
-        getgrouplist(&name, gid).map_err(|error| format!("grupos de {}: {error}", account.name))?;
+    let groups = groups(account)?;
     let home = CString::new(account.home.to_string_lossy().as_bytes())
         .map_err(|error| error.to_string())?;
     let root = CString::new(ROOT).map_err(|error| error.to_string())?;

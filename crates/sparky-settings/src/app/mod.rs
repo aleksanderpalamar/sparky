@@ -19,6 +19,8 @@ mod controls_tests;
 #[cfg(test)]
 mod datetime_tests;
 #[cfg(test)]
+mod login_wallpaper_tests;
+#[cfg(test)]
 mod media_tests;
 #[cfg(test)]
 mod network_tests;

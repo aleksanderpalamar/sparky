@@ -29,7 +29,9 @@ impl fmt::Display for Invalid {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Invalid::NotNumber => write!(formatter, "digite um número inteiro"),
-            Invalid::OutOfRange(bounds) => write!(formatter, "use um valor de {} a {}", bounds.min, bounds.max),
+            Invalid::OutOfRange(bounds) => {
+                write!(formatter, "use um valor de {} a {}", bounds.min, bounds.max)
+            }
             Invalid::Blank => write!(formatter, "este campo não pode ficar vazio"),
             Invalid::Toggle => write!(formatter, "use Enter ou as setas para ligar e desligar"),
         }
@@ -66,7 +68,9 @@ pub fn stepped(field: Field, value: &Value, step: Step) -> Option<Value> {
                 Step::Less => -bounds.step,
                 Step::More => bounds.step,
             };
-            Some(Value::Number((current + delta).clamp(bounds.min, bounds.max)))
+            Some(Value::Number(
+                (current + delta).clamp(bounds.min, bounds.max),
+            ))
         }
         (Kind::Flag, Value::Flag(current)) => Some(Value::Flag(!current)),
         _ => None,
@@ -131,6 +135,7 @@ fn optional(field: Field, config: &mut Config) -> Option<&mut Option<String>> {
         Field::Options => Some(&mut config.input.options),
         Field::Terminal => Some(&mut config.apps.terminal),
         Field::Wallpaper => Some(&mut config.general.wallpaper),
+        Field::LoginWallpaper => Some(&mut config.login.wallpaper),
         _ => None,
     }
 }

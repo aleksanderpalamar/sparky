@@ -31,6 +31,7 @@ pub fn group(field: Field) -> &'static str {
         Field::FloatWidth | Field::FloatHeight => "Janelas flutuantes",
         Field::DefaultBinds => "Atalhos",
         Field::Wallpaper => "Papel de parede",
+        Field::LoginWallpaper => "Tela de login",
         Field::Layout | Field::Variant | Field::Options => "Layout",
         Field::RepeatRate | Field::RepeatDelay => "Repetição",
         Field::Terminal

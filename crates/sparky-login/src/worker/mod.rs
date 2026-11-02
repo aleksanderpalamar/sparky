@@ -13,11 +13,11 @@ use std::path::Path;
 use sparky_login_core::codec::{receive, send};
 use sparky_login_core::protocol::{Refusal, SOCKET_VARIABLE};
 use sparky_login_core::sessions::Session;
-use zeroize::Zeroizing;
 
 use crate::domain::environment::{Account, Class, environment, login_command, pam_variables, tty};
-use crate::domain::job::{Job, Order, Report};
+use crate::domain::job::{Job, LoginJob, Order, Report};
 use crate::ports::accounts::Accounts;
+use crate::ports::appearance::Appearance;
 use crate::ports::launcher::Launcher;
 use crate::ports::pam::{Pam, Transaction};
 
@@ -28,6 +28,7 @@ pub struct Worker<'a> {
     pub pam: &'a dyn Pam,
     pub accounts: &'a dyn Accounts,
     pub launcher: &'a dyn Launcher,
+    pub appearance: &'a dyn Appearance,
 }
 
 impl Worker<'_> {
@@ -40,12 +41,7 @@ impl Worker<'_> {
                 vt,
                 socket,
             } => self.greeter(&user, &command, vt, &socket, output),
-            Job::Login {
-                username,
-                password,
-                session,
-                vt,
-            } => self.login(&username, password, &session, vt, input, output),
+            Job::Login(job) => self.login(job, input, output),
         }
     }
 
@@ -68,18 +64,25 @@ impl Worker<'_> {
             SOCKET_VARIABLE.to_owned(),
             socket.to_string_lossy().into_owned(),
         ));
-        self.supervise(transaction, &account, command, &variables, vt, output)
+        let result = self.run_session(&account, command, &variables, vt, output);
+        finish(transaction, output, result)
     }
 
     fn login(
         &self,
-        username: &str,
-        password: Zeroizing<String>,
-        session: &Session,
-        vt: u32,
+        job: LoginJob,
         input: &mut impl BufRead,
         output: &mut impl Write,
     ) -> Result<(), String> {
+        let LoginJob {
+            username,
+            password,
+            session,
+            vt,
+            appearance,
+        } = job;
+        let username = username.as_str();
+        let session = &session;
         let mut transaction = self.pam.begin(LOGIN_SERVICE, username, Some(password))?;
         if let Err(refusal) = transaction.authenticate() {
             return report(output, Report::Refused { refusal });
@@ -99,29 +102,36 @@ impl Worker<'_> {
         }
         let variables = environment(&account, transaction.environment());
         let command = login_command(&account, &session.exec);
-        self.supervise(transaction, &account, &command, &variables, vt, output)
+        self.appearance.capture(&account, &variables, &appearance);
+        let result = self.run_session(&account, &command, &variables, vt, output);
+        self.appearance.capture(&account, &variables, &appearance);
+        finish(transaction, output, result)
     }
 
-    fn supervise(
+    fn run_session(
         &self,
-        mut transaction: Box<dyn Transaction>,
         account: &Account,
         command: &[String],
         variables: &[(String, String)],
         vt: u32,
         output: &mut impl Write,
     ) -> Result<(), String> {
-        let result = self
+        let mut process = self
             .launcher
-            .launch(account, command, variables, &tty(vt))
-            .and_then(|mut process| {
-                report(output, Report::Running)?;
-                process.wait()
-            });
-        transaction.close();
-        report(output, Report::Ended)?;
-        result
+            .launch(account, command, variables, &tty(vt))?;
+        report(output, Report::Running)?;
+        process.wait()
     }
+}
+
+fn finish(
+    mut transaction: Box<dyn Transaction>,
+    output: &mut impl Write,
+    result: Result<(), String>,
+) -> Result<(), String> {
+    transaction.close();
+    report(output, Report::Ended)?;
+    result
 }
 
 fn open(

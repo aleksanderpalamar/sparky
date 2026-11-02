@@ -6,7 +6,9 @@ use sparky_ui::notice::Notice;
 
 use crate::app::message::Message;
 use crate::app::state::{Mode, Settings};
-use crate::app::test_support::{Comandos, Sparky, digitar, enter, painel_com, salvo, tecla};
+use crate::app::test_support::{
+    Comandos, Sparky, digitar, enter, painel_com, painel_com_fundos, salvo, tecla,
+};
 use crate::app::update::update;
 use crate::domain::section::Section;
 use crate::domain::system::RowId;
@@ -119,24 +121,6 @@ fn sem_gsettings_a_paleta_fica_e_o_aviso_explica_os_icones() {
     assert!(
         matches!(&settings.notice, Some(Notice::Error(text)) if text.starts_with("Paleta azul aplicada, mas os ícones Yaru-blue não:"))
     );
-}
-
-fn painel_com_fundos() -> (Settings, crate::app::test_support::Arquivo, Rc<FakeThemes>) {
-    let (mut settings, arquivo) = painel_com(None, Sparky::default(), Comandos::default());
-    let store = Rc::new(FakeThemes::default());
-    let fundos = ["/w/azul/1-a.jpg", "/w/azul/2-b.jpg"]
-        .map(std::path::PathBuf::from)
-        .to_vec();
-    let theme = Theme::parse("azul", "accent = \"#010203\"").unwrap_or_else(|_| Theme::builtin());
-    store
-        .catalog
-        .borrow_mut()
-        .themes
-        .push(theme.with_wallpapers(fundos));
-    settings.services.themes = Box::new(store.clone());
-    settings.reload_system();
-    settings.go(Section::Themes);
-    (settings, arquivo, store)
 }
 
 #[test]
