@@ -11,6 +11,7 @@ use crate::color_management::conversion::Conversion;
 
 pub struct ConvertedSurface {
     inner: WaylandSurfaceRenderElement<GlesRenderer>,
+    id: Id,
     program: GlesTexProgram,
     uniforms: Vec<Uniform<'static>>,
 }
@@ -18,11 +19,13 @@ pub struct ConvertedSurface {
 impl ConvertedSurface {
     pub fn new(
         inner: WaylandSurfaceRenderElement<GlesRenderer>,
+        id: Id,
         program: GlesTexProgram,
         conversion: &Conversion,
     ) -> Self {
         Self {
             inner,
+            id,
             program,
             uniforms: surface_shader::uniforms(conversion),
         }
@@ -31,7 +34,7 @@ impl ConvertedSurface {
 
 impl Element for ConvertedSurface {
     fn id(&self) -> &Id {
-        self.inner.id()
+        &self.id
     }
 
     fn current_commit(&self) -> CommitCounter {
