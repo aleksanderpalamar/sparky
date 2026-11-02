@@ -5,23 +5,18 @@ use iced_test::{Simulator, selector};
 
 use crate::adapters::preview::Preview;
 use crate::app::update::PASSWORD;
-use crate::app::{Greeter, Message, Start, boot, style, view};
+use crate::app::{Greeter, Message, Mode, Start, boot, style, view};
 use crate::domain::layout::{Layout, Part, bands};
 use crate::domain::power::Power;
-use crate::domain::sessions::{Session, Sessions};
+use sparky_login_core::sessions::{Session, Sessions};
 
 const LARGURA: f32 = 1920.0;
 const ALTURA: f32 = 1080.0;
 
 fn tela(last_user: Option<&str>) -> Greeter {
-    let sessions = Sessions::new(
-        vec![Session {
-            id: "sparky".into(),
-            name: "Sparky".into(),
-        }],
-        None,
-    );
+    let sessions = Sessions::new(vec![sessao("sparky", "Sparky")], None);
     let start = Start {
+        mode: Mode::Preview,
         backend: Arc::new(Preview),
         sessions,
         last_user: last_user.map(str::to_owned),
@@ -133,4 +128,13 @@ fn clicar_na_sessao_troca_a_sessao() {
             .iter()
             .any(|message| matches!(message, Message::NextSession))
     );
+}
+
+fn sessao(id: &str, name: &str) -> Session {
+    Session {
+        id: id.to_owned(),
+        name: name.to_owned(),
+        exec: id.to_owned(),
+        desktop_names: Vec::new(),
+    }
 }

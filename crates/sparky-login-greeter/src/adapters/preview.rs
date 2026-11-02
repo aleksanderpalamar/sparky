@@ -1,5 +1,5 @@
 use crate::domain::form::{Credentials, Refusal};
-use crate::domain::power::Power;
+use crate::domain::power::{Power, label};
 use crate::ports::backend::Backend;
 
 pub struct Preview;
@@ -10,6 +10,6 @@ impl Backend for Preview {
     }
 
     fn power(&self, action: Power) -> Result<(), String> {
-        Err(format!("na prévia, {} não faz nada", action.label()))
+        Err(format!("na prévia, {} não faz nada", label(action)))
     }
 }

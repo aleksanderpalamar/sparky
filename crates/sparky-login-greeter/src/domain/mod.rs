@@ -4,7 +4,6 @@ pub mod focus;
 pub mod form;
 pub mod layout;
 pub mod power;
-pub mod sessions;
 
 #[cfg(test)]
 mod clock_tests;
@@ -16,5 +15,3 @@ mod focus_tests;
 mod form_tests;
 #[cfg(test)]
 mod layout_tests;
-#[cfg(test)]
-mod sessions_tests;

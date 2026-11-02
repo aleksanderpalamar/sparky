@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Command {
+    Greeter,
     Preview(Options),
 }
 
@@ -10,7 +11,7 @@ pub struct Options {
     pub wallpaper: Option<PathBuf>,
 }
 
-pub const USAGE: &str = "uso: sparky-login-greeter --preview [--wallpaper <imagem>]";
+pub const USAGE: &str = "uso: sparky-login-greeter [--preview [--wallpaper <imagem>]]";
 
 pub fn parse(args: impl IntoIterator<Item = String>) -> Option<Command> {
     let mut preview = false;
@@ -23,7 +24,11 @@ pub fn parse(args: impl IntoIterator<Item = String>) -> Option<Command> {
             _ => return None,
         }
     }
-    preview.then_some(Command::Preview(options))
+    match (preview, options.wallpaper.is_some()) {
+        (true, _) => Some(Command::Preview(options)),
+        (false, false) => Some(Command::Greeter),
+        (false, true) => None,
+    }
 }
 
 #[cfg(test)]
@@ -52,9 +57,14 @@ mod tests {
     }
 
     #[test]
-    fn sem_previa_argumento_desconhecido_ou_sem_valor_mostra_o_uso() {
-        assert_eq!(parse(argumentos(&[])), None);
+    fn sem_argumentos_abre_a_tela_de_verdade() {
+        assert_eq!(parse(argumentos(&[])), Some(Command::Greeter));
+    }
+
+    #[test]
+    fn argumento_desconhecido_sem_valor_ou_wallpaper_fora_da_previa_mostra_o_uso() {
         assert_eq!(parse(argumentos(&["--preview", "--wallpaper"])), None);
         assert_eq!(parse(argumentos(&["--preview", "--outro"])), None);
+        assert_eq!(parse(argumentos(&["--wallpaper", "/tmp/fundo.png"])), None);
     }
 }

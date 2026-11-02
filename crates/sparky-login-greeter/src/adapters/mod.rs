@@ -1,3 +1,6 @@
 pub mod backdrop;
+pub mod daemon;
 pub mod preview;
-pub mod session_files;
+
+#[cfg(test)]
+mod daemon_tests;

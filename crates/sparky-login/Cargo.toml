@@ -1,0 +1,29 @@
+[package]
+name = "sparky-login"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "sparky-login"
+path = "src/main.rs"
+
+[lib]
+name = "sparky_login"
+path = "src/lib.rs"
+
+[dependencies]
+libc = "0.2"
+libloading = "0.8"
+nix = { version = "0.31", features = ["fs", "process", "signal", "user"] }
+serde.workspace = true
+serde_json.workspace = true
+sparky-login-core.workspace = true
+sparky-xdg.workspace = true
+tokio = { version = "1", features = ["io-util", "macros", "net", "process", "rt", "signal", "sync", "time"] }
+zbus = { version = "5", default-features = false, features = ["tokio"] }
+zeroize = { version = "1", features = ["serde", "std"] }
+
+[dev-dependencies]
+tempfile = "3"

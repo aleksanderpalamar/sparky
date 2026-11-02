@@ -1,0 +1,16 @@
+[Unit]
+Description=Tela de login do sparky
+Documentation=https://github.com/aleksanderpalamar/sparky
+Conflicts=getty@tty1.service
+After=systemd-user-sessions.service getty@tty1.service plymouth-quit.service plymouth-quit-wait.service systemd-logind.service
+
+[Service]
+ExecStart=/usr/bin/sparky-login
+Restart=always
+RestartSec=1
+StateDirectory=sparky-login
+RuntimeDirectory=sparky-login
+IgnoreSIGPIPE=no
+
+[Install]
+Alias=display-manager.service

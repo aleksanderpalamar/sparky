@@ -26,7 +26,9 @@ Somente os temas vem do [Omarchy](https://github.com/basecamp/omarchy): como pal
 | `crates/sparky-terminal` | O terminal padrão (`sparky-terminal`): abre o shell do usuário com as cores, a fonte e o layout do tema do sparky |
 | `crates/sparky-keyring` | O chaveiro (`sparky-keyring`): guarda as senhas dos aplicativos num cofre cifrado e atende a API Secret Service do D-Bus |
 | `crates/sparky-keyring-prompt` | A janela que pede a senha do cofre (`sparky-keyring-prompt`) |
+| `crates/sparky-login` | O gerenciador de login (`sparky-login`): serviço do sistema que autentica pelo PAM, registra a sessão no logind e abre a sessão do usuário |
 | `crates/sparky-login-greeter` | A tela de login (`sparky-login-greeter`): relógio, usuário, senha, energia e escolha da sessão |
+| `crates/sparky-login-core` | Protocolo entre a tela e o serviço de login e a lista das sessões Wayland instaladas |
 | `crates/polkit-sparky` | Agente de autenticação do sistema, com janela nativa, temas e integração polkit/PAM |
 | `crates/sparky-theme` | Paleta de cores compartilhada pelos aplicativos, lida do `colors.toml` do tema |
 | `data/themes` | Temas no formato `colors.toml` |
@@ -245,7 +247,30 @@ O `sparky-login-greeter` é a tela de login própria do sparky, feita para subst
 - As sessões vêm dos `.desktop` de `wayland-sessions` em `$XDG_DATA_DIRS` (sem a variável, `/usr/local/share` e `/usr/share`), sem as ocultas e as que não estão instaladas; a primeira pasta vence quando o arquivo se repete, e sem preferência vale o Sparky.
 - Senha errada apaga a senha e mostra `Falha no login!` acima do usuário.
 
-Por enquanto só existe a prévia, que abre em qualquer sessão Wayland com layer-shell: `sparky-login-greeter --preview [--wallpaper <imagem>]`. Sem `--wallpaper`, vale o primeiro papel de parede do tema padrão. Na prévia nenhuma senha entra, os botões de energia não fazem nada e `Esc` fecha. O serviço que autentica pelo PAM e abre a sessão vem na próxima etapa.
+A sessão escolhida fica guardada junto com o usuário: no próximo login, os dois já vêm escolhidos.
+
+### Serviço de login
+
+O `sparky-login` é o serviço do sistema que substitui o SDDM e o GDM. Ele roda como root pelo `sparky-login.service`, ocupa o terminal 1 e, a cada tela de login, abre o compositor em modo restrito (`sparky --login-screen sparky-login-greeter`) como o usuário de sistema `sparky-login`, numa sessão do logind de classe `greeter`. Nesse modo o compositor não tem atalhos, autostart, IPC nem XWayland; só a troca de terminal (`CTRL + ALT + F1` a `F12`) continua valendo, e ele fecha quando a tela fecha.
+
+- A tela fala com o serviço por `/run/sparky-login/greeter.sock`, que só o usuário `sparky-login` acessa (0600, conferido pela credencial do processo do outro lado).
+- Cada tentativa de login roda num processo próprio (`sparky-login --worker`), que autentica pelo serviço PAM `sparky-login` (`pam_authenticate` e `pam_acct_mgmt`). Senha errada, usuário desconhecido e tentativas demais dão a mesma recusa; senha ou conta expirada explicam o motivo.
+- Com a senha certa, o serviço guarda o usuário e a sessão em `/var/lib/sparky-login/memory.json`, espera a tela fechar e abre a sessão: `XDG_SESSION_TYPE=wayland`, `XDG_SESSION_CLASS=user`, `XDG_SEAT=seat0`, `XDG_VTNR`, `XDG_SESSION_DESKTOP` (o nome do `.desktop`) e `XDG_CURRENT_DESKTOP` (o `DesktopNames` dele) para o `pam_systemd`, credenciais e sessão do PAM, e o `Exec` da sessão pelo shell de login do usuário (`$SHELL -l -c`), já com os grupos, o gid e o uid dele e o terminal como terminal de controle.
+- Quando a sessão acaba, o serviço fecha a sessão do PAM e abre a tela de novo. Se a tela cair, ela volta sozinha; se não fechar depois do login, recebe `SIGTERM` depois de 10 s.
+- Desligar, Reiniciar e Suspend pedem ao logind (`PowerOff`, `Reboot`, `Suspend`).
+- O PAM próprio não liga o gnome-keyring: dentro do sparky, as senhas ficam com o `sparky-keyring`.
+
+Os pacotes instalam o serviço, o usuário (`sysusers.d`), a pasta da tela (`tmpfiles.d`) e os dois arquivos do PAM (`/etc/pam.d/sparky-login`, do jeito de cada distribuição, e `/etc/pam.d/sparky-login-greeter`), mas não habilitam o serviço. Para trocar o SDDM pelo sparky-login:
+
+```sh
+sudo systemctl disable sddm
+sudo systemctl enable sparky-login
+sudo reboot
+```
+
+Para voltar, entre num terminal com `CTRL + ALT + F2`, faça login e rode `sudo systemctl disable sparky-login && sudo systemctl enable sddm && sudo reboot`. O log do serviço fica no journal: `journalctl -u sparky-login -b`.
+
+A prévia abre em qualquer sessão Wayland com layer-shell: `sparky-login-greeter --preview [--wallpaper <imagem>]`. Sem `--wallpaper`, vale o primeiro papel de parede do tema padrão. Na prévia nenhuma senha entra, os botões de energia não fazem nada e `Esc` fecha; na tela de verdade, `Esc` não fecha nada.
 
 ## Arquivos
 

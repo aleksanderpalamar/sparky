@@ -10,11 +10,7 @@ pub enum Reveal {
     Shown,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Refusal {
-    Denied,
-    Unavailable(String),
-}
+pub use sparky_login_core::protocol::Refusal;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Status {

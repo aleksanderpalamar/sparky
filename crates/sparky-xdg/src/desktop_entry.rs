@@ -24,15 +24,24 @@ impl Localized {
     }
 
     fn read(pairs: &[(&str, &str)], key: &str) -> Self {
-        let default = pairs.iter().find(|(name, _)| *name == key).map(|(_, value)| (*value).to_owned());
+        let default = pairs
+            .iter()
+            .find(|(name, _)| *name == key)
+            .map(|(_, value)| (*value).to_owned());
         let translations = pairs
             .iter()
             .filter_map(|(name, value)| {
-                let locale = name.strip_prefix(key)?.strip_prefix('[')?.strip_suffix(']')?;
+                let locale = name
+                    .strip_prefix(key)?
+                    .strip_prefix('[')?
+                    .strip_suffix(']')?;
                 Some((locale.to_owned(), (*value).to_owned()))
             })
             .collect();
-        Self { default, translations }
+        Self {
+            default,
+            translations,
+        }
     }
 }
 
@@ -51,12 +60,18 @@ pub struct DesktopEntry {
     pub enabled: bool,
     pub only_show_in: Vec<String>,
     pub not_show_in: Vec<String>,
+    pub desktop_names: Vec<String>,
 }
 
 impl DesktopEntry {
     pub fn parse(contents: &str) -> Option<Self> {
         let pairs = main_group(contents)?;
-        let value = |key: &str| pairs.iter().find(|(name, _)| *name == key).map(|(_, value)| *value);
+        let value = |key: &str| {
+            pairs
+                .iter()
+                .find(|(name, _)| *name == key)
+                .map(|(_, value)| *value)
+        };
         let flag = |key: &str| value(key).is_some_and(|flag| flag == "true");
         if value("Type").is_some_and(|kind| kind != "Application") {
             return None;
@@ -75,13 +90,15 @@ impl DesktopEntry {
             enabled: value("X-GNOME-Autostart-enabled").is_none_or(|flag| flag != "false"),
             only_show_in: list_of(value("OnlyShowIn")),
             not_show_in: list_of(value("NotShowIn")),
+            desktop_names: list_of(value("DesktopNames")),
         })
     }
 }
 
 impl DesktopEntry {
     pub fn shown_in(&self, desktop: &str) -> bool {
-        let allowed = self.only_show_in.is_empty() || self.only_show_in.iter().any(|name| name == desktop);
+        let allowed =
+            self.only_show_in.is_empty() || self.only_show_in.iter().any(|name| name == desktop);
         let excluded = self.not_show_in.iter().any(|name| name == desktop);
         !self.hidden && allowed && !excluded
     }

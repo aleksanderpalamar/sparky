@@ -7,7 +7,7 @@ use iced::widget::operation;
 use crate::app::{Greeter, Message, Step, blocking};
 use crate::domain::focus::Focus;
 use crate::domain::form::Refusal;
-use crate::domain::power::Power;
+use crate::domain::power::{Power, label};
 
 pub const USERNAME: &str = "usuario";
 pub const PASSWORD: &str = "senha";
@@ -105,7 +105,7 @@ fn refused(greeter: &mut Greeter, refusal: Refusal) -> Task<Message> {
 fn power(greeter: &mut Greeter, action: Power) -> Task<Message> {
     greeter.focus = Focus::Power(action);
     let backend = Arc::clone(&greeter.backend);
-    let lost = Err(format!("{} parou no meio", action.label()));
+    let lost = Err(format!("{} parou no meio", label(action)));
     Task::batch([
         focus_on(greeter.focus),
         Task::perform(

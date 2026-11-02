@@ -2,30 +2,22 @@ use std::sync::Arc;
 
 use crate::adapters::preview::Preview;
 use crate::app::update::update;
-use crate::app::{Greeter, Message, Start, Step, boot};
+use crate::app::{Greeter, Message, Mode, Start, Step, boot};
 use crate::domain::focus::Focus;
 use crate::domain::form::{Refusal, Status};
 use crate::domain::power::Power;
-use crate::domain::sessions::{Session, Sessions};
+use sparky_login_core::sessions::{Session, Sessions};
 
 fn sessoes() -> Option<Sessions> {
     Sessions::new(
-        vec![
-            Session {
-                id: "hyprland".into(),
-                name: "Hyprland".into(),
-            },
-            Session {
-                id: "sparky".into(),
-                name: "Sparky".into(),
-            },
-        ],
+        vec![sessao("hyprland", "Hyprland"), sessao("sparky", "Sparky")],
         None,
     )
 }
 
 fn tela(sessions: Option<Sessions>) -> Greeter {
     let start = Start {
+        mode: Mode::Preview,
         backend: Arc::new(Preview),
         sessions,
         last_user: Some("palamar".into()),
@@ -120,4 +112,13 @@ fn a_falha_de_energia_aparece_como_aviso_e_some_ao_digitar() {
     );
     let _ = update(&mut greeter, Message::TypedPassword("s".into()));
     assert_eq!(greeter.notice, None);
+}
+
+fn sessao(id: &str, name: &str) -> Session {
+    Session {
+        id: id.to_owned(),
+        name: name.to_owned(),
+        exec: id.to_owned(),
+        desktop_names: Vec::new(),
+    }
 }

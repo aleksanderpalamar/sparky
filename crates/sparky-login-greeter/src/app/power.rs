@@ -4,7 +4,7 @@ use iced::widget::{button, container, mouse_area, row, svg};
 use crate::app::widgets::{Look, underlined};
 use crate::app::{Message, icons, style};
 use crate::domain::focus::Focus;
-use crate::domain::power::Power;
+use crate::domain::power::{self, Power};
 
 pub fn icons<'a>(look: Look) -> Element<'a, Message> {
     row(Power::ALL.map(|action| icon(action, look)))
@@ -32,7 +32,7 @@ fn icon<'a>(action: Power, look: Look) -> Element<'a, Message> {
 }
 
 fn label<'a>(action: Power, focused: bool, look: Look) -> Element<'a, Message> {
-    let text = container(underlined(action.label().to_owned(), focused, look))
+    let text = container(underlined(power::label(action).to_owned(), focused, look))
         .center_x(look.layout.power_width);
     mouse_area(text).on_press(Message::Power(action)).into()
 }

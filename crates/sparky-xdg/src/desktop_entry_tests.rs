@@ -35,7 +35,8 @@ fn ignora_as_chaves_de_outros_grupos() {
 
 #[test]
 fn le_oculta_e_desligada_pelo_gnome() {
-    let contents = "[Desktop Entry]\nExec=x\nHidden=true\nX-GNOME-Autostart-enabled=false\nType=Application\n";
+    let contents =
+        "[Desktop Entry]\nExec=x\nHidden=true\nX-GNOME-Autostart-enabled=false\nType=Application\n";
     let Some(entry) = DesktopEntry::parse(contents) else {
         panic!("deveria ler a entrada");
     };
@@ -88,7 +89,9 @@ Type=Application
 
 #[test]
 fn o_nome_segue_o_idioma_e_cai_para_a_lingua_e_depois_para_o_padrao() {
-    let Some(entry) = DesktopEntry::parse(FIREFOX) else { panic!("deveria ler") };
+    let Some(entry) = DesktopEntry::parse(FIREFOX) else {
+        panic!("deveria ler")
+    };
     assert_eq!(entry.name.get("pt_BR"), Some("Navegador Firefox"));
     assert_eq!(entry.name.get("pt_PT"), Some("Firefox PT"));
     assert_eq!(entry.name.get("de_DE"), Some("Firefox"));
@@ -98,12 +101,19 @@ fn o_nome_segue_o_idioma_e_cai_para_a_lingua_e_depois_para_o_padrao() {
 
 #[test]
 fn le_icone_palavras_chave_e_as_marcas_de_exibicao() {
-    let Some(entry) = DesktopEntry::parse(FIREFOX) else { panic!("deveria ler") };
+    let Some(entry) = DesktopEntry::parse(FIREFOX) else {
+        panic!("deveria ler")
+    };
     assert_eq!(entry.icon.as_deref(), Some("firefox"));
-    assert_eq!(list_of(entry.keywords.get("pt_BR")), vec!["internet", "navegador", "web"]);
+    assert_eq!(
+        list_of(entry.keywords.get("pt_BR")),
+        vec!["internet", "navegador", "web"]
+    );
     assert!(!entry.no_display);
     assert!(!entry.terminal);
-    let Some(htop) = DesktopEntry::parse("[Desktop Entry]\nName=htop\nExec=htop\nTerminal=true\nNoDisplay=true\n") else {
+    let Some(htop) = DesktopEntry::parse(
+        "[Desktop Entry]\nName=htop\nExec=htop\nTerminal=true\nNoDisplay=true\n",
+    ) else {
         panic!("deveria ler");
     };
     assert!(htop.terminal);
@@ -119,19 +129,41 @@ fn o_idioma_vem_do_ambiente_sem_a_codificacao() {
 
 #[test]
 fn a_entrada_aparece_conforme_only_e_not_show_in() {
-    let Some(entry) = DesktopEntry::parse(NM_APPLET) else { panic!("deveria ler") };
+    let Some(entry) = DesktopEntry::parse(NM_APPLET) else {
+        panic!("deveria ler")
+    };
     assert!(entry.shown_in("sparky"));
     assert!(!entry.shown_in("GNOME"));
-    let Some(so_sparky) = DesktopEntry::parse("[Desktop Entry]\nExec=x\nOnlyShowIn=sparky;\n") else { panic!("deveria ler") };
+    let Some(so_sparky) = DesktopEntry::parse("[Desktop Entry]\nExec=x\nOnlyShowIn=sparky;\n")
+    else {
+        panic!("deveria ler")
+    };
     assert!(so_sparky.shown_in("sparky"));
     assert!(!so_sparky.shown_in("KDE"));
-    let Some(escondida) = DesktopEntry::parse("[Desktop Entry]\nExec=x\nHidden=true\n") else { panic!("deveria ler") };
+    let Some(escondida) = DesktopEntry::parse("[Desktop Entry]\nExec=x\nHidden=true\n") else {
+        panic!("deveria ler")
+    };
     assert!(!escondida.shown_in("sparky"));
 }
 
 #[test]
 fn try_exec_ausente_tira_a_entrada() {
-    let Some(entry) = DesktopEntry::parse(NM_APPLET) else { panic!("deveria ler") };
+    let Some(entry) = DesktopEntry::parse(NM_APPLET) else {
+        panic!("deveria ler")
+    };
     assert!(entry.installed(|program| program == "nm-applet"));
     assert!(!entry.installed(|_| false));
+}
+
+#[test]
+fn desktop_names_da_sessao_vira_lista() {
+    let sessao = "[Desktop Entry]\nName=Hyprland\nExec=Hyprland\nDesktopNames=Hyprland;wlroots;\n";
+    let Some(entry) = DesktopEntry::parse(sessao) else {
+        panic!("deveria ler")
+    };
+    assert_eq!(entry.desktop_names, vec!["Hyprland", "wlroots"]);
+    let Some(sem) = DesktopEntry::parse(NM_APPLET) else {
+        panic!("deveria ler")
+    };
+    assert!(sem.desktop_names.is_empty());
 }

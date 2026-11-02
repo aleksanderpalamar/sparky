@@ -25,8 +25,8 @@ use crate::adapters::backdrop::{self, Backdrop};
 use crate::domain::focus::Focus;
 use crate::domain::form::{Form, Refusal};
 use crate::domain::power::Power;
-use crate::domain::sessions::Sessions;
 use crate::ports::backend::Backend;
+use sparky_login_core::sessions::Sessions;
 
 const NAMESPACE: &str = "sparky-login-greeter";
 const TICK: Duration = Duration::from_secs(1);
@@ -56,8 +56,15 @@ pub enum Message {
     Powered(Result<(), String>),
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Mode {
+    Preview,
+    Greeter,
+}
+
 #[derive(Clone)]
 pub struct Start {
+    pub mode: Mode,
     pub backend: Arc<dyn Backend>,
     pub sessions: Option<Sessions>,
     pub last_user: Option<String>,
@@ -66,6 +73,7 @@ pub struct Start {
 }
 
 pub struct Greeter {
+    pub mode: Mode,
     pub form: Form,
     pub sessions: Option<Sessions>,
     pub focus: Focus,
@@ -79,9 +87,9 @@ pub struct Greeter {
 pub fn run(start: Start) -> Result<(), iced_layershell::Error> {
     let boot = move || boot(start.clone());
     iced_layershell::application(boot, || NAMESPACE.to_owned(), update::update, view::view)
-        .subscription(|_| {
+        .subscription(|greeter: &Greeter| {
             Subscription::batch([
-                event::listen_with(keys::message),
+                event::listen_with(keys::for_mode(greeter.mode)),
                 iced::time::every(TICK).map(|_| Message::Tick),
             ])
         })
@@ -94,6 +102,7 @@ pub fn boot(start: Start) -> (Greeter, Task<Message>) {
     let form = Form::new(start.last_user.as_deref());
     let focus = form.first_focus();
     let greeter = Greeter {
+        mode: start.mode,
         form,
         sessions: start.sessions,
         focus,

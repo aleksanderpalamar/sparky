@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use serde::{Deserialize, Serialize};
 use sparky_xdg::desktop_entry::DesktopEntry;
 
 const DEFAULT: &str = "sparky";
@@ -10,10 +11,12 @@ pub struct SessionFile {
     pub contents: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Session {
     pub id: String,
     pub name: String,
+    pub exec: String,
+    pub desktop_names: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -39,11 +42,17 @@ pub fn sessions(
 
 fn session(file: SessionFile, locale: &str, installed: &impl Fn(&str) -> bool) -> Option<Session> {
     let entry = DesktopEntry::parse(&file.contents)?;
-    if entry.hidden || entry.no_display || entry.exec.is_none() || !entry.installed(installed) {
+    if entry.hidden || entry.no_display || !entry.installed(installed) {
         return None;
     }
+    let exec = entry.exec.filter(|exec| !exec.trim().is_empty())?;
     let name = entry.name.get(locale)?.to_owned();
-    Some(Session { id: file.id, name })
+    Some(Session {
+        id: file.id,
+        name,
+        exec,
+        desktop_names: entry.desktop_names,
+    })
 }
 
 impl Sessions {

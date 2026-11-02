@@ -1,5 +1,5 @@
 use super::focus::Focus;
-use super::power::Power;
+use super::power::{Power, label};
 
 const ORDEM: [Focus; 7] = [
     Focus::Username,
@@ -33,6 +33,6 @@ fn so_os_campos_recebem_texto() {
 
 #[test]
 fn os_botoes_de_energia_tem_os_nomes_da_foto_na_ordem_da_foto() {
-    let nomes: Vec<&str> = Power::ALL.iter().map(|power| power.label()).collect();
+    let nomes: Vec<&str> = Power::ALL.iter().map(|power| label(*power)).collect();
     assert_eq!(nomes, vec!["Desligar", "Reiniciar", "Suspend"]);
 }

@@ -1,4 +1,4 @@
-use super::sessions::{Session, SessionFile, Sessions, sessions};
+use crate::sessions::{Session, SessionFile, Sessions, sessions};
 
 fn arquivo(id: &str, contents: &str) -> SessionFile {
     SessionFile {
@@ -19,7 +19,19 @@ fn sessao(id: &str, name: &str) -> Session {
     Session {
         id: id.to_owned(),
         name: name.to_owned(),
+        exec: id.to_owned(),
+        desktop_names: Vec::new(),
     }
+}
+
+fn nomes(list: Vec<Session>) -> Vec<(String, String)> {
+    list.into_iter()
+        .map(|session| (session.id, session.name))
+        .collect()
+}
+
+fn par(id: &str, name: &str) -> (String, String) {
+    (id.to_owned(), name.to_owned())
 }
 
 fn lista() -> Vec<Session> {
@@ -32,7 +44,10 @@ fn lista_as_sessoes_wayland_pelo_nome() {
         arquivo("sparky", &entrada("Sparky", "sparky")),
         arquivo("hyprland", &entrada("Hyprland", "Hyprland")),
     ];
-    assert_eq!(sessions(files, "pt_BR", tudo_instalado), lista());
+    assert_eq!(
+        nomes(sessions(files, "pt_BR", tudo_instalado)),
+        vec![par("hyprland", "Hyprland"), par("sparky", "Sparky")]
+    );
 }
 
 #[test]
@@ -55,8 +70,8 @@ fn escondidas_sem_exec_e_nao_instaladas_ficam_de_fora() {
     ];
     let instalado = |program: &str| program != "ausente";
     assert_eq!(
-        sessions(files, "pt_BR", instalado),
-        vec![sessao("sparky", "Sparky")]
+        nomes(sessions(files, "pt_BR", instalado)),
+        vec![par("sparky", "Sparky")]
     );
 }
 
@@ -67,8 +82,8 @@ fn quando_o_arquivo_se_repete_vale_o_da_primeira_pasta() {
         arquivo("sparky", &entrada("Sparky", "sparky")),
     ];
     assert_eq!(
-        sessions(files, "C", tudo_instalado),
-        vec![sessao("sparky", "Sparky local")]
+        nomes(sessions(files, "C", tudo_instalado)),
+        vec![par("sparky", "Sparky local")]
     );
 }
 
@@ -79,8 +94,8 @@ fn o_nome_segue_o_idioma_do_sistema() {
         "[Desktop Entry]\nName=Sparky\nName[pt_BR]=Sparky BR\nExec=sparky\n",
     )];
     assert_eq!(
-        sessions(files, "pt_BR", tudo_instalado),
-        vec![sessao("sparky", "Sparky BR")]
+        nomes(sessions(files, "pt_BR", tudo_instalado)),
+        vec![par("sparky", "Sparky BR")]
     );
 }
 
@@ -145,4 +160,21 @@ fn o_rotulo_e_o_da_foto() {
         panic!("a lista tem sessões");
     };
     assert_eq!(sessions.label(), "Session (Sparky)");
+}
+
+#[test]
+fn a_sessao_guarda_o_comando_e_os_nomes_do_desktop() {
+    let files = vec![arquivo(
+        "hyprland",
+        "[Desktop Entry]\nName=Hyprland\nExec=Hyprland --config x\nDesktopNames=Hyprland;\n",
+    )];
+    let lista = sessions(files, "C", tudo_instalado);
+    assert_eq!(lista[0].exec, "Hyprland --config x");
+    assert_eq!(lista[0].desktop_names, vec!["Hyprland"]);
+}
+
+#[test]
+fn exec_vazio_fica_de_fora() {
+    let files = vec![arquivo("vazia", "[Desktop Entry]\nName=Vazia\nExec= \n")];
+    assert!(sessions(files, "C", tudo_instalado).is_empty());
 }

@@ -1,0 +1,2 @@
+d /var/lib/sparky-login 0755 root root -
+d /var/lib/sparky-login/greeter 0700 sparky-login sparky-login -

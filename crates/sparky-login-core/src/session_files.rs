@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use crate::domain::sessions::SessionFile;
+use crate::sessions::SessionFile;
 
 const DEFAULT_DATA_DIRS: &str = "/usr/local/share:/usr/share";
 const FOLDER: &str = "wayland-sessions";
@@ -9,10 +9,11 @@ const EXTENSION: &str = "desktop";
 
 pub fn from_system() -> Vec<SessionFile> {
     let data_dirs = std::env::var("XDG_DATA_DIRS").ok();
-    folders(data_dirs.as_deref())
-        .iter()
-        .flat_map(|folder| listing(folder))
-        .collect()
+    from_folders(&folders(data_dirs.as_deref()))
+}
+
+pub fn from_folders(folders: &[PathBuf]) -> Vec<SessionFile> {
+    folders.iter().flat_map(|folder| listing(folder)).collect()
 }
 
 pub fn folders(data_dirs: Option<&str>) -> Vec<PathBuf> {
