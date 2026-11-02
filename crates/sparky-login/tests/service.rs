@@ -12,6 +12,7 @@ use tempfile::TempDir;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixStream;
 use tokio::net::unix::{OwnedReadHalf, OwnedWriteHalf};
+use tokio::task::JoinHandle;
 use zeroize::Zeroizing;
 
 const WORKER: &str = r#"#!/bin/sh
@@ -25,6 +26,7 @@ esac
 
 struct Cena {
     dir: TempDir,
+    run: TempDir,
     settings: Settings,
 }
 
@@ -32,6 +34,10 @@ fn cena() -> Cena {
     let dir = tempfile::Builder::new()
         .prefix("servico")
         .tempdir_in(env!("CARGO_TARGET_TMPDIR"))
+        .unwrap_or_else(|error| panic!("{error}"));
+    let run = tempfile::Builder::new()
+        .prefix("sparky-login")
+        .tempdir()
         .unwrap_or_else(|error| panic!("{error}"));
     let worker = dir.path().join("worker");
     escrever(&worker, WORKER);
@@ -50,7 +56,7 @@ fn cena() -> Cena {
         .unwrap_or_default();
     let settings = Settings {
         vt: 63,
-        socket: dir.path().join("run/greeter.sock"),
+        socket: run.path().join("greeter.sock"),
         memory: dir.path().join("memory.json"),
         greeter_user: user,
         greeter_command: vec!["true".into()],
@@ -58,18 +64,24 @@ fn cena() -> Cena {
         data_dirs: Some(dir.path().join("dados").to_string_lossy().into_owned()),
         appearance: dir.path().join("aparencia"),
     };
-    Cena { dir, settings }
+    Cena { dir, run, settings }
 }
 
 fn escrever(path: &Path, contents: &str) {
     fs::write(path, contents).unwrap_or_else(|error| panic!("{}: {error}", path.display()));
 }
 
-async fn conectar(socket: &PathBuf) -> (BufReader<OwnedReadHalf>, OwnedWriteHalf) {
+async fn conectar(
+    socket: &PathBuf,
+    daemon: &mut JoinHandle<Result<(), String>>,
+) -> (BufReader<OwnedReadHalf>, OwnedWriteHalf) {
     for _ in 0..100 {
         if let Ok(stream) = UnixStream::connect(socket).await {
             let (reader, writer) = stream.into_split();
             return (BufReader::new(reader), writer);
+        }
+        if daemon.is_finished() {
+            panic!("o daemon parou antes de abrir o socket: {:?}", daemon.await);
         }
         tokio::time::sleep(Duration::from_millis(50)).await;
     }
@@ -109,8 +121,8 @@ async fn a_tela_conversa_com_o_daemon_e_o_worker_confere_a_senha() {
     let cena = cena();
     let socket = cena.settings.socket.clone();
     let memory = cena.settings.memory.clone();
-    let daemon = tokio::spawn(serve(cena.settings.clone()));
-    let mut conexao = conectar(&socket).await;
+    let mut daemon = tokio::spawn(serve(cena.settings.clone()));
+    let mut conexao = conectar(&socket, &mut daemon).await;
     assert_eq!(
         pedir(&mut conexao, &Request::Hello).await,
         Reply::Welcome {
@@ -150,5 +162,6 @@ async fn a_tela_conversa_com_o_daemon_e_o_worker_confere_a_senha() {
         Some(0o600)
     );
     daemon.abort();
+    drop(cena.run);
     drop(cena.dir);
 }
