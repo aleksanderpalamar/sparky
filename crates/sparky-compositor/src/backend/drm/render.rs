@@ -76,23 +76,26 @@ fn render_surface(state: &mut Sparky, drm: &mut Drm, crtc: crtc::Handle) {
             .map_err(|error| error.to_string()),
     };
     metrics.rendered(started.elapsed());
-    match result {
-        Ok(false) => {
-            if let Err(error) = queue(surface, &metrics) {
-                let video = Video {
-                    device: manager.device(),
-                    allocator,
-                    formats,
-                    pq: pq.as_ref(),
-                };
-                state.needs_render |= hdr::fall_back(&video, surface, &error);
-            }
+    let failure = match result {
+        Ok(false) => queue(surface, &metrics).err(),
+        Ok(true) => {
+            schedule_idle_frames(state, surface, crtc);
+            None
         }
-        Ok(true) => schedule_idle_frames(state, surface, crtc),
         Err(error) => {
             metrics.error();
             tracing::warn!(output = %output.name(), "quadro não desenhado: {error}");
+            Some(error)
         }
+    };
+    if let Some(error) = failure {
+        let video = Video {
+            device: manager.device(),
+            allocator,
+            formats,
+            pq: pq.as_ref(),
+        };
+        state.needs_render |= hdr::fall_back(&video, surface, &error);
     }
     metrics.phase(Phase::Dispatch);
 }

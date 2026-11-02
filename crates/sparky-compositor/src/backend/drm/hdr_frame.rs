@@ -4,7 +4,7 @@ use smithay::backend::renderer::gles::{GlesRenderer, GlesTexProgram, UniformName
 
 use crate::backend::drm::gpu::Surface;
 use crate::render::hdr::colorize::ColorElement;
-use crate::render::hdr::composite::Composite;
+use crate::render::hdr::composite::{self, Composite};
 use crate::render::hdr::pq;
 
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
@@ -15,6 +15,14 @@ pub struct Tone<'a> {
 }
 
 pub fn program(renderer: &mut GlesRenderer) -> Option<GlesTexProgram> {
+    if let Err(error) = composite::probe(renderer) {
+        tracing::warn!("HDR indisponível, a placa de vídeo não desenha em FP16: {error}");
+        return None;
+    }
+    compile(renderer)
+}
+
+fn compile(renderer: &mut GlesRenderer) -> Option<GlesTexProgram> {
     let peak = UniformName::new("peak", UniformType::_1f);
     match renderer.compile_custom_texture_shader(pq::shader(), &[peak]) {
         Ok(program) => Some(program),

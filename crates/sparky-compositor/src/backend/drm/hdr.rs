@@ -20,8 +20,12 @@ pub struct Video<'a> {
     pub pq: Option<&'a GlesTexProgram>,
 }
 
-pub fn state(device: &DrmDevice, handle: connector::Handle, surface: Option<&Surface>) -> Hdr {
-    if !capability(device, handle).supported() || hdr_props::find(device, handle).is_none() {
+pub fn state(video: &Video, handle: connector::Handle, surface: Option<&Surface>) -> Hdr {
+    let device = video.device;
+    if video.pq.is_none()
+        || !capability(device, handle).supported()
+        || hdr_props::find(device, handle).is_none()
+    {
         return Hdr::Unsupported;
     }
     match surface.map(|surface| surface.hdr) {
@@ -61,7 +65,7 @@ pub fn fall_back(video: &Video, surface: &mut Surface, error: &str) -> bool {
     let HdrState::On { .. } = surface.hdr else {
         return false;
     };
-    tracing::warn!(output = %surface.output.name(), "HDR desligado nesta sessão, a tela recusou o quadro: {error}");
+    tracing::warn!(output = %surface.output.name(), "HDR desligado nesta sessão, o quadro em HDR falhou: {error}");
     set(video, surface, false);
     surface.hdr == HdrState::Off
 }
