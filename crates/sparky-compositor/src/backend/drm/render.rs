@@ -16,6 +16,7 @@ use crate::backend::nested::send_frames;
 use crate::diagnostics::metrics::{Metrics, Phase};
 use crate::render::cursor::{Pointer, cursor_elements};
 use crate::render::elements::SparkyElement;
+use crate::render::hdr::colorize::colorize;
 use crate::render::output::output_elements;
 use crate::state::Sparky;
 
@@ -47,6 +48,7 @@ fn render_surface(state: &mut Sparky, drm: &mut Drm, crtc: crtc::Handle) {
     metrics.phase(Phase::Render);
     let mut elements = pointer(state, drm, &output);
     elements.extend(output_elements(state, &mut drm.gpu.renderer, &output));
+    let elements = colorize(state, &mut drm.gpu.renderer, elements);
     let clear = state.colors.background;
     let Gpu {
         manager,
@@ -62,8 +64,10 @@ fn render_surface(state: &mut Sparky, drm: &mut Drm, crtc: crtc::Handle) {
         return;
     };
     let result = match (surface.hdr, pq.as_ref()) {
-        (HdrState::On { .. }, Some(program)) => {
-            hdr_frame::render(renderer, surface, &elements, clear, program)
+        (HdrState::On { display, .. }, Some(program)) => {
+            let peak = display.max as f32;
+            let tone = hdr_frame::Tone { program, peak };
+            hdr_frame::render(renderer, surface, &elements, clear, tone)
         }
         _ => surface
             .drm_output

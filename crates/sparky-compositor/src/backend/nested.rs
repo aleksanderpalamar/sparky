@@ -14,6 +14,7 @@ use smithay::utils::{Physical, Rectangle, Size, Transform};
 use crate::backend::Backend;
 use crate::backend::dmabuf::render_device;
 use crate::backend::host_cursor::{HostCursor, host_cursor};
+use crate::render::hdr::colorize::colorize;
 use crate::render::output::output_elements;
 use crate::state::Sparky;
 
@@ -27,7 +28,10 @@ pub struct Nested {
     pub cursor: Option<HostCursor>,
 }
 
-pub fn init(event_loop: &mut EventLoop<'static, Sparky>, state: &mut Sparky) -> Result<(), Box<dyn std::error::Error>> {
+pub fn init(
+    event_loop: &mut EventLoop<'static, Sparky>,
+    state: &mut Sparky,
+) -> Result<(), Box<dyn std::error::Error>> {
     let attributes = HostWindow::default_attributes()
         .with_inner_size(LogicalSize::new(1600.0, 900.0))
         .with_title("Sparky")
@@ -38,21 +42,31 @@ pub fn init(event_loop: &mut EventLoop<'static, Sparky>, state: &mut Sparky) -> 
     let device = render_device(graphics.renderer());
     state.publish_formats(graphics.renderer(), device)?;
     let damage = OutputDamageTracker::from_output(&output);
-    state.backend = Backend::Nested(Box::new(Nested { graphics, output, damage, cursor: None }));
-    event_loop.handle().insert_source(events, |event, _, state| match event {
-        WinitEvent::Resized { size, .. } => state.resize_nested(size),
-        WinitEvent::Input(event) => state.process_input_event(event),
-        WinitEvent::Redraw => {
-            state.with_nested(redraw);
-        }
-        WinitEvent::CloseRequested => state.loop_signal.stop(),
-        WinitEvent::Focus(_) => {}
-    })?;
+    state.backend = Backend::Nested(Box::new(Nested {
+        graphics,
+        output,
+        damage,
+        cursor: None,
+    }));
+    event_loop
+        .handle()
+        .insert_source(events, |event, _, state| match event {
+            WinitEvent::Resized { size, .. } => state.resize_nested(size),
+            WinitEvent::Input(event) => state.process_input_event(event),
+            WinitEvent::Redraw => {
+                state.with_nested(redraw);
+            }
+            WinitEvent::CloseRequested => state.loop_signal.stop(),
+            WinitEvent::Focus(_) => {}
+        })?;
     Ok(())
 }
 
 fn nested_output(state: &mut Sparky, size: Size<i32, Physical>) -> Output {
-    let mode = Mode { size, refresh: REFRESH };
+    let mode = Mode {
+        size,
+        refresh: REFRESH,
+    };
     let output = Output::new(
         "winit".to_owned(),
         PhysicalProperties {
@@ -64,7 +78,12 @@ fn nested_output(state: &mut Sparky, size: Size<i32, Physical>) -> Output {
     );
     let _global = output.create_global::<Sparky>(&state.display_handle);
     let scale = state.configured_scale(&output.name());
-    output.change_current_state(Some(mode), Some(Transform::Flipped180), Some(scale), Some((0, 0).into()));
+    output.change_current_state(
+        Some(mode),
+        Some(Transform::Flipped180),
+        Some(scale),
+        Some((0, 0).into()),
+    );
     output.set_preferred(mode);
     state.space.map_output(&output, (0, 0));
     state.sync_outputs();
@@ -74,9 +93,15 @@ fn nested_output(state: &mut Sparky, size: Size<i32, Physical>) -> Output {
 impl Sparky {
     fn resize_nested(&mut self, size: Size<i32, Physical>) {
         if let Backend::Nested(nested) = &self.backend {
-            nested
-                .output
-                .change_current_state(Some(Mode { size, refresh: REFRESH }), None, None, None);
+            nested.output.change_current_state(
+                Some(Mode {
+                    size,
+                    refresh: REFRESH,
+                }),
+                None,
+                None,
+                None,
+            );
         }
         self.sync_outputs();
         self.relayout();
@@ -89,6 +114,7 @@ fn redraw(state: &mut Sparky, nested: &mut Nested) {
     let rendered = match nested.graphics.bind() {
         Ok((renderer, mut framebuffer)) => {
             let elements = output_elements(state, renderer, &nested.output);
+            let elements = colorize(state, renderer, elements);
             nested
                 .damage
                 .render_output(renderer, &mut framebuffer, 0, &elements, clear)
@@ -126,9 +152,13 @@ fn apply_cursor(state: &Sparky, nested: &mut Nested) {
 pub fn send_frames(state: &Sparky, output: &Output) {
     let time = state.start_time.elapsed();
     for window in state.space.elements() {
-        window.send_frame(output, time, Some(Duration::ZERO), |_, _| Some(output.clone()));
+        window.send_frame(output, time, Some(Duration::ZERO), |_, _| {
+            Some(output.clone())
+        });
     }
     for layer in layer_map_for_output(output).layers() {
-        layer.send_frame(output, time, Some(Duration::ZERO), |_, _| Some(output.clone()));
+        layer.send_frame(output, time, Some(Duration::ZERO), |_, _| {
+            Some(output.clone())
+        });
     }
 }

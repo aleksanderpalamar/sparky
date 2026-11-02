@@ -81,8 +81,23 @@ impl Client {
     }
 
     pub fn signal(&self, name: &str) -> Result<(), Error> {
-        self.server.signal(name)?;
+        std::fs::write(self.server.file(name), "")?;
         Ok(())
+    }
+
+    pub fn conversions(&mut self) -> Result<Vec<String>, Error> {
+        self.roundtrip()?;
+        let file = self.server.file("conversions");
+        self.signal("probe")?;
+        let started = std::time::Instant::now();
+        while started.elapsed() < std::time::Duration::from_secs(3) {
+            if let Ok(text) = std::fs::read_to_string(&file) {
+                std::fs::remove_file(&file)?;
+                return Ok(text.lines().map(str::to_owned).collect());
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+        Err("sonda de conversões não respondeu".into())
     }
 
     pub fn await_event(&mut self, ready: impl Fn(&Events) -> bool) -> Result<(), Error> {

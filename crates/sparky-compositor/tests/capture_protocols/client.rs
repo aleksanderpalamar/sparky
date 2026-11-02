@@ -70,7 +70,7 @@ impl Client {
     }
 
     pub fn signal(&self, name: &str) -> Result<(), Error> {
-        self._server.signal(name)?;
+        std::fs::write(self._server.file(name), "")?;
         Ok(())
     }
 

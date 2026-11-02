@@ -8,6 +8,7 @@ use sparky_tiling::Rect;
 
 use crate::capture::area::CaptureError;
 use crate::capture::pixels::flip_rows;
+use crate::render::hdr::colorize::colorize;
 use crate::render::output::output_elements;
 use crate::state::Sparky;
 
@@ -28,6 +29,7 @@ pub fn read(
     let mode = output.current_mode().ok_or(CaptureError::NoOutput)?;
     let scale = output.current_scale().fractional_scale();
     let elements = output_elements(state, renderer, output);
+    let elements = colorize(state, renderer, elements);
     let size = output.current_transform().transform_size(mode.size);
     let mut texture: GlesTexture = renderer
         .create_buffer(Fourcc::Abgr8888, (size.w, size.h).into())

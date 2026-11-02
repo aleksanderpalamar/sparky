@@ -17,6 +17,7 @@ impl Sparky {
             self.apply_output_colors(colors);
         }
         self.refresh_preferred();
+        self.color_management.surfaces.prune();
     }
 
     pub fn apply_output_colors(&mut self, colors: Vec<(Output, OutputColor)>) {

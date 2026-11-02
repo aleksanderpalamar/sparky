@@ -20,6 +20,7 @@ use crate::state::Sparky;
 struct Owner(Mutex<Option<Weak<WpColorManagementSurfaceV1>>>);
 
 pub fn create(
+    state: &mut Sparky,
     manager: &WpColorManagerV1,
     init: &mut DataInit<'_, Sparky>,
     id: New<WpColorManagementSurfaceV1>,
@@ -33,6 +34,7 @@ pub fn create(
         return;
     }
     let object = init.init(id, surface.downgrade());
+    state.color_management.surfaces.add(surface);
     with_states(surface, |states| {
         if let Some(owner) = states.data_map.get::<Owner>()
             && let Ok(mut slot) = owner.0.lock()

@@ -1,5 +1,4 @@
 use std::{
-    fs,
     process::{Child, Command, Stdio},
     thread,
     time::{Duration, Instant},
@@ -18,8 +17,8 @@ pub struct Server {
 }
 
 impl Server {
-    pub fn signal(&self, name: &str) -> std::io::Result<()> {
-        fs::write(self.directory.path().join(name), "")
+    pub fn file(&self, name: &str) -> std::path::PathBuf {
+        self.directory.path().join(name)
     }
 
     pub fn connect(

@@ -7,6 +7,7 @@ use smithay::reexports::wayland_server::Weak;
 
 use super::presets::{self, OutputColor};
 use super::records::{Record, Records};
+use super::surfaces::Surfaces;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Change {
@@ -18,6 +19,7 @@ pub struct ColorManagementState {
     pub records: Records,
     pub output_objects: Vec<Weak<WpColorManagementOutputV1>>,
     pub feedbacks: Vec<Weak<WpColorManagementSurfaceFeedbackV1>>,
+    pub surfaces: Surfaces,
     sdr: Arc<Record>,
     outputs: Vec<OutputEntry>,
 }
@@ -36,6 +38,7 @@ impl Default for ColorManagementState {
             records,
             output_objects: Vec::new(),
             feedbacks: Vec::new(),
+            surfaces: Surfaces::default(),
             sdr,
             outputs: Vec::new(),
         }

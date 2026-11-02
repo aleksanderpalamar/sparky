@@ -67,7 +67,9 @@ impl Dispatch<WpColorManagerV1, ()> for Sparky {
     ) {
         match request {
             Request::GetOutput { id, output } => output::create(state, init, id, &output),
-            Request::GetSurface { id, surface } => surface::create(manager, init, id, &surface),
+            Request::GetSurface { id, surface } => {
+                surface::create(state, manager, init, id, &surface);
+            }
             Request::GetSurfaceFeedback { id, surface } => {
                 feedback::create(state, init, id, &surface);
             }

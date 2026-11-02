@@ -61,13 +61,14 @@ impl Composite {
         Ok(())
     }
 
-    pub fn element(&self, program: &GlesTexProgram) -> PqElement {
+    pub fn element(&self, program: &GlesTexProgram, peak: f32) -> PqElement {
         PqElement {
             id: self.id.clone(),
             commit: self.commit,
             texture: self.texture.clone(),
             size: self.size,
             program: program.clone(),
+            peak,
         }
     }
 }

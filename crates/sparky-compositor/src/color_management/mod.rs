@@ -1,4 +1,7 @@
+pub mod conversion;
+pub mod curves;
 pub mod description;
+pub mod gamut;
 pub mod params;
 #[cfg(test)]
 mod params_light_tests;
@@ -12,3 +15,4 @@ mod refresh;
 pub mod standards;
 pub mod state;
 pub mod surface_color;
+pub mod surfaces;

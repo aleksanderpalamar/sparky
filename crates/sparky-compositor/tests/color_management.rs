@@ -2,6 +2,8 @@
 mod client;
 #[path = "support/compositor.rs"]
 mod compositor;
+#[path = "color_management/conversion.rs"]
+mod conversion;
 #[path = "color_management/creation.rs"]
 mod creation;
 #[path = "color_management/events.rs"]

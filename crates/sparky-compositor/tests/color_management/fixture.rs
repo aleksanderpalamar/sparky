@@ -2,6 +2,7 @@ use std::{fs, path::Path, path::PathBuf, time::Duration};
 
 use sparky_compositor::color_management::description::Range;
 use sparky_compositor::color_management::presets::OutputColor;
+use sparky_compositor::state::Sparky;
 
 pub use super::server::{Error, Server};
 use super::{compositor, ready, server};
@@ -25,9 +26,25 @@ fn private_color_server() -> Result<(), Error> {
         if take(&directory, "sdr")? {
             state.apply_output_colors(vec![(output.clone(), OutputColor::Sdr)]);
         }
+        if take(&directory, "probe")? {
+            probe(&state, &directory)?;
+        }
         event_loop.dispatch(Duration::from_millis(5), &mut state)?;
         state.after_dispatch();
     }
+}
+
+fn probe(state: &Sparky, directory: &Path) -> std::io::Result<()> {
+    let decodes: Vec<String> = state
+        .color_management
+        .surfaces
+        .conversions()
+        .iter()
+        .map(|(_, conversion)| format!("{:?}", conversion.decode))
+        .collect();
+    let pending = directory.join("conversions.tmp");
+    fs::write(&pending, decodes.join("\n"))?;
+    fs::rename(pending, directory.join("conversions"))
 }
 
 fn take(directory: &Path, signal: &str) -> std::io::Result<bool> {
