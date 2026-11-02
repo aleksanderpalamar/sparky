@@ -132,7 +132,7 @@ fn ligar_o_hdr_grava_na_regra_do_monitor() {
 }
 
 #[test]
-fn hdr_aparece_sem_descricao_embaixo() {
+fn hdr_so_aparece_no_monitor_que_suporta() {
     let textos = |hdr| {
         let sparky = Sparky {
             monitores: vec![OutputInfo { hdr, ..monitor() }],
@@ -152,8 +152,7 @@ fn hdr_aparece_sem_descricao_embaixo() {
     }
     let sem_hdr = textos(Hdr::Unsupported);
     assert!(
-        sem_hdr
-            .iter()
-            .any(|texto| texto.contains("não anuncia HDR10"))
+        sem_hdr.iter().all(|texto| !texto.contains("HDR")),
+        "{sem_hdr:?}"
     );
 }

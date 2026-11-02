@@ -79,7 +79,7 @@ pub fn changed(
         ScreenChange::Enabled(on) => rule.enabled = on,
         ScreenChange::Hdr(on) if info.hdr != Hdr::Unsupported => rule.hdr = on,
         ScreenChange::Hdr(_) => {
-            return Err("este monitor não anuncia HDR10 (PQ e BT.2020)".to_owned());
+            return Err("esta tela não suporta HDR".to_owned());
         }
     }
     Ok(rule)
