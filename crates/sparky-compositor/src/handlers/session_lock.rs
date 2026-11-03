@@ -28,6 +28,7 @@ impl SessionLockHandler for Sparky {
 
     fn unlock(&mut self) {
         self.lock.release();
+        self.idle.touch(&self.seat);
         self.lock_changed();
         self.broadcast(Event::Unlocked);
     }

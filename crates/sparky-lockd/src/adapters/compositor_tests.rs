@@ -1,5 +1,5 @@
 use std::io::{BufRead, BufReader, Write};
-use std::os::unix::net::UnixListener;
+use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::PathBuf;
 use std::thread::{self, JoinHandle};
 
@@ -84,6 +84,67 @@ async fn sem_o_sparky_o_daemon_encerra() {
     let (sender, mut receiver) = mpsc::channel(8);
     watch(PathBuf::from("/nao/existe/sparky.sock"), sender);
     assert_eq!(receiver.recv().await, Some(Event::CompositorGone));
+}
+
+fn conversas(conexoes: Vec<usize>) -> (TempDir, PathBuf, JoinHandle<Vec<Request>>) {
+    let pasta = tempfile::tempdir().unwrap_or_else(|error| panic!("{error}"));
+    let caminho = pasta.path().join("sparky.sock");
+    let ouvinte = UnixListener::bind(&caminho).unwrap_or_else(|error| panic!("{error}"));
+    let tarefa = thread::spawn(move || {
+        let mut recebidos = Vec::new();
+        for pedidos in conexoes {
+            let Ok((conexao, _)) = ouvinte.accept() else {
+                break;
+            };
+            atender(&conexao, pedidos, &mut recebidos);
+        }
+        recebidos
+    });
+    (pasta, caminho, tarefa)
+}
+
+fn atender(conexao: &UnixStream, pedidos: usize, recebidos: &mut Vec<Request>) {
+    let mut leitor = BufReader::new(conexao);
+    for _ in 0..pedidos {
+        let mut linha = String::new();
+        if leitor.read_line(&mut linha).unwrap_or(0) == 0 {
+            return;
+        }
+        recebidos.extend(decode::<Request>(&linha).ok());
+        let Ok(texto) = encode(&Reply::Done) else {
+            return;
+        };
+        if (&*conexao).write_all(texto.as_bytes()).is_err() {
+            return;
+        }
+    }
+}
+
+fn pedir_em_sequencia(caminho: PathBuf) -> Option<[Result<(), String>; 2]> {
+    let (sender, receiver) = std::sync::mpsc::channel();
+    thread::spawn(move || {
+        let sparky = Sparky::new(caminho);
+        let _ = sender.send([sparky.idle(Hold::Held), sparky.idle(Hold::Free)]);
+    });
+    receiver
+        .recv_timeout(std::time::Duration::from_secs(3))
+        .ok()
+}
+
+#[test]
+fn a_tela_acesa_vai_por_uma_so_conexao_que_fica_aberta() {
+    let (_pasta, caminho, tarefa) = conversas(vec![2]);
+    assert_eq!(pedir_em_sequencia(caminho), Some([Ok(()), Ok(())]));
+    let esperado = [IdleHold::Held, IdleHold::Free].map(|hold| Request::Idle { hold });
+    assert_eq!(tarefa.join().ok(), Some(esperado.to_vec()));
+}
+
+#[test]
+fn se_a_conexao_cai_a_tela_acesa_abre_outra() {
+    let (_pasta, caminho, tarefa) = conversas(vec![1, 1]);
+    assert_eq!(pedir_em_sequencia(caminho), Some([Ok(()), Ok(())]));
+    let esperado = [IdleHold::Held, IdleHold::Free].map(|hold| Request::Idle { hold });
+    assert_eq!(tarefa.join().ok(), Some(esperado.to_vec()));
 }
 
 #[test]

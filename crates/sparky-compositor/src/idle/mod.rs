@@ -17,7 +17,7 @@ use crate::state::Sparky;
 pub struct Idle {
     pub notifier: IdleNotifierState<Sparky>,
     inhibitors: Vec<WlSurface>,
-    held: IdleHold,
+    holders: usize,
     last_activity: Instant,
 }
 
@@ -26,7 +26,7 @@ impl Idle {
         Self {
             notifier: IdleNotifierState::new(display, loop_handle),
             inhibitors: Vec::new(),
-            held: IdleHold::Free,
+            holders: 0,
             last_activity: Instant::now(),
         }
     }
@@ -62,15 +62,19 @@ impl Idle {
         self.current()
     }
 
-    pub fn hold(&mut self, hold: IdleHold) {
-        self.held = hold;
+    pub fn hold(&mut self, from: IdleHold, to: IdleHold) {
+        self.holders = match (from, to) {
+            (IdleHold::Free, IdleHold::Held) => self.holders.saturating_add(1),
+            (IdleHold::Held, IdleHold::Free) => self.holders.saturating_sub(1),
+            (IdleHold::Free, IdleHold::Free) | (IdleHold::Held, IdleHold::Held) => self.holders,
+        };
         self.sync();
     }
 
     fn current(&self) -> Inhibition {
-        match (self.held, self.inhibitors.is_empty()) {
-            (IdleHold::Free, true) => Inhibition::Free,
-            (IdleHold::Held, _) | (_, false) => Inhibition::Inhibited,
+        match (self.holders, self.inhibitors.is_empty()) {
+            (0, true) => Inhibition::Free,
+            _ => Inhibition::Inhibited,
         }
     }
 
