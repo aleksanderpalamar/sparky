@@ -5,6 +5,7 @@ use tokio::sync::mpsc::{self, Sender};
 
 use crate::app::{Event, GRACE, run};
 use crate::domain::guard::{Input, Screen};
+use crate::domain::inhibitions::Hold;
 use crate::ports::{Compositor, Logind};
 
 #[derive(Default)]
@@ -61,6 +62,11 @@ impl Compositor for CompositorFalso {
 
     fn unlock(&self) -> Result<(), String> {
         self.0.anotar("desbloquear");
+        Ok(())
+    }
+
+    fn idle(&self, hold: Hold) -> Result<(), String> {
+        self.0.anotar(&format!("tela acesa {hold:?}"));
         Ok(())
     }
 }
@@ -130,4 +136,13 @@ async fn o_fim_do_compositor_encerra_o_daemon() {
             .await
             .is_ok()
     );
+}
+
+#[tokio::test(start_paused = true)]
+async fn o_pedido_de_tela_acesa_chega_ao_compositor() {
+    let (registro, sender, _tarefa) = iniciar();
+    enviar(&sender, Input::Idle(Hold::Held)).await;
+    enviar(&sender, Input::Idle(Hold::Free)).await;
+    let chamadas = registro.chamadas();
+    assert_eq!(&chamadas[2..], ["tela acesa Held", "tela acesa Free"]);
 }

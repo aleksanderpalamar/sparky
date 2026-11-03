@@ -9,6 +9,7 @@ use smithay::reexports::wayland_server::DisplayHandle;
 use smithay::reexports::wayland_server::Resource;
 use smithay::reexports::wayland_server::protocol::wl_surface::WlSurface;
 use smithay::wayland::idle_notify::IdleNotifierState;
+use sparky_ipc::IdleHold;
 
 use crate::idle::rules::Inhibition;
 use crate::state::Sparky;
@@ -16,6 +17,7 @@ use crate::state::Sparky;
 pub struct Idle {
     pub notifier: IdleNotifierState<Sparky>,
     inhibitors: Vec<WlSurface>,
+    held: IdleHold,
     last_activity: Instant,
 }
 
@@ -24,6 +26,7 @@ impl Idle {
         Self {
             notifier: IdleNotifierState::new(display, loop_handle),
             inhibitors: Vec::new(),
+            held: IdleHold::Free,
             last_activity: Instant::now(),
         }
     }
@@ -56,13 +59,23 @@ impl Idle {
     pub fn inhibition(&mut self) -> Inhibition {
         self.inhibitors.retain(Resource::is_alive);
         self.sync();
-        match self.inhibitors.is_empty() {
-            true => Inhibition::Free,
-            false => Inhibition::Inhibited,
+        self.current()
+    }
+
+    pub fn hold(&mut self, hold: IdleHold) {
+        self.held = hold;
+        self.sync();
+    }
+
+    fn current(&self) -> Inhibition {
+        match (self.held, self.inhibitors.is_empty()) {
+            (IdleHold::Free, true) => Inhibition::Free,
+            (IdleHold::Held, _) | (_, false) => Inhibition::Inhibited,
         }
     }
 
     fn sync(&mut self) {
-        self.notifier.set_is_inhibited(!self.inhibitors.is_empty());
+        let inhibited = self.current() == Inhibition::Inhibited;
+        self.notifier.set_is_inhibited(inhibited);
     }
 }

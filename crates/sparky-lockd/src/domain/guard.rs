@@ -1,3 +1,5 @@
+use crate::domain::inhibitions::Hold;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Input {
     LockAsked,
@@ -7,6 +9,7 @@ pub enum Input {
     Locked,
     Unlocked,
     Expired,
+    Idle(Hold),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -23,6 +26,7 @@ pub enum Order {
     Release,
     Watch,
     Hint(Screen),
+    Idle(Hold),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -58,6 +62,7 @@ impl Guard {
                 vec![Order::Hint(Screen::Open)]
             }
             Input::Expired => self.expired(),
+            Input::Idle(hold) => vec![Order::Idle(hold)],
         }
     }
 

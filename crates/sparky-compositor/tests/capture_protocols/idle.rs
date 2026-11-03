@@ -1,6 +1,7 @@
 use std::thread;
 use std::time::Duration;
 
+use sparky_ipc::{IdleHold, Reply, Request};
 use wayland_client::protocol::{wl_compositor, wl_seat};
 use wayland_client::{Connection, Dispatch, QueueHandle};
 use wayland_protocols::ext::idle_notify::v1::client::{
@@ -47,6 +48,22 @@ fn um_inibidor_vivo_segura_o_aviso_ate_ser_destruido() -> Result<(), Error> {
     }
     assert_eq!(client.events.idled, 0);
     inibidor.destroy();
+    client.await_event(|events| events.idled > 0)?;
+    Ok(())
+}
+
+#[test]
+fn o_pedido_do_guarda_pelo_ipc_tambem_segura_o_aviso() -> Result<(), Error> {
+    let mut client = Client::connect("ipc")?;
+    let pedido = |hold| Request::Idle { hold };
+    assert_eq!(client.ipc()?.request(&pedido(IdleHold::Held))?, Reply::Done);
+    let _aviso = avisar_quando_parado(&mut client)?;
+    for _ in 0..20 {
+        client.roundtrip()?;
+        thread::sleep(Duration::from_millis(10));
+    }
+    assert_eq!(client.events.idled, 0);
+    assert_eq!(client.ipc()?.request(&pedido(IdleHold::Free))?, Reply::Done);
     client.await_event(|events| events.idled > 0)?;
     Ok(())
 }

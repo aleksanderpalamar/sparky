@@ -1,4 +1,5 @@
 use crate::domain::guard::{Guard, Input, Order, Screen};
+use crate::domain::inhibitions::Hold;
 
 fn guarda() -> Guard {
     Guard::start().0
@@ -89,4 +90,17 @@ fn ao_acordar_segura_a_proxima_suspensao() {
 fn acordar_sem_ter_dormido_nao_pede_outro_inibidor() {
     let mut guarda = guarda();
     assert_eq!(guarda.handle(Input::Woke), vec![]);
+}
+
+#[test]
+fn os_pedidos_de_tela_acesa_vao_ao_compositor() {
+    let mut guarda = guarda();
+    assert_eq!(
+        guarda.handle(Input::Idle(Hold::Held)),
+        vec![Order::Idle(Hold::Held)]
+    );
+    assert_eq!(
+        guarda.handle(Input::Idle(Hold::Free)),
+        vec![Order::Idle(Hold::Free)]
+    );
 }

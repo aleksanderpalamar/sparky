@@ -4,13 +4,14 @@ use std::path::PathBuf;
 use std::thread::{self, JoinHandle};
 
 use sparky_ipc::codec::{decode, encode};
-use sparky_ipc::{Event as Aviso, Reply, Request, SessionAction};
+use sparky_ipc::{Event as Aviso, IdleHold, Reply, Request, SessionAction};
 use tempfile::TempDir;
 use tokio::sync::mpsc;
 
 use crate::adapters::compositor::{Sparky, watch};
 use crate::app::Event;
 use crate::domain::guard::Input;
+use crate::domain::inhibitions::Hold;
 use crate::ports::Compositor;
 
 fn servidor(respostas: Vec<Reply>) -> (TempDir, PathBuf, JoinHandle<Option<Request>>) {
@@ -83,4 +84,14 @@ async fn sem_o_sparky_o_daemon_encerra() {
     let (sender, mut receiver) = mpsc::channel(8);
     watch(PathBuf::from("/nao/existe/sparky.sock"), sender);
     assert_eq!(receiver.recv().await, Some(Event::CompositorGone));
+}
+
+#[test]
+fn a_tela_acesa_vira_pedido_idle_ao_sparky() {
+    for (hold, esperado) in [(Hold::Held, IdleHold::Held), (Hold::Free, IdleHold::Free)] {
+        let (_pasta, caminho, tarefa) = servidor(vec![Reply::Done]);
+        assert_eq!(Sparky::new(caminho).idle(hold), Ok(()));
+        let pedido = tarefa.join().ok().flatten();
+        assert_eq!(pedido, Some(Request::Idle { hold: esperado }));
+    }
 }

@@ -1,11 +1,12 @@
 use std::path::PathBuf;
 use std::thread;
 
-use sparky_ipc::{Client, Event as Notice, Reply, Request, SessionAction};
+use sparky_ipc::{Client, Event as Notice, IdleHold, Reply, Request, SessionAction};
 use tokio::sync::mpsc::Sender;
 
 use crate::app::Event;
 use crate::domain::guard::Input;
+use crate::domain::inhibitions::Hold;
 use crate::ports::Compositor;
 
 const UNEXPECTED: &str = "resposta inesperada do sparky";
@@ -20,8 +21,12 @@ impl Sparky {
     }
 
     fn session(&self, action: SessionAction) -> Result<(), String> {
+        self.ask(&Request::Session { action })
+    }
+
+    fn ask(&self, request: &Request) -> Result<(), String> {
         let mut client = Client::connect(&self.path).map_err(|error| error.to_string())?;
-        match client.request(&Request::Session { action }) {
+        match client.request(request) {
             Ok(Reply::Done) => Ok(()),
             Ok(Reply::Error { message }) => Err(message),
             Ok(_) => Err(UNEXPECTED.to_owned()),
@@ -37,6 +42,14 @@ impl Compositor for Sparky {
 
     fn unlock(&self) -> Result<(), String> {
         self.session(SessionAction::Unlock)
+    }
+
+    fn idle(&self, hold: Hold) -> Result<(), String> {
+        let hold = match hold {
+            Hold::Free => IdleHold::Free,
+            Hold::Held => IdleHold::Held,
+        };
+        self.ask(&Request::Idle { hold })
     }
 }
 

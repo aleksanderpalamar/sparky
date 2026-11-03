@@ -93,6 +93,7 @@ impl<I> Runtime<I> {
                 Ok(())
             }
             Order::Hint(screen) => logind.hint(screen).await,
+            Order::Idle(hold) => compositor.idle(hold),
         }
     }
 }

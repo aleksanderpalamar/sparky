@@ -294,7 +294,7 @@ O `sparky-lockd` sobe com a sessão e liga o bloqueio ao logind:
 - A dica `LockedHint` da sessão no logind acompanha o bloqueio, para outros programas saberem que a tela está bloqueada.
 - O compositor avisa no IPC quando bloqueia e desbloqueia (`sparky-msg subscribe` mostra `locked` e `unlocked`) e aceita `sparky-msg session unlock`.
 
-A sessão também bloqueia sozinha depois de um tempo sem teclado nem mouse: `idle_minutes` em `[lock]` (10 minutos por padrão; `0` desliga), também ajustável na seção Energia do sparky-settings (Nunca, 1, 2, 5, 10, 15 ou 30 minutos, ou 1 hora). Enquanto um programa pede para a tela não apagar pelo protocolo idle-inhibit, como um player tocando vídeo, o tempo parado não bloqueia. O compositor também oferece o ext-idle-notify, para programas como o `swayidle` saberem quando a sessão está parada.
+A sessão também bloqueia sozinha depois de um tempo sem teclado nem mouse: `idle_minutes` em `[lock]` (10 minutos por padrão; `0` desliga), também ajustável na seção Energia do sparky-settings (Nunca, 1, 2, 5, 10, 15 ou 30 minutos, ou 1 hora). Enquanto um programa pede para a tela não apagar, como um navegador ou player tocando vídeo, o tempo parado não bloqueia: vale o protocolo idle-inhibit e também o serviço `org.freedesktop.ScreenSaver` (`Inhibit`/`UnInhibit`) que o `sparky-lockd` oferece na sessão, usado pelo Firefox, pelo Chrome, pelo VLC e pelo portal `xdg-desktop-portal`; um pedido some sozinho quando o programa que o fez sai. O compositor também oferece o ext-idle-notify, para programas como o `swayidle` saberem quando a sessão está parada.
 
 ## Arquivos
 

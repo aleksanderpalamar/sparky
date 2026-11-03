@@ -28,6 +28,10 @@ impl Sparky {
                 }
             }
             Request::Session { action } => self.session_request(action),
+            Request::Idle { hold } => {
+                self.idle.hold(hold);
+                Reply::Done
+            }
             Request::ReloadConfig => match self.reload_config() {
                 Ok(()) => Reply::Done,
                 Err(error) => Reply::Error {

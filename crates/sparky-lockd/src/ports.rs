@@ -1,6 +1,7 @@
 use std::future::Future;
 
 use crate::domain::guard::Screen;
+use crate::domain::inhibitions::Hold;
 
 pub trait Logind {
     type Inhibitor: Send;
@@ -12,4 +13,5 @@ pub trait Logind {
 pub trait Compositor {
     fn lock(&self) -> Result<(), String>;
     fn unlock(&self) -> Result<(), String>;
+    fn idle(&self, hold: Hold) -> Result<(), String>;
 }

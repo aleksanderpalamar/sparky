@@ -1,6 +1,4 @@
-use std::io::{BufRead, BufReader};
 use std::os::unix::net::UnixStream;
-use std::process::{Child, Command, Stdio};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -9,52 +7,12 @@ use zbus::Connection;
 use zbus::zvariant::{OwnedFd, OwnedObjectPath};
 
 use crate::adapters::logind::{SystemLogind, WHY};
+use crate::adapters::test_bus::Barramento;
 use crate::app::Event;
 use crate::domain::guard::{Input, Screen};
 use crate::ports::Logind;
 
 const SESSAO: &str = "/org/freedesktop/login1/session/teste";
-
-struct Barramento {
-    processo: Child,
-    endereco: String,
-}
-
-impl Barramento {
-    fn iniciar() -> Self {
-        let mut processo = Command::new("dbus-daemon")
-            .args(["--session", "--nofork", "--nopidfile", "--print-address=1"])
-            .stdout(Stdio::piped())
-            .stderr(Stdio::null())
-            .spawn()
-            .unwrap_or_else(|error| panic!("{error}"));
-        let saida = processo
-            .stdout
-            .take()
-            .unwrap_or_else(|| panic!("sem saída"));
-        let mut endereco = String::new();
-        let _ = BufReader::new(saida).read_line(&mut endereco);
-        Self {
-            processo,
-            endereco: endereco.trim().to_owned(),
-        }
-    }
-
-    async fn conectar(&self) -> Connection {
-        zbus::connection::Builder::address(self.endereco.as_str())
-            .map(|builder| builder.build())
-            .unwrap_or_else(|error| panic!("{error}"))
-            .await
-            .unwrap_or_else(|error| panic!("{error}"))
-    }
-}
-
-impl Drop for Barramento {
-    fn drop(&mut self) {
-        let _ = self.processo.kill();
-        let _ = self.processo.wait();
-    }
-}
 
 type Inibicao = (String, String, String, String);
 
