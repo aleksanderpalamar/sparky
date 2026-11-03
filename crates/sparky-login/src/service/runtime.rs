@@ -8,6 +8,7 @@ use tokio::sync::oneshot;
 use crate::adapters::{logind, memory_file};
 use crate::domain::job::{Job, LoginJob, Order};
 use crate::domain::machine::{Effect, Event, Login};
+use crate::service::greeter_process::GreeterProcess;
 use crate::service::link::Input;
 use crate::service::settings::Settings;
 use crate::service::watch::{greeter, login};
@@ -26,8 +27,7 @@ pub struct Runtime {
     settings: Settings,
     inputs: UnboundedSender<Input>,
     pub connection: Option<OwnedWriteHalf>,
-    greeter_stop: Option<oneshot::Sender<()>>,
-    greeter_pid: Option<u32>,
+    greeter: GreeterProcess,
     session: Option<Session>,
     attempts: u64,
     last_greeter: Option<Instant>,
@@ -39,8 +39,7 @@ impl Runtime {
             settings,
             inputs,
             connection: None,
-            greeter_stop: None,
-            greeter_pid: None,
+            greeter: GreeterProcess::default(),
             session: None,
             attempts: 0,
             last_greeter: None,
@@ -59,9 +58,7 @@ impl Runtime {
                 }
             }
             Effect::StopGreeter => {
-                if let Some(stop) = self.greeter_stop.take() {
-                    let _ = stop.send(());
-                }
+                self.greeter.ask_to_stop();
             }
             Effect::StartSession => self.start_session().await,
             Effect::Abandon => self.abandon(),
@@ -78,12 +75,16 @@ impl Runtime {
             .is_some_and(|session| session.attempt == attempt)
     }
 
+    pub fn greeter_gone(&mut self) {
+        self.greeter.gone();
+    }
+
     pub fn session_ended(&mut self) {
         self.session = None;
     }
 
     pub fn shutdown(&mut self) {
-        terminate(self.greeter_pid.take());
+        self.greeter.terminate();
         if self
             .session
             .as_ref()
@@ -112,8 +113,7 @@ impl Runtime {
         match spawn(&settings.worker, &job).await {
             Ok(link) => {
                 let (stop, stopped) = oneshot::channel();
-                self.greeter_stop = Some(stop);
-                self.greeter_pid = link.child.id();
+                self.greeter.started(stop, link.child.id());
                 tokio::spawn(greeter(link, stopped, self.inputs.clone()));
             }
             Err(error) => {

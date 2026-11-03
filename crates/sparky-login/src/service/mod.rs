@@ -1,8 +1,12 @@
+pub mod greeter_process;
 pub mod link;
 pub mod runtime;
 pub mod settings;
 pub mod watch;
 pub mod workers;
+
+#[cfg(test)]
+mod greeter_process_tests;
 
 use sparky_login_core::session_files;
 use sparky_login_core::sessions::{Session, sessions};
@@ -57,7 +61,12 @@ async fn step(machine: &mut Machine, runtime: &mut Runtime, input: Input) {
             runtime.connection = Some(writer);
             return;
         }
-        Input::Event(event) => event,
+        Input::Event(event) => {
+            if matches!(event, Event::GreeterGone) {
+                runtime.greeter_gone();
+            }
+            event
+        }
         Input::Login { attempt, event } => {
             if !runtime.current(attempt) {
                 return;
