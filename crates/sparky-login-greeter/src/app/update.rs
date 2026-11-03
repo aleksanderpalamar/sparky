@@ -33,8 +33,8 @@ pub fn update(greeter: &mut Greeter, message: Message) -> Task<Message> {
         Message::Reveal => greeter.form.toggle_reveal(),
         Message::Power(action) => return power(greeter, action),
         Message::NextSession => next_session(greeter),
-        Message::Move(Step::Forward) => return move_to(greeter, greeter.focus.next()),
-        Message::Move(Step::Back) => return move_to(greeter, greeter.focus.previous()),
+        Message::Move(step) => return observe(step),
+        Message::Observed(step, field) => return observed(greeter, step, field),
         Message::Activate => return activate(greeter),
         Message::Close => return iced::exit(),
         Message::Answer(Ok(())) => return iced::exit(),
@@ -43,6 +43,30 @@ pub fn update(greeter: &mut Greeter, message: Message) -> Task<Message> {
         _ => {}
     }
     Task::none()
+}
+
+pub fn focused(username: bool, password: bool) -> Option<Focus> {
+    match (username, password) {
+        (true, _) => Some(Focus::Username),
+        (_, true) => Some(Focus::Password),
+        _ => None,
+    }
+}
+
+fn observe(step: Step) -> Task<Message> {
+    operation::is_focused(USERNAME).then(move |username| {
+        operation::is_focused(PASSWORD)
+            .map(move |password| Message::Observed(step, focused(username, password)))
+    })
+}
+
+fn observed(greeter: &mut Greeter, step: Step, field: Option<Focus>) -> Task<Message> {
+    let current = field.unwrap_or(greeter.focus);
+    let target = match step {
+        Step::Forward => current.next(),
+        Step::Back => current.previous(),
+    };
+    move_to(greeter, target)
 }
 
 pub fn focus_on(focus: Focus) -> Task<Message> {

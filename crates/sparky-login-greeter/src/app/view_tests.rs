@@ -1,10 +1,11 @@
 use std::sync::Arc;
 
 use iced::{Point, Settings};
+use iced_test::selector::Target;
 use iced_test::{Simulator, selector};
 
 use crate::adapters::preview::Preview;
-use crate::app::update::PASSWORD;
+use crate::app::update::{PASSWORD, USERNAME};
 use crate::app::{Greeter, Message, Mode, Start, boot, style, view};
 use crate::domain::layout::{Layout, Part, bands};
 use crate::domain::power::Power;
@@ -127,6 +128,18 @@ fn clicar_na_sessao_troca_a_sessao() {
         mensagens
             .iter()
             .any(|message| matches!(message, Message::NextSession))
+    );
+}
+
+#[test]
+fn clicar_no_usuario_deixa_o_campo_focado_para_a_consulta_do_tab() {
+    let greeter = tela(Some("palamar"));
+    let mut ui = simulador(&greeter);
+    let _ = ui.click(selector::id(USERNAME));
+    let focado = ui.find(selector::is_focused());
+    let usuario = Some(iced::widget::Id::new(USERNAME));
+    assert!(
+        matches!(focado, Ok(Target::Focusable { id, .. } | Target::TextInput { id, .. }) if id == usuario)
     );
 }
 

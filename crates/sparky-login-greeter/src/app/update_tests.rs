@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::adapters::preview::Preview;
-use crate::app::update::update;
+use crate::app::update::{focused, update};
 use crate::app::{Greeter, Message, Mode, Start, Step, boot};
 use crate::domain::focus::Focus;
 use crate::domain::form::{Refusal, Status};
@@ -45,11 +45,47 @@ fn enter_na_senha_entrega_as_credenciais() {
 #[test]
 fn tab_e_shift_tab_andam_pela_tela() {
     let mut greeter = tela(sessoes());
-    let _ = update(&mut greeter, Message::Move(Step::Forward));
+    let _ = update(&mut greeter, Message::Observed(Step::Forward, None));
     assert_eq!(greeter.focus, Focus::Login);
-    let _ = update(&mut greeter, Message::Move(Step::Back));
-    let _ = update(&mut greeter, Message::Move(Step::Back));
+    let _ = update(&mut greeter, Message::Observed(Step::Back, None));
+    let _ = update(&mut greeter, Message::Observed(Step::Back, None));
     assert_eq!(greeter.focus, Focus::Username);
+}
+
+#[test]
+fn tab_primeiro_pergunta_ao_iced_qual_campo_esta_focado() {
+    let mut greeter = tela(sessoes());
+    let _ = update(&mut greeter, Message::Move(Step::Forward));
+    assert_eq!(greeter.focus, Focus::Password);
+}
+
+#[test]
+fn depois_de_clicar_no_usuario_tab_vai_para_a_senha() {
+    let mut greeter = tela(sessoes());
+    assert_eq!(greeter.focus, Focus::Password);
+    let _ = update(
+        &mut greeter,
+        Message::Observed(Step::Forward, Some(Focus::Username)),
+    );
+    assert_eq!(greeter.focus, Focus::Password);
+}
+
+#[test]
+fn depois_de_clicar_na_senha_shift_tab_volta_ao_usuario() {
+    let mut greeter = tela(sessoes());
+    greeter.focus = Focus::Login;
+    let _ = update(
+        &mut greeter,
+        Message::Observed(Step::Back, Some(Focus::Password)),
+    );
+    assert_eq!(greeter.focus, Focus::Username);
+}
+
+#[test]
+fn o_campo_focado_vem_da_consulta_dos_dois_campos() {
+    assert_eq!(focused(true, false), Some(Focus::Username));
+    assert_eq!(focused(false, true), Some(Focus::Password));
+    assert_eq!(focused(false, false), None);
 }
 
 #[test]

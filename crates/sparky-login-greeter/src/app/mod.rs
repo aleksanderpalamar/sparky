@@ -50,6 +50,7 @@ pub enum Message {
     Power(Power),
     NextSession,
     Move(Step),
+    Observed(Step, Option<Focus>),
     Activate,
     Close,
     Answer(Result<(), Refusal>),
