@@ -86,6 +86,7 @@ package_sparky() {
     install -Dm755 "target/release/$binary" -t "$pkgdir/usr/bin"
   done
   install -Dm644 data/session/sparky.desktop -t "$pkgdir/usr/share/wayland-sessions"
+  install -Dm644 data/session/sparky-session.target -t "$pkgdir/usr/lib/systemd/user"
   install -Dm644 data/login/sparky-login.service "$pkgdir/usr/lib/systemd/system/sparky-login.service"
   install -Dm644 data/login/sparky-login.sysusers "$pkgdir/usr/lib/sysusers.d/sparky-login.conf"
   install -Dm644 data/login/sparky-login.tmpfiles "$pkgdir/usr/lib/tmpfiles.d/sparky-login.conf"

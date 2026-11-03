@@ -113,6 +113,7 @@ Um `[[bind]]` com a mesma combinação de um atalho padrão substitui o padrão;
 O gerenciador de login (SDDM, GDM…) lista a sessão **Sparky** pelo `data/session/sparky.desktop`, instalado em `/usr/share/wayland-sessions`, que abre o `sparky` com `XDG_CURRENT_DESKTOP=sparky`. Ao subir direto no hardware, o sparky:
 
 - exporta `WAYLAND_DISPLAY`, `DISPLAY`, `XDG_CURRENT_DESKTOP`, `XDG_SESSION_TYPE` e `SPARKY_SOCKET` para o D-Bus e o systemd (`dbus-update-activation-environment --systemd`), para os portais e os serviços ativados acharem a sessão;
+- reinicia o `sparky-session.target` do usuário, que prende o `graphical-session.target`: os portais (`xdg-desktop-portal`, `-wlr`, `-gtk`) e os serviços da sessão gráfica que sobraram de uma sessão anterior param e voltam presos ao compositor atual, mesmo com o `systemd --user` vivo entre um login e outro (linger);
 - abre o chaveiro (`sparky-keyring`), o agente de autenticação (`polkit-sparky`), o guarda do bloqueio (`sparky-lockd`), as notificações nativas (`sparky-notifications`) e a barra (`sparky-bar`);
 - abre o autostart XDG (`~/.config/autostart` e `/etc/xdg/autostart`), respeitando `Hidden`, `OnlyShowIn`, `NotShowIn`, `TryExec` e `X-GNOME-Autostart-enabled`; um arquivo do usuário substitui o do sistema com o mesmo nome.
 
