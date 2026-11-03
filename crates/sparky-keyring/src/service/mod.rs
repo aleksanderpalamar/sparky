@@ -11,9 +11,11 @@ pub mod sync;
 pub mod wire;
 
 #[cfg(test)]
-mod service_tests;
+mod get_secret_tests;
 #[cfg(test)]
 mod service_support;
+#[cfg(test)]
+mod service_tests;
 
 use std::sync::Arc;
 
@@ -26,9 +28,17 @@ use crate::service::shared::Shared;
 
 pub async fn serve(connection: &Connection, shared: Arc<Shared>) -> zbus::Result<()> {
     let server = connection.object_server();
-    server.at(paths::SERVICE, Service::new(Arc::clone(&shared))).await?;
-    server.at(paths::COLLECTION, Collection::new(Arc::clone(&shared))).await?;
-    server.at(paths::DEFAULT_ALIAS, Collection::new(Arc::clone(&shared))).await?;
-    server.at(portal::PATH, Portal::new(Arc::clone(&shared))).await?;
+    server
+        .at(paths::SERVICE, Service::new(Arc::clone(&shared)))
+        .await?;
+    server
+        .at(paths::COLLECTION, Collection::new(Arc::clone(&shared)))
+        .await?;
+    server
+        .at(paths::DEFAULT_ALIAS, Collection::new(Arc::clone(&shared)))
+        .await?;
+    server
+        .at(portal::PATH, Portal::new(Arc::clone(&shared)))
+        .await?;
     sync::register(connection, &shared).await
 }
