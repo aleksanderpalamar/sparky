@@ -29,6 +29,7 @@ pub struct Events {
     pub ready: usize,
     pub locked: bool,
     pub lock_configure: Option<u32>,
+    pub idled: usize,
 }
 
 impl Dispatch<session::ExtImageCopyCaptureSessionV1, ()> for Events {

@@ -1,5 +1,6 @@
 pub mod datetime;
 pub mod icons;
+pub mod idle;
 pub mod key_value;
 pub mod localectl;
 pub mod media;
@@ -16,6 +17,8 @@ pub mod wallpaper;
 mod datetime_tests;
 #[cfg(test)]
 mod datetime_zone_tests;
+#[cfg(test)]
+mod idle_tests;
 #[cfg(test)]
 mod media_tests;
 #[cfg(test)]
@@ -47,6 +50,7 @@ pub enum RowId {
     PowerProfile,
     Brightness,
     Battery,
+    IdleLock,
     Timezone,
     LocalTime,
     NetworkTime,

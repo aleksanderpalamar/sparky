@@ -36,7 +36,7 @@ impl Sparky {
         Reply::Done
     }
 
-    fn lock_screen(&mut self) {
+    pub(crate) fn lock_screen(&mut self) {
         if !self.lock.is_locked() {
             let locker = self.config.apps.locker.clone();
             self.spawn(&locker);

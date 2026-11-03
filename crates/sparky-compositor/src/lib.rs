@@ -11,6 +11,7 @@ mod diagnostics;
 pub mod drag;
 pub mod focus;
 pub mod handlers;
+pub mod idle;
 pub mod input;
 pub mod ipc;
 pub mod layout;

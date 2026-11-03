@@ -8,6 +8,8 @@ mod compositor;
 mod events;
 #[path = "capture_protocols/fixture.rs"]
 mod fixture;
+#[path = "capture_protocols/idle.rs"]
+mod idle;
 #[path = "capture_protocols/legacy.rs"]
 mod legacy;
 #[path = "capture_protocols/lifecycle.rs"]

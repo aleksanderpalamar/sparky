@@ -294,6 +294,8 @@ O `sparky-lockd` sobe com a sessão e liga o bloqueio ao logind:
 - A dica `LockedHint` da sessão no logind acompanha o bloqueio, para outros programas saberem que a tela está bloqueada.
 - O compositor avisa no IPC quando bloqueia e desbloqueia (`sparky-msg subscribe` mostra `locked` e `unlocked`) e aceita `sparky-msg session unlock`.
 
+A sessão também bloqueia sozinha depois de um tempo sem teclado nem mouse: `idle_minutes` em `[lock]` (10 minutos por padrão; `0` desliga), também ajustável na seção Energia do sparky-settings (Nunca, 1, 2, 5, 10, 15 ou 30 minutos, ou 1 hora). Enquanto um programa pede para a tela não apagar pelo protocolo idle-inhibit, como um player tocando vídeo, o tempo parado não bloqueia. O compositor também oferece o ext-idle-notify, para programas como o `swayidle` saberem quando a sessão está parada.
+
 ## Arquivos
 
 O `sparky-files` abre pelo `SUPER + SHIFT + F` (ou `sparky-files <pasta>`). Abre em grade, com ícones e nomes de pastas e arquivos, e permite alternar para a lista com tamanho e data pelos botões Grade/Lista ou por `CTRL + 1`/`CTRL + 2`. A grade se adapta à largura da janela; as pastas vêm primeiro, e a visualização se atualiza quando a pasta muda. Trocar a visualização preserva filtro, seleção e itens marcados.
@@ -395,7 +397,7 @@ O `sparky-settings` abre pelo `SUPER + ALT + ESPAÇO`. As mudanças de configura
 | Inicialização | Comandos rodados quando a sessão começa |
 | Atalhos | Lista dos atalhos em uso, com o que cada um faz |
 | Monitores | Desenho da posição dos monitores e, para cada um, resolução, escala, giro, taxa variável e se a tela fica ligada, gravados no `[[output]]` e HDR, que só aparece nas telas que o suportam |
-| Energia | Perfil de energia (`powerprofilesctl`), brilho da tela (`brightnessctl`) e bateria (`upower`) |
+| Energia | Perfil de energia (`powerprofilesctl`), brilho da tela (`brightnessctl`), bateria (`upower`) e o tempo parado até bloquear a tela (`[lock] idle_minutes`) |
 | Data e hora | Fuso horário, hora local, sincronização pela rede e relógio do hardware (`timedatectl`) |
 | Região e idioma | Idioma, teclado do console e layout padrão do sistema (`localectl`) |
 | Usuários | Consulta de contas, identificadores, grupos e sessões (`getent` e `loginctl`) |

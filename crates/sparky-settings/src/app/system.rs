@@ -19,7 +19,7 @@ impl Settings {
 
     pub fn system_rows(&self) -> Vec<Row> {
         match self.section {
-            Section::Power => self.power.rows(),
+            Section::Power => self.power_rows(),
             Section::DateTime => self.datetime.rows(),
             Section::Region => self.region.rows(),
             Section::Media => self.media.rows(),
@@ -30,7 +30,7 @@ impl Settings {
 
     pub fn refresh_pickers(&mut self) {
         let rows = [
-            self.power.rows(),
+            self.power_rows(),
             self.datetime.rows(),
             self.region.rows(),
             self.theme_rows(),
@@ -72,6 +72,9 @@ impl Settings {
         let Some(row) = self.system_rows().into_iter().nth(self.focus) else {
             return;
         };
+        if row.id == RowId::IdleLock {
+            return self.change_idle(change);
+        }
         self.apply_system(&row, change);
     }
 

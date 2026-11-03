@@ -46,6 +46,7 @@ fn run_session(
 
 fn desktop(event_loop: &mut EventLoop<'static, Sparky>, state: &mut Sparky, commands: Vec<String>) {
     state.start_ipc();
+    state.watch_idle();
     state.start_xwayland();
     state.watch_config();
     event_loop.handle().insert_idle(move |state| {

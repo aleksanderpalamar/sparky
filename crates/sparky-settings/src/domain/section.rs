@@ -62,7 +62,9 @@ impl Section {
             Section::Autostart => "Comandos rodados quando a sessão começa",
             Section::Shortcuts => "Atalhos em uso: os padrões e os do sparky.toml",
             Section::Monitors => "Monitores que o sparky está usando",
-            Section::Power => "Perfil de energia, brilho da tela e bateria",
+            Section::Power => {
+                "Perfil de energia, brilho da tela, bateria e bloqueio por inatividade"
+            }
             Section::DateTime => "Fuso horário, sincronização pela rede e relógio do hardware",
             Section::Region => "Idioma e teclados padrão do sistema",
             Section::Users => "Contas, grupos e sessões abertas",
