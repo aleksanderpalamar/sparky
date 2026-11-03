@@ -49,6 +49,11 @@ impl Transaction for FakeTransaction {
         self.verdict.clone()
     }
 
+    fn authorize(&mut self) -> Result<(), Refusal> {
+        self.log.borrow_mut().push("authorize".into());
+        Ok(())
+    }
+
     fn set_tty(&mut self, tty: &str) -> Result<(), String> {
         self.log.borrow_mut().push(format!("tty {tty}"));
         Ok(())

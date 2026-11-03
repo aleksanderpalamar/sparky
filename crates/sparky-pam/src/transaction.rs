@@ -49,7 +49,10 @@ impl PamTransaction {
 impl Transaction for PamTransaction {
     fn authenticate(&mut self) -> Result<(), Refusal> {
         let code = unsafe { (self.api.authenticate)(self.handle, 0) };
-        self.check(code)?;
+        self.check(code)
+    }
+
+    fn authorize(&mut self) -> Result<(), Refusal> {
         let code = unsafe { (self.api.account)(self.handle, 0) };
         self.check(code)
     }

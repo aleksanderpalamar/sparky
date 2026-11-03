@@ -20,7 +20,7 @@ fn bloqueio() -> (tempfile::TempDir, PamAuthenticator) {
     fs::set_permissions(&script, fs::Permissions::from_mode(0o755))
         .unwrap_or_else(|error| panic!("{error}"));
     let servico = format!(
-        "auth [success=1 ignore=1 default=ignore] pam_exec.so type=auth expose_authtok quiet {}\nauth requisite pam_deny.so\nauth required pam_permit.so\naccount required pam_permit.so\n",
+        "auth [success=1 ignore=1 default=ignore] pam_exec.so type=auth expose_authtok quiet {}\nauth requisite pam_deny.so\nauth required pam_permit.so\n",
         script.display()
     );
     fs::write(dir.path().join(SERVICE), servico).unwrap_or_else(|error| panic!("{error}"));

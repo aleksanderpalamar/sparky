@@ -84,7 +84,10 @@ impl Worker<'_> {
         let username = username.as_str();
         let session = &session;
         let mut transaction = self.pam.begin(LOGIN_SERVICE, username, Some(password))?;
-        if let Err(refusal) = transaction.authenticate() {
+        if let Err(refusal) = transaction
+            .authenticate()
+            .and_then(|()| transaction.authorize())
+        {
             return report(output, Report::Refused { refusal });
         }
         let Some(account) = self.accounts.find(username) else {

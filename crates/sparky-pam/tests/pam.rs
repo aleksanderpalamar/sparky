@@ -10,6 +10,8 @@ use zeroize::Zeroizing;
 
 const SERVICO: &str = "sparky-login-teste";
 const BLOQUEADO: &str = "sparky-login-bloqueado";
+const SO_SENHA: &str = "sparky-so-senha";
+const CONTA_NEGADA: &str = "sparky-conta-negada";
 const AVISA: &str = "#!/bin/sh\necho conta bloqueada\nexit 1\n";
 const CONFERE: &str = "#!/bin/sh\nsenha=$(tr -d '\\000')\n[ \"$senha\" = \"segredo\" ]\n";
 
@@ -35,6 +37,15 @@ fn pasta() -> (TempDir, LinuxPam) {
         script.display()
     );
     escrever(&dir.path().join(SERVICO), &servico);
+    let senha = format!(
+        "auth [success=1 ignore=1 default=ignore] pam_exec.so type=auth expose_authtok quiet {}\nauth requisite pam_deny.so\nauth required pam_permit.so\n",
+        script.display()
+    );
+    escrever(&dir.path().join(SO_SENHA), &senha);
+    escrever(
+        &dir.path().join(CONTA_NEGADA),
+        &format!("{senha}account required pam_deny.so\n"),
+    );
     let aviso = dir.path().join("avisa");
     escrever(&aviso, AVISA);
     fs::set_permissions(&aviso, fs::Permissions::from_mode(0o755))
@@ -127,4 +138,39 @@ fn a_mensagem_do_pam_chega_na_recusa() {
         transaction.authenticate(),
         Err(Refusal::Unavailable("conta bloqueada".into()))
     );
+}
+
+#[test]
+fn conferir_a_senha_nao_depende_das_regras_da_conta() {
+    let (_dir, pam) = pasta();
+    let mut transaction = pam
+        .begin(
+            SO_SENHA,
+            &usuario(),
+            Some(Zeroizing::new("segredo".to_owned())),
+        )
+        .unwrap_or_else(|error| panic!("{error}"));
+    assert_eq!(transaction.authenticate(), Ok(()));
+}
+
+#[test]
+fn as_regras_da_conta_recusam_mesmo_com_a_senha_certa() {
+    let (_dir, pam) = pasta();
+    let mut transaction = pam
+        .begin(
+            CONTA_NEGADA,
+            &usuario(),
+            Some(Zeroizing::new("segredo".to_owned())),
+        )
+        .unwrap_or_else(|error| panic!("{error}"));
+    assert_eq!(transaction.authenticate(), Ok(()));
+    assert_eq!(transaction.authorize(), Err(Refusal::Denied));
+}
+
+#[test]
+fn a_conta_liberada_passa_nas_regras() {
+    let (_dir, pam) = pasta();
+    let mut transaction = transacao(&pam, "segredo");
+    assert_eq!(transaction.authenticate(), Ok(()));
+    assert_eq!(transaction.authorize(), Ok(()));
 }
