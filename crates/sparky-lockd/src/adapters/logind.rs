@@ -61,6 +61,8 @@ impl SystemLogind {
 }
 
 impl Logind for SystemLogind {
+    type Inhibitor = OwnedFd;
+
     async fn inhibit(&self) -> Result<OwnedFd, String> {
         let inhibitor: zvariant::OwnedFd = self
             .manager

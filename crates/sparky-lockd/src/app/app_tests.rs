@@ -1,6 +1,3 @@
-use std::io::{ErrorKind, Read};
-use std::os::fd::OwnedFd;
-use std::os::unix::net::UnixStream;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -13,7 +10,14 @@ use crate::ports::{Compositor, Logind};
 #[derive(Default)]
 struct Registro {
     chamadas: Mutex<Vec<String>>,
-    pontas: Mutex<Vec<UnixStream>>,
+}
+
+struct Inibidor(Arc<Registro>);
+
+impl Drop for Inibidor {
+    fn drop(&mut self) {
+        self.0.anotar("soltar");
+    }
 }
 
 impl Registro {
@@ -28,19 +32,7 @@ impl Registro {
     }
 
     fn inibidor_solto(&self) -> bool {
-        let Ok(pontas) = self.pontas.lock() else {
-            return false;
-        };
-        let Some(ponta) = pontas.last() else {
-            return false;
-        };
-        let _ = ponta.set_nonblocking(true);
-        let mut byte = [0u8; 1];
-        match (&*ponta).read(&mut byte) {
-            Ok(0) => true,
-            Err(error) if error.kind() == ErrorKind::WouldBlock => false,
-            _ => false,
-        }
+        self.chamadas().iter().any(|chamada| chamada == "soltar")
     }
 }
 
@@ -48,13 +40,11 @@ struct LogindFalso(Arc<Registro>);
 struct CompositorFalso(Arc<Registro>);
 
 impl Logind for LogindFalso {
-    async fn inhibit(&self) -> Result<OwnedFd, String> {
+    type Inhibitor = Inibidor;
+
+    async fn inhibit(&self) -> Result<Inibidor, String> {
         self.0.anotar("inibir");
-        let (nossa, deles) = UnixStream::pair().map_err(|error| error.to_string())?;
-        if let Ok(mut pontas) = self.0.pontas.lock() {
-            pontas.push(deles);
-        }
-        Ok(OwnedFd::from(nossa))
+        Ok(Inibidor(Arc::clone(&self.0)))
     }
 
     async fn hint(&self, screen: Screen) -> Result<(), String> {

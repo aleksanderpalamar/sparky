@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod app_tests;
 
-use std::os::fd::OwnedFd;
 use std::time::Duration;
 
 use tokio::sync::mpsc::Receiver;
@@ -18,9 +17,9 @@ pub enum Event {
     CompositorGone,
 }
 
-pub async fn run(logind: &impl Logind, compositor: &impl Compositor, mut events: Receiver<Event>) {
+pub async fn run<L: Logind>(logind: &L, compositor: &impl Compositor, mut events: Receiver<Event>) {
     let (mut guard, orders) = Guard::start();
-    let mut runtime = Runtime::default();
+    let mut runtime = Runtime::<L::Inhibitor>::new();
     runtime.perform(logind, compositor, orders).await;
     while let Some(input) = runtime.next(&mut events).await {
         let orders = guard.handle(input);
@@ -28,13 +27,19 @@ pub async fn run(logind: &impl Logind, compositor: &impl Compositor, mut events:
     }
 }
 
-#[derive(Default)]
-struct Runtime {
-    held: Option<OwnedFd>,
+struct Runtime<I> {
+    held: Option<I>,
     deadline: Option<Instant>,
 }
 
-impl Runtime {
+impl<I> Runtime<I> {
+    fn new() -> Self {
+        Self {
+            held: None,
+            deadline: None,
+        }
+    }
+
     async fn next(&mut self, events: &mut Receiver<Event>) -> Option<Input> {
         let event = match self.deadline {
             Some(deadline) => match timeout_at(deadline, events.recv()).await {
@@ -54,7 +59,7 @@ impl Runtime {
 
     async fn perform(
         &mut self,
-        logind: &impl Logind,
+        logind: &impl Logind<Inhibitor = I>,
         compositor: &impl Compositor,
         orders: Vec<Order>,
     ) {
@@ -67,7 +72,7 @@ impl Runtime {
 
     async fn apply(
         &mut self,
-        logind: &impl Logind,
+        logind: &impl Logind<Inhibitor = I>,
         compositor: &impl Compositor,
         order: Order,
     ) -> Result<(), String> {
