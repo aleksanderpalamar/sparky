@@ -22,6 +22,7 @@ impl Field {
             Field::Locker => "Bloqueio de tela",
             Field::SystemMenu => "Menu do sistema",
             Field::Wallpaper => "Papel de parede",
+            Field::LoginWallpaper => "Papel de parede da tela de login",
         }
     }
 
@@ -42,9 +43,16 @@ impl Field {
             Field::Files => "SUPER + SHIFT + F",
             Field::Settings => "SUPER + ALT + ESPAÇO",
             Field::Screenshot => "PRINT e as variações",
-            Field::Locker => "SUPER + CTRL + L; precisa falar ext-session-lock, como swaylock ou hyprlock",
+            Field::Locker => {
+                "SUPER + CTRL + L; precisa falar ext-session-lock, como swaylock ou hyprlock"
+            }
             Field::SystemMenu => "SUPER + ESC; bloquear, suspender, sair, reiniciar e desligar",
-            Field::Wallpaper => "caminho da imagem; vazio usa o do tema padrão; a seção Temas troca entre os do tema",
+            Field::Wallpaper => {
+                "caminho da imagem; vazio usa o do tema padrão; a seção Temas troca entre os do tema"
+            }
+            Field::LoginWallpaper => {
+                "vazio usa o da área de trabalho; a seção Temas troca entre os do tema"
+            }
         }
     }
 }

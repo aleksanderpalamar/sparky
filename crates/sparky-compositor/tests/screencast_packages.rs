@@ -76,7 +76,8 @@ fn config_do_backend_e_instalada_no_diretorio_do_desktop() {
         .unwrap();
     assert_eq!(config["config"].as_str(), Some("noreplace"));
     let arch = fs::read_to_string(root().join("packaging/arch/PKGBUILD")).unwrap();
-    assert!(arch.contains("backup=('etc/xdg/xdg-desktop-portal-wlr/sparky')"));
+    assert!(arch.lines().any(|line| line.starts_with("backup=(")
+        && line.contains("'etc/xdg/xdg-desktop-portal-wlr/sparky'")));
     assert!(
         arch.split("package_sparky-wallpapers()")
             .nth(1)

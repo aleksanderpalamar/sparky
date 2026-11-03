@@ -99,6 +99,7 @@ fn group(id: RowId) -> &'static str {
         RowId::ConsoleKeymap | RowId::SystemLayout => "Teclado",
         RowId::Theme | RowId::ThemeStatus => "Tema",
         RowId::Wallpaper => "Papel de parede",
+        RowId::LoginWallpaper => "Tela de login",
         RowId::Volume(_) | RowId::MediaStatus => "Volumes",
     }
 }

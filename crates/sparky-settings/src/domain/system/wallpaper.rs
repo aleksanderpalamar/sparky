@@ -8,7 +8,7 @@ use crate::domain::value::Step;
 
 const LABEL: &str = "Papel de parede";
 
-pub fn row(themes: &Themes, configured: Option<&str>) -> Option<Row> {
+pub fn row(themes: &Themes, configured: Option<&str>, id: RowId) -> Option<Row> {
     let theme = current(themes)?;
     let total = theme.wallpapers().len();
     if total == 0 {
@@ -20,7 +20,7 @@ pub fn row(themes: &Themes, configured: Option<&str>) -> Option<Row> {
         None => format!("{total} do tema · outro em uso"),
     };
     Some(Row {
-        id: RowId::Wallpaper,
+        id,
         label: LABEL.to_owned(),
         value,
         control: Control::Choice(names),

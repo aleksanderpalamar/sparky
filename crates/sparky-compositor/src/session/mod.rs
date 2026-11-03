@@ -4,6 +4,7 @@ pub mod components;
 pub mod departure;
 pub mod environment;
 pub mod leaving;
+pub mod login_screen;
 mod startup;
 
 #[cfg(test)]

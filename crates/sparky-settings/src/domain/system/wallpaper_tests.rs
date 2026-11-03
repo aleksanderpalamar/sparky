@@ -33,7 +33,7 @@ fn temas(atual: &str) -> Themes {
 
 #[test]
 fn a_linha_mostra_a_posicao_do_fundo_no_tema_em_uso() {
-    let Some(linha) = row(&temas("nord"), Some("/w/nord/2-b.webp")) else {
+    let Some(linha) = row(&temas("nord"), Some("/w/nord/2-b.webp"), RowId::Wallpaper) else {
         panic!("sem linha")
     };
     assert_eq!(linha.id, RowId::Wallpaper);
@@ -47,14 +47,22 @@ fn a_linha_mostra_a_posicao_do_fundo_no_tema_em_uso() {
 
 #[test]
 fn fundo_de_fora_do_tema_aparece_como_outro() {
-    let linha = row(&temas("nord"), Some("/home/ana/meu.jpg")).map(|linha| linha.value);
+    let linha =
+        row(&temas("nord"), Some("/home/ana/meu.jpg"), RowId::Wallpaper).map(|linha| linha.value);
     assert_eq!(linha.as_deref(), Some("3 do tema · outro em uso"));
 }
 
 #[test]
 fn tema_sem_fundos_nao_tem_linha() {
-    assert!(row(&temas("liso"), None).is_none());
-    assert!(row(&Themes::Unavailable("erro".to_owned()), None).is_none());
+    assert!(row(&temas("liso"), None, RowId::Wallpaper).is_none());
+    assert!(
+        row(
+            &Themes::Unavailable("erro".to_owned()),
+            None,
+            RowId::Wallpaper
+        )
+        .is_none()
+    );
 }
 
 #[test]
@@ -123,7 +131,7 @@ fn fundos_com_o_mesmo_nome_viram_opcoes_distintas() {
         current: nord.palette(),
         themes: vec![nord],
     });
-    let Some(linha) = row(&temas, Some("/sistema/nord/a.jpg")) else {
+    let Some(linha) = row(&temas, Some("/sistema/nord/a.jpg"), RowId::Wallpaper) else {
         panic!("sem linha")
     };
     let Control::Choice(opcoes) = linha.control else {

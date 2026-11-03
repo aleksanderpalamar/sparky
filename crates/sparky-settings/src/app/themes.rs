@@ -10,6 +10,8 @@ use crate::domain::system::wallpaper;
 use crate::domain::system::{Change, Request, Row, RowId, perform};
 use crate::domain::value::{Step, Value};
 
+const WALLPAPERS: [RowId; 2] = [RowId::Wallpaper, RowId::LoginWallpaper];
+
 impl Settings {
     pub fn observe_palette(&mut self, palette: Palette) {
         self.context.skin = Skin::new(palette);
@@ -17,20 +19,19 @@ impl Settings {
     }
 
     pub fn theme_rows(&self) -> Vec<Row> {
-        let configured = self.config.general.wallpaper.as_deref();
-        self.themes
-            .rows()
-            .into_iter()
-            .chain(wallpaper::row(&self.themes, configured))
-            .collect()
+        let wallpapers = WALLPAPERS.into_iter().filter_map(|id| {
+            let (_, configured) = self.wallpaper_of(id)?;
+            wallpaper::row(&self.themes, configured, id)
+        });
+        self.themes.rows().into_iter().chain(wallpapers).collect()
     }
 
     pub fn change_theme(&mut self, change: Change) {
         let Some(row) = self.system_rows().into_iter().nth(self.focus) else {
             return;
         };
-        if row.id == RowId::Wallpaper {
-            return self.change_wallpaper(change);
+        if WALLPAPERS.contains(&row.id) {
+            return self.change_wallpaper(row.id, change);
         }
         let Some(theme) = self.themes.request(row.id, change) else {
             return;
@@ -43,7 +44,8 @@ impl Settings {
         self.observe_palette(theme.palette());
         self.notice = None;
         if let Some(first) = theme.wallpapers().first() {
-            self.choose_wallpaper(first);
+            self.choose_wallpaper(Field::Wallpaper, first);
+            self.choose_wallpaper(Field::LoginWallpaper, first);
         }
         self.focus_row(row.id);
         if !matches!(self.notice, Some(Notice::Error(_))) {
@@ -51,23 +53,30 @@ impl Settings {
         }
     }
 
-    fn change_wallpaper(&mut self, change: Change) {
-        let configured = self.config.general.wallpaper.as_deref();
+    fn change_wallpaper(&mut self, id: RowId, change: Change) {
+        let Some((field, configured)) = self.wallpaper_of(id) else {
+            return;
+        };
         let path = match change {
             Change::Text(name) => wallpaper::chosen(&self.themes, &name),
             Change::Step(step) => wallpaper::step(&self.themes, configured, step),
             Change::Activate => wallpaper::step(&self.themes, configured, Step::More),
         };
         if let Some(path) = path {
-            self.choose_wallpaper(&path);
+            self.choose_wallpaper(field, &path);
         }
     }
 
-    fn choose_wallpaper(&mut self, path: &Path) {
-        self.set(
-            Field::Wallpaper,
-            Value::Text(path.to_string_lossy().into_owned()),
-        );
+    fn wallpaper_of(&self, id: RowId) -> Option<(Field, Option<&str>)> {
+        match id {
+            RowId::Wallpaper => Some((Field::Wallpaper, self.config.general.wallpaper.as_deref())),
+            RowId::LoginWallpaper => Some((Field::LoginWallpaper, self.config.login_wallpaper())),
+            _ => None,
+        }
+    }
+
+    fn choose_wallpaper(&mut self, field: Field, path: &Path) {
+        self.set(field, Value::Text(path.to_string_lossy().into_owned()));
     }
 
     fn focus_row(&mut self, id: RowId) {

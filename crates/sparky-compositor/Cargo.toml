@@ -58,6 +58,7 @@ wayland-protocols-wlr = { version = "0.3", features = ["client"] }
 
 [package.metadata.deb]
 name = "sparky"
+maintainer-scripts = "../../packaging/debian/"
 maintainer = "Aleksander Palamar <apalamardev@gmail.com>"
 copyright = "2026, Aleksander Palamar <apalamardev@gmail.com>"
 license-file = ["../../LICENSE", "0"]
@@ -68,7 +69,7 @@ relógio e bandeja, e aplicativos nativos (arquivos, visualizador de imagens, \
 capturador de tela, terminal, monitor do sistema e configurações). Tudo tem atalho de teclado."""
 section = "x11"
 priority = "optional"
-depends = "libpulse0, libseat1, libinput10, libxkbcommon0, libgbm1, libdrm2, libudev1, libegl1, libgles2, libwayland-client0, libwayland-server0, libwayland-egl1, xwayland, xkb-data, wl-clipboard, libnotify-bin, xdg-utils, tar, util-linux, polkitd, libpolkit-agent-1-0, libglib2.0-0t64 | libglib2.0-0, zsh, zsh-autosuggestions, zsh-syntax-highlighting, xdg-desktop-portal, xdg-desktop-portal-gtk, xdg-desktop-portal-wlr, pipewire"
+depends = "libpam0g, libpulse0, libseat1, libinput10, libxkbcommon0, libgbm1, libdrm2, libudev1, libegl1, libgles2, libwayland-client0, libwayland-server0, libwayland-egl1, xwayland, xkb-data, wl-clipboard, libnotify-bin, xdg-utils, tar, util-linux, polkitd, libpolkit-agent-1-0, libglib2.0-0t64 | libglib2.0-0, zsh, zsh-autosuggestions, zsh-syntax-highlighting, xdg-desktop-portal, xdg-desktop-portal-gtk, xdg-desktop-portal-wlr, pipewire"
 recommends = "pipewire-pulse, network-manager, bluez, swaylock, foot | kitty, libvulkan1, udisks2, gvfs-backends, gvfs-fuse, fonts-jetbrains-mono, fonts-liberation, fonts-noto-core, fonts-noto-color-emoji, fonts-noto-cjk, fonts-font-awesome, yaru-theme-icon, fzf, autojump"
 assets = [
     ["target/release/sparky", "usr/bin/", "755"],
@@ -83,9 +84,16 @@ assets = [
     ["target/release/sparky-launcher", "usr/bin/", "755"],
     ["target/release/sparky-keyring", "usr/bin/", "755"],
     ["target/release/sparky-keyring-prompt", "usr/bin/", "755"],
+    ["target/release/sparky-login", "usr/bin/", "755"],
+    ["target/release/sparky-login-greeter", "usr/bin/", "755"],
     ["target/release/polkit-sparky", "usr/bin/", "755"],
     ["target/release/sparky-terminal", "usr/bin/", "755"],
     ["../../data/session/sparky.desktop", "usr/share/wayland-sessions/", "644"],
+    ["../../data/login/sparky-login.service", "usr/lib/systemd/system/sparky-login.service", "644"],
+    ["../../data/login/sparky-login.sysusers", "usr/lib/sysusers.d/sparky-login.conf", "644"],
+    ["../../data/login/sparky-login.tmpfiles", "usr/lib/tmpfiles.d/sparky-login.conf", "644"],
+    ["../../data/login/sparky-login-greeter.pam", "etc/pam.d/sparky-login-greeter", "644"],
+    ["../../packaging/pam/debian/sparky-login", "etc/pam.d/sparky-login", "644"],
     ["../../data/portals/sparky-portals.conf", "usr/share/xdg-desktop-portal/", "644"],
     ["../../data/portals/sparky-wlr.conf", "etc/xdg/xdg-desktop-portal-wlr/sparky", "644"],
     ["../../data/portals/sparky-keyring.portal", "usr/share/xdg-desktop-portal/portals/", "644"],
@@ -124,6 +132,7 @@ assets = [
 
 [package.metadata.generate-rpm]
 name = "sparky"
+post_install_script = "systemd-sysusers sparky-login.conf || :; systemd-tmpfiles --create sparky-login.conf || :; systemctl daemon-reload >/dev/null 2>&1 || :"
 summary = "Ambiente de desktop Wayland em Rust feito para o teclado"
 license = "GPL-3.0-or-later"
 auto-req = "disabled"
@@ -140,9 +149,16 @@ assets = [
     { source = "target/release/sparky-launcher", dest = "/usr/bin/sparky-launcher", mode = "755" },
     { source = "target/release/sparky-keyring", dest = "/usr/bin/sparky-keyring", mode = "755" },
     { source = "target/release/sparky-keyring-prompt", dest = "/usr/bin/sparky-keyring-prompt", mode = "755" },
+    { source = "target/release/sparky-login", dest = "/usr/bin/sparky-login", mode = "755" },
+    { source = "target/release/sparky-login-greeter", dest = "/usr/bin/sparky-login-greeter", mode = "755" },
     { source = "target/release/polkit-sparky", dest = "/usr/bin/polkit-sparky", mode = "755" },
     { source = "target/release/sparky-terminal", dest = "/usr/bin/sparky-terminal", mode = "755" },
     { source = "../../data/session/sparky.desktop", dest = "/usr/share/wayland-sessions/sparky.desktop", mode = "644" },
+    { source = "../../data/login/sparky-login.service", dest = "/usr/lib/systemd/system/sparky-login.service", mode = "644" },
+    { source = "../../data/login/sparky-login.sysusers", dest = "/usr/lib/sysusers.d/sparky-login.conf", mode = "644" },
+    { source = "../../data/login/sparky-login.tmpfiles", dest = "/usr/lib/tmpfiles.d/sparky-login.conf", mode = "644" },
+    { source = "../../data/login/sparky-login-greeter.pam", dest = "/etc/pam.d/sparky-login-greeter", mode = "644", config = "noreplace" },
+    { source = "../../packaging/pam/fedora/sparky-login", dest = "/etc/pam.d/sparky-login", mode = "644", config = "noreplace" },
     { source = "../../data/portals/sparky-portals.conf", dest = "/usr/share/xdg-desktop-portal/sparky-portals.conf", mode = "644" },
     { source = "../../data/portals/sparky-wlr.conf", dest = "/etc/xdg/xdg-desktop-portal-wlr/sparky", mode = "644", config = "noreplace" },
     { source = "../../data/portals/sparky-keyring.portal", dest = "/usr/share/xdg-desktop-portal/portals/sparky-keyring.portal", mode = "644" },
@@ -172,6 +188,7 @@ assets = [
 ]
 
 [package.metadata.generate-rpm.requires]
+pam = "*"
 pulseaudio-libs = "*"
 glib2 = "*"
 polkit = "*"

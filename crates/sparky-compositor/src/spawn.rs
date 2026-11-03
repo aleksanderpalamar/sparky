@@ -1,5 +1,5 @@
 use std::os::unix::process::CommandExt;
-use std::process::{Command, Stdio};
+use std::process::{Child, Command, Stdio};
 use std::{io, ptr, thread};
 
 use crate::apps::detected_terminal;
@@ -26,6 +26,15 @@ pub fn spawn(command: &str, environment: &Environment) {
 }
 
 pub fn spawn_program(program: &str, arguments: &[String], environment: &Environment) {
+    match start(program, arguments, environment) {
+        Ok(mut child) => {
+            thread::spawn(move || child.wait());
+        }
+        Err(error) => tracing::warn!("não deu para abrir {program} {arguments:?}: {error}"),
+    }
+}
+
+pub fn start(program: &str, arguments: &[String], environment: &Environment) -> io::Result<Child> {
     let mut process = Command::new(program);
     process
         .args(arguments)
@@ -35,12 +44,7 @@ pub fn spawn_program(program: &str, arguments: &[String], environment: &Environm
     unsafe {
         process.pre_exec(unblock_signals);
     }
-    match process.spawn() {
-        Ok(mut child) => {
-            thread::spawn(move || child.wait());
-        }
-        Err(error) => tracing::warn!("não deu para abrir {program} {arguments:?}: {error}"),
-    }
+    process.spawn()
 }
 
 fn unblock_signals() -> io::Result<()> {

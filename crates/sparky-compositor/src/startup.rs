@@ -3,7 +3,7 @@ use smithay::reexports::wayland_server::Display;
 use std::sync::Arc;
 
 use crate::backend::{drm, nested};
-use crate::cli::Options;
+use crate::cli::{Mode, Options};
 use crate::diagnostics::{metrics::Metrics, probe};
 use crate::logging;
 use crate::signals;
@@ -33,12 +33,21 @@ fn run_session(
         false => drm::init(&mut state)?,
     }
     tracing::info!("sparky ouvindo em {:?}", state.socket_name);
+    signals::stop_on_signals(&state.loop_handle)?;
+    probe::start(&state);
+    match options.mode {
+        Mode::Desktop => desktop(&mut event_loop, &mut state, options.spawn),
+        Mode::LoginScreen { greeter } => login_screen(&mut event_loop, &mut state, greeter),
+    }
+    event_loop.run(None, &mut state, Sparky::after_dispatch)?;
+    state.stop_xwayland();
+    Ok(())
+}
+
+fn desktop(event_loop: &mut EventLoop<'static, Sparky>, state: &mut Sparky, commands: Vec<String>) {
     state.start_ipc();
     state.start_xwayland();
-    signals::stop_on_signals(&state.loop_handle)?;
     state.watch_config();
-    probe::start(&state);
-    let commands = options.spawn;
     event_loop.handle().insert_idle(move |state| {
         if state.is_real_session() {
             state.start_session();
@@ -47,9 +56,14 @@ fn run_session(
             state.spawn(command);
         }
     });
-    event_loop.run(None, &mut state, Sparky::after_dispatch)?;
-    state.stop_xwayland();
-    Ok(())
+}
+
+fn login_screen(event_loop: &mut EventLoop<'static, Sparky>, state: &mut Sparky, greeter: String) {
+    tracing::info!("modo tela de login: sem atalhos, autostart, IPC nem XWayland");
+    state.enter_login_screen();
+    event_loop
+        .handle()
+        .insert_idle(move |state| state.start_login_screen(&greeter));
 }
 
 fn inside_another_session() -> bool {

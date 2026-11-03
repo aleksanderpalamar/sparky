@@ -10,6 +10,7 @@ pub struct Config {
     pub general: General,
     pub input: Input,
     pub apps: Apps,
+    pub login: Login,
     pub autostart: Vec<String>,
     pub bind: Vec<Bind>,
     pub output: Vec<OutputRule>,
@@ -24,6 +25,12 @@ pub struct General {
     pub float_width: i32,
     pub float_height: i32,
     pub default_binds: bool,
+    pub wallpaper: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct Login {
     pub wallpaper: Option<String>,
 }
 
@@ -48,6 +55,15 @@ pub struct Apps {
     pub screenshot: String,
     pub locker: String,
     pub system_menu: String,
+}
+
+impl Config {
+    pub fn login_wallpaper(&self) -> Option<&str> {
+        self.login
+            .wallpaper
+            .as_deref()
+            .or(self.general.wallpaper.as_deref())
+    }
 }
 
 impl General {

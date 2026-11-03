@@ -13,6 +13,8 @@ use crate::app::state::{Context, Services, Settings};
 use crate::app::update::update;
 use crate::domain::about::About;
 use crate::domain::keymaps::Keymaps;
+use crate::domain::section::Section;
+use crate::domain::system::themes::Theme;
 use crate::ports::commands::{CommandError, CommandRunner};
 use crate::ports::fake::FakeCommands;
 use crate::ports::fake_themes::FakeThemes;
@@ -115,4 +117,22 @@ pub fn digitar(settings: &mut Settings, texto: &str) {
 
 pub fn salvo(arquivo: &Arquivo) -> String {
     arquivo.0.borrow().clone().unwrap_or_default()
+}
+
+pub fn painel_com_fundos() -> (Settings, Arquivo, Rc<FakeThemes>) {
+    let (mut settings, arquivo) = painel_com(None, Sparky::default(), Comandos::default());
+    let store = Rc::new(FakeThemes::default());
+    let fundos = ["/w/azul/1-a.jpg", "/w/azul/2-b.jpg"]
+        .map(PathBuf::from)
+        .to_vec();
+    let theme = Theme::parse("azul", "accent = \"#010203\"").unwrap_or_else(|_| Theme::builtin());
+    store
+        .catalog
+        .borrow_mut()
+        .themes
+        .push(theme.with_wallpapers(fundos));
+    settings.services.themes = Box::new(store.clone());
+    settings.reload_system();
+    settings.go(Section::Themes);
+    (settings, arquivo, store)
 }
