@@ -32,6 +32,7 @@ Somente os temas vem do [Omarchy](https://github.com/basecamp/omarchy): como pal
 | `crates/sparky-login-look` | O visual comum à tela de login e à de bloqueio: relógio, campos, papel de parede desfocado, cores e ícones |
 | `crates/sparky-pam` | A autenticação pelo PAM, com a libpam carregada em tempo de execução, usada pelo login e pelo bloqueio |
 | `crates/sparky-lock` | A tela de bloqueio (`sparky-lock`): relógio, nome do usuário e senha, pelo protocolo ext-session-lock |
+| `crates/sparky-lockd` | O guarda do bloqueio (`sparky-lockd`): atende os pedidos de bloqueio do logind e bloqueia antes de suspender |
 | `crates/polkit-sparky` | Agente de autenticação do sistema, com janela nativa, temas e integração polkit/PAM |
 | `crates/sparky-theme` | Paleta de cores compartilhada pelos aplicativos, lida do `colors.toml` do tema |
 | `data/themes` | Temas no formato `colors.toml` |
@@ -112,7 +113,7 @@ Um `[[bind]]` com a mesma combinação de um atalho padrão substitui o padrão;
 O gerenciador de login (SDDM, GDM…) lista a sessão **Sparky** pelo `data/session/sparky.desktop`, instalado em `/usr/share/wayland-sessions`, que abre o `sparky` com `XDG_CURRENT_DESKTOP=sparky`. Ao subir direto no hardware, o sparky:
 
 - exporta `WAYLAND_DISPLAY`, `DISPLAY`, `XDG_CURRENT_DESKTOP`, `XDG_SESSION_TYPE` e `SPARKY_SOCKET` para o D-Bus e o systemd (`dbus-update-activation-environment --systemd`), para os portais e os serviços ativados acharem a sessão;
-- abre o chaveiro (`sparky-keyring`), o agente de autenticação (`polkit-sparky`), as notificações nativas (`sparky-notifications`) e a barra (`sparky-bar`);
+- abre o chaveiro (`sparky-keyring`), o agente de autenticação (`polkit-sparky`), o guarda do bloqueio (`sparky-lockd`), as notificações nativas (`sparky-notifications`) e a barra (`sparky-bar`);
 - abre o autostart XDG (`~/.config/autostart` e `/etc/xdg/autostart`), respeitando `Hidden`, `OnlyShowIn`, `NotShowIn`, `TryExec` e `X-GNOME-Autostart-enabled`; um arquivo do usuário substitui o do sistema com o mesmo nome.
 
 Aninhado em outra sessão, nada disso acontece. Os portais usam `data/portals/sparky-portals.conf` (GTK, wlr para a tela e `sparky-keyring` para senhas), instalado em `/usr/share/xdg-desktop-portal`.
@@ -144,7 +145,7 @@ O sparky abre um socket em `$XDG_RUNTIME_DIR/sparky-<WAYLAND_DISPLAY>.sock` e ex
 ```bash
 sparky-msg workspaces          # lista as áreas de trabalho
 sparky-msg focus-workspace 3   # vai para a área 3
-sparky-msg subscribe           # avisa a cada mudança nas áreas
+sparky-msg subscribe           # avisa a cada mudança nas áreas e no bloqueio
 sparky-msg reload              # relê o sparky.toml
 sparky-msg outputs             # lista os monitores e qual está em foco
 sparky-msg capture output tela.png                 # o monitor em foco
@@ -152,6 +153,7 @@ sparky-msg capture window janela.png               # a janela em foco, sem a bor
 sparky-msg capture region 0 0 800 600 regiao.png   # região relativa ao monitor em foco
 sparky-msg session lock        # o mesmo que as opções do menu do sistema:
 sparky-msg session suspend     #   lock, suspend, logout, reboot e poweroff
+sparky-msg session unlock      # pede ao locker que desbloqueie (SIGUSR1)
 ```
 
 ## Captura de tela
@@ -284,6 +286,13 @@ O `sparky-lock` é a tela de bloqueio padrão do sparky (`locker` em `[apps]`), 
 - `Enter` ou **Unlock** conferem a senha pelo serviço PAM `sparky-lock` (no Arch e no Fedora, `auth include login`; no Debian, `common-auth`). Senha errada apaga a senha e mostra `Senha incorreta!`; as mensagens do próprio PAM, como a de conta bloqueada por tentativas demais, aparecem no lugar do aviso.
 - `Esc` apaga a senha digitada; o olho mostra e esconde a senha.
 - O bloqueio usa o protocolo ext-session-lock: o compositor só mostra a tela de bloqueio, os atalhos param e as capturas de tela são recusadas. Se o `sparky-lock` cair, a sessão continua bloqueada; para destrancar, entre num terminal (`Ctrl+Alt+F2`) e rode `WAYLAND_DISPLAY=wayland-1 sparky-lock` (o número do `WAYLAND_DISPLAY` é o da sessão), depois volte com `Ctrl+Alt+F1`.
+
+O `sparky-lockd` sobe com a sessão e liga o bloqueio ao logind:
+
+- `loginctl lock-session` (e quem pede o bloqueio ao logind) abre o locker; `loginctl unlock-session` pede ao locker que desbloqueie, mandando `SIGUSR1` para ele (o `sparky-lock`, o `swaylock` e o `hyprlock` desbloqueiam com esse sinal).
+- Antes de suspender, por qualquer caminho (menu, `systemctl suspend`, tampa do notebook), ele segura a suspensão com um inibidor de atraso do logind até a tela estar bloqueada; se o bloqueio não vier em 5 segundos, a suspensão segue assim mesmo.
+- A dica `LockedHint` da sessão no logind acompanha o bloqueio, para outros programas saberem que a tela está bloqueada.
+- O compositor avisa no IPC quando bloqueia e desbloqueia (`sparky-msg subscribe` mostra `locked` e `unlocked`) e aceita `sparky-msg session unlock`.
 
 ## Arquivos
 

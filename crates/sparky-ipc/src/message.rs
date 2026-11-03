@@ -18,6 +18,7 @@ pub enum Request {
 #[serde(rename_all = "snake_case")]
 pub enum SessionAction {
     Lock,
+    Unlock,
     Suspend,
     Logout,
     Reboot,
@@ -28,6 +29,7 @@ impl SessionAction {
     pub fn named(name: &str) -> Option<Self> {
         match name {
             "lock" => Some(SessionAction::Lock),
+            "unlock" => Some(SessionAction::Unlock),
             "suspend" => Some(SessionAction::Suspend),
             "logout" => Some(SessionAction::Logout),
             "reboot" => Some(SessionAction::Reboot),
@@ -67,6 +69,8 @@ pub enum Reply {
 #[serde(rename_all = "snake_case")]
 pub enum Event {
     WorkspacesChanged,
+    Locked,
+    Unlocked,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -174,5 +178,16 @@ mod tests {
             Some(SessionAction::Suspend)
         );
         assert_eq!(SessionAction::named("voar"), None);
+        assert_eq!(SessionAction::named("unlock"), Some(SessionAction::Unlock));
+    }
+
+    #[test]
+    fn bloquear_e_desbloquear_viram_eventos() {
+        let json = |event| serde_json::to_string(&Reply::Event { event }).unwrap_or_default();
+        assert_eq!(json(Event::Locked), r#"{"reply":"event","event":"locked"}"#);
+        assert_eq!(
+            json(Event::Unlocked),
+            r#"{"reply":"event","event":"unlocked"}"#
+        );
     }
 }

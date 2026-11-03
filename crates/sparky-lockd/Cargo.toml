@@ -1,0 +1,24 @@
+[package]
+name = "sparky-lockd"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "sparky-lockd"
+path = "src/main.rs"
+
+[lib]
+name = "sparky_lockd"
+path = "src/lib.rs"
+
+[dependencies]
+futures-util = "0.3"
+sparky-ipc.workspace = true
+tokio = { version = "1", features = ["macros", "rt", "sync", "time"] }
+zbus = { version = "5", default-features = false, features = ["tokio"] }
+
+[dev-dependencies]
+tempfile = "3"
+tokio = { version = "1", features = ["test-util"] }

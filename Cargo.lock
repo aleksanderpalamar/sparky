@@ -4948,6 +4948,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "sparky-lockd"
+version = "0.29.0"
+dependencies = [
+ "futures-util",
+ "sparky-ipc",
+ "tempfile",
+ "tokio",
+ "zbus",
+]
+
+[[package]]
 name = "sparky-login"
 version = "0.29.0"
 dependencies = [

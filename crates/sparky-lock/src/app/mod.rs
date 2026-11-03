@@ -9,6 +9,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use chrono::{DateTime, Local};
+use iced::futures::{SinkExt, Stream, StreamExt};
 use iced::{Subscription, Task, event};
 use iced_sessionlock::settings::Settings;
 use iced_sessionlock::to_session_message;
@@ -17,6 +18,7 @@ use sparky_login_look::backdrop::{self, Backdrop};
 use sparky_login_look::style::REGULAR;
 use sparky_theme::{Palette, Skin};
 
+use crate::adapters::remote;
 use crate::domain::unlock::Unlock;
 use crate::ports::authenticator::Authenticator;
 
@@ -59,6 +61,7 @@ pub fn run(start: Start) -> Result<(), iced_sessionlock::Error> {
             Subscription::batch([
                 event::listen_with(keys::message),
                 iced::time::every(TICK).map(|_| Message::Tick),
+                Subscription::run(remote_unlock),
             ])
         })
         .theme(|locker: &Locker| locker.skin.theme())
@@ -87,6 +90,23 @@ pub fn boot(start: Start) -> (Locker, Task<Message>) {
         None => Task::none(),
     };
     (locker, Task::batch([update::focus_password(), load]))
+}
+
+fn remote_unlock() -> impl Stream<Item = Message> {
+    iced::stream::channel(1, async |mut output| {
+        let mut requests = match remote::requests() {
+            Ok(requests) => requests,
+            Err(error) => {
+                eprintln!("sparky-lock: pedido de desbloqueio por sinal indisponível: {error}");
+                return;
+            }
+        };
+        while requests.next().await.is_some() {
+            if output.send(Message::UnLock).await.is_err() {
+                return;
+            }
+        }
+    })
 }
 
 async fn blocking<T: Send + 'static>(job: impl FnOnce() -> T + Send + 'static, lost: T) -> T {

@@ -27,7 +27,7 @@ class LockPackagingTest(unittest.TestCase):
 
     def test_arch_instala_o_bloqueio_com_o_pam_do_arch(self):
         self.assertIn('install -Dm644 packaging/pam/arch/sparky-lock "$pkgdir/etc/pam.d/sparky-lock"', self.pkgbuild)
-        self.assertIn("sparky-keyring-prompt sparky-lock sparky-login", self.pkgbuild)
+        self.assertIn("sparky-keyring-prompt sparky-lock sparky-lockd sparky-login", self.pkgbuild)
         backup = re.search(r"^backup=\((.*?)\)", self.pkgbuild, re.M)
         self.assertIsNotNone(backup)
         self.assertIn("'etc/pam.d/sparky-lock'", backup.group(1))
@@ -36,6 +36,15 @@ class LockPackagingTest(unittest.TestCase):
         self.assertNotIn("swaylock", self.pkgbuild)
         self.assertNotIn("swaylock", self.metadata["deb"]["recommends"])
         self.assertNotIn("swaylock", self.metadata["generate-rpm"].get("recommends", {}))
+
+    def test_o_guarda_do_bloqueio_vai_nos_tres_formatos(self):
+        deb = {source.removeprefix("../../"): dest for source, dest, _ in self.metadata["deb"]["assets"]}
+        self.assertEqual(deb.get("target/release/sparky-lockd"), "usr/bin/")
+        rpm = {asset["source"].removeprefix("../../"): asset for asset in self.metadata["generate-rpm"]["assets"]}
+        self.assertEqual(rpm["target/release/sparky-lockd"]["dest"], "/usr/bin/sparky-lockd")
+        self.assertIn(" sparky-lock sparky-lockd ", self.pkgbuild)
+        build = (ROOT / "packaging/build.sh").read_text()
+        self.assertRegex(build, r"binaries=\([^\n]*\bsparky-lockd\b")
 
     def test_o_pam_do_bloqueio_so_confere_a_senha(self):
         for distro in ["arch", "debian", "fedora"]:

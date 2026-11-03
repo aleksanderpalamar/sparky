@@ -39,6 +39,9 @@ fn private_capture_server() -> Result<(), Error> {
     if scenario.as_deref() == Ok("no-formats") {
         state.image_capture.formats.entries.clear();
     }
+    if scenario.as_deref() == Ok("ipc") {
+        state.start_ipc();
+    }
     let directory = PathBuf::from(directory);
     ready::publish(&directory, &state.socket_name)?;
     loop {

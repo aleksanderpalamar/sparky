@@ -74,6 +74,13 @@ impl Client {
         Ok(())
     }
 
+    pub fn ipc(&self) -> Result<sparky_ipc::Client, Error> {
+        let directory = self._server.file("");
+        let name = std::fs::read_to_string(directory.join("ready"))?;
+        let path = sparky_ipc::socket::path_for(&directory.to_string_lossy(), &name);
+        Ok(sparky_ipc::Client::connect(&path)?)
+    }
+
     pub fn await_event(&mut self, ready: impl Fn(&Events) -> bool) -> Result<(), Error> {
         wait(
             &mut self.queue,

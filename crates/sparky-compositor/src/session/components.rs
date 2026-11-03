@@ -1,10 +1,11 @@
 pub const KEYRING: &str = "sparky-keyring";
 pub const POLKIT: &str = "polkit-sparky";
+pub const LOCKD: &str = "sparky-lockd";
 pub const BAR: &str = "sparky-bar";
 pub const NOTIFICATIONS: &str = "sparky-notifications";
 
 pub fn components(installed: impl Fn(&str) -> bool) -> Vec<String> {
-    [KEYRING, POLKIT, NOTIFICATIONS, BAR]
+    [KEYRING, POLKIT, LOCKD, NOTIFICATIONS, BAR]
         .into_iter()
         .filter(|program| installed(program))
         .map(str::to_owned)
@@ -13,11 +14,11 @@ pub fn components(installed: impl Fn(&str) -> bool) -> Vec<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{BAR, KEYRING, NOTIFICATIONS, POLKIT, components};
+    use super::{BAR, KEYRING, LOCKD, NOTIFICATIONS, POLKIT, components};
 
     #[test]
     fn o_chaveiro_e_o_agente_proprio_sobem_antes_dos_aplicativos() {
-        let installed = [KEYRING, POLKIT, NOTIFICATIONS, BAR];
+        let installed = [KEYRING, POLKIT, LOCKD, NOTIFICATIONS, BAR];
         assert_eq!(
             components(|program| installed.contains(&program)),
             installed

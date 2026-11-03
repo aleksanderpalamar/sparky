@@ -46,9 +46,14 @@ impl Sparky {
             return;
         }
         server.last = current;
-        let event = Reply::Event {
-            event: Event::WorkspacesChanged,
+        self.broadcast(Event::WorkspacesChanged);
+    }
+
+    pub fn broadcast(&mut self, event: Event) {
+        let Some(server) = self.ipc.as_mut() else {
+            return;
         };
+        let event = Reply::Event { event };
         server
             .subscribers
             .retain(|subscriber| write_reply(subscriber, &event));

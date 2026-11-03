@@ -1,7 +1,11 @@
 use smithay::delegate_session_lock;
 use smithay::output::Output;
 use smithay::reexports::wayland_server::protocol::wl_output::WlOutput;
-use smithay::wayland::session_lock::{LockSurface, SessionLockHandler, SessionLockManagerState, SessionLocker};
+use smithay::wayland::session_lock::{
+    LockSurface, SessionLockHandler, SessionLockManagerState, SessionLocker,
+};
+
+use sparky_ipc::Event;
 
 use crate::lock::rules::accepts;
 use crate::state::Sparky;
@@ -16,13 +20,16 @@ impl SessionLockHandler for Sparky {
             return;
         }
         self.lock.engage();
+        self.lock.claim(confirmation.ext_session_lock().clone());
         confirmation.lock();
         self.lock_changed();
+        self.broadcast(Event::Locked);
     }
 
     fn unlock(&mut self) {
         self.lock.release();
         self.lock_changed();
+        self.broadcast(Event::Unlocked);
     }
 
     fn new_surface(&mut self, surface: LockSurface, wl_output: WlOutput) {
@@ -32,7 +39,9 @@ impl SessionLockHandler for Sparky {
         let Some(geometry) = self.space.output_geometry(&output) else {
             return;
         };
-        surface.with_pending_state(|state| state.size = Some((geometry.size.w as u32, geometry.size.h as u32).into()));
+        surface.with_pending_state(|state| {
+            state.size = Some((geometry.size.w as u32, geometry.size.h as u32).into())
+        });
         surface.send_configure();
         self.lock.attach(output.name(), surface);
         self.lock_changed();

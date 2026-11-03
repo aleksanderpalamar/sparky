@@ -24,9 +24,11 @@ sparky-login-look.workspace = true
 sparky-pam.workspace = true
 sparky-theme.workspace = true
 sparky-ui.workspace = true
-tokio = { version = "1", features = ["rt"] }
+tokio = { version = "1", features = ["rt", "signal"] }
 zeroize = { version = "1", features = ["std"] }
 
 [dev-dependencies]
 iced_test = "0.14"
+nix = { version = "0.31", features = ["signal"] }
 tempfile = "3"
+tokio = { version = "1", features = ["macros", "time"] }
