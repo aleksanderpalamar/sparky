@@ -27,6 +27,8 @@ pub struct Events {
     pub device: Option<Vec<u8>>,
     pub failures: Vec<wayland_client::WEnum<frame::FailureReason>>,
     pub ready: usize,
+    pub locked: bool,
+    pub lock_configure: Option<u32>,
 }
 
 impl Dispatch<session::ExtImageCopyCaptureSessionV1, ()> for Events {

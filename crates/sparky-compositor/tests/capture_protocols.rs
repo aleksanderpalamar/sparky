@@ -12,6 +12,8 @@ mod fixture;
 mod legacy;
 #[path = "capture_protocols/lifecycle.rs"]
 mod lifecycle;
+#[path = "capture_protocols/lock_frames.rs"]
+mod lock_frames;
 #[path = "capture_protocols/options.rs"]
 mod options;
 #[path = "support/ready.rs"]

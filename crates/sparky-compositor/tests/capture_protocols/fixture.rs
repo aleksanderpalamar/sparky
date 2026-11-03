@@ -1,5 +1,6 @@
 use smithay::backend::allocator::{Format, Fourcc, Modifier};
 use smithay::output::Mode;
+use sparky_compositor::backend::nested::send_frames;
 use std::{fs, path::PathBuf, time::Duration};
 
 pub use super::server::{Error, Server};
@@ -58,6 +59,9 @@ fn private_capture_server() -> Result<(), Error> {
             state.space.unmap_output(&output);
         }
         event_loop.dispatch(Duration::from_millis(5), &mut state)?;
+        if scenario.as_deref() == Ok("frames") {
+            send_frames(&state, &output);
+        }
         super::submission::dispatch(&mut state, &directory)?;
         state.after_dispatch();
     }

@@ -4,6 +4,7 @@ use smithay::backend::renderer::damage::OutputDamageTracker;
 use smithay::backend::renderer::gles::GlesRenderer;
 use smithay::backend::winit::{self, WinitEvent, WinitGraphicsBackend};
 use smithay::desktop::layer_map_for_output;
+use smithay::desktop::utils::send_frames_surface_tree;
 use smithay::output::{Mode, Output, PhysicalProperties, Subpixel};
 use smithay::reexports::calloop::EventLoop;
 use smithay::reexports::winit::dpi::LogicalSize;
@@ -160,5 +161,14 @@ pub fn send_frames(state: &Sparky, output: &Output) {
         layer.send_frame(output, time, Some(Duration::ZERO), |_, _| {
             Some(output.clone())
         });
+    }
+    if let Some(lock) = state.lock.surface_on(&output.name()) {
+        send_frames_surface_tree(
+            lock.wl_surface(),
+            output,
+            time,
+            Some(Duration::ZERO),
+            |_, _| Some(output.clone()),
+        );
     }
 }
