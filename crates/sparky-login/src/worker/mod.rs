@@ -19,7 +19,7 @@ use crate::domain::job::{Job, LoginJob, Order, Report};
 use crate::ports::accounts::Accounts;
 use crate::ports::appearance::Appearance;
 use crate::ports::launcher::Launcher;
-use crate::ports::pam::{Pam, Transaction};
+use sparky_pam::{Pam, Transaction};
 
 pub const LOGIN_SERVICE: &str = "sparky-login";
 pub const GREETER_SERVICE: &str = "sparky-login-greeter";

@@ -1,0 +1,13 @@
+[package]
+name = "sparky-login-look"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+iced = { version = "0.14", features = ["image", "svg", "tokio"] }
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
+sparky-login-core.workspace = true
+sparky-theme.workspace = true

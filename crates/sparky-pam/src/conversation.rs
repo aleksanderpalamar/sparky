@@ -1,9 +1,10 @@
+use std::cell::RefCell;
 use std::ffi::{CStr, CString, c_char, c_int, c_void};
 use std::ptr;
 
 use zeroize::Zeroizing;
 
-use crate::adapters::pam::codes::{
+use crate::codes::{
     BUF_ERR, CONV_ERR, ERROR_MSG, PROMPT_ECHO_OFF, PROMPT_ECHO_ON, SUCCESS, TEXT_INFO,
 };
 
@@ -30,6 +31,7 @@ pub struct Conversation {
 pub struct Answers {
     pub username: CString,
     pub password: Option<Zeroizing<CString>>,
+    pub notes: RefCell<Vec<String>>,
 }
 
 impl Conversation {
@@ -82,7 +84,7 @@ fn answer(message: *const Message, answers: &Answers, reply: &mut Response) -> c
             .map(|password| password.as_c_str()),
         PROMPT_ECHO_ON => Some(answers.username.as_c_str()),
         ERROR_MSG | TEXT_INFO => {
-            note(message.text);
+            note(answers, message.text);
             return SUCCESS;
         }
         _ => None,
@@ -97,12 +99,16 @@ fn answer(message: *const Message, answers: &Answers, reply: &mut Response) -> c
     }
 }
 
-fn note(text: *const c_char) {
-    if !text.is_null() {
-        eprintln!(
-            "sparky-login: PAM: {}",
-            unsafe { CStr::from_ptr(text) }.to_string_lossy()
-        );
+fn note(answers: &Answers, text: *const c_char) {
+    if text.is_null() {
+        return;
+    }
+    let text = unsafe { CStr::from_ptr(text) }
+        .to_string_lossy()
+        .trim()
+        .to_owned();
+    if !text.is_empty() {
+        answers.notes.borrow_mut().push(text);
     }
 }
 

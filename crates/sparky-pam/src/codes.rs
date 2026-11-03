@@ -25,11 +25,12 @@ pub const TEXT_INFO: c_int = 4;
 const EXPIRED_PASSWORD: &str = "a senha expirou; troque-a num terminal com passwd";
 const EXPIRED_ACCOUNT: &str = "a conta expirou";
 
-pub fn refusal(code: c_int, explanation: impl FnOnce() -> String) -> Refusal {
+pub fn refusal(code: c_int, notes: &[String], explanation: impl FnOnce() -> String) -> Refusal {
     match code {
-        AUTH_ERR | USER_UNKNOWN | MAXTRIES | PERM_DENIED | CRED_INSUFFICIENT => Refusal::Denied,
         NEW_AUTHTOK_REQD => Refusal::Unavailable(EXPIRED_PASSWORD.to_owned()),
         ACCT_EXPIRED => Refusal::Unavailable(EXPIRED_ACCOUNT.to_owned()),
+        _ if !notes.is_empty() => Refusal::Unavailable(notes.join(" ")),
+        AUTH_ERR | USER_UNKNOWN | MAXTRIES | PERM_DENIED | CRED_INSUFFICIENT => Refusal::Denied,
         _ => Refusal::Unavailable(explanation()),
     }
 }
@@ -47,18 +48,18 @@ mod tests {
     #[test]
     fn senha_errada_e_usuario_desconhecido_dao_a_mesma_recusa() {
         for code in [AUTH_ERR, USER_UNKNOWN, MAXTRIES] {
-            assert_eq!(refusal(code, sem_texto), Refusal::Denied);
+            assert_eq!(refusal(code, &[], sem_texto), Refusal::Denied);
         }
     }
 
     #[test]
     fn senha_e_conta_expiradas_explicam_o_motivo() {
         assert_eq!(
-            refusal(NEW_AUTHTOK_REQD, sem_texto),
+            refusal(NEW_AUTHTOK_REQD, &[], sem_texto),
             Refusal::Unavailable("a senha expirou; troque-a num terminal com passwd".into())
         );
         assert_eq!(
-            refusal(ACCT_EXPIRED, sem_texto),
+            refusal(ACCT_EXPIRED, &[], sem_texto),
             Refusal::Unavailable("a conta expirou".into())
         );
     }
@@ -66,8 +67,31 @@ mod tests {
     #[test]
     fn outros_erros_usam_a_explicacao_do_pam() {
         assert_eq!(
-            refusal(9, sem_texto),
+            refusal(9, &[], sem_texto),
             Refusal::Unavailable("erro do PAM".into())
+        );
+    }
+
+    #[test]
+    fn as_mensagens_do_pam_explicam_a_recusa() {
+        let notas = [
+            "The account is locked due to 3 failed logins.".to_owned(),
+            "(10 minutes left to unlock)".to_owned(),
+        ];
+        assert_eq!(
+            refusal(AUTH_ERR, &notas, sem_texto),
+            Refusal::Unavailable(
+                "The account is locked due to 3 failed logins. (10 minutes left to unlock)".into()
+            )
+        );
+    }
+
+    #[test]
+    fn senha_expirada_continua_com_a_explicacao_do_sparky() {
+        let notas = ["You are required to change your password immediately".to_owned()];
+        assert_eq!(
+            refusal(NEW_AUTHTOK_REQD, &notas, sem_texto),
+            Refusal::Unavailable("a senha expirou; troque-a num terminal com passwd".into())
         );
     }
 }

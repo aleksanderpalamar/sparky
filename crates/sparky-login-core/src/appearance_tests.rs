@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use crate::domain::appearance::{Sources, sources, wallpaper};
+use crate::appearance::{Sources, sources, wallpaper};
 
 const CASA: &str = "/home/palamar";
 

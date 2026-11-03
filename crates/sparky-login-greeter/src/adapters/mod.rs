@@ -1,5 +1,4 @@
 pub mod appearance;
-pub mod backdrop;
 pub mod daemon;
 pub mod preview;
 

@@ -2,13 +2,15 @@ use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 
-use sparky_login::adapters::pam::LinuxPam;
-use sparky_login::ports::pam::{Pam, Transaction};
 use sparky_login_core::protocol::Refusal;
+use sparky_pam::LinuxPam;
+use sparky_pam::{Pam, Transaction};
 use tempfile::TempDir;
 use zeroize::Zeroizing;
 
 const SERVICO: &str = "sparky-login-teste";
+const BLOQUEADO: &str = "sparky-login-bloqueado";
+const AVISA: &str = "#!/bin/sh\necho conta bloqueada\nexit 1\n";
 const CONFERE: &str = "#!/bin/sh\nsenha=$(tr -d '\\000')\n[ \"$senha\" = \"segredo\" ]\n";
 
 fn usuario() -> String {
@@ -33,6 +35,15 @@ fn pasta() -> (TempDir, LinuxPam) {
         script.display()
     );
     escrever(&dir.path().join(SERVICO), &servico);
+    let aviso = dir.path().join("avisa");
+    escrever(&aviso, AVISA);
+    fs::set_permissions(&aviso, fs::Permissions::from_mode(0o755))
+        .unwrap_or_else(|error| panic!("{error}"));
+    let bloqueado = format!(
+        "auth [success=1 ignore=1 default=ignore] pam_exec.so type=auth stdout quiet {}\nauth requisite pam_deny.so\nauth required pam_permit.so\n",
+        aviso.display()
+    );
+    escrever(&dir.path().join(BLOQUEADO), &bloqueado);
     let pam = LinuxPam {
         confdir: Some(PathBuf::from(dir.path())),
     };
@@ -100,4 +111,20 @@ fn servico_inexistente_nao_entra() {
     if let Ok(mut transaction) = transaction {
         assert!(transaction.authenticate().is_err());
     }
+}
+
+#[test]
+fn a_mensagem_do_pam_chega_na_recusa() {
+    let (_dir, pam) = pasta();
+    let mut transaction = pam
+        .begin(
+            BLOQUEADO,
+            &usuario(),
+            Some(Zeroizing::new("segredo".to_owned())),
+        )
+        .unwrap_or_else(|error| panic!("{error}"));
+    assert_eq!(
+        transaction.authenticate(),
+        Err(Refusal::Unavailable("conta bloqueada".into()))
+    );
 }

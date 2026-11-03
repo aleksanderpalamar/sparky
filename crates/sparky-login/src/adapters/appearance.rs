@@ -4,12 +4,11 @@ use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
 use std::path::Path;
 
 use nix::unistd::{Gid, Group, Uid, chown, getgroups, setegid, seteuid, setgroups};
-use sparky_login_core::appearance::{COLORS, WALLPAPER};
 
 use crate::adapters::identity::groups;
-use crate::domain::appearance::{sources, wallpaper};
 use crate::domain::environment::Account;
 use crate::ports::appearance::Appearance;
+use sparky_login_core::appearance::{COLORS, WALLPAPER, sources, wallpaper};
 
 const CONFIG_LIMIT: u64 = 1024 * 1024;
 const COLORS_LIMIT: u64 = 64 * 1024;

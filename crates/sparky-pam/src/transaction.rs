@@ -2,11 +2,11 @@ use std::ffi::{CStr, c_int};
 
 use sparky_login_core::protocol::Refusal;
 
-use crate::adapters::pam::codes::{DELETE_CRED, ESTABLISH_CRED, SUCCESS, TTY, refusal};
-use crate::adapters::pam::conversation::{Answers, Conversation};
-use crate::adapters::pam::library::{Api, Handle};
-use crate::adapters::pam::text;
-use crate::ports::pam::Transaction;
+use crate::codes::{DELETE_CRED, ESTABLISH_CRED, SUCCESS, TTY, refusal};
+use crate::conversation::{Answers, Conversation};
+use crate::library::{Api, Handle};
+use crate::port::Transaction;
+use crate::text;
 
 pub struct PamTransaction {
     pub api: &'static Api,
@@ -14,7 +14,7 @@ pub struct PamTransaction {
     pub status: c_int,
     pub established: bool,
     pub opened: bool,
-    pub _answers: Box<Answers>,
+    pub answers: Box<Answers>,
     pub _conversation: Box<Conversation>,
 }
 
@@ -39,7 +39,9 @@ impl PamTransaction {
         self.status = code;
         match code {
             SUCCESS => Ok(()),
-            _ => Err(refusal(code, || self.describe(code))),
+            _ => Err(refusal(code, &self.answers.notes.borrow(), || {
+                self.describe(code)
+            })),
         }
     }
 }

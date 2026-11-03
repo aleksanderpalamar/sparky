@@ -1,7 +1,7 @@
 use iced::widget::svg::Handle;
 
-use crate::domain::form::Reveal;
-use crate::domain::power::Power;
+use crate::reveal::Reveal;
+use sparky_login_core::protocol::Power;
 
 const USER: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="4.5" fill="#000"/><path d="M3 21c0-4.4 4-7.5 9-7.5s9 3.1 9 7.5z" fill="#000"/></svg>"##;
 const EYE: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#000" fill-rule="evenodd" d="M12 5C6.5 5 2.7 8.6 1 12c1.7 3.4 5.5 7 11 7s9.3-3.6 11-7c-1.7-3.4-5.5-7-11-7zM12 8.8a3.2 3.2 0 1 0 0 6.4a3.2 3.2 0 1 0 0-6.4z"/></svg>"##;

@@ -9,7 +9,7 @@ use crate::domain::environment::Account;
 use crate::ports::accounts::Accounts;
 use crate::ports::appearance::Appearance;
 use crate::ports::launcher::{Launcher, Process};
-use crate::ports::pam::{Pam, Transaction};
+use sparky_pam::{Pam, Transaction};
 
 pub type Log = Rc<RefCell<Vec<String>>>;
 

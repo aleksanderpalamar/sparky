@@ -4,11 +4,7 @@ use crate::domain::focus::Focus;
 
 const DENIED: &str = "Falha no login!";
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Reveal {
-    Hidden,
-    Shown,
-}
+pub use sparky_login_look::reveal::Reveal;
 
 pub use sparky_login_core::protocol::Refusal;
 
@@ -77,10 +73,7 @@ impl Form {
     }
 
     pub fn toggle_reveal(&mut self) {
-        self.reveal = match self.reveal {
-            Reveal::Hidden => Reveal::Shown,
-            Reveal::Shown => Reveal::Hidden,
-        };
+        self.reveal = self.reveal.toggled();
     }
 
     pub fn ready(&self) -> bool {

@@ -3,7 +3,7 @@ use std::sync::OnceLock;
 
 use libloading::Library;
 
-use crate::adapters::pam::conversation::Conversation;
+use crate::conversation::Conversation;
 
 const LIBRARY: &str = "libpam.so.0";
 

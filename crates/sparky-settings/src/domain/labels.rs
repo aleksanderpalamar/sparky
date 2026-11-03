@@ -44,7 +44,7 @@ impl Field {
             Field::Settings => "SUPER + ALT + ESPAÇO",
             Field::Screenshot => "PRINT e as variações",
             Field::Locker => {
-                "SUPER + CTRL + L; precisa falar ext-session-lock, como swaylock ou hyprlock"
+                "SUPER + CTRL + L; o padrão é o sparky-lock, e outro precisa falar ext-session-lock"
             }
             Field::SystemMenu => "SUPER + ESC; bloquear, suspender, sair, reiniciar e desligar",
             Field::Wallpaper => {

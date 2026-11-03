@@ -119,7 +119,7 @@ impl Default for Apps {
             files: "sparky-files".to_owned(),
             settings: "sparky-settings".to_owned(),
             screenshot: "sparky-shot".to_owned(),
-            locker: "swaylock".to_owned(),
+            locker: "sparky-lock".to_owned(),
             system_menu: "sparky-launcher --system".to_owned(),
         }
     }

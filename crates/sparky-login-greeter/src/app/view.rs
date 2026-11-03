@@ -1,13 +1,26 @@
-use iced::widget::{Column, container, image, responsive, space, stack};
-use iced::{Background, ContentFit, Element, Length, Rectangle, Size};
+use iced::widget::{responsive, stack};
+use iced::{Element, Length, Size};
+use sparky_login_look::clock;
+use sparky_login_look::layout::{Layout, Part};
+use sparky_login_look::scene;
+use sparky_login_look::style::Colors;
+use sparky_login_look::widgets::{self as look_widgets, Look};
 
 use crate::app::power;
-use crate::app::style::Colors;
-use crate::app::widgets::{self, Look};
+use crate::app::widgets;
 use crate::app::{Greeter, Message};
-use crate::domain::clock;
-use crate::domain::cover::{Crop, cover, left};
-use crate::domain::layout::{FORM_SHARE, Layout, Part, bands};
+
+const PARTS: [Part; 9] = [
+    Part::Time,
+    Part::Date,
+    Part::Warning,
+    Part::Username,
+    Part::Password,
+    Part::Login,
+    Part::PowerIcons,
+    Part::PowerLabels,
+    Part::Session,
+];
 
 pub fn view(greeter: &Greeter) -> Element<'_, Message> {
     responsive(move |size| screen(greeter, size)).into()
@@ -18,73 +31,27 @@ fn screen(greeter: &Greeter, size: Size) -> Element<'_, Message> {
         layout: Layout::new(size.width, size.height),
         colors: Colors::new(greeter.skin),
     };
-    stack![
-        backdrop(greeter, size, look),
-        form(greeter, size.height, look)
-    ]
-    .width(Length::Fill)
-    .height(Length::Fill)
-    .into()
+    let backdrop = scene::backdrop(
+        greeter.backdrop.as_ref(),
+        greeter.skin.background,
+        size,
+        look,
+    );
+    let form = scene::form(size.height, look, &PARTS, |part| {
+        part_of(greeter, part, look)
+    });
+    stack![backdrop, form]
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
 }
 
-fn backdrop(greeter: &Greeter, size: Size, look: Look) -> Element<'_, Message> {
-    let Some(backdrop) = &greeter.backdrop else {
-        let color = greeter.skin.background;
-        return container(space())
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .style(move |_| container::Style {
-                background: Some(Background::Color(color)),
-                ..container::Style::default()
-            })
-            .into();
-    };
-    let whole = cover(backdrop.size, (size.width, size.height));
-    let strip = left(whole, FORM_SHARE).scaled(backdrop.reduction);
-    stack![
-        image(backdrop.sharp.clone())
-            .crop(rectangle(whole))
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .content_fit(ContentFit::Fill),
-        image(backdrop.blurred.clone())
-            .crop(rectangle(strip))
-            .width(look.layout.form_width)
-            .height(Length::Fill)
-            .content_fit(ContentFit::Fill),
-    ]
-    .into()
-}
-
-fn rectangle(crop: Crop) -> Rectangle<u32> {
-    Rectangle {
-        x: crop.x,
-        y: crop.y,
-        width: crop.width,
-        height: crop.height,
-    }
-}
-
-fn form(greeter: &Greeter, height: f32, look: Look) -> Element<'_, Message> {
-    let mut column = Column::new().width(look.layout.form_width);
-    let mut cursor = 0.0;
-    for band in bands(height) {
-        let gap = (band.top - cursor).max(0.0);
-        let content = container(part(greeter, band.part, look))
-            .center_x(Length::Fill)
-            .center_y(band.height);
-        column = column.push(space().height(gap)).push(content);
-        cursor = band.top + band.height;
-    }
-    column.into()
-}
-
-fn part(greeter: &Greeter, part: Part, look: Look) -> Element<'_, Message> {
+fn part_of(greeter: &Greeter, part: Part, look: Look) -> Element<'_, Message> {
     let layout = look.layout;
     match part {
-        Part::Time => widgets::clock(clock::time(greeter.now.time()), layout.time, look),
-        Part::Date => widgets::clock(clock::date(greeter.now.date_naive()), layout.date, look),
-        Part::Warning => widgets::warning(
+        Part::Time => look_widgets::clock(clock::time(greeter.now.time()), layout.time, look),
+        Part::Date => look_widgets::clock(clock::date(greeter.now.date_naive()), layout.date, look),
+        Part::Warning => look_widgets::warning(
             greeter.form.warning().or_else(|| greeter.notice.clone()),
             look,
         ),

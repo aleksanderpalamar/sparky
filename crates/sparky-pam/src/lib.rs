@@ -1,19 +1,22 @@
 mod codes;
 mod conversation;
 mod library;
+mod port;
 mod transaction;
 
+pub use crate::port::{Pam, Transaction};
+
+use std::cell::RefCell;
 use std::ffi::CString;
 use std::path::PathBuf;
 use std::ptr;
 
 use zeroize::Zeroizing;
 
-use crate::adapters::pam::codes::SUCCESS;
-use crate::adapters::pam::conversation::{Answers, Conversation};
-use crate::adapters::pam::library::{Handle, api};
-use crate::adapters::pam::transaction::PamTransaction;
-use crate::ports::pam::{Pam, Transaction};
+use crate::codes::SUCCESS;
+use crate::conversation::{Answers, Conversation};
+use crate::library::{Handle, api};
+use crate::transaction::PamTransaction;
 
 #[derive(Debug, Clone, Default)]
 pub struct LinuxPam {
@@ -33,7 +36,11 @@ impl Pam for LinuxPam {
         let password = password
             .map(|password| text(&password).map(Zeroizing::new))
             .transpose()?;
-        let answers = Box::new(Answers { username, password });
+        let answers = Box::new(Answers {
+            username,
+            password,
+            notes: RefCell::new(Vec::new()),
+        });
         let conversation = Box::new(Conversation::new(&answers));
         let mut handle: Handle = ptr::null_mut();
         let code = match (&self.confdir, api.start_in) {
@@ -73,7 +80,7 @@ impl Pam for LinuxPam {
             status: SUCCESS,
             established: false,
             opened: false,
-            _answers: answers,
+            answers,
             _conversation: conversation,
         }))
     }

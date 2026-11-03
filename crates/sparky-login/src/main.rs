@@ -4,11 +4,11 @@ use std::process::ExitCode;
 use sparky_login::adapters::accounts::SystemAccounts;
 use sparky_login::adapters::appearance::UserAppearance;
 use sparky_login::adapters::launcher::UserLauncher;
-use sparky_login::adapters::pam::LinuxPam;
 use sparky_login::adapters::stop;
 use sparky_login::cli::{self, Command};
 use sparky_login::service::{self, settings::Settings};
 use sparky_login::worker::Worker;
+use sparky_pam::LinuxPam;
 
 const USAGE: u8 = 2;
 

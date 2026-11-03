@@ -28,7 +28,10 @@ Somente os temas vem do [Omarchy](https://github.com/basecamp/omarchy): como pal
 | `crates/sparky-keyring-prompt` | A janela que pede a senha do cofre (`sparky-keyring-prompt`) |
 | `crates/sparky-login` | O gerenciador de login (`sparky-login`): serviço do sistema que autentica pelo PAM, registra a sessão no logind e abre a sessão do usuário |
 | `crates/sparky-login-greeter` | A tela de login (`sparky-login-greeter`): relógio, usuário, senha, energia e escolha da sessão |
-| `crates/sparky-login-core` | Protocolo entre a tela e o serviço de login e a lista das sessões Wayland instaladas |
+| `crates/sparky-login-core` | Protocolo entre a tela e o serviço de login, a lista das sessões Wayland instaladas e a escolha do papel de parede do login |
+| `crates/sparky-login-look` | O visual comum à tela de login e à de bloqueio: relógio, campos, papel de parede desfocado, cores e ícones |
+| `crates/sparky-pam` | A autenticação pelo PAM, com a libpam carregada em tempo de execução, usada pelo login e pelo bloqueio |
+| `crates/sparky-lock` | A tela de bloqueio (`sparky-lock`): relógio, nome do usuário e senha, pelo protocolo ext-session-lock |
 | `crates/polkit-sparky` | Agente de autenticação do sistema, com janela nativa, temas e integração polkit/PAM |
 | `crates/sparky-theme` | Paleta de cores compartilhada pelos aplicativos, lida do `colors.toml` do tema |
 | `data/themes` | Temas no formato `colors.toml` |
@@ -51,7 +54,7 @@ O `sparky` é o próprio compositor Wayland; não depende de nenhum outro. Fala 
 
 Aplicativos X11 rodam pelo XWayland, que o sparky sobe sozinho e controla com o gerenciador de janelas X11 do Smithay: janelas X11 entram no mosaico como as Wayland, menus e dicas X11 (janelas sem gerência) ficam por cima de tudo, e a área de transferência e a seleção primária passam nos dois sentidos. Os programas abertos pelo sparky recebem `DISPLAY` e `WAYLAND_DISPLAY`.
 
-`SUPER + CTRL + L` bloqueia a sessão com o locker de `[apps]` (`swaylock` por padrão; `hyprlock` e outros que falem ext-session-lock também servem). Bloqueado, só a tela do locker aparece e recebe teclado e mouse, os atalhos param (menos `Ctrl+Alt+F1…F12`) e a captura de tela também só vê o locker. Se o locker morrer sem desbloquear, a sessão continua bloqueada com a tela vazia, e um locker aberto de novo retoma o bloqueio.
+`SUPER + CTRL + L` bloqueia a sessão com o locker de `[apps]` (o `sparky-lock` por padrão, descrito em [Tela de bloqueio](#tela-de-bloqueio); `swaylock`, `hyprlock` e outros que falem ext-session-lock também servem). Bloqueado, só a tela do locker aparece e recebe teclado e mouse, os atalhos param (menos `Ctrl+Alt+F1…F12`) e a captura de tela também só vê o locker. Se o locker morrer sem desbloquear, a sessão continua bloqueada com a tela vazia, e um locker aberto de novo retoma o bloqueio.
 
 Toda janela comum entra no mosaico. Flutuam as que têm janela-mãe (diálogos), as de tamanho fixo e as do painel de configurações e do capturador. A borda da janela em foco usa a cor de destaque do tema, e o foco do teclado acompanha o ponteiro.
 
@@ -272,6 +275,15 @@ sudo reboot
 Para voltar, entre num terminal com `CTRL + ALT + F2`, faça login e rode `sudo systemctl disable sparky-login && sudo systemctl enable sddm && sudo reboot`. O log do serviço fica no journal: `journalctl -u sparky-login -b`.
 
 A prévia abre em qualquer sessão Wayland com layer-shell: `sparky-login-greeter --preview [--wallpaper <imagem>]`. Sem `--wallpaper`, vale o primeiro papel de parede do tema padrão. Na prévia nenhuma senha entra, os botões de energia não fazem nada e `Esc` fecha; na tela de verdade, `Esc` não fecha nada.
+
+## Tela de bloqueio
+
+O `sparky-lock` é a tela de bloqueio padrão do sparky (`locker` em `[apps]`), aberta pelo `SUPER + CTRL + L` e pelo Bloquear do menu do sistema. Ela tem o mesmo visual da tela de login: relógio, data, a faixa desfocada à esquerda, o nome do usuário fixo e o campo de senha, sem seletor de sessão nem botões de energia. As cores vêm do tema do sparky e o papel de parede é o da tela de login (`[login] wallpaper`; sem ele, o da área de trabalho).
+
+- A mesma tela aparece em cada monitor, e a senha digitada em qualquer um deles vale.
+- `Enter` ou **Unlock** conferem a senha pelo serviço PAM `sparky-lock` (no Arch e no Fedora, `auth include login`; no Debian, `common-auth`). Senha errada apaga a senha e mostra `Senha incorreta!`; as mensagens do próprio PAM, como a de conta bloqueada por tentativas demais, aparecem no lugar do aviso.
+- `Esc` apaga a senha digitada; o olho mostra e esconde a senha.
+- O bloqueio usa o protocolo ext-session-lock: o compositor só mostra a tela de bloqueio, os atalhos param e as capturas de tela são recusadas. Se o `sparky-lock` cair, a sessão continua bloqueada; para destrancar, entre num terminal (`Ctrl+Alt+F2`) e rode `WAYLAND_DISPLAY=wayland-1 sparky-lock` (o número do `WAYLAND_DISPLAY` é o da sessão), depois volte com `Ctrl+Alt+F1`.
 
 ## Arquivos
 
