@@ -29,7 +29,11 @@ impl ItemObject {
 
     fn edit(&self, edit: Edit) -> Result<(), SecretError> {
         let id = self.id;
-        match self.shared.keyring()?.change(|vault| vault.edit(id, edit, now()))? {
+        match self
+            .shared
+            .keyring()?
+            .change(|vault| vault.edit(id, edit, now()))?
+        {
             true => Ok(()),
             false => Err(SecretError::NoSuchObject(paths::item(id).to_string())),
         }
@@ -38,9 +42,15 @@ impl ItemObject {
 
 #[interface(name = "org.freedesktop.Secret.Item")]
 impl ItemObject {
-    async fn delete(&self, #[zbus(connection)] connection: &Connection) -> Result<OwnedObjectPath, SecretError> {
+    async fn delete(
+        &self,
+        #[zbus(connection)] connection: &Connection,
+    ) -> Result<OwnedObjectPath, SecretError> {
         let id = self.id;
-        let deleted = self.shared.keyring()?.change(|vault| vault.delete(id, now()))?;
+        let deleted = self
+            .shared
+            .keyring()?
+            .change(|vault| vault.delete(id, now()))?;
         if !deleted {
             return Err(SecretError::NoSuchObject(paths::item(id).to_string()));
         }
@@ -48,13 +58,17 @@ impl ItemObject {
         Ok(paths::none())
     }
 
-    async fn get_secret(&self, session: ObjectPath<'_>) -> Result<WireSecret, SecretError> {
+    async fn get_secret(&self, session: ObjectPath<'_>) -> Result<(WireSecret,), SecretError> {
         let session = self.shared.session(&session)?;
         let keyring = self.shared.keyring()?;
-        Ok(WireSecret::of(session, &keyring.item(self.id)?.secret))
+        Ok((WireSecret::of(session, &keyring.item(self.id)?.secret),))
     }
 
-    async fn set_secret(&self, secret: WireSecret, #[zbus(connection)] connection: &Connection) -> Result<(), SecretError> {
+    async fn set_secret(
+        &self,
+        secret: WireSecret,
+        #[zbus(connection)] connection: &Connection,
+    ) -> Result<(), SecretError> {
         self.shared.session(&secret.session)?;
         self.edit(Edit::Secret(secret.into_secret()))?;
         Ok(sync::changed(connection, self.id).await?)
@@ -62,7 +76,9 @@ impl ItemObject {
 
     #[zbus(property)]
     async fn locked(&self) -> bool {
-        self.shared.keyring().map_or(true, |keyring| keyring.is_locked())
+        self.shared
+            .keyring()
+            .map_or(true, |keyring| keyring.is_locked())
     }
 
     #[zbus(property)]
