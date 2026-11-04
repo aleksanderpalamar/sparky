@@ -12,6 +12,7 @@ license = "GPL-3.0-or-later"
 iced_core = "0.14"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+sparky-i18n = { path = "crates/sparky-i18n" }
 sparky-config = { path = "crates/sparky-config" }
 sparky-ipc = { path = "crates/sparky-ipc" }
 sparky-login-core = { path = "crates/sparky-login-core" }
