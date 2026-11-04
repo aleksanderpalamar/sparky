@@ -3,17 +3,17 @@ use std::sync::Arc;
 use chrono::Local;
 use iced::Task;
 use iced::widget::operation;
+use sparky_login_look::i18n;
 
 use crate::app::{Greeter, Message, Step, blocking};
 use crate::domain::focus::Focus;
 use crate::domain::form::Refusal;
-use crate::domain::power::{Power, label};
+use crate::domain::power::{Power, key};
+use fluent_bundle::FluentArgs;
 
 pub const USERNAME: &str = "usuario";
 pub const PASSWORD: &str = "senha";
 const NOWHERE: &str = "nenhum";
-const STOPPED: &str = "o pedido de login parou no meio";
-const NO_SESSION: &str = "nenhuma sessão Wayland instalada";
 
 pub fn update(greeter: &mut Greeter, message: Message) -> Task<Message> {
     match message {
@@ -106,7 +106,7 @@ fn submit(greeter: &mut Greeter) -> Task<Message> {
         .as_ref()
         .map(|sessions| sessions.current().id.clone())
     else {
-        greeter.notice = Some(NO_SESSION.to_owned());
+        greeter.notice = Some(i18n::text("no-session"));
         return Task::none();
     };
     let Some(credentials) = greeter.form.submit() else {
@@ -114,7 +114,7 @@ fn submit(greeter: &mut Greeter) -> Task<Message> {
     };
     greeter.notice = None;
     let backend = Arc::clone(&greeter.backend);
-    let lost = Err(Refusal::Unavailable(STOPPED.to_owned()));
+    let lost = Err(Refusal::Unavailable(i18n::text("login-stopped")));
     Task::perform(
         blocking(move || backend.login(credentials, &session), lost),
         Message::Answer,
@@ -129,7 +129,9 @@ fn refused(greeter: &mut Greeter, refusal: Refusal) -> Task<Message> {
 fn power(greeter: &mut Greeter, action: Power) -> Task<Message> {
     greeter.focus = Focus::Power(action);
     let backend = Arc::clone(&greeter.backend);
-    let lost = Err(format!("{} parou no meio", label(action)));
+    let mut args = FluentArgs::new();
+    args.set("action", i18n::text(key(action)));
+    let lost = Err(i18n::message("power-stopped", Some(&args)));
     Task::batch([
         focus_on(greeter.focus),
         Task::perform(

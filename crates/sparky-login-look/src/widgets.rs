@@ -87,7 +87,7 @@ pub fn input<'a, M: Clone + 'a>(field: Field<'a, M>, look: Look) -> Element<'a, 
 }
 
 pub fn action<'a, M: Clone + 'a>(
-    label: &'a str,
+    label: String,
     focused: bool,
     press: Option<M>,
     look: Look,

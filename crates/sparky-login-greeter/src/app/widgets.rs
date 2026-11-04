@@ -1,13 +1,11 @@
 use iced::Element;
 use iced::widget::{mouse_area, text};
-use sparky_login_look::icons;
 use sparky_login_look::widgets::{Field, Look, action, input, underlined};
+use sparky_login_look::{i18n, icons};
 
 use crate::app::update::{PASSWORD, USERNAME};
 use crate::app::{Greeter, Message};
 use crate::domain::focus::Focus;
-
-const LOGIN: &str = "Login";
 
 pub fn username(greeter: &Greeter, look: Look) -> Element<'_, Message> {
     let field = Field {
@@ -39,7 +37,7 @@ pub fn password(greeter: &Greeter, look: Look) -> Element<'_, Message> {
 pub fn login(greeter: &Greeter, look: Look) -> Element<'_, Message> {
     let ready = greeter.form.ready();
     action(
-        LOGIN,
+        i18n::text("login"),
         greeter.focus == Focus::Login,
         ready.then_some(Message::Login),
         look,

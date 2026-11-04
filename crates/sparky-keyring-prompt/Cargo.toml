@@ -16,6 +16,7 @@ path = "src/lib.rs"
 [dependencies]
 iced = { version = "0.14", features = ["tokio"] }
 iced_layershell = "0.19.1"
+sparky-i18n.workspace = true
 sparky-theme.workspace = true
 sparky-ui.workspace = true
 zeroize = { version = "1", features = ["std"] }

@@ -3863,6 +3863,7 @@ dependencies = [
 name = "polkit-sparky"
 version = "0.29.0"
 dependencies = [
+ "fluent-bundle",
  "futures-util",
  "glib",
  "iced",
@@ -3871,6 +3872,7 @@ dependencies = [
  "libloading",
  "serde",
  "serde_json",
+ "sparky-i18n",
  "sparky-theme",
  "sparky-ui",
  "tempfile",
@@ -4973,6 +4975,7 @@ version = "0.29.0"
 dependencies = [
  "iced",
  "iced_layershell",
+ "sparky-i18n",
  "sparky-theme",
  "sparky-ui",
  "zeroize",
@@ -5057,6 +5060,7 @@ name = "sparky-login-greeter"
 version = "0.29.0"
 dependencies = [
  "chrono",
+ "fluent-bundle",
  "iced",
  "iced_layershell",
  "iced_test",
@@ -5075,8 +5079,10 @@ name = "sparky-login-look"
 version = "0.29.0"
 dependencies = [
  "chrono",
+ "fluent-bundle",
  "iced",
  "image",
+ "sparky-i18n",
  "sparky-login-core",
  "sparky-theme",
 ]

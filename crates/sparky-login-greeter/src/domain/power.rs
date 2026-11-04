@@ -1,9 +1,9 @@
 pub use sparky_login_core::protocol::Power;
 
-pub fn label(power: Power) -> &'static str {
+pub fn key(power: Power) -> &'static str {
     match power {
-        Power::Shutdown => "Desligar",
-        Power::Reboot => "Reiniciar",
-        Power::Suspend => "Suspend",
+        Power::Shutdown => "power-shutdown",
+        Power::Reboot => "power-reboot",
+        Power::Suspend => "power-suspend",
     }
 }

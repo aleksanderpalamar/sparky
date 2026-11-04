@@ -19,21 +19,21 @@ impl Mode {
 
     pub fn title(self) -> &'static str {
         match self {
-            Mode::Create => "Crie a senha do cofre",
-            Mode::Unlock | Mode::Retry => "Destrancar o cofre",
+            Mode::Create => "create-title",
+            Mode::Unlock | Mode::Retry => "unlock-title",
         }
     }
 
     pub fn explanation(self) -> &'static str {
         match self {
-            Mode::Create => "Um aplicativo quer guardar uma senha. Escolha a senha que vai proteger o cofre do sparky.",
-            Mode::Unlock | Mode::Retry => "Um aplicativo quer usar uma senha guardada. Digite a senha do cofre do sparky.",
+            Mode::Create => "create-explanation",
+            Mode::Unlock | Mode::Retry => "unlock-explanation",
         }
     }
 
     pub fn warning(self) -> Option<&'static str> {
         match self {
-            Mode::Retry => Some("Senha incorreta. Tente de novo."),
+            Mode::Retry => Some("retry-warning"),
             Mode::Create | Mode::Unlock => None,
         }
     }
@@ -62,7 +62,7 @@ mod tests {
 
     #[test]
     fn so_a_nova_tentativa_avisa_da_senha_errada() {
-        assert_eq!(Mode::Retry.warning(), Some("Senha incorreta. Tente de novo."));
+        assert_eq!(Mode::Retry.warning(), Some("retry-warning"));
         assert_eq!(Mode::Unlock.warning(), None);
         assert!(Mode::Create.confirms());
         assert!(!Mode::Retry.confirms());

@@ -64,13 +64,13 @@ fn o_campo_de_usuario_mostra_o_nome_de_quem_bloqueou() {
 fn o_unlock_so_responde_com_senha() {
     let mut locker = bloqueio();
     assert!(
-        !mensagens_ao_clicar(&locker, "Unlock")
+        !mensagens_ao_clicar(&locker, "Desbloquear")
             .iter()
             .any(|message| matches!(message, Message::Submit))
     );
     locker.unlock.type_password("segredo".into());
     assert!(
-        mensagens_ao_clicar(&locker, "Unlock")
+        mensagens_ao_clicar(&locker, "Desbloquear")
             .iter()
             .any(|message| matches!(message, Message::Submit))
     );

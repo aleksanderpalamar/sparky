@@ -1,6 +1,7 @@
 pub mod backdrop;
 pub mod clock;
 pub mod cover;
+pub mod i18n;
 pub mod icons;
 pub mod layout;
 pub mod reveal;

@@ -4,12 +4,12 @@ use chrono::Local;
 use iced::Task;
 use iced::widget::operation;
 use sparky_login_core::protocol::Refusal;
+use sparky_login_look::i18n;
 
 use crate::app::{Locker, Message, blocking};
 
 pub const PASSWORD: &str = "senha";
 pub const USER: &str = "usuario";
-const STOPPED: &str = "a conferência da senha parou no meio";
 
 pub fn update(locker: &mut Locker, message: Message) -> Task<Message> {
     match message {
@@ -39,7 +39,7 @@ fn submit(locker: &mut Locker) -> Task<Message> {
         return Task::none();
     };
     let authenticator = Arc::clone(&locker.authenticator);
-    let lost = Err(Refusal::Unavailable(STOPPED.to_owned()));
+    let lost = Err(Refusal::Unavailable(i18n::text("password-check-stopped")));
     Task::perform(
         blocking(move || authenticator.unlock(password), lost),
         Message::Answer,

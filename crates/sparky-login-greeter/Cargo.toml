@@ -14,6 +14,7 @@ name = "sparky_login_greeter"
 path = "src/lib.rs"
 
 [dependencies]
+fluent-bundle = "0.16"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 iced = { version = "0.14", features = ["image", "svg", "tokio"] }
 iced_layershell = "0.19.1"

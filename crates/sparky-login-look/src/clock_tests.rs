@@ -24,6 +24,10 @@ fn meia_noite_e_meio_dia_sao_doze() {
 
 #[test]
 fn a_data_traz_o_dia_da_semana_o_dia_e_o_mes_por_extenso() {
-    assert_eq!(date(dia(2026, 11, 2)), "Monday 2 November");
-    assert_eq!(date(dia(2027, 1, 15)), "Friday 15 January");
+    let plain = |value: String| value.replace(['\u{2068}', '\u{2069}'], "");
+    assert_eq!(
+        plain(date(dia(2026, 11, 2))),
+        "segunda-feira, 2 de novembro"
+    );
+    assert_eq!(plain(date(dia(2027, 1, 15))), "sexta-feira, 15 de janeiro");
 }

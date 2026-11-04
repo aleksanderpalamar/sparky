@@ -1,0 +1,9 @@
+title = System authentication
+user = User: { $name }
+password = Password
+waiting = Preparing authentication…
+verifying = Verifying…
+hint = Enter confirms · Tab changes control · Esc cancels
+retry = Try again
+authenticate = Authenticate
+cancel = Cancel

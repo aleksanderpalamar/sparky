@@ -2,8 +2,6 @@ use sparky_login_core::protocol::Refusal;
 use sparky_login_look::reveal::Reveal;
 use zeroize::Zeroizing;
 
-const WRONG: &str = "Senha incorreta!";
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Status {
     Editing,
@@ -79,7 +77,9 @@ impl Unlock {
 
     pub fn warning(&self) -> Option<String> {
         match &self.status {
-            Status::Refused(Refusal::Denied) => Some(WRONG.to_owned()),
+            Status::Refused(Refusal::Denied) => {
+                Some(sparky_login_look::i18n::text("wrong-password"))
+            }
             Status::Refused(Refusal::Unavailable(reason)) => Some(reason.clone()),
             Status::Editing | Status::Waiting => None,
         }

@@ -3,12 +3,11 @@ use iced::{Element, Length, Size, window};
 use sparky_login_look::layout::{Layout, Part};
 use sparky_login_look::style::Colors;
 use sparky_login_look::widgets::{Field, Look, action, clock, input, warning};
-use sparky_login_look::{clock as hours, icons, scene};
+use sparky_login_look::{clock as hours, i18n, icons, scene};
 
 use crate::app::update::{PASSWORD, USER};
 use crate::app::{Locker, Message};
 
-const UNLOCK: &str = "Unlock";
 const PARTS: [Part; 6] = [
     Part::Time,
     Part::Date,
@@ -46,7 +45,7 @@ fn part_of(locker: &Locker, part: Part, look: Look) -> Element<'_, Message> {
         Part::Username => user(locker, look),
         Part::Password => password(locker, look),
         Part::Login => action(
-            UNLOCK,
+            i18n::text("unlock"),
             false,
             locker.unlock.ready().then_some(Message::Submit),
             look,
