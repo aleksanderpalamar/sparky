@@ -8,6 +8,7 @@ use crate::app::state::Files;
 use crate::domain::entry::Kind;
 use crate::domain::properties::Properties;
 use crate::domain::size::human;
+use crate::i18n;
 
 pub fn layer<'a>(files: &'a Files, base: Element<'a, Message>) -> Element<'a, Message> {
     let Some(details) = files.details.as_ref() else {
@@ -33,8 +34,8 @@ fn pane(skin: Skin, details: &Properties) -> Element<'static, Message> {
         .map(|name| name.to_string_lossy().into_owned())
         .unwrap_or_else(|| details.path.display().to_string());
     let kind = match details.kind {
-        Kind::Directory => "Pasta",
-        Kind::File => "Arquivo",
+        Kind::Directory => "folder",
+        Kind::File => "file",
     };
     let size = match details.kind {
         Kind::Directory => "—".to_owned(),
@@ -47,19 +48,25 @@ fn pane(skin: Skin, details: &Properties) -> Element<'static, Message> {
                 .format("%d/%m/%Y %H:%M")
                 .to_string()
         })
-        .unwrap_or_else(|| "Não informado".to_owned());
+        .unwrap_or_else(|| i18n::text("unknown"));
     let heading = row![
-        text("Propriedades").size(16).width(Length::Fill),
+        text(i18n::text("menu-properties"))
+            .size(16)
+            .width(Length::Fill),
         button("×").on_press(Message::ContextDismiss),
     ];
     let content = column![
         heading,
-        field(skin, "Nome", name),
-        field(skin, "Tipo", kind.to_owned()),
-        field(skin, "Caminho", details.path.display().to_string()),
-        field(skin, "Tamanho", size),
-        field(skin, "Modificado", modified),
-        field(skin, "Permissões", format!("{:04o}", details.permissions)),
+        field(skin, i18n::text("name"), name),
+        field(skin, i18n::text("type"), i18n::text(kind)),
+        field(skin, i18n::text("path"), details.path.display().to_string()),
+        field(skin, i18n::text("size"), size),
+        field(skin, i18n::text("modified"), modified),
+        field(
+            skin,
+            i18n::text("permissions"),
+            format!("{:04o}", details.permissions)
+        ),
     ]
     .spacing(10);
     container(content)
@@ -78,7 +85,7 @@ fn pane(skin: Skin, details: &Properties) -> Element<'static, Message> {
         .into()
 }
 
-fn field(skin: Skin, label: &'static str, value: String) -> Element<'static, Message> {
+fn field(skin: Skin, label: String, value: String) -> Element<'static, Message> {
     row![
         text(label).size(12).color(skin.dark_foreground).width(110),
         text(value)

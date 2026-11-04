@@ -5,6 +5,7 @@ use iced::Task;
 use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
 use crate::domain::naming::valid;
+use crate::i18n;
 
 impl Files {
     pub fn begin_archive(&mut self, paths: Vec<PathBuf>) -> Option<usize> {
@@ -12,7 +13,7 @@ impl Files {
             return None;
         }
         if self.archive_work.is_some() {
-            self.fail("Já há uma compactação em andamento");
+            self.fail(i18n::text("archive-busy"));
             return None;
         }
         let stem = match paths.as_slice() {
@@ -21,7 +22,7 @@ impl Files {
                 .map(|name| name.to_string_lossy().into_owned()),
             _ => None,
         }
-        .unwrap_or_else(|| "arquivos".to_owned());
+        .unwrap_or_else(|| i18n::text("archive-default-name"));
         self.input = format!("{stem}.tar.gz");
         self.mode = Mode::Compress(paths);
         Some(stem.chars().count())
@@ -30,20 +31,20 @@ impl Files {
     pub fn start_archive(&mut self, paths: Vec<PathBuf>, input: &str) -> Task<Message> {
         let name = input.trim();
         if !valid(name) || !name.ends_with(".tar.gz") {
-            self.fail("Use um nome de arquivo terminado em .tar.gz");
+            self.fail(i18n::text("archive-extension"));
             return Task::none();
         }
         let target = self.location.join(name);
         if self.services.disk.exists(&target) {
-            self.fail(format!("Já existe um item chamado {name}"));
+            self.fail(i18n::with("already-exists", "name", name.to_owned()));
             return Task::none();
         }
         if self.archive_work.is_some() {
-            self.fail("Já há uma compactação em andamento");
+            self.fail(i18n::text("archive-busy"));
             return Task::none();
         }
         self.archive_work = Some(target.clone());
-        self.inform(format!("Compactando {}...", paths.len()));
+        self.inform(i18n::with("compressing", "count", paths.len().to_string()));
         let archiver = self.services.archiver.clone();
         let finished = target.clone();
         Task::perform(
@@ -70,7 +71,11 @@ impl Files {
                         self.listing.select_name(name);
                     }
                 }
-                self.inform(format!("Arquivo criado: {}", target.display()));
+                self.inform(i18n::with(
+                    "archive-created",
+                    "path",
+                    target.display().to_string(),
+                ));
             }
             Err(error) => self.fail(error),
         }

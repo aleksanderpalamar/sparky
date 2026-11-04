@@ -10,6 +10,7 @@ use crate::domain::clip::Clip;
 use crate::domain::entry::Kind;
 use crate::domain::naming::stem_length;
 use crate::domain::wording::{agreed, items};
+use crate::i18n;
 use crate::operations::{self, Failure};
 
 impl Files {
@@ -25,7 +26,7 @@ impl Files {
 
     pub fn paste(&mut self) {
         let Some(clip) = self.clip.clone() else {
-            self.inform("Nada para colar".to_owned());
+            self.inform(i18n::text("nothing-to-paste"));
             return;
         };
         let result = operations::paste(&clip, &self.location, self.services.disk.as_ref());
@@ -85,11 +86,10 @@ impl Files {
     }
 
     pub fn begin_new(&mut self, kind: Kind) -> usize {
-        self.input = match kind {
-            Kind::Directory => "Nova pasta",
-            Kind::File => "Novo documento",
-        }
-        .to_owned();
+        self.input = i18n::text(match kind {
+            Kind::Directory => "new-folder",
+            Kind::File => "new-document",
+        });
         self.mode = Mode::New(kind);
         self.input.chars().count()
     }
@@ -172,7 +172,7 @@ impl Files {
         match result {
             Ok(()) => {
                 self.listing.select_name(new);
-                self.inform(format!("Renomeado para {new}"));
+                self.inform(i18n::with("renamed-to", "name", new.to_owned()));
             }
             Err(failure) => self.fail(failure),
         }

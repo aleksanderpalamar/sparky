@@ -8,6 +8,7 @@ use crate::app::state::{ContextMenu, Files, Mode, OpenWith};
 use crate::domain::clip::Clip;
 use crate::domain::context::{self, Action, Row, Target};
 use crate::domain::entry::Kind;
+use crate::i18n;
 
 pub fn entry(files: &mut Files, index: usize) {
     if files.mode != Mode::Browse {
@@ -133,7 +134,7 @@ fn destination(files: &mut Files, clip: fn(Vec<PathBuf>) -> Clip) -> Task<Messag
 fn applications(files: &mut Files, path: PathBuf) {
     let apps = files.services.opener.applications(&path);
     if apps.is_empty() {
-        files.fail("Nenhum aplicativo disponível para este tipo de arquivo");
+        files.fail(i18n::text("no-app"));
         return;
     }
     files.open_with = Some(OpenWith { path, apps });
@@ -149,7 +150,7 @@ fn email(files: &mut Files) {
         });
     let result = match folder {
         Ok(true) => {
-            files.fail("Compacte as pastas antes de enviá-las por e-mail");
+            files.fail(i18n::text("compress-before-mail"));
             return;
         }
         Ok(false) => files.services.opener.email(&paths),

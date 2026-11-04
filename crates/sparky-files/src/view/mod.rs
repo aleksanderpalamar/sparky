@@ -7,6 +7,8 @@ pub mod list;
 pub mod open_with;
 pub mod properties;
 pub mod sidebar;
+#[cfg(test)]
+mod sidebar_tests;
 pub mod status;
 pub mod style;
 pub mod trash_sidebar;

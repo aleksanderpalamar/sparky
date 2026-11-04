@@ -6,6 +6,7 @@ use sparky_theme::Skin;
 use crate::app::message::Message;
 use crate::app::state::Files;
 use crate::domain::entry::Entry;
+use crate::i18n;
 use crate::view::icon::entry_icon;
 use crate::view::labels::{self, Tone};
 use crate::view::style::{DATE_WIDTH, ROW_HEIGHT, SIZE_WIDTH};
@@ -45,7 +46,7 @@ fn entry_row<'a>(
         .places
         .iter()
         .find(|place| place.path == path)
-        .map(|place| place.label);
+        .map(|place| place.icon);
     let line = row![
         entry_icon(files, entry, place, 22.0),
         text(labels::name(entry, tone))
@@ -98,9 +99,9 @@ fn titles(skin: Skin) -> Element<'static, Message> {
 
 fn empty(skin: Skin, trash: bool, total: usize) -> Element<'static, Message> {
     let label = match (trash, total) {
-        (true, 0) => "Lixeira vazia",
-        (true, _) => "Nenhum item visível",
-        (false, _) => "Pasta vazia",
+        (true, 0) => i18n::text("empty-trash-state"),
+        (true, _) => i18n::text("no-visible-items"),
+        (false, _) => i18n::text("empty-folder"),
     };
     container(text(label).size(TEXT_SIZE).color(skin.dark_foreground))
         .padding(PADDING)

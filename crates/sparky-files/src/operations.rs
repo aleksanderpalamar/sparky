@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use crate::domain::clip::Clip;
 use crate::domain::entry::Kind;
 use crate::domain::naming::{Creation, creation, free_name, valid};
+use crate::i18n;
 use crate::ports::Disk;
 
 #[derive(Debug)]
@@ -18,10 +19,20 @@ pub enum Failure {
 impl fmt::Display for Failure {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Failure::InvalidName => write!(formatter, "nome inválido"),
-            Failure::AlreadyExists(name) => write!(formatter, "já existe um item chamado {name}"),
+            Failure::InvalidName => write!(formatter, "{}", i18n::text("invalid-name")),
+            Failure::AlreadyExists(name) => {
+                write!(
+                    formatter,
+                    "{}",
+                    i18n::with("item-exists", "name", name.clone())
+                )
+            }
             Failure::IntoItself(name) => {
-                write!(formatter, "não dá para colar {name} dentro dela mesma")
+                write!(
+                    formatter,
+                    "{}",
+                    i18n::with("into-itself", "name", name.clone())
+                )
             }
             Failure::Io { name, source } => write!(formatter, "{name}: {source}"),
         }

@@ -81,7 +81,10 @@ fn menu_row(skin: Skin, entry: Row) -> Element<'static, Message> {
         skin.dark_foreground
     };
     let line = row![
-        text(label).size(13.0).color(color).width(Length::Fill),
+        text(crate::i18n::text(label))
+            .size(13.0)
+            .color(color)
+            .width(Length::Fill),
         text(shortcut).size(11.0).color(skin.dark_foreground),
     ]
     .align_y(iced::alignment::Vertical::Center);

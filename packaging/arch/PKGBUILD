@@ -101,6 +101,9 @@ package_sparky() {
   for file in data/themes/*/*; do
     install -Dm644 "$file" "$pkgdir/usr/share/sparky/${file#data/}"
   done
+  for file in data/i18n/*/*.ftl; do
+    install -Dm644 "$file" "$pkgdir/usr/share/sparky/${file#data/}"
+  done
   install -Dm644 data/config/sparky.toml -t "$pkgdir/usr/share/sparky"
   install -Dm644 data/zsh/.zshenv data/zsh/.zshrc data/zsh/completion.zsh data/zsh/extras.zsh data/zsh/git.zsh data/zsh/keys.zsh data/zsh/options.zsh data/zsh/plugins.zsh data/zsh/prompt.zsh data/zsh/vcs.zsh data/zsh/web.zsh -t "$pkgdir/usr/share/sparky/zsh"
   install -Dm644 README.md -t "$pkgdir/usr/share/doc/$pkgname"

@@ -12,7 +12,7 @@ pub fn button(files: &Files) -> Element<'_, Message> {
     let skin = files.skin;
     let label = row![
         icon(files, IconKind::Trash, 20.0),
-        text("Lixeira").size(13.0)
+        text(crate::i18n::text("trash")).size(13.0)
     ]
     .spacing(6)
     .align_y(Vertical::Center);

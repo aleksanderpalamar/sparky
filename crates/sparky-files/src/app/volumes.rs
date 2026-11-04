@@ -5,6 +5,7 @@ use sparky_storage::{Operation, Volume};
 
 use super::message::Message;
 use super::state::Files;
+use crate::i18n;
 
 pub fn refresh(files: &mut Files) -> Task<Message> {
     request(files, Operation::List)
@@ -86,7 +87,10 @@ fn apply(files: &mut Files, operation: &Operation, volumes: Vec<Volume>) {
         .iter()
         .filter_map(|volume| volume.mountpoint.as_ref())
         .any(|point| {
-            files.location.starts_with(point) && !volumes.iter().any(|volume| volume.mountpoint.as_ref() == Some(point))
+            files.location.starts_with(point)
+                && !volumes
+                    .iter()
+                    .any(|volume| volume.mountpoint.as_ref() == Some(point))
         });
     files.volumes = volumes;
     files.volume_error = None;
@@ -106,6 +110,10 @@ fn apply(files: &mut Files, operation: &Operation, volumes: Vec<Volume>) {
         Some(point) if Path::new(&point).is_absolute() => {
             files.go(point.into());
         }
-        _ => files.fail(format!("o dispositivo não está montado: {device}")),
+        _ => files.fail(i18n::with(
+            "device-not-mounted",
+            "device",
+            device.to_string(),
+        )),
     }
 }

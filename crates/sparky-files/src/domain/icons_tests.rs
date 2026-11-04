@@ -8,7 +8,7 @@ fn pastas_especiais_e_arquivos_sao_identificados_sem_abrir_o_conteudo() {
         IconKind::Folder
     );
     assert_eq!(
-        IconKind::for_entry(&entry("Fotos", Kind::Directory), Some("Imagens")),
+        IconKind::for_entry(&entry("Fotos", Kind::Directory), Some(IconKind::Pictures)),
         IconKind::Pictures
     );
     assert_eq!(
