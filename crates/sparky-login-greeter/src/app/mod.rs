@@ -1,7 +1,5 @@
-mod icons;
 mod keys;
 mod power;
-mod style;
 mod update;
 #[cfg(test)]
 mod update_tests;
@@ -21,12 +19,12 @@ use iced_layershell::settings::{LayerShellSettings, Settings, StartMode};
 use iced_layershell::to_layer_message;
 use sparky_theme::{Palette, Skin};
 
-use crate::adapters::backdrop::{self, Backdrop};
 use crate::domain::focus::Focus;
 use crate::domain::form::{Form, Refusal};
 use crate::domain::power::Power;
 use crate::ports::backend::Backend;
 use sparky_login_core::sessions::Sessions;
+use sparky_login_look::backdrop::{self, Backdrop};
 
 const NAMESPACE: &str = "sparky-login-greeter";
 const TICK: Duration = Duration::from_secs(1);
@@ -142,7 +140,7 @@ fn settings() -> Settings {
             ..LayerShellSettings::default()
         },
         antialiasing: true,
-        default_font: style::REGULAR,
+        default_font: sparky_login_look::style::REGULAR,
         ..Settings::default()
     }
 }

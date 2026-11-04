@@ -4,6 +4,7 @@ use smithay::wayland::compositor::CompositorState;
 use smithay::wayland::cursor_shape::CursorShapeManagerState;
 use smithay::wayland::dmabuf::DmabufState;
 use smithay::wayland::fractional_scale::FractionalScaleManagerState;
+use smithay::wayland::idle_inhibit::IdleInhibitManagerState;
 use smithay::wayland::output::OutputManagerState;
 use smithay::wayland::pointer_constraints::PointerConstraintsState;
 use smithay::wayland::relative_pointer::RelativePointerManagerState;
@@ -42,6 +43,7 @@ pub struct Protocols {
     pub fractional_scale: FractionalScaleManagerState,
     pub screencopy: ScreencopyState,
     pub session_lock: SessionLockManagerState,
+    pub idle_inhibit: IdleInhibitManagerState,
 }
 
 impl Protocols {
@@ -75,6 +77,7 @@ impl Protocols {
             fractional_scale: FractionalScaleManagerState::new::<Sparky>(display),
             screencopy: ScreencopyState::new::<Sparky>(display),
             session_lock: SessionLockManagerState::new::<Sparky, _>(display, |_| true),
+            idle_inhibit: IdleInhibitManagerState::new::<Sparky>(display),
         }
     }
 }

@@ -9,7 +9,7 @@ use crate::domain::environment::Account;
 use crate::ports::accounts::Accounts;
 use crate::ports::appearance::Appearance;
 use crate::ports::launcher::{Launcher, Process};
-use crate::ports::pam::{Pam, Transaction};
+use sparky_pam::{Pam, Transaction};
 
 pub type Log = Rc<RefCell<Vec<String>>>;
 
@@ -47,6 +47,11 @@ impl Transaction for FakeTransaction {
     fn authenticate(&mut self) -> Result<(), Refusal> {
         self.log.borrow_mut().push("authenticate".into());
         self.verdict.clone()
+    }
+
+    fn authorize(&mut self) -> Result<(), Refusal> {
+        self.log.borrow_mut().push("authorize".into());
+        Ok(())
     }
 
     fn set_tty(&mut self, tty: &str) -> Result<(), String> {

@@ -1,11 +1,11 @@
-use sparky_ipc::{Event, Reply, Request, WorkspaceInfo};
+use sparky_ipc::{Event, IdleHold, Reply, Request, WorkspaceInfo};
 use sparky_tiling::WorkspaceId;
 
 use crate::ipc::connection::write_reply;
 use crate::state::Sparky;
 
 impl Sparky {
-    pub fn answer(&mut self, request: Request) -> Reply {
+    pub fn answer(&mut self, request: Request, hold: &mut IdleHold) -> Reply {
         match request {
             Request::Workspaces => Reply::Workspaces {
                 workspaces: self.workspace_infos(),
@@ -28,6 +28,11 @@ impl Sparky {
                 }
             }
             Request::Session { action } => self.session_request(action),
+            Request::Idle { hold: wanted } => {
+                self.idle.hold(*hold, wanted);
+                *hold = wanted;
+                Reply::Done
+            }
             Request::ReloadConfig => match self.reload_config() {
                 Ok(()) => Reply::Done,
                 Err(error) => Reply::Error {
@@ -46,9 +51,14 @@ impl Sparky {
             return;
         }
         server.last = current;
-        let event = Reply::Event {
-            event: Event::WorkspacesChanged,
+        self.broadcast(Event::WorkspacesChanged);
+    }
+
+    pub fn broadcast(&mut self, event: Event) {
+        let Some(server) = self.ipc.as_mut() else {
+            return;
         };
+        let event = Reply::Event { event };
         server
             .subscribers
             .retain(|subscriber| write_reply(subscriber, &event));

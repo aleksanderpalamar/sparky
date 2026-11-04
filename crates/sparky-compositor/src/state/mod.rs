@@ -20,6 +20,7 @@ use crate::backend::Backend;
 use crate::bindings::Bindings;
 use crate::config::{self, keyboard};
 use crate::diagnostics::metrics::{Metrics, Phase};
+use crate::idle::Idle;
 use crate::ipc::server::IpcServer;
 use crate::lock::Lock;
 use crate::render::colors::BorderColors;
@@ -52,6 +53,7 @@ pub struct Sparky {
     pub tab_paint: TabPaint,
     pub lettering: Lettering,
     pub lock: Lock,
+    pub idle: Idle,
     pub wallpaper: Wallpaper,
     pub departure: Option<Farewell>,
     pub colors: BorderColors,
@@ -96,6 +98,7 @@ impl Sparky {
         let loop_handle = event_loop.handle();
         let socket_name = listener::listen(display, &loop_handle)?;
         let wallpaper = Wallpaper::new(&loop_handle);
+        let idle = Idle::new(&display_handle, loop_handle.clone());
         Ok(Self {
             image_capture: crate::image_capture::state::ImageCaptureState::default(),
             color_management: crate::color_management::state::ColorManagementState::default(),
@@ -117,6 +120,7 @@ impl Sparky {
             tab_paint: TabPaint::default(),
             lettering: Lettering::default(),
             lock: Lock::default(),
+            idle,
             wallpaper,
             departure: None,
             colors: BorderColors::from_palette(sparky_theme::current_palette()),

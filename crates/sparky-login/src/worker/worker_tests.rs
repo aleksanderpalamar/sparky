@@ -35,6 +35,7 @@ fn senha_certa_espera_a_ordem_e_abre_a_sessao_pelo_shell_de_login() {
         vec![
             "begin sparky-login palamar segredo",
             "authenticate",
+            "authorize",
             "tty /dev/tty1",
             "establish",
             "open",

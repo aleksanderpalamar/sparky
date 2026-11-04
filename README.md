@@ -28,7 +28,11 @@ Somente os temas vem do [Omarchy](https://github.com/basecamp/omarchy): como pal
 | `crates/sparky-keyring-prompt` | A janela que pede a senha do cofre (`sparky-keyring-prompt`) |
 | `crates/sparky-login` | O gerenciador de login (`sparky-login`): serviço do sistema que autentica pelo PAM, registra a sessão no logind e abre a sessão do usuário |
 | `crates/sparky-login-greeter` | A tela de login (`sparky-login-greeter`): relógio, usuário, senha, energia e escolha da sessão |
-| `crates/sparky-login-core` | Protocolo entre a tela e o serviço de login e a lista das sessões Wayland instaladas |
+| `crates/sparky-login-core` | Protocolo entre a tela e o serviço de login, a lista das sessões Wayland instaladas e a escolha do papel de parede do login |
+| `crates/sparky-login-look` | O visual comum à tela de login e à de bloqueio: relógio, campos, papel de parede desfocado, cores e ícones |
+| `crates/sparky-pam` | A autenticação pelo PAM, com a libpam carregada em tempo de execução, usada pelo login e pelo bloqueio |
+| `crates/sparky-lock` | A tela de bloqueio (`sparky-lock`): relógio, nome do usuário e senha, pelo protocolo ext-session-lock |
+| `crates/sparky-lockd` | O guarda do bloqueio (`sparky-lockd`): atende os pedidos de bloqueio do logind e bloqueia antes de suspender |
 | `crates/polkit-sparky` | Agente de autenticação do sistema, com janela nativa, temas e integração polkit/PAM |
 | `crates/sparky-theme` | Paleta de cores compartilhada pelos aplicativos, lida do `colors.toml` do tema |
 | `data/themes` | Temas no formato `colors.toml` |
@@ -51,7 +55,7 @@ O `sparky` é o próprio compositor Wayland; não depende de nenhum outro. Fala 
 
 Aplicativos X11 rodam pelo XWayland, que o sparky sobe sozinho e controla com o gerenciador de janelas X11 do Smithay: janelas X11 entram no mosaico como as Wayland, menus e dicas X11 (janelas sem gerência) ficam por cima de tudo, e a área de transferência e a seleção primária passam nos dois sentidos. Os programas abertos pelo sparky recebem `DISPLAY` e `WAYLAND_DISPLAY`.
 
-`SUPER + CTRL + L` bloqueia a sessão com o locker de `[apps]` (`swaylock` por padrão; `hyprlock` e outros que falem ext-session-lock também servem). Bloqueado, só a tela do locker aparece e recebe teclado e mouse, os atalhos param (menos `Ctrl+Alt+F1…F12`) e a captura de tela também só vê o locker. Se o locker morrer sem desbloquear, a sessão continua bloqueada com a tela vazia, e um locker aberto de novo retoma o bloqueio.
+`SUPER + CTRL + L` bloqueia a sessão com o locker de `[apps]` (o `sparky-lock` por padrão, descrito em [Tela de bloqueio](#tela-de-bloqueio); `swaylock`, `hyprlock` e outros que falem ext-session-lock também servem). Bloqueado, só a tela do locker aparece e recebe teclado e mouse, os atalhos param (menos `Ctrl+Alt+F1…F12`) e a captura de tela também só vê o locker. Se o locker morrer sem desbloquear, a sessão continua bloqueada com a tela vazia, e um locker aberto de novo retoma o bloqueio.
 
 Toda janela comum entra no mosaico. Flutuam as que têm janela-mãe (diálogos), as de tamanho fixo e as do painel de configurações e do capturador. A borda da janela em foco usa a cor de destaque do tema, e o foco do teclado acompanha o ponteiro.
 
@@ -109,7 +113,8 @@ Um `[[bind]]` com a mesma combinação de um atalho padrão substitui o padrão;
 O gerenciador de login (SDDM, GDM…) lista a sessão **Sparky** pelo `data/session/sparky.desktop`, instalado em `/usr/share/wayland-sessions`, que abre o `sparky` com `XDG_CURRENT_DESKTOP=sparky`. Ao subir direto no hardware, o sparky:
 
 - exporta `WAYLAND_DISPLAY`, `DISPLAY`, `XDG_CURRENT_DESKTOP`, `XDG_SESSION_TYPE` e `SPARKY_SOCKET` para o D-Bus e o systemd (`dbus-update-activation-environment --systemd`), para os portais e os serviços ativados acharem a sessão;
-- abre o chaveiro (`sparky-keyring`), o agente de autenticação (`polkit-sparky`), as notificações nativas (`sparky-notifications`) e a barra (`sparky-bar`);
+- reinicia o `sparky-session.target` do usuário, que prende o `graphical-session.target`: os portais (`xdg-desktop-portal`, `-wlr`, `-gtk`) e os serviços da sessão gráfica que sobraram de uma sessão anterior param e voltam presos ao compositor atual, mesmo com o `systemd --user` vivo entre um login e outro (linger);
+- abre o chaveiro (`sparky-keyring`), o agente de autenticação (`polkit-sparky`), o guarda do bloqueio (`sparky-lockd`), as notificações nativas (`sparky-notifications`) e a barra (`sparky-bar`);
 - abre o autostart XDG (`~/.config/autostart` e `/etc/xdg/autostart`), respeitando `Hidden`, `OnlyShowIn`, `NotShowIn`, `TryExec` e `X-GNOME-Autostart-enabled`; um arquivo do usuário substitui o do sistema com o mesmo nome.
 
 Aninhado em outra sessão, nada disso acontece. Os portais usam `data/portals/sparky-portals.conf` (GTK, wlr para a tela e `sparky-keyring` para senhas), instalado em `/usr/share/xdg-desktop-portal`.
@@ -141,7 +146,7 @@ O sparky abre um socket em `$XDG_RUNTIME_DIR/sparky-<WAYLAND_DISPLAY>.sock` e ex
 ```bash
 sparky-msg workspaces          # lista as áreas de trabalho
 sparky-msg focus-workspace 3   # vai para a área 3
-sparky-msg subscribe           # avisa a cada mudança nas áreas
+sparky-msg subscribe           # avisa a cada mudança nas áreas e no bloqueio
 sparky-msg reload              # relê o sparky.toml
 sparky-msg outputs             # lista os monitores e qual está em foco
 sparky-msg capture output tela.png                 # o monitor em foco
@@ -149,6 +154,7 @@ sparky-msg capture window janela.png               # a janela em foco, sem a bor
 sparky-msg capture region 0 0 800 600 regiao.png   # região relativa ao monitor em foco
 sparky-msg session lock        # o mesmo que as opções do menu do sistema:
 sparky-msg session suspend     #   lock, suspend, logout, reboot e poweroff
+sparky-msg session unlock      # pede ao locker que desbloqueie (SIGUSR1)
 ```
 
 ## Captura de tela
@@ -273,6 +279,24 @@ Para voltar, entre num terminal com `CTRL + ALT + F2`, faça login e rode `sudo 
 
 A prévia abre em qualquer sessão Wayland com layer-shell: `sparky-login-greeter --preview [--wallpaper <imagem>]`. Sem `--wallpaper`, vale o primeiro papel de parede do tema padrão. Na prévia nenhuma senha entra, os botões de energia não fazem nada e `Esc` fecha; na tela de verdade, `Esc` não fecha nada.
 
+## Tela de bloqueio
+
+O `sparky-lock` é a tela de bloqueio padrão do sparky (`locker` em `[apps]`), aberta pelo `SUPER + CTRL + L` e pelo Bloquear do menu do sistema. Ela tem o mesmo visual da tela de login: relógio, data, a faixa desfocada à esquerda, o nome do usuário fixo e o campo de senha, sem seletor de sessão nem botões de energia. As cores vêm do tema do sparky e o papel de parede é o da tela de login (`[login] wallpaper`; sem ele, o da área de trabalho).
+
+- A mesma tela aparece em cada monitor, e a senha digitada em qualquer um deles vale.
+- `Enter` ou **Unlock** conferem a senha pelo serviço PAM `sparky-lock` (no Arch e no Fedora, `auth include login`; no Debian, `common-auth`). Senha errada apaga a senha e mostra `Senha incorreta!`; as mensagens do próprio PAM, como a de conta bloqueada por tentativas demais, aparecem no lugar do aviso.
+- `Esc` apaga a senha digitada; o olho mostra e esconde a senha.
+- O bloqueio usa o protocolo ext-session-lock: o compositor só mostra a tela de bloqueio, os atalhos param e as capturas de tela são recusadas. Se o `sparky-lock` cair, a sessão continua bloqueada; para destrancar, entre num terminal (`Ctrl+Alt+F2`) e rode `WAYLAND_DISPLAY=wayland-1 sparky-lock` (o número do `WAYLAND_DISPLAY` é o da sessão), depois volte com `Ctrl+Alt+F1`.
+
+O `sparky-lockd` sobe com a sessão e liga o bloqueio ao logind:
+
+- `loginctl lock-session` (e quem pede o bloqueio ao logind) abre o locker; `loginctl unlock-session` pede ao locker que desbloqueie, mandando `SIGUSR1` para ele (o `sparky-lock`, o `swaylock` e o `hyprlock` desbloqueiam com esse sinal).
+- Antes de suspender, por qualquer caminho (menu, `systemctl suspend`, tampa do notebook), ele segura a suspensão com um inibidor de atraso do logind até a tela estar bloqueada; se o bloqueio não vier em 5 segundos, a suspensão segue assim mesmo.
+- A dica `LockedHint` da sessão no logind acompanha o bloqueio, para outros programas saberem que a tela está bloqueada.
+- O compositor avisa no IPC quando bloqueia e desbloqueia (`sparky-msg subscribe` mostra `locked` e `unlocked`) e aceita `sparky-msg session unlock`.
+
+A sessão também bloqueia sozinha depois de um tempo sem teclado nem mouse: `idle_minutes` em `[lock]` (10 minutos por padrão; `0` desliga), também ajustável na seção Energia do sparky-settings (Nunca, 1, 2, 5, 10, 15 ou 30 minutos, ou 1 hora). Enquanto um programa pede para a tela não apagar, como um navegador ou player tocando vídeo, o tempo parado não bloqueia: vale o protocolo idle-inhibit e também o serviço `org.freedesktop.ScreenSaver` (`Inhibit`/`UnInhibit`) que o `sparky-lockd` oferece na sessão, usado pelo Firefox, pelo Chrome, pelo VLC e pelo portal `xdg-desktop-portal`; um pedido some sozinho quando o programa que o fez sai. O compositor também oferece o ext-idle-notify, para programas como o `swayidle` saberem quando a sessão está parada.
+
 ## Arquivos
 
 O `sparky-files` abre pelo `SUPER + SHIFT + F` (ou `sparky-files <pasta>`). Abre em grade, com ícones e nomes de pastas e arquivos, e permite alternar para a lista com tamanho e data pelos botões Grade/Lista ou por `CTRL + 1`/`CTRL + 2`. A grade se adapta à largura da janela; as pastas vêm primeiro, e a visualização se atualiza quando a pasta muda. Trocar a visualização preserva filtro, seleção e itens marcados.
@@ -374,7 +398,7 @@ O `sparky-settings` abre pelo `SUPER + ALT + ESPAÇO`. As mudanças de configura
 | Inicialização | Comandos rodados quando a sessão começa |
 | Atalhos | Lista dos atalhos em uso, com o que cada um faz |
 | Monitores | Desenho da posição dos monitores e, para cada um, resolução, escala, giro, taxa variável e se a tela fica ligada, gravados no `[[output]]` e HDR, que só aparece nas telas que o suportam |
-| Energia | Perfil de energia (`powerprofilesctl`), brilho da tela (`brightnessctl`) e bateria (`upower`) |
+| Energia | Perfil de energia (`powerprofilesctl`), brilho da tela (`brightnessctl`), bateria (`upower`) e o tempo parado até bloquear a tela (`[lock] idle_minutes`) |
 | Data e hora | Fuso horário, hora local, sincronização pela rede e relógio do hardware (`timedatectl`) |
 | Região e idioma | Idioma, teclado do console e layout padrão do sistema (`localectl`) |
 | Usuários | Consulta de contas, identificadores, grupos e sessões (`getent` e `loginctl`) |

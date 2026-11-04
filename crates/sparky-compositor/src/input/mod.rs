@@ -12,6 +12,7 @@ use crate::state::Sparky;
 
 impl Sparky {
     pub fn process_input_event<I: InputBackend>(&mut self, event: InputEvent<I>) {
+        self.idle.touch(&self.seat);
         match event {
             InputEvent::Keyboard { event } => self.on_key::<I>(event),
             InputEvent::PointerMotion { event } => self.on_relative_motion::<I>(event),

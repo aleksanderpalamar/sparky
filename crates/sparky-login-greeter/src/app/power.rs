@@ -1,8 +1,10 @@
 use iced::Element;
 use iced::widget::{button, container, mouse_area, row, svg};
 
-use crate::app::widgets::{Look, underlined};
-use crate::app::{Message, icons, style};
+use sparky_login_look::widgets::{Look, underlined};
+use sparky_login_look::{icons, style};
+
+use crate::app::Message;
 use crate::domain::focus::Focus;
 use crate::domain::power::{self, Power};
 

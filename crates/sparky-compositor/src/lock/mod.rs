@@ -1,7 +1,9 @@
 pub mod rules;
+pub mod signal;
 
 use std::collections::HashMap;
 
+use smithay::reexports::wayland_protocols::ext::session_lock::v1::server::ext_session_lock_v1::ExtSessionLockV1;
 use smithay::reexports::wayland_server::Resource;
 use smithay::wayland::session_lock::LockSurface;
 
@@ -11,6 +13,7 @@ use crate::lock::rules::Phase;
 pub struct Lock {
     phase: Phase,
     surfaces: HashMap<String, LockSurface>,
+    owner: Option<ExtSessionLockV1>,
 }
 
 impl Lock {
@@ -30,6 +33,15 @@ impl Lock {
     pub fn release(&mut self) {
         self.phase = Phase::Open;
         self.surfaces.clear();
+        self.owner = None;
+    }
+
+    pub fn claim(&mut self, owner: ExtSessionLockV1) {
+        self.owner = Some(owner);
+    }
+
+    pub fn owner(&self) -> Option<&ExtSessionLockV1> {
+        self.owner.as_ref().filter(|owner| owner.is_alive())
     }
 
     pub fn attach(&mut self, output: String, surface: LockSurface) {
@@ -37,10 +49,15 @@ impl Lock {
     }
 
     pub fn surface_on(&self, output: &str) -> Option<&LockSurface> {
-        self.surfaces.get(output).filter(|surface| surface.wl_surface().is_alive())
+        self.surfaces
+            .get(output)
+            .filter(|surface| surface.wl_surface().is_alive())
     }
 
     pub fn live(&self) -> usize {
-        self.surfaces.values().filter(|surface| surface.wl_surface().is_alive()).count()
+        self.surfaces
+            .values()
+            .filter(|surface| surface.wl_surface().is_alive())
+            .count()
     }
 }

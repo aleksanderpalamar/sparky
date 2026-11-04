@@ -150,8 +150,8 @@ fn o_lancador_padrao_e_o_do_sparky() {
 }
 
 #[test]
-fn o_locker_padrao_e_o_swaylock_e_pode_trocar() {
-    assert_eq!(Config::default().apps.locker, "swaylock");
+fn o_locker_padrao_e_o_sparky_lock_e_pode_trocar() {
+    assert_eq!(Config::default().apps.locker, "sparky-lock");
     let Ok(config) = parse("[apps]\nlocker = \"hyprlock\"\n") else {
         panic!("deveria ler o locker")
     };

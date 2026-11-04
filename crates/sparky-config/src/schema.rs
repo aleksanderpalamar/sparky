@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use sparky_tiling::{Gaps, Style};
 
 use crate::action::Bind;
+use crate::lock::Lock;
 use crate::output::OutputRule;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -11,6 +12,7 @@ pub struct Config {
     pub input: Input,
     pub apps: Apps,
     pub login: Login,
+    pub lock: Lock,
     pub autostart: Vec<String>,
     pub bind: Vec<Bind>,
     pub output: Vec<OutputRule>,
@@ -119,7 +121,7 @@ impl Default for Apps {
             files: "sparky-files".to_owned(),
             settings: "sparky-settings".to_owned(),
             screenshot: "sparky-shot".to_owned(),
-            locker: "swaylock".to_owned(),
+            locker: "sparky-lock".to_owned(),
             system_menu: "sparky-launcher --system".to_owned(),
         }
     }

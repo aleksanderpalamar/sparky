@@ -26,6 +26,7 @@ impl Farewell {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Plan {
     Lock,
+    Unlock,
     Suspend,
     Leave(Farewell),
 }
@@ -46,6 +47,7 @@ pub enum Sleep {
 pub fn plan(action: SessionAction) -> Plan {
     match action {
         SessionAction::Lock => Plan::Lock,
+        SessionAction::Unlock => Plan::Unlock,
         SessionAction::Suspend => Plan::Suspend,
         SessionAction::Logout => Plan::Leave(Farewell::Logout),
         SessionAction::Reboot => Plan::Leave(Farewell::Reboot),
@@ -54,7 +56,11 @@ pub fn plan(action: SessionAction) -> Plan {
 }
 
 pub fn allowed(plan: Plan, real_session: bool) -> bool {
-    real_session || matches!(plan, Plan::Lock | Plan::Leave(Farewell::Logout))
+    real_session
+        || matches!(
+            plan,
+            Plan::Lock | Plan::Unlock | Plan::Leave(Farewell::Logout)
+        )
 }
 
 pub fn closing(windows: usize, elapsed: Duration) -> Closing {

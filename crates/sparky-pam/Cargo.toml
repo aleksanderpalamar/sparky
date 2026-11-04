@@ -1,0 +1,16 @@
+[package]
+name = "sparky-pam"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+libc = "0.2"
+libloading = "0.8"
+sparky-login-core.workspace = true
+zeroize = { version = "1", features = ["std"] }
+
+[dev-dependencies]
+nix = { version = "0.31", features = ["user"] }
+tempfile = "3"

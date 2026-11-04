@@ -17,5 +17,8 @@ launcher = "sparky-launcher"
 files = "sparky-files"
 settings = "sparky-settings"
 screenshot = "sparky-shot"
-locker = "swaylock"
+locker = "sparky-lock"
 system_menu = "sparky-launcher --system"
+
+[lock]
+idle_minutes = 10

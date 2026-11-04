@@ -6,6 +6,7 @@ pub mod keys;
 pub mod message;
 mod network;
 pub mod pickers;
+mod power;
 mod screens;
 pub mod state;
 pub mod system;
@@ -26,6 +27,8 @@ mod media_tests;
 mod network_tests;
 #[cfg(test)]
 mod network_view_tests;
+#[cfg(test)]
+mod power_tests;
 #[cfg(test)]
 mod region_tests;
 #[cfg(test)]

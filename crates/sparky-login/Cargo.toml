@@ -15,12 +15,12 @@ path = "src/lib.rs"
 
 [dependencies]
 libc = "0.2"
-libloading = "0.8"
 nix = { version = "0.31", features = ["fs", "process", "signal", "user"] }
 serde.workspace = true
 serde_json.workspace = true
 sparky-config.workspace = true
 sparky-login-core.workspace = true
+sparky-pam.workspace = true
 sparky-theme.workspace = true
 sparky-xdg.workspace = true
 tokio = { version = "1", features = ["io-util", "macros", "net", "process", "rt", "signal", "sync", "time"] }

@@ -19,7 +19,7 @@ use crate::domain::job::{Job, LoginJob, Order, Report};
 use crate::ports::accounts::Accounts;
 use crate::ports::appearance::Appearance;
 use crate::ports::launcher::Launcher;
-use crate::ports::pam::{Pam, Transaction};
+use sparky_pam::{Pam, Transaction};
 
 pub const LOGIN_SERVICE: &str = "sparky-login";
 pub const GREETER_SERVICE: &str = "sparky-login-greeter";
@@ -84,7 +84,10 @@ impl Worker<'_> {
         let username = username.as_str();
         let session = &session;
         let mut transaction = self.pam.begin(LOGIN_SERVICE, username, Some(password))?;
-        if let Err(refusal) = transaction.authenticate() {
+        if let Err(refusal) = transaction
+            .authenticate()
+            .and_then(|()| transaction.authorize())
+        {
             return report(output, Report::Refused { refusal });
         }
         let Some(account) = self.accounts.find(username) else {

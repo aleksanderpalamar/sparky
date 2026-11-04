@@ -4,12 +4,14 @@ use iced::{Point, Settings};
 use iced_test::selector::Target;
 use iced_test::{Simulator, selector};
 
+use sparky_login_core::sessions::{Session, Sessions};
+use sparky_login_look::layout::{Layout, Part, bands};
+use sparky_login_look::style;
+
 use crate::adapters::preview::Preview;
 use crate::app::update::{PASSWORD, USERNAME};
-use crate::app::{Greeter, Message, Mode, Start, boot, style, view};
-use crate::domain::layout::{Layout, Part, bands};
+use crate::app::{Greeter, Message, Mode, Start, boot, view};
 use crate::domain::power::Power;
-use sparky_login_core::sessions::{Session, Sessions};
 
 const LARGURA: f32 = 1920.0;
 const ALTURA: f32 = 1080.0;

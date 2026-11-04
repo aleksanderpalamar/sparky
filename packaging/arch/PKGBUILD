@@ -37,14 +37,13 @@ depends=(
   'zsh-syntax-highlighting'
 )
 makedepends=('cargo' 'git')
-backup=('etc/xdg/xdg-desktop-portal-wlr/sparky' 'etc/pam.d/sparky-login' 'etc/pam.d/sparky-login-greeter')
+backup=('etc/xdg/xdg-desktop-portal-wlr/sparky' 'etc/pam.d/sparky-login' 'etc/pam.d/sparky-login-greeter' 'etc/pam.d/sparky-lock')
 optdepends=(
   'pipewire-pulse: controle de som dos painéis da bandeja via PipeWire'
   'networkmanager: controle de rede no painel da bandeja'
   'bluez: controle e pareamento Bluetooth no painel da bandeja'
   'udisks2: montar e desmontar volumes no painel e no gerenciador de arquivos'
   'gvfs-mtp: acessar smartphones Android por MTP no gerenciador de arquivos'
-  'swaylock: tela de bloqueio padrão do SUPER + CTRL + L'
   'foot: terminal'
   'kitty: terminal'
   'vulkan-icd-loader: renderização por Vulkan nos aplicativos'
@@ -83,15 +82,17 @@ check() {
 package_sparky() {
   cd "$pkgbase"
   local binary
-  for binary in sparky sparky-bar sparky-msg sparky-shot sparky-files sparky-image sparky-monitor sparky-settings sparky-launcher sparky-keyring sparky-keyring-prompt sparky-login sparky-login-greeter sparky-terminal sparky-notifications polkit-sparky; do
+  for binary in sparky sparky-bar sparky-msg sparky-shot sparky-files sparky-image sparky-monitor sparky-settings sparky-launcher sparky-keyring sparky-keyring-prompt sparky-lock sparky-lockd sparky-login sparky-login-greeter sparky-terminal sparky-notifications polkit-sparky; do
     install -Dm755 "target/release/$binary" -t "$pkgdir/usr/bin"
   done
   install -Dm644 data/session/sparky.desktop -t "$pkgdir/usr/share/wayland-sessions"
+  install -Dm644 data/session/sparky-session.target -t "$pkgdir/usr/lib/systemd/user"
   install -Dm644 data/login/sparky-login.service "$pkgdir/usr/lib/systemd/system/sparky-login.service"
   install -Dm644 data/login/sparky-login.sysusers "$pkgdir/usr/lib/sysusers.d/sparky-login.conf"
   install -Dm644 data/login/sparky-login.tmpfiles "$pkgdir/usr/lib/tmpfiles.d/sparky-login.conf"
   install -Dm644 data/login/sparky-login-greeter.pam "$pkgdir/etc/pam.d/sparky-login-greeter"
   install -Dm644 packaging/pam/arch/sparky-login "$pkgdir/etc/pam.d/sparky-login"
+  install -Dm644 packaging/pam/arch/sparky-lock "$pkgdir/etc/pam.d/sparky-lock"
   install -Dm644 data/portals/sparky-portals.conf -t "$pkgdir/usr/share/xdg-desktop-portal"
   install -Dm644 data/portals/sparky-wlr.conf "$pkgdir/etc/xdg/xdg-desktop-portal-wlr/sparky"
   install -Dm644 data/portals/sparky-keyring.portal -t "$pkgdir/usr/share/xdg-desktop-portal/portals"

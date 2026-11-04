@@ -2,15 +2,22 @@ use std::time::Duration;
 
 use sparky_ipc::SessionAction;
 
-use crate::session::departure::{CLOSE_GRACE, Closing, Farewell, LOCK_GRACE, Plan, Sleep, allowed, closing, plan, sleep, stuck_message};
+use crate::session::departure::{
+    CLOSE_GRACE, Closing, Farewell, LOCK_GRACE, Plan, Sleep, allowed, closing, plan, sleep,
+    stuck_message,
+};
 
 #[test]
 fn cada_acao_do_menu_vira_um_plano() {
     assert_eq!(plan(SessionAction::Lock), Plan::Lock);
+    assert_eq!(plan(SessionAction::Unlock), Plan::Unlock);
     assert_eq!(plan(SessionAction::Suspend), Plan::Suspend);
     assert_eq!(plan(SessionAction::Logout), Plan::Leave(Farewell::Logout));
     assert_eq!(plan(SessionAction::Reboot), Plan::Leave(Farewell::Reboot));
-    assert_eq!(plan(SessionAction::Poweroff), Plan::Leave(Farewell::Poweroff));
+    assert_eq!(
+        plan(SessionAction::Poweroff),
+        Plan::Leave(Farewell::Poweroff)
+    );
 }
 
 #[test]
@@ -23,6 +30,7 @@ fn reiniciar_e_desligar_vao_pelo_systemctl_e_sair_so_encerra_o_sparky() {
 #[test]
 fn aninhado_so_bloqueia_e_sai_para_nunca_desligar_a_maquina_de_verdade() {
     assert!(allowed(Plan::Lock, false));
+    assert!(allowed(Plan::Unlock, false));
     assert!(allowed(Plan::Leave(Farewell::Logout), false));
     assert!(!allowed(Plan::Suspend, false));
     assert!(!allowed(Plan::Leave(Farewell::Reboot), false));

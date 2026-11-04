@@ -92,6 +92,7 @@ fn group(id: RowId) -> &'static str {
         RowId::PowerProfile => "Perfil de energia",
         RowId::Brightness => "Tela",
         RowId::Battery => "Bateria",
+        RowId::IdleLock => "Bloqueio",
         RowId::Timezone => "Fuso horário",
         RowId::LocalTime => "Relógio",
         RowId::NetworkTime | RowId::LocalClock => "Ajustes",
