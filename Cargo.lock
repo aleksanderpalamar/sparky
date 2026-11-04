@@ -4849,11 +4849,13 @@ name = "sparky-bar"
 version = "0.29.0"
 dependencies = [
  "chrono",
+ "fluent-bundle",
  "iced",
  "iced_layershell",
  "iced_runtime",
  "libpulse-binding",
  "socket2",
+ "sparky-i18n",
  "sparky-ipc",
  "sparky-notifications",
  "sparky-theme",
@@ -4987,6 +4989,7 @@ version = "0.29.0"
 dependencies = [
  "iced",
  "iced_layershell",
+ "sparky-i18n",
  "sparky-ipc",
  "sparky-theme",
  "sparky-ui",
@@ -5140,6 +5143,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sparky-config",
+ "sparky-i18n",
  "sparky-ipc",
  "sparky-storage",
  "sparky-theme",

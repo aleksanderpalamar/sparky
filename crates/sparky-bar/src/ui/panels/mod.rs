@@ -14,6 +14,7 @@ use sparky_theme::Skin;
 
 use crate::app::{message::Message, panel_state::Panels};
 use crate::domain::panel::PanelKind;
+use crate::i18n;
 
 pub fn view<'a>(
     skin: &Skin,
@@ -34,7 +35,7 @@ pub fn view<'a>(
     };
     let mut content = if kind == PanelKind::Clock {
         column![
-            text("Calendário e notificações")
+            text(i18n::text("calendar-and-notifications"))
                 .size(16)
                 .color(skin.foreground),
             rule::horizontal(1),
@@ -45,7 +46,11 @@ pub fn view<'a>(
         column![body].spacing(10)
     };
     if panels.pending.contains_key(&kind) {
-        content = content.push(text("Operação em andamento…").size(12).color(skin.accent));
+        content = content.push(
+            text(i18n::text("operation-pending"))
+                .size(12)
+                .color(skin.accent),
+        );
     }
     if let Some(error) = panels.errors.get(&kind) {
         content = content.push(text(error).size(12).color(skin.urgent));
@@ -53,7 +58,7 @@ pub fn view<'a>(
     let skin = *skin;
     if kind == PanelKind::Clock {
         content = content.push(
-            text("Esc fecha · clique no relógio alterna")
+            text(i18n::text("clock-hint"))
                 .size(11)
                 .color(skin.dark_foreground),
         );

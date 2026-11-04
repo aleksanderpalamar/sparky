@@ -1,12 +1,13 @@
 use std::process::ExitCode;
 
 use sparky_launcher::domain::mode::Mode;
+use sparky_launcher::i18n;
 
 const USAGE: u8 = 2;
 
 fn main() -> ExitCode {
     let Some(mode) = Mode::from_args(std::env::args().skip(1)) else {
-        eprintln!("uso: sparky-launcher [--system]");
+        eprintln!("{}", i18n::text("usage"));
         return ExitCode::from(USAGE);
     };
     match sparky_launcher::app::run(mode) {

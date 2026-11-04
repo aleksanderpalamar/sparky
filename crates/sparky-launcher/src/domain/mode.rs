@@ -9,17 +9,22 @@ pub enum Mode {
 impl Mode {
     pub fn from_args(args: impl IntoIterator<Item = String>) -> Option<Self> {
         let args: Vec<String> = args.into_iter().collect();
-        match args.iter().map(String::as_str).collect::<Vec<_>>().as_slice() {
+        match args
+            .iter()
+            .map(String::as_str)
+            .collect::<Vec<_>>()
+            .as_slice()
+        {
             [] => Some(Mode::Apps),
             ["--system"] => Some(Mode::System),
             _ => None,
         }
     }
 
-    pub fn placeholder(self) -> &'static str {
+    pub fn placeholder(self) -> String {
         match self {
-            Mode::Apps => "Buscar aplicativo",
-            Mode::System => "Sistema",
+            Mode::Apps => crate::i18n::text("search-app"),
+            Mode::System => crate::i18n::text("system"),
         }
     }
 

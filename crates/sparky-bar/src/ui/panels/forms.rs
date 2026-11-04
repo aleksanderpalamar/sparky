@@ -1,4 +1,5 @@
 use super::action;
+use crate::i18n;
 use crate::{
     app::{
         message::Message,
@@ -10,6 +11,7 @@ use crate::{
         secret::Secret,
     },
 };
+use fluent_bundle::FluentArgs;
 use iced::{
     Element,
     widget::{checkbox, column, row, text, text_input},
@@ -18,23 +20,23 @@ use sparky_theme::Skin;
 
 pub fn wifi<'a>(skin: &Skin, wifi: &'a WifiPassword) -> Element<'a, Message> {
     column![
-        text(format!("Conectar a {}", wifi.network.label()))
+        text(single("connect-to", "network", wifi.network.label()))
             .size(13)
             .color(skin.accent),
-        text_input("Senha Wi-Fi", wifi.password.expose())
+        text_input(&i18n::text("wifi-password"), wifi.password.expose())
             .secure(true)
             .on_input(|value| Message::WifiPassword(Secret::new(value)))
             .on_submit(Message::WifiConnect)
             .style(sparky_ui::style::input),
         checkbox(wifi.remember)
-            .label("Lembrar esta rede")
+            .label(i18n::text("remember-network"))
             .on_toggle(Message::WifiRemember),
         row![
-            action(skin, "Voltar", Message::WifiCancel),
-            action(skin, "Conectar", Message::WifiConnect)
+            action(skin, i18n::text("back"), Message::WifiCancel),
+            action(skin, i18n::text("connect"), Message::WifiConnect)
         ]
         .spacing(8),
-        text("A senha salva é gerenciada pelo NetworkManager.")
+        text(i18n::text("password-managed"))
             .size(11)
             .color(skin.dark_foreground),
     ]
@@ -47,33 +49,37 @@ pub fn prompt<'a>(skin: &Skin, panels: &'a Panels) -> Option<Element<'a, Message
     let mut body = column![].spacing(12);
     match &prompt.kind {
         PromptKind::Wifi { ssid } => {
-            body = body.push(text(format!("Senha de {ssid}")).size(13).color(skin.accent));
-            body = body.push(input(panels, "Senha Wi-Fi"));
+            body = body.push(
+                text(single("password-for", "network", ssid.clone()))
+                    .size(13)
+                    .color(skin.accent),
+            );
+            body = body.push(input(panels, i18n::text("wifi-password")));
             body = body.push(answers(skin, Answer::Secret(panels.prompt_input.clone())));
         }
         PromptKind::Pin { device, numeric } => {
             let label = if *numeric {
-                "Código de até seis algarismos"
+                "numeric-code-hint"
             } else {
-                "PIN do dispositivo (1 a 16 caracteres)"
+                "pin-hint"
             };
             body = body.push(
-                text(format!("Parear com {device}"))
+                text(single("pair-with", "device", device.clone()))
                     .size(13)
                     .color(skin.accent),
             );
-            body = body.push(input(panels, label));
+            body = body.push(input(panels, i18n::text(label)));
             body = body.push(answers(skin, Answer::Secret(panels.prompt_input.clone())));
         }
         PromptKind::Confirm { device, code } => {
             body = body.push(
-                text(format!("Autorizar {device}?"))
+                text(single("authorize-device", "device", device.clone()))
                     .size(13)
                     .color(skin.accent),
             );
             if let Some(code) = code {
                 body = body.push(
-                    text(format!("Confirme o código {code:06} no dispositivo"))
+                    text(single("confirm-code", "code", format!("{code:06}")))
                         .size(14)
                         .color(skin.foreground),
                 );
@@ -85,21 +91,15 @@ pub fn prompt<'a>(skin: &Skin, panels: &'a Panels) -> Option<Element<'a, Message
             code,
             entered,
         } => {
+            body = body.push(text(display_code(code, device)).size(14).color(skin.accent));
             body = body.push(
-                text(format!("Digite {code} em {device}"))
-                    .size(14)
-                    .color(skin.accent),
-            );
-            body = body.push(
-                text(format!(
-                    "Confirme no dispositivo · {entered} teclas digitadas"
-                ))
-                .size(12)
-                .color(skin.foreground),
+                text(single("keys-entered", "count", entered.to_string()))
+                    .size(12)
+                    .color(skin.foreground),
             );
             body = body.push(action(
                 skin,
-                "Cancelar pareamento",
+                i18n::text("cancel-pairing"),
                 Message::BluetoothRequest(BluetoothRequest::Cancel),
             ));
         }
@@ -107,8 +107,8 @@ pub fn prompt<'a>(skin: &Skin, panels: &'a Panels) -> Option<Element<'a, Message
     Some(body.into())
 }
 
-fn input<'a>(panels: &'a Panels, label: &'static str) -> Element<'a, Message> {
-    text_input(label, panels.prompt_input.expose())
+fn input<'a>(panels: &'a Panels, label: String) -> Element<'a, Message> {
+    text_input(&label, panels.prompt_input.expose())
         .secure(true)
         .on_input(|value| Message::PromptInput(Secret::new(value)))
         .on_submit(Message::PromptAnswer(Answer::Secret(
@@ -120,9 +120,26 @@ fn input<'a>(panels: &'a Panels, label: &'static str) -> Element<'a, Message> {
 
 fn answers<'a>(skin: &Skin, answer: Answer) -> Element<'a, Message> {
     row![
-        action(skin, "Cancelar", Message::PromptAnswer(Answer::Reject)),
-        action(skin, "Confirmar", Message::PromptAnswer(answer))
+        action(
+            skin,
+            i18n::text("cancel"),
+            Message::PromptAnswer(Answer::Reject)
+        ),
+        action(skin, i18n::text("confirm"), Message::PromptAnswer(answer))
     ]
     .spacing(8)
     .into()
+}
+
+fn single(key: &str, name: &str, value: String) -> String {
+    let mut args = FluentArgs::new();
+    args.set(name, value);
+    i18n::message(key, Some(&args))
+}
+
+fn display_code(code: &str, device: &str) -> String {
+    let mut args = FluentArgs::new();
+    args.set("code", code.to_owned());
+    args.set("device", device.to_owned());
+    i18n::message("display-code", Some(&args))
 }

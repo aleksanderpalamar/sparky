@@ -35,43 +35,30 @@ impl Section {
         Section::About,
     ];
 
-    pub fn label(self) -> &'static str {
-        match self {
-            Section::Appearance => "Aparência",
-            Section::Keyboard => "Teclado",
-            Section::Apps => "Aplicativos",
-            Section::Autostart => "Inicialização",
-            Section::Shortcuts => "Atalhos",
-            Section::Monitors => "Monitores",
-            Section::Power => "Energia",
-            Section::DateTime => "Data e hora",
-            Section::Region => "Região e idioma",
-            Section::Users => "Usuários",
-            Section::Media => "Mídia",
-            Section::Themes => "Temas",
-            Section::Network => "Rede",
-            Section::About => "Sobre",
-        }
+    pub fn label(self) -> String {
+        crate::i18n::text(&format!("section-{}-label", self.key()))
     }
 
-    pub fn summary(self) -> &'static str {
+    pub fn summary(self) -> String {
+        crate::i18n::text(&format!("section-{}-summary", self.key()))
+    }
+
+    fn key(self) -> &'static str {
         match self {
-            Section::Appearance => "Folgas, borda e tamanho das janelas flutuantes",
-            Section::Keyboard => "Layout e repetição das teclas",
-            Section::Apps => "Programas que os atalhos do sparky abrem",
-            Section::Autostart => "Comandos rodados quando a sessão começa",
-            Section::Shortcuts => "Atalhos em uso: os padrões e os do sparky.toml",
-            Section::Monitors => "Monitores que o sparky está usando",
-            Section::Power => {
-                "Perfil de energia, brilho da tela, bateria e bloqueio por inatividade"
-            }
-            Section::DateTime => "Fuso horário, sincronização pela rede e relógio do hardware",
-            Section::Region => "Idioma e teclados padrão do sistema",
-            Section::Users => "Contas, grupos e sessões abertas",
-            Section::Media => "Montagem e desmontagem de volumes externos",
-            Section::Themes => "Paletas nativas de cores do Sparky",
-            Section::Network => "Conexões e configuração IPv4",
-            Section::About => "O sistema e o sparky",
+            Section::Appearance => "appearance",
+            Section::Keyboard => "keyboard",
+            Section::Apps => "apps",
+            Section::Autostart => "autostart",
+            Section::Shortcuts => "shortcuts",
+            Section::Monitors => "monitors",
+            Section::Power => "power",
+            Section::DateTime => "date-time",
+            Section::Region => "region",
+            Section::Users => "users",
+            Section::Media => "media",
+            Section::Themes => "themes",
+            Section::Network => "network",
+            Section::About => "about",
         }
     }
 

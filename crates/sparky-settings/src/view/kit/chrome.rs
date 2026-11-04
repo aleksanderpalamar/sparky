@@ -6,7 +6,6 @@ use super::look::{border, surface};
 use super::tokens::{alpha, size, space};
 use crate::app::message::Message;
 
-pub const TITLE: &str = "Configurações";
 const COG: char = '\u{f08bb}';
 const CLOSE: char = '\u{f0156}';
 pub const FOOTER_HEIGHT: f32 = 24.0;
@@ -16,7 +15,7 @@ pub fn header<'a>(skin: Skin) -> Element<'a, Message> {
         text(COG.to_string())
             .size(size::ICON_LARGE)
             .color(skin.accent),
-        text(TITLE)
+        text(crate::i18n::text("title"))
             .size(size::HEADING)
             .color(skin.bright_foreground),
         Space::new().width(Length::Fill),

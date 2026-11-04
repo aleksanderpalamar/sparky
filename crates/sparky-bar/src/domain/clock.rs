@@ -1,21 +1,28 @@
 use chrono::{Datelike, NaiveDateTime, Timelike};
+use fluent_bundle::FluentArgs;
 
 const WEEKDAYS: [&str; 7] = [
-    "segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo",
+    "weekday-monday",
+    "weekday-tuesday",
+    "weekday-wednesday",
+    "weekday-thursday",
+    "weekday-friday",
+    "weekday-saturday",
+    "weekday-sunday",
 ];
-pub(super) const MONTHS: [&str; 12] = [
-    "janeiro",
-    "fevereiro",
-    "março",
-    "abril",
-    "maio",
-    "junho",
-    "julho",
-    "agosto",
-    "setembro",
-    "outubro",
-    "novembro",
-    "dezembro",
+const MONTHS: [&str; 12] = [
+    "month-january",
+    "month-february",
+    "month-march",
+    "month-april",
+    "month-may",
+    "month-june",
+    "month-july",
+    "month-august",
+    "month-september",
+    "month-october",
+    "month-november",
+    "month-december",
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -35,29 +42,26 @@ impl ClockFormat {
 }
 
 pub fn render(format: ClockFormat, moment: &NaiveDateTime) -> String {
-    match format {
-        ClockFormat::Time => format!(
-            "{} {:02}:{:02}",
-            weekday(moment),
-            moment.hour(),
-            moment.minute()
-        ),
-        ClockFormat::Date => format!(
-            "{}, {:02} de {} de {}",
-            weekday(moment),
-            moment.day(),
-            month(moment),
-            moment.year()
-        ),
-    }
+    let mut args = FluentArgs::new();
+    args.set("weekday", weekday(moment));
+    args.set("day", format!("{:02}", moment.day()));
+    args.set("month", month(moment.month0()));
+    args.set("year", moment.year().to_string());
+    args.set("hour", format!("{:02}", moment.hour()));
+    args.set("minute", format!("{:02}", moment.minute()));
+    let key = match format {
+        ClockFormat::Time => "clock-time",
+        ClockFormat::Date => "clock-date",
+    };
+    crate::i18n::message(key, Some(&args))
 }
 
-fn weekday(moment: &NaiveDateTime) -> &'static str {
-    WEEKDAYS[moment.weekday().num_days_from_monday() as usize]
+fn weekday(moment: &NaiveDateTime) -> String {
+    crate::i18n::text(WEEKDAYS[moment.weekday().num_days_from_monday() as usize])
 }
 
-fn month(moment: &NaiveDateTime) -> &'static str {
-    MONTHS[moment.month0() as usize]
+pub(super) fn month(index: u32) -> String {
+    crate::i18n::text(MONTHS[index as usize])
 }
 
 #[cfg(test)]

@@ -1,0 +1,14 @@
+search-app = Buscar aplicativo
+usage = uso: sparky-launcher [--system]
+system = Sistema
+no-apps = Nenhum aplicativo encontrado
+lock-name = Bloquear
+lock-detail = Tranca a tela
+suspend-name = Suspender
+suspend-detail = Tranca a tela e suspende o computador
+logout-name = Sair da sessão
+logout-detail = Fecha os aplicativos e encerra o sparky
+reboot-name = Reiniciar
+reboot-detail = Fecha os aplicativos e reinicia o computador
+poweroff-name = Desligar
+poweroff-detail = Fecha os aplicativos e desliga o computador

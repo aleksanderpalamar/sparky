@@ -25,7 +25,7 @@ fn traduz_e_formata_plurais() {
     assert_eq!(catalog.text("welcome").as_deref(), Some("Welcome"));
     assert_eq!(
         catalog.message("count", Some(&args)).as_deref(),
-        Some("\u{2068}2\u{2069} files")
+        Some("2 files")
     );
 }
 
@@ -52,4 +52,35 @@ fn pacote_instalado_pode_substituir_o_catalogo() {
         catalog.text("welcome").as_deref(),
         Some("Hello from package")
     );
+}
+
+#[test]
+fn pacote_incompleto_preserva_o_catalogo_embutido() {
+    let folder = tempfile::tempdir().unwrap();
+    let path = folder.path().join("sparky/i18n/en-US");
+    std::fs::create_dir_all(&path).unwrap();
+    std::fs::write(path.join("core.ftl"), "welcome = Hello from package\n").unwrap();
+    let catalog =
+        Catalog::with_installed(&Locale::parse("en-US"), "core", &[folder.path()], PT, EN).unwrap();
+    let mut args = FluentArgs::new();
+    args.set("count", 2);
+    assert_eq!(
+        catalog.message("count", Some(&args)).as_deref(),
+        Some("2 files")
+    );
+    assert_eq!(
+        catalog.text("welcome").as_deref(),
+        Some("Hello from package")
+    );
+}
+
+#[test]
+fn pacote_invalido_nao_impede_catalogo_embutido() {
+    let folder = tempfile::tempdir().unwrap();
+    let path = folder.path().join("sparky/i18n/en-US");
+    std::fs::create_dir_all(&path).unwrap();
+    std::fs::write(path.join("core.ftl"), "welcome = {\n").unwrap();
+    let catalog =
+        Catalog::with_installed(&Locale::parse("en-US"), "core", &[folder.path()], PT, EN).unwrap();
+    assert_eq!(catalog.text("welcome").as_deref(), Some("Welcome"));
 }

@@ -8,6 +8,7 @@ use unic_langid::LanguageIdentifier;
 pub use locale::{Locale, locale_from_environment};
 
 pub struct Catalog {
+    installed: Option<FluentBundle<FluentResource>>,
     selected: FluentBundle<FluentResource>,
     fallback: FluentBundle<FluentResource>,
 }
@@ -33,6 +34,7 @@ impl Catalog {
             _ => portuguese,
         };
         Ok(Self {
+            installed: None,
             selected: bundle(locale.language(), selected_text)?,
             fallback: bundle("pt-BR", portuguese)?,
         })
@@ -51,7 +53,7 @@ impl Catalog {
             .find_map(|language| installed(directories, &language, domain));
         let mut catalog = Self::new(locale, portuguese, english)?;
         if let Some(text) = selected {
-            catalog.selected = bundle(locale.language(), &text)?;
+            catalog.installed = bundle(locale.language(), &text).ok();
         }
         Ok(catalog)
     }
@@ -61,7 +63,11 @@ impl Catalog {
     }
 
     pub fn message(&self, key: &str, args: Option<&FluentArgs<'_>>) -> Option<String> {
-        render(&self.selected, key, args).or_else(|| render(&self.fallback, key, args))
+        self.installed
+            .as_ref()
+            .and_then(|installed| render(installed, key, args))
+            .or_else(|| render(&self.selected, key, args))
+            .or_else(|| render(&self.fallback, key, args))
     }
 }
 
@@ -80,6 +86,7 @@ fn bundle(locale: &str, text: &str) -> Result<FluentBundle<FluentResource>, Stri
     let resource =
         FluentResource::try_new(text.to_owned()).map_err(|(_, errors)| format!("{errors:?}"))?;
     let mut bundle = FluentBundle::new_concurrent(vec![language]);
+    bundle.set_use_isolating(false);
     bundle
         .add_resource(resource)
         .map_err(|errors| format!("{errors:?}"))?;
