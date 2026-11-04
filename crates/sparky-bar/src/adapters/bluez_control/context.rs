@@ -42,12 +42,12 @@ impl PairContext {
         let target = self
             .target
             .lock()
-            .map_err(|_| Error::Canceled("Pareamento indisponível".to_owned()))?;
+            .map_err(|_| Error::Canceled(crate::i18n::text("pairing-unavailable")))?;
         let Some(target) = target.as_ref() else {
-            return Err(Error::Rejected("Nenhum pareamento solicitado".to_owned()));
+            return Err(Error::Rejected(crate::i18n::text("pairing-not-requested")));
         };
         if target.canceled {
-            return Err(Error::Canceled("Pareamento cancelado".to_owned()));
+            return Err(Error::Canceled(crate::i18n::text("pairing-canceled")));
         }
         let matches = header
             .sender()
@@ -55,9 +55,9 @@ impl PairContext {
             && device.is_none_or(|device| device == target.device);
         match matches {
             true => Ok(target.name.clone()),
-            false => Err(Error::Rejected(
-                "Solicitante ou dispositivo inválido".to_owned(),
-            )),
+            false => Err(Error::Rejected(crate::i18n::text(
+                "pairing-invalid-requester",
+            ))),
         }
     }
 
@@ -80,7 +80,7 @@ impl PairContext {
         let mut display = self
             .display
             .lock()
-            .map_err(|_| Error::Canceled("Painel indisponível".to_owned()))?;
+            .map_err(|_| Error::Canceled(crate::i18n::text("panel-unavailable")))?;
         if let Some(id) = display.take() {
             self.prompts.dismiss(id);
         }

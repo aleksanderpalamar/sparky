@@ -13,7 +13,7 @@ pub const ADDRESS: &str = "sparky.audio";
 
 pub fn indicator(audio: &Audio, icons: &Icons) -> TrayItem {
     let (name, title) = match &audio {
-        Audio::Ready(state) => (state.icon(), "Áudio".to_owned()),
+        Audio::Ready(state) => (state.icon(), crate::i18n::text("sound")),
         Audio::Unavailable(error) => ("audio-volume-muted-symbolic", error.clone()),
     };
     TrayItem {

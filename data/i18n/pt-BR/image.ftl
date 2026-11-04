@@ -1,0 +1,11 @@
+title = Imagens
+empty = Abra uma imagem pelo gerenciador de arquivos
+empty-folder = Nenhuma imagem nesta pasta
+loading = Carregando…
+hints = ←/→ imagens · +/− zoom · 0 ajusta · 1 real · r gira · q fecha
+short-hints = ←/→ imagens · +/− zoom · q fecha
+not-file = Não é um arquivo de imagem
+unreadable = Não foi possível ler o arquivo: { $reason }
+unsupported = Formato de imagem não suportado
+too-large = Imagem grande demais (máximo de { $limit } pixels por lado)
+corrupted = Imagem corrompida ou incompleta

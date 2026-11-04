@@ -58,7 +58,13 @@ pub fn title(viewer: &Viewer) -> String {
         .as_ref()
         .and_then(|album| album.current().file_name())
         .map_or_else(
-            || "Imagens".to_owned(),
-            |name| format!("{} — Imagens", name.to_string_lossy()),
+            || crate::i18n::text("title"),
+            |name| {
+                format!(
+                    "{} — {}",
+                    name.to_string_lossy(),
+                    crate::i18n::text("title")
+                )
+            },
         )
 }

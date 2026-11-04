@@ -59,7 +59,7 @@ fn request(files: &mut Files, operation: Operation) -> Task<Message> {
             let work = operation.clone();
             let result = tokio::task::spawn_blocking(move || source.run(work))
                 .await
-                .map_err(|error| format!("consulta de dispositivos: {error}"))
+                .map_err(|error| i18n::with("device-query-failed", "error", error.to_string()))
                 .and_then(|result| result);
             (operation, result)
         },
@@ -96,7 +96,7 @@ fn apply(files: &mut Files, operation: &Operation, volumes: Vec<Volume>) {
     files.volume_error = None;
     if departed {
         files.home();
-        files.inform("O dispositivo deixou de estar montado".to_owned());
+        files.inform(i18n::text("device-departed"));
     }
     let Operation::Mount(device) = operation else {
         return;

@@ -1,6 +1,7 @@
 pub mod adapters;
 pub mod domain;
 pub mod flow;
+pub mod i18n;
 pub mod overlay;
 pub mod picker;
 pub mod ports;

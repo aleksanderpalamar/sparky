@@ -65,11 +65,16 @@ pub fn picker<'a>(
     current: &str,
     on_selected: impl Fn(String) -> Message + 'static,
 ) -> Element<'a, Message> {
-    combo_box(state, "selecione", Some(&current.to_owned()), on_selected)
-        .size(size::BODY)
-        .padding([space::MD, space::XL])
-        .width(CONTROL_WIDTH)
-        .input_style(field(skin))
-        .menu_style(menu(skin))
-        .into()
+    combo_box(
+        state,
+        &crate::i18n::text("select"),
+        Some(&current.to_owned()),
+        on_selected,
+    )
+    .size(size::BODY)
+    .padding([space::MD, space::XL])
+    .width(CONTROL_WIDTH)
+    .input_style(field(skin))
+    .menu_style(menu(skin))
+    .into()
 }

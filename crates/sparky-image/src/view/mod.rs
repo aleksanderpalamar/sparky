@@ -29,9 +29,9 @@ fn content(viewer: &Viewer) -> Element<'_, Message> {
             .width(Length::Fill)
             .height(Length::Fill)
             .into(),
-        Shown::Loading => centered(text("Carregando…").color(skin.dark_foreground)),
+        Shown::Loading => centered(text(crate::i18n::text("loading")).color(skin.dark_foreground)),
         Shown::Failed(error) => centered(text(error.clone()).color(skin.urgent)),
-        Shown::Empty(hint) => centered(text(*hint).color(skin.dark_foreground)),
+        Shown::Empty(hint) => centered(text(crate::i18n::text(hint)).color(skin.dark_foreground)),
     }
 }
 

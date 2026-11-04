@@ -19,7 +19,11 @@ pub enum CliError {
 impl std::fmt::Display for CliError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            CliError::Unknown(argument) => write!(formatter, "uso: sparky-shot [region|window|output], não {argument:?}"),
+            CliError::Unknown(argument) => formatter.write_str(&crate::i18n::with(
+                "usage-error",
+                "argument",
+                format!("{argument:?}"),
+            )),
         }
     }
 }

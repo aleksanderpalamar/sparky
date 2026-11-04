@@ -17,16 +17,17 @@ pub enum DecodeError {
 impl fmt::Display for DecodeError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            DecodeError::NotAFile => write!(formatter, "Não é um arquivo de imagem"),
+            DecodeError::NotAFile => formatter.write_str(&crate::i18n::text("not-file")),
             DecodeError::Unreadable(reason) => {
-                write!(formatter, "Não foi possível ler o arquivo: {reason}")
+                formatter.write_str(&crate::i18n::with("unreadable", "reason", reason.clone()))
             }
-            DecodeError::Unsupported => write!(formatter, "Formato de imagem não suportado"),
-            DecodeError::TooLarge => write!(
-                formatter,
-                "Imagem grande demais (máximo de {MAX_SIDE} pixels por lado)"
-            ),
-            DecodeError::Corrupted => write!(formatter, "Imagem corrompida ou incompleta"),
+            DecodeError::Unsupported => formatter.write_str(&crate::i18n::text("unsupported")),
+            DecodeError::TooLarge => formatter.write_str(&crate::i18n::with(
+                "too-large",
+                "limit",
+                MAX_SIDE.to_string(),
+            )),
+            DecodeError::Corrupted => formatter.write_str(&crate::i18n::text("corrupted")),
         }
     }
 }

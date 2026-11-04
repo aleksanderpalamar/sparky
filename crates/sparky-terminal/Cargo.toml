@@ -19,6 +19,8 @@ iced = { version = "0.14", features = ["advanced", "canvas", "tokio"] }
 sparky-theme.workspace = true
 sparky-ui.workspace = true
 sparky-xdg.workspace = true
+sparky-i18n.workspace = true
+fluent-bundle = "0.16"
 
 [dev-dependencies]
 iced_runtime = "0.14"

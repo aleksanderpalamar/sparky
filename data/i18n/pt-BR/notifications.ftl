@@ -1,0 +1,14 @@
+active-limit = Limite de notificações ativas atingido
+notification-unavailable = Notificação indisponível
+wrong-sender = Notificação pertence a outro aplicativo
+state-unavailable = Estado das notificações indisponível
+image-failed = Não foi possível preparar a imagem
+service-not-ready = O serviço nativo de notificações não ficou pronto
+connection-closed = A conexão de notificações foi encerrada
+sender-unavailable = Solicitante indisponível
+no-state = O serviço não retornou o estado
+response-too-large = Resposta de notificações excedeu o limite
+service-stopped = Serviço de notificações encerrado
+service-changed = O serviço de notificações mudou
+connection-ended = Conexão encerrada
+channel-closed = Canal fechado

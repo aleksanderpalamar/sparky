@@ -6,7 +6,7 @@ use crate::domain::audio::{AudioRequest, Direction};
 
 pub fn execute(context: &mut Context, request: AudioRequest, reply: Reply, wake: Wake) {
     if !valid(&request) {
-        let _ = reply.send(Err("Controle de áudio inválido".to_owned()));
+        let _ = reply.send(Err(crate::i18n::text("audio-invalid-control")));
         return;
     }
     let mut reply = Some(reply);
@@ -16,7 +16,7 @@ pub fn execute(context: &mut Context, request: AudioRequest, reply: Reply, wake:
         };
         let result = match accepted {
             true => Ok(()),
-            false => Err("O serviço recusou o controle de áudio".to_owned()),
+            false => Err(crate::i18n::text("audio-control-refused")),
         };
         let _ = reply.send(result);
         let _ = wake.send(Signal::Refresh);

@@ -49,11 +49,11 @@ async fn operate(
         let mut target = context
             .target
             .lock()
-            .map_err(|_| zbus::Error::Failure("Estado de pareamento indisponível".to_owned()))?;
+            .map_err(|_| zbus::Error::Failure(crate::i18n::text("pairing-state-unavailable")))?;
         if target.is_some() {
-            return Err(zbus::Error::Failure(
-                "Já existe um pareamento em andamento".to_owned(),
-            ));
+            return Err(zbus::Error::Failure(crate::i18n::text(
+                "pairing-already-running",
+            )));
         }
         *target = Some(Target {
             owner,
@@ -69,9 +69,7 @@ async fn operate(
     .await
     {
         Ok(result) => result,
-        Err(_) => Err(zbus::Error::Failure(
-            "A operação Bluetooth excedeu o tempo limite".to_owned(),
-        )),
+        Err(_) => Err(zbus::Error::Failure(crate::i18n::text("bluetooth-timeout"))),
     };
     if result.is_err() {
         let _ = tokio::time::timeout(Duration::from_secs(3), cancel(connection, &context)).await;

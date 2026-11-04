@@ -15,8 +15,15 @@ pub enum Unknown {
 impl fmt::Display for Unknown {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Unknown::Layout(layout) => write!(formatter, "layout desconhecido: {layout}"),
-            Unknown::Variant { variant, layout } => write!(formatter, "o layout {layout} não tem a variante {variant}"),
+            Unknown::Layout(layout) => {
+                formatter.write_str(&crate::i18n::with("unknown-layout", "value", layout))
+            }
+            Unknown::Variant { variant, layout } => {
+                let mut args = fluent_bundle::FluentArgs::new();
+                args.set("variant", variant.as_str());
+                args.set("layout", layout.as_str());
+                formatter.write_str(&crate::i18n::message("unknown-variant", Some(&args)))
+            }
         }
     }
 }
@@ -47,13 +54,22 @@ impl Keymaps {
             return Ok(());
         }
         let layouts: Vec<&str> = split(layout).collect();
-        if let Some(missing) = layouts.iter().find(|name| !self.layouts.contains_key(**name)) {
+        if let Some(missing) = layouts
+            .iter()
+            .find(|name| !self.layouts.contains_key(**name))
+        {
             return Err(Unknown::Layout((*missing).to_owned()));
         }
         for (variant, layout) in split(variant).zip(layouts) {
-            let known = self.layouts.get(layout).is_some_and(|variants| variants.contains(variant));
+            let known = self
+                .layouts
+                .get(layout)
+                .is_some_and(|variants| variants.contains(variant));
             if !variant.is_empty() && !known {
-                return Err(Unknown::Variant { variant: variant.to_owned(), layout: layout.to_owned() });
+                return Err(Unknown::Variant {
+                    variant: variant.to_owned(),
+                    layout: layout.to_owned(),
+                });
             }
         }
         Ok(())
@@ -72,7 +88,10 @@ impl Keymaps {
                 let Some(layout) = rest.and_then(|word| word.strip_suffix(':')) else {
                     return;
                 };
-                self.layouts.entry(layout.to_owned()).or_default().insert(name.to_owned());
+                self.layouts
+                    .entry(layout.to_owned())
+                    .or_default()
+                    .insert(name.to_owned());
             }
             Block::Other => {}
         }
@@ -80,7 +99,9 @@ impl Keymaps {
 }
 
 fn split(text: &str) -> impl Iterator<Item = &str> {
-    text.split(',').map(str::trim).filter(|part| !part.is_empty() || text.contains(','))
+    text.split(',')
+        .map(str::trim)
+        .filter(|part| !part.is_empty() || text.contains(','))
 }
 
 #[cfg(test)]
@@ -101,10 +122,16 @@ mod tests {
     #[test]
     fn recusa_o_que_o_xkb_nao_conhece() {
         let keymaps = Keymaps::parse(REGRAS);
-        assert_eq!(keymaps.check("bra", ""), Err(Unknown::Layout("bra".to_owned())));
+        assert_eq!(
+            keymaps.check("bra", ""),
+            Err(Unknown::Layout("bra".to_owned()))
+        );
         assert_eq!(
             keymaps.check("us", "abnt2"),
-            Err(Unknown::Variant { variant: "abnt2".to_owned(), layout: "us".to_owned() })
+            Err(Unknown::Variant {
+                variant: "abnt2".to_owned(),
+                layout: "us".to_owned()
+            })
         );
         assert!(keymaps.check("pc105", "").is_err());
     }

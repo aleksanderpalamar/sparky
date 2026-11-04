@@ -40,7 +40,7 @@ impl Agent {
             Answer::Secret(secret) if (1..=16).contains(&secret.expose().len()) => {
                 Ok(secret.expose().to_owned())
             }
-            _ => Err(Error::Rejected("PIN inválido ou cancelado".to_owned())),
+            _ => Err(Error::Rejected(crate::i18n::text("pin-invalid"))),
         }
     }
 
@@ -59,10 +59,10 @@ impl Agent {
             })
             .await;
         let Answer::Secret(secret) = answer else {
-            return Err(Error::Rejected("Código cancelado".to_owned()));
+            return Err(Error::Rejected(crate::i18n::text("code-canceled")));
         };
         parse_passkey(secret.expose())
-            .ok_or_else(|| Error::Rejected("Digite até seis algarismos".to_owned()))
+            .ok_or_else(|| Error::Rejected(crate::i18n::text("code-six-digits")))
     }
 
     fn display_pin_code(
@@ -140,7 +140,12 @@ impl Agent {
             self.0
                 .prompts
                 .request(PromptKind::Confirm {
-                    device: format!("{name}\nServiço: {uuid}"),
+                    device: {
+                        let mut args = fluent_bundle::FluentArgs::new();
+                        args.set("name", name.as_str());
+                        args.set("service", uuid.as_str());
+                        crate::i18n::message("bluetooth-service-request", Some(&args))
+                    },
                     code: None,
                 })
                 .await,

@@ -38,7 +38,7 @@ pub fn sender(header: &Header<'_>) -> fdo::Result<String> {
     header
         .sender()
         .map(|sender| sender.to_string())
-        .ok_or_else(|| fdo::Error::AccessDenied("Solicitante indisponível".to_owned()))
+        .ok_or_else(|| fdo::Error::AccessDenied(crate::i18n::text("sender-unavailable")))
 }
 
 pub fn error(error: Error) -> fdo::Error {

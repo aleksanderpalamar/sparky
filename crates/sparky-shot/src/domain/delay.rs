@@ -28,13 +28,13 @@ impl Delay {
         })
     }
 
-    pub fn label(self) -> &'static str {
-        match self {
-            Delay::Immediate => "sem atraso",
-            Delay::Three => "3 segundos",
-            Delay::Five => "5 segundos",
-            Delay::Ten => "10 segundos",
-        }
+    pub fn label(self) -> String {
+        crate::i18n::text(match self {
+            Delay::Immediate => "delay-none",
+            Delay::Three => "delay-three",
+            Delay::Five => "delay-five",
+            Delay::Ten => "delay-ten",
+        })
     }
 }
 
@@ -51,10 +51,7 @@ mod tests {
             seen.push(delay.duration());
             delay = delay.next();
         }
-        assert_eq!(
-            seen,
-            [0, 3, 5, 10, 0].map(Duration::from_secs).to_vec()
-        );
+        assert_eq!(seen, [0, 3, 5, 10, 0].map(Duration::from_secs).to_vec());
     }
 
     #[test]

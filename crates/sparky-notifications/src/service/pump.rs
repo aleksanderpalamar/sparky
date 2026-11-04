@@ -34,7 +34,7 @@ pub async fn pump(
                 super::emit_closed(connection,events).await?;
             }
             message = owners.next() => {
-                let Some(message) = message else { return Err(zbus::Error::Failure("A conexão de notificações foi encerrada".to_owned())); };
+                let Some(message) = message else { return Err(zbus::Error::Failure(crate::i18n::text("connection-closed"))); };
                 let message = message?;
                 let (name,old,new): (String,String,String) = message.body().deserialize()?;
                 if name == PUBLIC_NAME && new != connection.unique_name().map_or("", |name| name.as_str()) { return Err(zbus::Error::NameTaken); }

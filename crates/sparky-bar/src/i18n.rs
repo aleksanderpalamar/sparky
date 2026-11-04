@@ -20,6 +20,12 @@ pub fn message(key: &str, args: Option<&FluentArgs<'_>>) -> String {
         .unwrap_or_else(|| key.to_owned())
 }
 
+pub fn with(key: &str, name: &str, value: &str) -> String {
+    let mut args = FluentArgs::new();
+    args.set(name, value);
+    message(key, Some(&args))
+}
+
 #[cfg(test)]
 mod tests {
     use sparky_i18n::{Catalog, Locale};

@@ -6,8 +6,6 @@ use crate::domain::system::themes::{Theme, Themes};
 use crate::domain::system::{Control, Row, RowId};
 use crate::domain::value::Step;
 
-const LABEL: &str = "Papel de parede";
-
 pub fn row(themes: &Themes, configured: Option<&str>, id: RowId) -> Option<Row> {
     let theme = current(themes)?;
     let total = theme.wallpapers().len();
@@ -16,12 +14,18 @@ pub fn row(themes: &Themes, configured: Option<&str>, id: RowId) -> Option<Row> 
     }
     let names = labels(theme);
     let value = match position(theme, configured) {
-        Some(index) => format!("{} de {total} · {}", index + 1, names.get(index)?),
-        None => format!("{total} do tema · outro em uso"),
+        Some(index) => {
+            let mut args = fluent_bundle::FluentArgs::new();
+            args.set("index", (index + 1) as i64);
+            args.set("total", total as i64);
+            args.set("name", names.get(index)?.as_str());
+            crate::i18n::message("wallpaper-position", Some(&args))
+        }
+        None => crate::i18n::with("wallpaper-other", "total", &total.to_string()),
     };
     Some(Row {
         id,
-        label: LABEL.to_owned(),
+        label: crate::i18n::text("group-wallpaper"),
         value,
         control: Control::Choice(names),
     })

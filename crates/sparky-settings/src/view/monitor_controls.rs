@@ -40,7 +40,7 @@ pub fn active<'a>(
     let (control, note) = match only {
         true => (
             locked_switch(skin, true),
-            "É a única tela ligada; desligá-la deixaria você sem imagem.",
+            crate::i18n::text("monitors-only-screen"),
         ),
         false => (
             switch(
@@ -48,10 +48,12 @@ pub fn active<'a>(
                 output.enabled,
                 Message::Screen(output.name.clone(), ScreenChange::Enabled(!output.enabled)),
             ),
-            "Desligar remove a tela do espaço de trabalho.",
+            crate::i18n::text("monitors-disable-note"),
         ),
     };
-    Line::new("Ativa", control).note(note).view(skin)
+    Line::new(crate::i18n::text("monitors-active"), control)
+        .note(note)
+        .view(skin)
 }
 
 pub fn high_dynamic_range<'a>(
@@ -71,7 +73,7 @@ pub fn high_dynamic_range<'a>(
 pub fn variable_rate<'a>(settings: &Settings, output: &OutputInfo) -> Element<'a, Message> {
     let skin = settings.context.skin;
     let on = match output.vrr {
-        Vrr::Unsupported => return reading(skin, "não suportada"),
+        Vrr::Unsupported => return reading(skin, crate::i18n::text("unsupported")),
         Vrr::On => true,
         Vrr::Off => false,
     };
@@ -82,9 +84,6 @@ pub fn variable_rate<'a>(settings: &Settings, output: &OutputInfo) -> Element<'a
     )
 }
 
-pub fn yes_no(value: bool) -> &'static str {
-    match value {
-        true => "sim",
-        false => "não",
-    }
+pub fn yes_no(value: bool) -> String {
+    crate::i18n::text(if value { "yes" } else { "no" })
 }

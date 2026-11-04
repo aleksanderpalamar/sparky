@@ -22,7 +22,7 @@ impl CenterState {
             calendar: Calendar::new(today),
             client: None,
             snapshot: Snapshot::default(),
-            error: Some("Conectando ao serviço de notificações…".to_owned()),
+            error: Some(crate::i18n::text("notifications-connecting")),
         }
     }
 }

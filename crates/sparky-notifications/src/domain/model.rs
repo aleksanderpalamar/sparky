@@ -88,12 +88,13 @@ pub enum Error {
 
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(match self {
-            Self::Full => "Limite de notificações ativas atingido",
-            Self::Unknown => "Notificação indisponível",
-            Self::Sender => "Notificação pertence a outro aplicativo",
-            Self::Poisoned => "Estado das notificações indisponível",
-        })
+        let key = match self {
+            Self::Full => "active-limit",
+            Self::Unknown => "notification-unavailable",
+            Self::Sender => "wrong-sender",
+            Self::Poisoned => "state-unavailable",
+        };
+        f.write_str(&crate::i18n::text(key))
     }
 }
 

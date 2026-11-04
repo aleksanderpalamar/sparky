@@ -107,7 +107,7 @@ fn sem_argumento_ou_pasta_sem_imagens_mostra_estado_vazio() {
     assert_eq!(super::title(&viewer), "Imagens");
     let dir = tempfile::tempdir().unwrap();
     let (vazia, _) = abrir(Vec::new(), dir.path().to_str());
-    assert!(matches!(vazia.shown, Shown::Empty(text) if text == "Nenhuma imagem nesta pasta"));
+    assert!(matches!(vazia.shown, Shown::Empty(text) if text == "empty-folder"));
 }
 
 #[test]

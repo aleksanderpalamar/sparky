@@ -61,8 +61,8 @@ impl AudioControl for Pulse {
             self.wake.send(Signal::Request(request, sender))?;
             match tokio::time::timeout(Duration::from_secs(5), receiver).await {
                 Ok(Ok(result)) => result,
-                Ok(Err(_)) => Err("A conexão de áudio foi encerrada".to_owned()),
-                Err(_) => Err("O serviço de áudio demorou para responder".to_owned()),
+                Ok(Err(_)) => Err(crate::i18n::text("audio-connection-ended")),
+                Err(_) => Err(crate::i18n::text("audio-response-timeout")),
             }
         })
     }

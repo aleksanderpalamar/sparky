@@ -13,7 +13,9 @@ use iced::Task;
 
 pub fn indicator(state: &crate::domain::network::Network, icons: &Icons) -> TrayItem {
     let (icon, title) = match state {
-        crate::domain::network::Network::Ready(state) => (state.icon(), "Rede".to_owned()),
+        crate::domain::network::Network::Ready(state) => {
+            (state.icon(), crate::i18n::text("network"))
+        }
         crate::domain::network::Network::Unavailable(error) => {
             ("network-offline-symbolic", error.clone())
         }
@@ -80,7 +82,10 @@ pub fn choose(bar: &mut Bar, network: WifiNetwork) -> Task<Message> {
             Task::none()
         }
         _ => {
-            bar.panels.errors.insert(PanelKind::Network, "Esta rede exige um perfil previamente configurado; o painel aceita novas redes abertas, WPA2-Personal e WPA3-Personal".to_owned());
+            bar.panels.errors.insert(
+                PanelKind::Network,
+                crate::i18n::text("network-profile-required"),
+            );
             Task::none()
         }
     }

@@ -9,20 +9,21 @@ use crate::view::kit::controls::{action, reading};
 use crate::view::kit::rows::{Line, caption, focusable, hint};
 use crate::view::kit::tokens::space;
 
-const EMPTY: &str = "Nenhuma mídia removível conectada.";
-const SAFETY: &str = "Desmonte antes de desconectar, para não perder o que ainda não foi gravado.";
-
 pub fn view(settings: &Settings) -> Element<'_, Message> {
     let skin = settings.context.skin;
     let volumes = settings.media.volumes();
     let problem = settings
         .media
         .error()
-        .or(volumes.is_empty().then_some(EMPTY));
+        .map(str::to_owned)
+        .or_else(|| volumes.is_empty().then(|| crate::i18n::text("media-empty")));
     if let Some(problem) = problem {
-        return column![caption(skin, "Volumes"), hint(skin, problem.to_owned())]
-            .spacing(space::MD)
-            .into();
+        return column![
+            caption(skin, &crate::i18n::text("group-volumes")),
+            hint(skin, problem)
+        ]
+        .spacing(space::MD)
+        .into();
     }
     let cards = volumes.iter().enumerate().map(|(index, volume)| {
         focusable(
@@ -33,37 +34,45 @@ pub fn view(settings: &Settings) -> Element<'_, Message> {
         )
     });
     Column::with_children(cards)
-        .push(hint(skin, SAFETY))
+        .push(hint(skin, crate::i18n::text("media-safety")))
         .spacing(space::XXL)
         .into()
 }
 
 fn card<'a>(skin: Skin, index: usize, volume: &Volume) -> Element<'a, Message> {
     let label = match volume.mounted() {
-        true => "Desmontar",
-        false => "Montar",
+        true => "media-unmount",
+        false => "media-mount",
     };
     let filesystem = match volume.filesystem.is_empty() {
-        true => "desconhecido".to_owned(),
+        true => crate::i18n::text("unknown"),
         false => volume.filesystem.clone(),
     };
     let place = volume
         .mountpoint
         .clone()
-        .unwrap_or_else(|| "não montado".to_owned());
+        .unwrap_or_else(|| crate::i18n::text("not-mounted"));
     let removable = match volume.removable {
-        true => "sim",
-        false => "não",
+        true => "yes",
+        false => "no",
     };
     column![
         caption(skin, &format!("{} · {}", volume.name(), volume.size)),
-        Line::new("Dispositivo", reading(skin, volume.path.clone())).view(skin),
-        Line::new("Formato", reading(skin, filesystem)).view(skin),
-        Line::new("Montado em", reading(skin, place)).view(skin),
-        Line::new("Removível", reading(skin, removable)).view(skin),
+        Line::new(
+            crate::i18n::text("media-device"),
+            reading(skin, volume.path.clone())
+        )
+        .view(skin),
+        Line::new(crate::i18n::text("media-format"), reading(skin, filesystem)).view(skin),
+        Line::new(crate::i18n::text("media-mounted-at"), reading(skin, place)).view(skin),
+        Line::new(
+            crate::i18n::text("media-removable"),
+            reading(skin, crate::i18n::text(removable))
+        )
+        .view(skin),
         row![
             Space::new().width(Length::Fill),
-            action(skin, label, Message::Activate(index))
+            action(skin, crate::i18n::text(label), Message::Activate(index))
         ],
     ]
     .spacing(space::MD)

@@ -11,7 +11,7 @@ use crate::app::state::Monitor;
 pub fn applications(monitor: &Monitor) -> Element<'_, Message> {
     let rows = table_rows(monitor.size.height);
     let content = column![
-        section(monitor.skin, "Aplicativos"),
+        section(monitor.skin, crate::i18n::text("applications")),
         table::applications(monitor, rows)
     ]
     .spacing(SPACING);
@@ -23,7 +23,7 @@ pub fn applications(monitor: &Monitor) -> Element<'_, Message> {
 pub fn processes(monitor: &Monitor) -> Element<'_, Message> {
     let rows = table_rows(monitor.size.height);
     let content = column![
-        section(monitor.skin, "Processos"),
+        section(monitor.skin, crate::i18n::text("processes")),
         table::processes(monitor, rows)
     ]
     .spacing(SPACING);

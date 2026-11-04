@@ -39,20 +39,18 @@ pub fn scale_options(current: OutputScale) -> Vec<String> {
     scales.into_iter().map(scale_label).collect()
 }
 
-pub const fn rotation_label(rotation: Rotation) -> &'static str {
-    match rotation {
-        Rotation::Normal => "Normal",
-        Rotation::Right => "90° à direita",
-        Rotation::Inverted => "180°",
-        Rotation::Left => "90° à esquerda",
-    }
+pub fn rotation_label(rotation: Rotation) -> String {
+    let key = match rotation {
+        Rotation::Normal => "rotation-normal",
+        Rotation::Right => "rotation-right",
+        Rotation::Inverted => "rotation-inverted",
+        Rotation::Left => "rotation-left",
+    };
+    crate::i18n::text(key)
 }
 
 pub fn rotation_options() -> Vec<String> {
-    Rotation::ALL
-        .into_iter()
-        .map(|rotation| rotation_label(rotation).to_owned())
-        .collect()
+    Rotation::ALL.into_iter().map(rotation_label).collect()
 }
 
 pub fn changed(
@@ -72,14 +70,14 @@ pub fn changed(
         ScreenChange::Scale(label) => rule.scale = scale(&label)?,
         ScreenChange::Rotation(label) => rule.rotation = rotation(&label)?,
         ScreenChange::Vrr(on) if info.vrr != Vrr::Unsupported => rule.vrr = Some(on),
-        ScreenChange::Vrr(_) => return Err("este monitor não tem taxa variável".to_owned()),
+        ScreenChange::Vrr(_) => return Err(crate::i18n::text("screen-vrr-unsupported")),
         ScreenChange::Enabled(false) if last_enabled(outputs, &info.name) => {
-            return Err("é a única tela ligada; desligá-la deixaria você sem imagem".to_owned());
+            return Err(crate::i18n::text("screen-last-active"));
         }
         ScreenChange::Enabled(on) => rule.enabled = on,
         ScreenChange::Hdr(on) if info.hdr != Hdr::Unsupported => rule.hdr = on,
         ScreenChange::Hdr(_) => {
-            return Err("esta tela não suporta HDR".to_owned());
+            return Err(crate::i18n::text("screen-hdr-unsupported"));
         }
     }
     Ok(rule)
@@ -93,12 +91,13 @@ pub fn last_enabled(outputs: &[OutputInfo], name: &str) -> bool {
 }
 
 fn known_mode(info: &OutputInfo, label: &str) -> Result<OutputMode, String> {
-    let wanted = OutputMode::parse(label).ok_or_else(|| format!("resolução inválida: {label}"))?;
+    let wanted = OutputMode::parse(label)
+        .ok_or_else(|| crate::i18n::with("screen-invalid-mode", "value", label))?;
     info.modes
         .iter()
         .find(|mode| wanted.matches(mode))
         .copied()
-        .ok_or_else(|| format!("{label} não está disponível neste monitor"))
+        .ok_or_else(|| crate::i18n::with("screen-mode-unavailable", "value", label))
 }
 
 fn scale(label: &str) -> Result<OutputScale, String> {
@@ -108,12 +107,12 @@ fn scale(label: &str) -> Result<OutputScale, String> {
         .parse()
         .ok()
         .and_then(OutputScale::from_factor)
-        .ok_or_else(|| format!("escala inválida: {label}; use de 0.5 a 4"))
+        .ok_or_else(|| crate::i18n::with("screen-invalid-scale", "value", label))
 }
 
 fn rotation(label: &str) -> Result<Rotation, String> {
     Rotation::ALL
         .into_iter()
         .find(|rotation| rotation_label(*rotation) == label)
-        .ok_or_else(|| format!("giro inválido: {label}"))
+        .ok_or_else(|| crate::i18n::with("screen-invalid-rotation", "value", label))
 }

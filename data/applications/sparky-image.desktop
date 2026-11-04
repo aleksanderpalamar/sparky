@@ -1,11 +1,15 @@
 [Desktop Entry]
 Type=Application
 Name=Imagens
+Name[en]=Images
 GenericName=Visualizador de imagens
+GenericName[en]=Image viewer
 Comment=Veja as imagens de uma pasta pelo teclado
+Comment[en]=Browse images in a folder with the keyboard
 Exec=sparky-image %f
 Icon=image-x-generic
 Terminal=false
 Categories=Graphics;Viewer;
 MimeType=image/png;image/jpeg;image/webp;image/gif;image/bmp;image/tiff;
 Keywords=imagens;fotos;visualizador;
+Keywords[en]=images;photos;viewer;

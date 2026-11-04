@@ -15,6 +15,7 @@ path = "src/lib.rs"
 
 [dependencies]
 sparky-i18n.workspace = true
+fluent-bundle = "0.16"
 sparky-storage.workspace = true
 iced = { version = "0.14", features = ["advanced", "canvas", "tokio"] }
 serde.workspace = true

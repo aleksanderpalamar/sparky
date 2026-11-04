@@ -42,7 +42,7 @@ pub fn view(settings: &Settings) -> Element<'_, Message> {
             .width(Length::Fill),
     )
     .on_scroll(|delta| Message::Scrolled(wheel::rows(delta, LINE_HEIGHT)));
-    column![caption(skin, "Atalhos em uso"), list]
+    column![caption(skin, &crate::i18n::text("shortcuts-active")), list]
         .spacing(space::MD)
         .into()
 }

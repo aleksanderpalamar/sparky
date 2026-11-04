@@ -99,11 +99,11 @@ fn raw_name(trash: &dyn TrashStore, shown: &str) -> io::Result<OsString> {
         (Some(name), None) => Ok(name),
         (None, _) => Err(io::Error::new(
             io::ErrorKind::NotFound,
-            "item não encontrado",
+            crate::i18n::text("item-not-found"),
         )),
         _ => Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            "nome ambíguo na lixeira",
+            crate::i18n::text("trash-ambiguous-name"),
         )),
     }
 }

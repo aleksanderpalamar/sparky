@@ -119,7 +119,7 @@ impl Settings {
 
     fn timezone_request(&mut self, input: String) -> Option<Request> {
         if let Some(unknown) = self.datetime.unknown_timezone(&input) {
-            self.fail(format!("fuso desconhecido: {unknown}"));
+            self.fail(crate::i18n::with("unknown-timezone", "value", &unknown));
             return None;
         }
         self.datetime.request(RowId::Timezone, Change::Text(input))
@@ -131,7 +131,7 @@ impl Settings {
             _ => None,
         };
         if let Some(unknown) = invalid {
-            self.fail(format!("valor indisponível: {unknown}"));
+            self.fail(crate::i18n::with("unavailable-value", "value", &unknown));
             return None;
         }
         self.region.request(id, change)

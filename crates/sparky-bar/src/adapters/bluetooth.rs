@@ -73,9 +73,9 @@ async fn monitor(output: &mut Sender<Option<Bluetooth>>) -> zbus::Result<()> {
             return Ok(());
         }
     }
-    Err(zbus::Error::Failure(
-        "a conexão do Bluetooth foi encerrada".to_owned(),
-    ))
+    Err(zbus::Error::Failure(crate::i18n::text(
+        "bluetooth-connection-ended",
+    )))
 }
 
 async fn snapshot(connection: &Connection) -> Option<Bluetooth> {

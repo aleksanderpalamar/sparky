@@ -1,0 +1,11 @@
+title = Images
+empty = Open an image from the file manager
+empty-folder = No images in this folder
+loading = Loading…
+hints = ←/→ images · +/− zoom · 0 fit · 1 actual size · r rotate · q close
+short-hints = ←/→ images · +/− zoom · q close
+not-file = Not an image file
+unreadable = Could not read the file: { $reason }
+unsupported = Unsupported image format
+too-large = Image too large (maximum { $limit } pixels per side)
+corrupted = Image is corrupted or incomplete

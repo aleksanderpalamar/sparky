@@ -20,6 +20,7 @@ sparky-ipc.workspace = true
 sparky-theme.workspace = true
 sparky-ui.workspace = true
 sparky-xdg.workspace = true
+sparky-i18n.workspace = true
 tokio = { version = "1", features = ["sync", "time", "macros", "rt"] }
 url = "2"
 zbus = { version = "5", default-features = false, features = ["tokio"] }

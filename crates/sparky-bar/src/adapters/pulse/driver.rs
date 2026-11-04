@@ -42,7 +42,7 @@ pub fn run(
         }
         let error = result
             .err()
-            .unwrap_or_else(|| "A conexão de áudio foi encerrada".to_owned());
+            .unwrap_or_else(|| crate::i18n::text("audio-connection-ended"));
         if output.unbounded_send(Audio::Unavailable(error)).is_err() {
             return;
         }
@@ -57,7 +57,7 @@ fn reconnect_wait(receiver: &Receiver<Signal>) -> bool {
     loop {
         match receiver.recv_timeout(deadline.saturating_duration_since(std::time::Instant::now())) {
             Ok(Signal::Request(_, reply)) => {
-                let _ = reply.send(Err("O serviço de áudio está indisponível".to_owned()));
+                let _ = reply.send(Err(crate::i18n::text("audio-service-unavailable")));
             }
             Ok(Signal::Shutdown) => return false,
             Err(std::sync::mpsc::RecvTimeoutError::Timeout) => return true,
@@ -74,9 +74,9 @@ fn connected(
     stopped: &AtomicBool,
     output: UnboundedSender<Audio>,
 ) -> Result<(), String> {
-    let mut mainloop = Mainloop::new().ok_or("Não foi possível criar o cliente de áudio")?;
-    let mut context =
-        Context::new(&mainloop, "Sparky").ok_or("Não foi possível conectar o áudio")?;
+    let mut mainloop = Mainloop::new().ok_or_else(|| crate::i18n::text("audio-client-failed"))?;
+    let mut context = Context::new(&mainloop, "Sparky")
+        .ok_or_else(|| crate::i18n::text("audio-connect-failed"))?;
     let state_wake = wake.clone();
     context.set_state_callback(Some(Box::new(move || {
         let _ = state_wake.send(Signal::State);
@@ -87,7 +87,7 @@ fn connected(
     })));
     context
         .connect(None, FlagSet::NOAUTOSPAWN, None)
-        .map_err(|_| "Não foi possível conectar ao PipeWire/PulseAudio".to_owned())?;
+        .map_err(|_| crate::i18n::text("audio-pipewire-failed"))?;
     let context = Rc::new(RefCell::new(context));
     let ended = Rc::new(Cell::new(false));
     let mut socket = reader.try_clone().map_err(|error| error.to_string())?;
@@ -126,15 +126,14 @@ fn connected(
                             commands::execute(&mut context, request, reply, wake.clone())
                         }
                         Signal::Request(_, reply) => {
-                            let _ =
-                                reply.send(Err("O serviço de áudio não está pronto".to_owned()));
+                            let _ = reply.send(Err(crate::i18n::text("audio-service-not-ready")));
                         }
                         _ => {}
                     }
                 }
             }),
         )
-        .ok_or("Não foi possível observar o serviço de áudio")?;
+        .ok_or_else(|| crate::i18n::text("audio-watch-failed"))?;
     while !ended.get() && !stopped.load(Ordering::Acquire) {
         match mainloop.iterate(true) {
             IterateResult::Success(_) => {}

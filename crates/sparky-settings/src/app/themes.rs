@@ -37,7 +37,12 @@ impl Settings {
             return;
         };
         if let Err(error) = self.services.themes.apply(&theme) {
-            self.fail(format!("Paleta {}: {error}", theme.name));
+            self.fail(theme_message(
+                "theme-failed",
+                &theme.name,
+                None,
+                Some(&error.to_string()),
+            ));
             return;
         }
         self.themes = Themes::load(self.services.themes.as_ref());
@@ -87,20 +92,36 @@ impl Settings {
 
     fn report_theme(&mut self, theme: &Theme) {
         let Some(icons) = theme.icons() else {
-            return self.inform(format!("Paleta {} aplicada.", theme.name));
+            return self.inform(theme_message("theme-applied", &theme.name, None, None));
         };
         match perform(
             self.services.commands.as_ref(),
             &Request::SetIconTheme(icons.to_owned()),
         ) {
-            Ok(()) => self.inform(format!(
-                "Paleta {} aplicada com os ícones {icons}.",
-                theme.name
+            Ok(()) => self.inform(theme_message(
+                "theme-icons-applied",
+                &theme.name,
+                Some(icons),
+                None,
             )),
-            Err(error) => self.fail(format!(
-                "Paleta {} aplicada, mas os ícones {icons} não: {error}",
-                theme.name
+            Err(error) => self.fail(theme_message(
+                "theme-icons-failed",
+                &theme.name,
+                Some(icons),
+                Some(&error.to_string()),
             )),
         }
     }
+}
+
+fn theme_message(key: &str, name: &str, icons: Option<&str>, reason: Option<&str>) -> String {
+    let mut args = fluent_bundle::FluentArgs::new();
+    args.set("name", name);
+    if let Some(icons) = icons {
+        args.set("icons", icons);
+    }
+    if let Some(reason) = reason {
+        args.set("reason", reason);
+    }
+    crate::i18n::message(key, Some(&args))
 }

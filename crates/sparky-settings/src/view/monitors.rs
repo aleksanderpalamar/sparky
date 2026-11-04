@@ -12,14 +12,11 @@ use crate::view::kit::tokens::space;
 use crate::view::monitor_controls::{active, choice, high_dynamic_range, variable_rate, yes_no};
 use crate::view::screens::screens;
 
-const NOTE: &str =
-    "As alterações valem na hora e ficam gravadas no sparky.toml, na tabela [[output]].";
-
 pub fn view(settings: &Settings) -> Element<'_, Message> {
     let skin = settings.context.skin;
     let outputs = match &settings.outputs {
         Ok(outputs) if outputs.is_empty() => {
-            return hint(skin, "Nenhum monitor informado pelo sparky.");
+            return hint(skin, crate::i18n::text("monitors-empty"));
         }
         Ok(outputs) => outputs,
         Err(error) => return hint(skin, error.to_string()),
@@ -33,10 +30,10 @@ pub fn view(settings: &Settings) -> Element<'_, Message> {
         )
     });
     column![
-        caption(skin, "Tela"),
+        caption(skin, &crate::i18n::text("group-screen")),
         screens(skin, outputs),
         Column::with_children(blocks).spacing(space::XXL),
-        hint(skin, NOTE),
+        hint(skin, crate::i18n::text("monitors-note")),
     ]
     .spacing(space::MD)
     .into()
@@ -49,7 +46,11 @@ pub fn title(index: usize, output: &OutputInfo) -> String {
     };
     match output.enabled {
         true => format!("{} · {described}", index + 1),
-        false => format!("{} · {described} (desligada)", index + 1),
+        false => format!(
+            "{} · {described} ({})",
+            index + 1,
+            crate::i18n::text("monitors-off")
+        ),
     }
 }
 
@@ -66,12 +67,12 @@ fn block<'a>(
     let mut body = column![
         caption(skin, &title(index, output)),
         Line::new(
-            "Resolução",
+            crate::i18n::text("monitors-resolution"),
             choice(settings, output, ScreenField::Mode, mode)
         )
         .view(skin),
         Line::new(
-            "Escala",
+            crate::i18n::text("monitors-scale"),
             choice(
                 settings,
                 output,
@@ -81,12 +82,12 @@ fn block<'a>(
         )
         .view(skin),
         Line::new(
-            "Giro",
+            crate::i18n::text("monitors-rotation"),
             choice(
                 settings,
                 output,
                 ScreenField::Rotation,
-                rotation_label(output.rotation).to_owned()
+                rotation_label(output.rotation)
             )
         )
         .view(skin),
@@ -97,9 +98,21 @@ fn block<'a>(
     if outputs.len() > 1 {
         body = body.push(active(settings, output, outputs));
     }
-    body.push(Line::new("Taxa variável", variable_rate(settings, output)).view(skin))
-        .push(Line::new("Tela ligada", reading(skin, yes_no(output.enabled))).view(skin))
-        .into()
+    body.push(
+        Line::new(
+            crate::i18n::text("monitors-vrr"),
+            variable_rate(settings, output),
+        )
+        .view(skin),
+    )
+    .push(
+        Line::new(
+            crate::i18n::text("monitors-screen-on"),
+            reading(skin, yes_no(output.enabled)),
+        )
+        .view(skin),
+    )
+    .into()
 }
 
 #[cfg(test)]

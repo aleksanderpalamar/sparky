@@ -26,9 +26,11 @@ pub enum InvalidTheme {
 impl fmt::Display for InvalidTheme {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Empty => write!(formatter, "nenhuma cor reconhecida"),
-            Self::Mode => write!(formatter, "modo de paleta inválido"),
-            Self::Color(key) => write!(formatter, "cor inválida: {key}"),
+            Self::Empty => formatter.write_str(&crate::i18n::text("theme-no-colors")),
+            Self::Mode => formatter.write_str(&crate::i18n::text("theme-invalid-mode")),
+            Self::Color(key) => {
+                formatter.write_str(&crate::i18n::with("theme-invalid-color", "value", key))
+            }
         }
     }
 }
@@ -110,10 +112,10 @@ impl Theme {
 
     pub fn label(&self) -> String {
         let mode = match self.palette.mode {
-            Mode::Dark => "escuro",
-            Mode::Light => "claro",
+            Mode::Dark => "theme-dark",
+            Mode::Light => "theme-light",
         };
-        format!("{} ({mode})", self.name)
+        format!("{} ({})", self.name, crate::i18n::text(mode))
     }
 
     pub fn wallpapers(&self) -> &[PathBuf] {

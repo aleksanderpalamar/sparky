@@ -23,7 +23,7 @@ impl Media {
                     error: None,
                 },
                 Err(_) => Self {
-                    error: Some("resposta inválida do lsblk".to_owned()),
+                    error: Some(crate::i18n::text("lsblk-invalid")),
                     ..Self::default()
                 },
             },
@@ -46,7 +46,7 @@ impl Media {
         if let Some(error) = &self.error {
             return vec![Row {
                 id: RowId::MediaStatus,
-                label: "Volumes externos".to_owned(),
+                label: crate::i18n::text("row-external-volumes"),
                 value: error.clone(),
                 control: Control::Reading,
             }];
@@ -65,8 +65,8 @@ impl Media {
                 value: volume
                     .mountpoint
                     .as_ref()
-                    .map(|point| format!("montado em {point}"))
-                    .unwrap_or_else(|| "não montado".to_owned()),
+                    .map(|point| crate::i18n::with("mounted-at", "path", point))
+                    .unwrap_or_else(|| crate::i18n::text("not-mounted")),
                 control: Control::Toggle(volume.mounted()),
             })
             .collect()

@@ -12,26 +12,51 @@ const PADDING: f32 = 16.0;
 
 pub fn view(skin: Skin, delay: Delay) -> Element<'static, Message> {
     let options = [
-        (Mode::Region, "Região"),
-        (Mode::Window, "Janela"),
-        (Mode::Output, "Monitor"),
+        (Mode::Region, "region"),
+        (Mode::Window, "window"),
+        (Mode::Output, "monitor"),
     ]
-    .map(|(mode, label)| option(skin, hint(mode), label, Command::Pick(mode)));
+    .map(|(mode, label)| {
+        option(
+            skin,
+            hint(mode),
+            &crate::i18n::text(label),
+            Command::Pick(mode),
+        )
+    });
     let content = column(options)
-        .push(option(skin, "Tab", &format!("Atraso: {}", delay.label()), Command::NextDelay))
-        .push(option(skin, "Esc", "Cancelar", Command::Cancel))
+        .push(option(
+            skin,
+            "Tab",
+            &crate::i18n::with("delay", "value", delay.label()),
+            Command::NextDelay,
+        ))
+        .push(option(
+            skin,
+            "Esc",
+            &crate::i18n::text("cancel"),
+            Command::Cancel,
+        ))
         .spacing(SPACING);
-    container(column![text("Capturar a tela").color(skin.bright_foreground), content].spacing(SPACING * 1.5))
-        .padding(PADDING)
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .style(move |_| panel(skin))
-        .into()
+    container(
+        column![
+            text(crate::i18n::text("capture-title")).color(skin.bright_foreground),
+            content
+        ]
+        .spacing(SPACING * 1.5),
+    )
+    .padding(PADDING)
+    .width(Length::Fill)
+    .height(Length::Fill)
+    .style(move |_| panel(skin))
+    .into()
 }
 
 fn option(skin: Skin, key: &str, label: &str, command: Command) -> Element<'static, Message> {
     let line = row![
-        text(key.to_owned()).color(skin.accent).width(Length::Fixed(40.0)),
+        text(key.to_owned())
+            .color(skin.accent)
+            .width(Length::Fixed(40.0)),
         text(label.to_owned()).color(skin.foreground),
     ]
     .align_y(Alignment::Center);
@@ -45,7 +70,11 @@ fn option(skin: Skin, key: &str, label: &str, command: Command) -> Element<'stat
 fn panel(skin: Skin) -> container::Style {
     container::Style {
         background: Some(Background::Color(skin.background)),
-        border: Border { color: skin.accent, width: 2.0, ..Border::default() },
+        border: Border {
+            color: skin.accent,
+            width: 2.0,
+            ..Border::default()
+        },
         ..container::Style::default()
     }
 }
@@ -74,6 +103,9 @@ mod tests {
     fn o_seletor_tem_cantos_retos_como_as_janelas() {
         let skin = Skin::default();
         assert_eq!(panel(skin).border.radius, Radius::from(0.0));
-        assert_eq!(entry(skin, button::Status::Hovered).border.radius, Radius::from(0.0));
+        assert_eq!(
+            entry(skin, button::Status::Hovered).border.radius,
+            Radius::from(0.0)
+        );
     }
 }

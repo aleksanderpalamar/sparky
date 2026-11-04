@@ -20,7 +20,7 @@ pub fn view(monitor: &Monitor) -> Element<'_, Message> {
     let Some(memory) = reading.memory else {
         return page(
             skin,
-            "Memória".to_owned(),
+            crate::i18n::text("memory"),
             Some(dash()),
             vec![top_processes(monitor)],
         );
@@ -29,18 +29,14 @@ pub fn view(monitor: &Monitor) -> Element<'_, Message> {
         skin,
         vec![
             (
-                "Em uso",
+                "in-use",
                 format!("{} ({})", bytes(memory.used()), percent(memory.percent())),
             ),
-            ("Disponível", bytes(memory.available)),
-            ("Total", bytes(memory.total)),
+            ("available", bytes(memory.available)),
+            ("total", bytes(memory.total)),
             (
-                "Swap em uso",
-                format!(
-                    "{} de {}",
-                    bytes(memory.swap_used()),
-                    bytes(memory.swap_total)
-                ),
+                "swap-in-use",
+                swap_usage(memory.swap_used(), memory.swap_total),
             ),
         ],
     );
@@ -59,8 +55,8 @@ pub fn view(monitor: &Monitor) -> Element<'_, Message> {
         DETAIL_CHART,
     );
     let charts = row![
-        iced::widget::container(titled(skin, "Memória", ram)).width(Length::Fill),
-        iced::widget::container(titled(skin, "Swap", swap)).width(Length::Fill),
+        iced::widget::container(titled(skin, crate::i18n::text("memory"), ram)).width(Length::Fill),
+        iced::widget::container(titled(skin, crate::i18n::text("swap"), swap)).width(Length::Fill),
     ]
     .spacing(SPACING);
     let content = vec![
@@ -68,5 +64,12 @@ pub fn view(monitor: &Monitor) -> Element<'_, Message> {
         charts.into(),
         top_processes(monitor),
     ];
-    page(skin, "Memória".to_owned(), None, content)
+    page(skin, crate::i18n::text("memory"), None, content)
+}
+
+fn swap_usage(used: u64, total: u64) -> String {
+    let mut args = fluent_bundle::FluentArgs::new();
+    args.set("used", bytes(used));
+    args.set("total", bytes(total));
+    crate::i18n::message("amount-of-total", Some(&args))
 }

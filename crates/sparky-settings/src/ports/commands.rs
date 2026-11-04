@@ -9,9 +9,17 @@ pub enum CommandError {
 impl fmt::Display for CommandError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            CommandError::Unavailable => write!(formatter, "programa não encontrado"),
-            CommandError::Rejected { message, .. } if !message.is_empty() => write!(formatter, "{message}"),
-            CommandError::Rejected { code, .. } => write!(formatter, "terminou com erro {code:?}"),
+            CommandError::Unavailable => {
+                formatter.write_str(&crate::i18n::text("command-unavailable"))
+            }
+            CommandError::Rejected { message, .. } if !message.is_empty() => {
+                write!(formatter, "{message}")
+            }
+            CommandError::Rejected { code, .. } => formatter.write_str(&crate::i18n::with(
+                "command-failed",
+                "code",
+                &format!("{code:?}"),
+            )),
         }
     }
 }

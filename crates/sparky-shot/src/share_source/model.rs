@@ -7,12 +7,14 @@ pub struct Source {
 impl Source {
     pub fn new(raw: &str) -> Self {
         let label = match raw.strip_prefix("Window: ") {
-            Some(window) => format!(
-                "Janela: {}",
+            Some(window) => crate::i18n::with(
+                "window-name",
+                "name",
                 window
                     .rsplit_once(" (")
                     .map_or(window, |(title, _)| title)
                     .trim()
+                    .to_owned(),
             ),
             None => raw.to_owned(),
         };

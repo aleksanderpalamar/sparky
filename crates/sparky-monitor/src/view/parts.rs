@@ -16,7 +16,8 @@ pub fn section<'a>(skin: Skin, title: impl IntoFragment<'a>) -> Element<'a, Mess
         .into()
 }
 
-pub fn link<'a>(skin: Skin, label: &'a str, page: Page) -> Element<'a, Message> {
+pub fn link<'a>(skin: Skin, label: impl AsRef<str>, page: Page) -> Element<'a, Message> {
+    let label = label.as_ref();
     button(
         text(format!("{label} ›"))
             .size(SMALL_TEXT)
@@ -35,7 +36,9 @@ pub fn link<'a>(skin: Skin, label: &'a str, page: Page) -> Element<'a, Message> 
 pub fn stats<'a>(skin: Skin, items: Vec<(&'a str, String)>) -> Element<'a, Message> {
     let blocks = items.into_iter().map(|(label, value)| {
         column![
-            text(label).size(SMALL_TEXT).color(skin.dark_foreground),
+            text(crate::i18n::text(label))
+                .size(SMALL_TEXT)
+                .color(skin.dark_foreground),
             text(value).size(TEXT_SIZE).color(skin.bright_foreground),
         ]
         .spacing(2)
@@ -79,7 +82,7 @@ pub fn page<'a>(
 
 pub fn waiting<'a>(skin: Skin) -> Element<'a, Message> {
     container(
-        text("Lendo o sistema…")
+        text(crate::i18n::text("reading"))
             .size(TEXT_SIZE)
             .color(skin.dark_foreground),
     )

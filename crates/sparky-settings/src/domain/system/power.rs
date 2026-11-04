@@ -43,7 +43,7 @@ impl Power {
         if let Some(light) = &self.backlight {
             rows.push(Row {
                 id: RowId::Brightness,
-                label: "Brilho da tela".to_owned(),
+                label: crate::i18n::text("row-brightness"),
                 value: format!("{}%", light.percent),
                 control: Control::Level,
             });
@@ -52,7 +52,7 @@ impl Power {
             let value = format!("{}% · {}", battery.percent, state_label(&battery.state));
             rows.push(Row {
                 id: RowId::Battery,
-                label: "Bateria".to_owned(),
+                label: crate::i18n::text("row-battery"),
                 value,
                 control: Control::Reading,
             });
@@ -101,20 +101,21 @@ impl Power {
         match (self.profiles.is_empty(), active) {
             (true, _) => Row {
                 id: RowId::PowerProfile,
-                label: "Perfil de energia".to_owned(),
-                value: "power-profiles-daemon indisponível".to_owned(),
+                label: crate::i18n::text("row-power-profile"),
+                value: crate::i18n::text("power-profile-unavailable"),
                 control: Control::Reading,
             },
             (false, current) => Row {
                 id: RowId::PowerProfile,
-                label: "Perfil de energia".to_owned(),
-                value: current
-                    .map_or("nenhum", |profile| label_of(&profile.name))
-                    .to_owned(),
+                label: crate::i18n::text("row-power-profile"),
+                value: current.map_or_else(
+                    || crate::i18n::text("none"),
+                    |profile| label_of(&profile.name),
+                ),
                 control: Control::Options(
                     self.profiles
                         .iter()
-                        .map(|profile| label_of(&profile.name).to_owned())
+                        .map(|profile| label_of(&profile.name))
                         .collect(),
                 ),
             },
@@ -176,13 +177,14 @@ fn percentage(raw: &str) -> Option<u8> {
     raw.trim().trim_end_matches('%').parse().ok()
 }
 
-fn state_label(state: &str) -> &str {
-    match state {
-        "charging" => "carregando",
-        "discharging" => "descarregando",
-        "fully-charged" => "carregada",
-        "pending-charge" => "aguardando carga",
-        "empty" => "vazia",
-        other => other,
-    }
+fn state_label(state: &str) -> String {
+    let key = match state {
+        "charging" => "battery-charging",
+        "discharging" => "battery-discharging",
+        "fully-charged" => "battery-full",
+        "pending-charge" => "battery-pending",
+        "empty" => "battery-empty",
+        other => return other.to_owned(),
+    };
+    crate::i18n::text(key)
 }

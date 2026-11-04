@@ -147,9 +147,7 @@ fn publish(store: &mut Store, output: &UnboundedSender<Audio>) {
             .then(left.index.cmp(&right.index))
     });
     let state = match store.failed {
-        true => {
-            Audio::Unavailable("Não foi possível consultar os dispositivos de áudio".to_owned())
-        }
+        true => Audio::Unavailable(crate::i18n::text("audio-query-failed")),
         false => Audio::Ready(store.state.clone()),
     };
     if store.published.as_ref() == Some(&state) {

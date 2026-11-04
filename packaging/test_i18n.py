@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DOMAINS = {"login", "keyring", "polkit", "launcher", "settings", "bar", "files"}
+DOMAINS = {"login", "keyring", "polkit", "launcher", "settings", "bar", "files", "image", "shot", "monitor", "terminal", "notifications"}
 
 
 class CatalogPackages(unittest.TestCase):
@@ -36,6 +36,14 @@ class CatalogPackages(unittest.TestCase):
         self.assertIn('for file in data/i18n/*/*.ftl; do', arch)
         self.assertIn('"$pkgdir/usr/share/sparky/${file#data/}"', arch)
 
+    def test_entradas_desktop_tem_nome_e_descricao_em_ingles(self):
+        entries = list((ROOT / "data/applications").glob("sparky-*.desktop"))
+        entries.append(ROOT / "data/session/sparky.desktop")
+        for entry in entries:
+            contents = entry.read_text()
+            self.assertIn("Name[en]=", contents, entry.name)
+            self.assertIn("Comment[en]=", contents, entry.name)
+
 
 def messages(path):
     found = {}
@@ -44,6 +52,8 @@ def messages(path):
         start = re.match(r"^([a-z][a-z0-9-]*)\s*=", line)
         if start:
             key = start.group(1)
+            if key in found:
+                raise ValueError(f"duplicate catalog key {key} in {path}")
             found[key] = set()
         if key:
             found[key] |= set(re.findall(r"\{\s*\$([a-z_]+)", line))

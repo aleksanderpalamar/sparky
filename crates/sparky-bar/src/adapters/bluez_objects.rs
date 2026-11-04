@@ -4,6 +4,7 @@ use zbus::fdo::ManagedObjects;
 use zbus::zvariant::OwnedValue;
 
 use crate::domain::bluetooth::{Adapter, Bluetooth, Device, DeviceKind};
+use crate::i18n;
 
 pub const ADAPTER: &str = "org.bluez.Adapter1";
 pub const DEVICE: &str = "org.bluez.Device1";
@@ -60,7 +61,7 @@ fn devices(objects: &ManagedObjects, adapter: &str) -> Vec<Device> {
                 path: path.to_string(),
                 name: text(properties, "Alias")
                     .or_else(|| text(properties, "Name"))
-                    .unwrap_or_else(|| "Dispositivo Bluetooth".to_owned()),
+                    .unwrap_or_else(|| i18n::text("bluetooth-device")),
                 paired: flag(properties, "Paired"),
                 connected: flag(properties, "Connected"),
                 kind: DeviceKind::from_bluez(text(properties, "Icon").as_deref()),

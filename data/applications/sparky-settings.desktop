@@ -1,11 +1,15 @@
 [Desktop Entry]
 Type=Application
 Name=Configurações do Sparky
+Name[en]=Sparky Settings
 GenericName=Configurações
+GenericName[en]=Settings
 Comment=Folgas, teclado, aplicativos e inicialização do sparky
+Comment[en]=Configure gaps, keyboard, applications, and startup
 Exec=sparky-settings
 Icon=preferences-system
 Terminal=false
 Categories=Settings;DesktopSettings;
 OnlyShowIn=sparky;
 Keywords=preferências;teclado;folgas;atalhos;
+Keywords[en]=preferences;keyboard;gaps;shortcuts;

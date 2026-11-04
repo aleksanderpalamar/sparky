@@ -60,7 +60,7 @@ fn area(mode: Mode) -> Result<Option<CaptureArea>, String> {
 }
 
 fn region() -> Result<Option<CaptureArea>, String> {
-    let output = focused_output().ok_or("nenhum monitor em foco: o sparky está rodando?")?;
+    let output = focused_output().ok_or_else(|| crate::i18n::text("no-focused-output"))?;
     Ok(overlay::select(output.width, output.height).map(|rect| region_of(output, rect)))
 }
 

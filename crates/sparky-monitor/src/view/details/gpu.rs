@@ -21,7 +21,7 @@ pub fn view(monitor: &Monitor) -> Element<'_, Message> {
         return waiting(skin);
     };
     if reading.gpus.is_empty() {
-        let none = text("Nenhuma GPU encontrada em /sys/class/drm")
+        let none = text(crate::i18n::text("no-gpu"))
             .size(TEXT_SIZE)
             .color(skin.dark_foreground);
         return page(skin, "GPU".to_owned(), None, vec![panel(skin, none)]);
@@ -39,15 +39,15 @@ pub fn view(monitor: &Monitor) -> Element<'_, Message> {
 
 fn device<'a>(skin: Skin, index: usize, gpu: &GpuDevice, pair: &'a Pair) -> Element<'a, Message> {
     let vram = match (gpu.vram_used, gpu.vram_total) {
-        (Some(used), Some(total)) => format!("{} de {}", bytes(used), bytes(total)),
+        (Some(used), Some(total)) => amount_of_total(used, total),
         (Some(used), None) => bytes(used),
         _ => dash(),
     };
     let numbers = stats(
         skin,
         vec![
-            ("Uso", gpu.busy.map(percent).unwrap_or_else(dash)),
-            ("VRAM em uso", vram),
+            ("usage", gpu.busy.map(percent).unwrap_or_else(dash)),
+            ("vram-in-use", vram),
         ],
     );
     let usage = chart(
@@ -65,7 +65,7 @@ fn device<'a>(skin: Skin, index: usize, gpu: &GpuDevice, pair: &'a Pair) -> Elem
         DETAIL_CHART,
     );
     let charts = row![
-        container(titled(skin, "Uso", usage)).width(Length::Fill),
+        container(titled(skin, crate::i18n::text("usage"), usage)).width(Length::Fill),
         container(titled(skin, "VRAM", memory)).width(Length::Fill),
     ]
     .spacing(SPACING);
@@ -74,4 +74,11 @@ fn device<'a>(skin: Skin, index: usize, gpu: &GpuDevice, pair: &'a Pair) -> Elem
         skin,
         column![section(skin, title), numbers, charts].spacing(SPACING),
     )
+}
+
+fn amount_of_total(used: u64, total: u64) -> String {
+    let mut args = fluent_bundle::FluentArgs::new();
+    args.set("used", bytes(used));
+    args.set("total", bytes(total));
+    crate::i18n::message("amount-of-total", Some(&args))
 }

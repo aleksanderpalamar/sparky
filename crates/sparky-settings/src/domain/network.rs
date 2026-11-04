@@ -83,11 +83,11 @@ impl Network {
         let profile = self
             .profiles
             .get(self.selected)
-            .ok_or("Nenhuma conexão ativa selecionada")?;
+            .ok_or_else(|| crate::i18n::text("network-no-selection"))?;
         let draft = self
             .draft
             .as_ref()
-            .ok_or("Configuração IPv4 indisponível")?;
+            .ok_or_else(|| crate::i18n::text("network-ipv4-unavailable"))?;
         let arguments = draft.arguments(&profile.uuid, profile.ipv4.method)?;
         let arguments = arguments.iter().map(String::as_str).collect::<Vec<_>>();
         commands

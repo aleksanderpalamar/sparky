@@ -10,7 +10,7 @@ fn main() -> ExitCode {
         Ok(launch) => launch,
         Err(error) => {
             eprintln!("sparky-terminal: {error}");
-            eprintln!("uso: sparky-terminal [-d PASTA] [-e COMANDO ARGUMENTOS...]");
+            eprintln!("{}", sparky_terminal::i18n::text("usage"));
             return ExitCode::from(USAGE);
         }
     };

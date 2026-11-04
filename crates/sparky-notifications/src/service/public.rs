@@ -61,7 +61,7 @@ impl Notifications {
                     (picture, icon)
                 })
                 .await
-                .map_err(|_| fdo::Error::Failed("Não foi possível preparar a imagem".to_owned()))?
+                .map_err(|_| fdo::Error::Failed(crate::i18n::text("image-failed")))?
             }
             Err(_) => (None, String::new()),
         };

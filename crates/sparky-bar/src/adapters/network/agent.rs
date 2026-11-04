@@ -40,7 +40,7 @@ impl Agent {
             .is_some_and(|sender| sender.as_str() == self.owner)
         {
             true => Ok(()),
-            false => Err(Error::Failed("Solicitante não autorizado".to_owned())),
+            false => Err(Error::Failed(crate::i18n::text("network-unauthorized"))),
         }
     }
 }
@@ -73,9 +73,9 @@ impl Agent {
             || flags & 1 == 0
             || !matches!(self.security, Security::Personal | Security::Sae)
         {
-            return Err(Error::NoSecrets(
-                "O painel não pode fornecer credenciais para esta conexão".to_owned(),
-            ));
+            return Err(Error::NoSecrets(crate::i18n::text(
+                "network-no-credentials",
+            )));
         }
         let answer = self
             .prompts
@@ -84,7 +84,9 @@ impl Agent {
             })
             .await;
         let Answer::Secret(secret) = answer else {
-            return Err(Error::UserCanceled("Autenticação cancelada".to_owned()));
+            return Err(Error::UserCanceled(crate::i18n::text(
+                "network-auth-canceled",
+            )));
         };
         self.security
             .validate(secret.expose())
@@ -120,9 +122,9 @@ impl Agent {
         #[zbus(header)] header: Header<'_>,
     ) -> Result<(), Error> {
         self.authorize(&header)?;
-        Err(Error::NoSecrets(
-            "O armazenamento de senhas é gerenciado pelo NetworkManager".to_owned(),
-        ))
+        Err(Error::NoSecrets(crate::i18n::text(
+            "network-password-managed",
+        )))
     }
 
     fn delete_secrets(

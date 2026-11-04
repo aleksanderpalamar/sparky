@@ -12,8 +12,8 @@ use crate::domain::picture::Picture;
 use crate::domain::viewport::Viewport;
 use crate::ports::{DecodeError, Decoder};
 
-const NOTHING_OPEN: &str = "Abra uma imagem pelo gerenciador de arquivos";
-const EMPTY_FOLDER: &str = "Nenhuma imagem nesta pasta";
+const NOTHING_OPEN: &str = "empty";
+const EMPTY_FOLDER: &str = "empty-folder";
 
 impl Viewer {
     pub fn open(

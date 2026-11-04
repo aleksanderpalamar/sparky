@@ -22,7 +22,7 @@ pub fn view(monitor: &Monitor) -> Element<'_, Message> {
     let sent: f64 = reading.networks.iter().map(|net| net.sent).sum();
     let mut content = vec![titled(
         skin,
-        "Todas as interfaces",
+        crate::i18n::text("all-interfaces"),
         traffic(skin, &monitor.histories.network, received, sent),
     )];
     for net in &reading.networks {
@@ -36,8 +36,8 @@ pub fn view(monitor: &Monitor) -> Element<'_, Message> {
     }
     page(
         skin,
-        "Rede".to_owned(),
-        Some("recebido em destaque, enviado em ciano".to_owned()),
+        crate::i18n::text("network"),
+        Some(crate::i18n::text("network-legend")),
         content,
     )
 }
@@ -45,7 +45,7 @@ pub fn view(monitor: &Monitor) -> Element<'_, Message> {
 fn traffic(skin: Skin, pair: &Pair, received: f64, sent: f64) -> Element<'_, Message> {
     let numbers = stats(
         skin,
-        vec![("Recebendo", rate(received)), ("Enviando", rate(sent))],
+        vec![("receiving", rate(received)), ("sending", rate(sent))],
     );
     let graph = chart(
         skin,
