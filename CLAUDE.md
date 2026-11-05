@@ -1,94 +1,107 @@
-# AGENT.md
+# AGENTS.md
 
-Você deve respeitar as regras deste projeto em todas as alterações realizadas.
-Todo código produzido deve permanecer em conformidade com estas regras.
+You must follow this project's rules for all changes.
+All code produced must remain compliant with these rules.
 
-## Princípios de arquitetura
+## Architectural principles
 
-- Aplicar o Princípio da Responsabilidade Única (SRP).
-  Cada módulo, struct, função ou componente deve possuir uma responsabilidade clara e bem definida.
+- Apply the Single Responsibility Principle (SRP).
+  Each module, struct, function, or component must have a clear, well-defined responsibility.
 
-- Aplicar o Princípio da Inversão de Dependência (DIP).
-  Módulos de alto nível não devem depender diretamente de módulos de baixo nível.
-  Ambos devem depender de abstrações.
+- Apply the Dependency Inversion Principle (DIP).
+  High-level modules must not depend directly on low-level modules.
+  Both must depend on abstractions.
 
-## Organização do código
+## Code organization
 
-- Seguir princípios de Clean Code.
+- Follow Clean Code principles.
 
-- Cada arquivo de código-fonte deve possuir, preferencialmente, no máximo 200 linhas.
-  Caso ultrapasse esse limite, avaliar a divisão do arquivo em módulos menores e coesos.
+- Each source-code file should preferably contain no more than approximately 200 lines.
+  If it exceeds this limit, consider splitting it into smaller, cohesive modules.
 
-- Para cada alteração, ajustes, correções de bugs e etc, deve ser realizados em branches separadas.
+- Each change, adjustment, bug fix, and so on must be made on a separate branch.
 
--  Não adicionar comentarios no código sem a minha permissão.
+- Do not add comments to code without my permission.
 
-- Funções devem ser pequenas e possuir uma única responsabilidade.
+- Functions must be small and have a single responsibility.
 
-- Evitar condicionais profundamente aninhadas.
+- Avoid deeply nested conditionals.
 
-- Preferir:
-  - early return;
+- Prefer:
+  - early returns;
   - `match`;
   - `if let`;
   - `let else`;
-  - decomposição em funções menores;
-  - tipos e enums para representar estados explicitamente.
+  - decomposition into smaller functions;
+  - types and enums to represent states explicitly.
 
-- Evitar duplicação de código.
-  Quando houver comportamento realmente compartilhado, extrair uma abstração apropriada.
+- Avoid code duplication.
+  When behavior is genuinely shared, extract an appropriate abstraction.
 
-- Não criar abstrações prematuramente.
-  Uma abstração deve existir porque resolve um problema real de design,
-  e não apenas para antecipar uma possível necessidade futura.
+- Do not create abstractions prematurely.
+  An abstraction should exist because it solves a real design problem,
+  not merely to anticipate a possible future need.
 
-## Códigos de conduta
+## Subagent strategy
 
-Você pode ser proativo dentro do contexto da tarefa, mas nunca fora dele. Se, durante uma tarefa, você perceber que um trecho de código precisa de refatoração ou correção que não foi solicitada, não a execute. Apenas registre o que foi identificado no relatório final, para que eu decida se entra em uma próxima tarefa.
+- The primary agent is responsible for planning, architectural decisions, implementation, and final integration.
+- For complex tasks, identify independent activities that can be delegated to subagents.
+- Prioritize delegating code exploration, technical investigation, test analysis, and review.
+- Use up to two subagents simultaneously, according to the Codex configuration.
+- Avoid delegation for simple or sequential tasks when coordination costs outweigh the benefits.
+- Investigation subagents must not modify files.
+- Consolidate findings before making architectural decisions.
+- All agents must follow this AGENTS.md.
+- Preserve the approved scope and work autonomously through completion.
+
+## Conduct
+
+You may be proactive within the task's scope, but never beyond it. If, during a task, you notice code that needs refactoring or a fix that was not requested, do not make that change. Only mention it in the final report so I can decide whether to include it in a future task.
 
 ## Rust
 
-- Priorizar código idiomático em Rust.
-- Utilizar o sistema de tipos para representar regras e estados sempre que possível.
-- Preferir enums em vez de flags booleanas quando existirem múltiplos estados possíveis.
-Evitar operações que assumem sucesso sem verificar erros.
-Em Option<T>, evitar unwrap() e expect() quando a ausência for um caso normal sem antes tratar isso.
-Evitar panic!, unreachable! e assert! para situações esperadas de execução.
-Preferir tratamento explícito do erro.
+- Prefer idiomatic Rust.
+- Use the type system to represent rules and states whenever possible.
+- Prefer enums over boolean flags when there are multiple possible states.
+- Avoid operations that assume success without checking for errors.
+- For `Option<T>`, avoid `unwrap()` and `expect()` when absence is a normal case; handle it first.
+- Avoid `panic!`, `unreachable!`, and `assert!` for expected runtime situations.
+- Prefer explicit error handling.
 
-- Utilizar Option<T> quando um valor pode não existir.
+- Use `Option<T>` when a value may not exist.
 
-- Não silenciar warnings sem uma justificativa clara.
+- Do not silence warnings without a clear justification.
 
-## Testes
-- Siga os princípios do TDD.
-- Todo comportamento relevante deve possuir testes.
-- Algoritmos e regras de domínio devem ser testáveis.
-- Correções de bugs devem, sempre que possível, incluir um teste que reproduza o problema antes da correção.
-- Funções determinísticas de domínio devem possuir testes unitários.
+## Testing
 
-## Qualidade
+- Follow TDD principles.
+- Every relevant behavior should have tests.
+- Algorithms and domain rules should be testable.
+- Bug fixes should, whenever possible, include a test that reproduces the issue before the fix.
+- Deterministic domain functions should have unit tests.
 
-Antes de considerar uma alteração concluída:
+## Quality
 
-1. O projeto deve compilar sem erros.
-2. Novos warnings não devem ser introduzidos sem justificativa.
-3. Os testes existentes devem continuar passando.
-4. Novos comportamentos devem possuir testes quando aplicável.
-5. O código deve permanecer simples, legível e consistente com a arquitetura existente.
+Before considering a change complete:
 
-## Versionamento de pacotes
+1. The project must compile without errors.
+2. No new warnings should be introduced without justification.
+3. Existing tests must continue to pass.
+4. New behavior should have tests when applicable.
+5. The code must remain simple, readable, and consistent with the architecture.
 
-O versionamento dos pacotes deve seguir a especificação Semantic Versioning 2.0.0 (SemVer), utilizando o formato `MAJOR.MINOR.PATCH`.
+## Package versioning
 
-**MAJOR:** deve ser incrementada quando houver alterações incompatíveis com versões anteriores, independentemente da quantidade ou importância das funcionalidades implementadas.
+Package versions must follow the Semantic Versioning 2.0.0 (SemVer) specification, using the `MAJOR.MINOR.PATCH` format.
 
-**MINOR:** deve ser incrementada quando novas funcionalidades ou melhorias forem introduzidas sem comprometer a compatibilidade com versões anteriores.
+**MAJOR:** increment when a change is incompatible with previous versions, regardless of the number or significance of features introduced.
 
-**PATCH:** deve ser incrementada exclusivamente para correções de bugs que preservem a compatibilidade com versões anteriores.
+**MINOR:** increment when new features or improvements are introduced without breaking backward compatibility.
 
-Ao incrementar MAJOR, os números MINOR e PATCH devem ser redefinidos para zero. Ao incrementar MINOR, PATCH deve ser redefinido para zero.
+**PATCH:** increment exclusively for backward-compatible bug fixes.
 
-Versões anteriores à `1.0.0` são consideradas em desenvolvimento inicial e não possuem garantia de estabilidade da API pública.
+When incrementing MAJOR, reset MINOR and PATCH to zero. When incrementing MINOR, reset PATCH to zero.
 
-A definição da versão deve considerar a natureza e o impacto das alterações, nunca apenas sua quantidade ou complexidade.
+Versions before `1.0.0` are considered early development and do not guarantee public API stability.
+
+Choose the version based on the nature and impact of the changes, never merely their number or complexity.
