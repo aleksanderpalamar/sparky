@@ -29,8 +29,12 @@ pub fn connect(app: &mut Workspace, id: TabId, listener: Listener) -> Task<Messa
             super::input::focus(terminal, focus);
         }
         Err(error) => {
-            terminal.title = "Erro ao abrir o shell".into();
-            terminal.error = Some(format!("Não deu para abrir o shell: {error}"));
+            terminal.title = crate::i18n::text("shell-error-title");
+            terminal.error = Some(crate::i18n::with(
+                "shell-error",
+                "reason",
+                &error.to_string(),
+            ));
         }
     }
     Task::none()

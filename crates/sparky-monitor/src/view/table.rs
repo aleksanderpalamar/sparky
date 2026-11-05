@@ -18,11 +18,11 @@ use crate::domain::units::{bytes, percent, rate};
 use crate::domain::usage::Usage;
 
 const FIELDS: [(Field, &str); 5] = [
-    (Field::Cpu, "CPU"),
-    (Field::Memory, "Memória"),
-    (Field::Gpu, "GPU"),
-    (Field::Vram, "VRAM"),
-    (Field::Disk, "Disco"),
+    (Field::Cpu, "cpu"),
+    (Field::Memory, "memory"),
+    (Field::Gpu, "gpu"),
+    (Field::Vram, "vram"),
+    (Field::Disk, "disk"),
 ];
 
 pub fn processes(monitor: &Monitor, rows: usize) -> Element<'_, Message> {
@@ -92,9 +92,21 @@ fn header<'a>(skin: Skin, sort: Sort, kind: Focus) -> Element<'a, Message> {
     if kind == Focus::Applications {
         cells = cells.push(text("").width(ICON_SIZE));
     }
-    cells = cells.push(title(skin, sort, Field::Name, "Nome", Length::Fill));
+    cells = cells.push(title(
+        skin,
+        sort,
+        Field::Name,
+        crate::i18n::text("name"),
+        Length::Fill,
+    ));
     for (field, label) in FIELDS {
-        cells = cells.push(title(skin, sort, field, label, Length::Fixed(VALUE_WIDTH)));
+        cells = cells.push(title(
+            skin,
+            sort,
+            field,
+            crate::i18n::text(label),
+            Length::Fixed(VALUE_WIDTH),
+        ));
     }
     cells.height(ROW_HEIGHT).into()
 }
@@ -103,7 +115,7 @@ fn title<'a>(
     skin: Skin,
     sort: Sort,
     field: Field,
-    label: &'a str,
+    label: String,
     width: Length,
 ) -> Element<'a, Message> {
     let arrow = match (sort.column == field, sort.order) {

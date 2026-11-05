@@ -5,6 +5,7 @@ use sparky_theme::Skin;
 use crate::app::message::Message;
 use crate::domain::network::NetworkDevice;
 use crate::domain::telemetry::{Metrics, Ping, bytes};
+use crate::i18n;
 
 pub fn view<'a>(
     skin: &Skin,
@@ -33,14 +34,32 @@ pub fn view<'a>(
         .unwrap_or("—");
     let gateway = device.gateway.as_deref().unwrap_or("—");
     column![
-        pair(skin, "PING", ping, "PERDA DE PACOTES", loss),
-        pair(skin, "RECEBENDO", received, "ENVIANDO", sent),
-        pair(skin, "BAIXADO", total_received, "ENVIADO", total_sent),
         pair(
             skin,
-            "ENDEREÇO IP",
+            i18n::text("ping"),
+            ping,
+            i18n::text("packet-loss"),
+            loss
+        ),
+        pair(
+            skin,
+            i18n::text("receiving"),
+            received,
+            i18n::text("sending"),
+            sent
+        ),
+        pair(
+            skin,
+            i18n::text("downloaded"),
+            total_received,
+            i18n::text("uploaded"),
+            total_sent
+        ),
+        pair(
+            skin,
+            i18n::text("ip-address"),
             address.to_owned(),
-            "GATEWAY",
+            i18n::text("gateway"),
             gateway.to_owned()
         ),
     ]
@@ -51,17 +70,17 @@ pub fn view<'a>(
 fn ping(ping: Option<Ping>) -> String {
     match ping {
         Some(Ping::Reply(milliseconds)) => format!("{milliseconds} ms"),
-        Some(Ping::Lost) => "sem resposta".to_owned(),
-        Some(Ping::Unavailable) => "indisponível".to_owned(),
+        Some(Ping::Lost) => i18n::text("no-response"),
+        Some(Ping::Unavailable) => i18n::text("unavailable"),
         None => "—".to_owned(),
     }
 }
 
 fn pair<'a>(
     skin: &Skin,
-    left_label: &'static str,
+    left_label: String,
     left_value: String,
-    right_label: &'static str,
+    right_label: String,
     right_value: String,
 ) -> Element<'a, Message> {
     row![
@@ -72,7 +91,7 @@ fn pair<'a>(
     .into()
 }
 
-fn cell<'a>(skin: &Skin, label: &'static str, value: String) -> Element<'a, Message> {
+fn cell<'a>(skin: &Skin, label: String, value: String) -> Element<'a, Message> {
     column![
         text(label).size(10).color(skin.dark_foreground),
         text(value).size(12).color(skin.foreground)

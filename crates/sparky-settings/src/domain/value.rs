@@ -28,12 +28,15 @@ pub enum Invalid {
 impl fmt::Display for Invalid {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Invalid::NotNumber => write!(formatter, "digite um número inteiro"),
+            Invalid::NotNumber => formatter.write_str(&crate::i18n::text("invalid-number")),
             Invalid::OutOfRange(bounds) => {
-                write!(formatter, "use um valor de {} a {}", bounds.min, bounds.max)
+                let mut args = fluent_bundle::FluentArgs::new();
+                args.set("min", bounds.min as i64);
+                args.set("max", bounds.max as i64);
+                formatter.write_str(&crate::i18n::message("invalid-range", Some(&args)))
             }
-            Invalid::Blank => write!(formatter, "este campo não pode ficar vazio"),
-            Invalid::Toggle => write!(formatter, "use Enter ou as setas para ligar e desligar"),
+            Invalid::Blank => formatter.write_str(&crate::i18n::text("invalid-blank")),
+            Invalid::Toggle => formatter.write_str(&crate::i18n::text("invalid-toggle")),
         }
     }
 }
@@ -96,9 +99,9 @@ pub fn parsed(field: Field, input: &str) -> Result<Value, Invalid> {
 pub fn shown(value: &Value) -> String {
     match value {
         Value::Number(number) => number.to_string(),
-        Value::Flag(true) => "ligado".to_owned(),
-        Value::Flag(false) => "desligado".to_owned(),
-        Value::Text(text) if text.is_empty() => "automático".to_owned(),
+        Value::Flag(true) => crate::i18n::text("on"),
+        Value::Flag(false) => crate::i18n::text("off"),
+        Value::Text(text) if text.is_empty() => crate::i18n::text("automatic"),
         Value::Text(text) => text.clone(),
     }
 }

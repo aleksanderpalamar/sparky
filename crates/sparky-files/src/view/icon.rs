@@ -9,7 +9,7 @@ use crate::domain::icons::IconKind;
 pub fn entry_icon(
     files: &Files,
     entry: &Entry,
-    place: Option<&str>,
+    place: Option<IconKind>,
     size: f32,
 ) -> Element<'static, Message> {
     let path = files.location.join(&entry.name);

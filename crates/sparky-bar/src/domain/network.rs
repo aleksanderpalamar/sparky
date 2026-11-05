@@ -22,17 +22,15 @@ impl Security {
             }
             Self::Sae => (1..=63).contains(&password.len()),
             Self::Enterprise => {
-                return Err(
-                    "Redes corporativas exigem um perfil previamente configurado".to_owned(),
-                );
+                return Err(crate::i18n::text("enterprise-profile-required"));
             }
             Self::Unsupported => {
-                return Err("Este tipo de segurança Wi-Fi não é suportado pelo painel".to_owned());
+                return Err(crate::i18n::text("wifi-security-unsupported"));
             }
         };
         match valid {
             true => Ok(()),
-            false => Err("Senha Wi-Fi inválida para o tipo de segurança da rede".to_owned()),
+            false => Err(crate::i18n::text("wifi-password-invalid")),
         }
     }
 

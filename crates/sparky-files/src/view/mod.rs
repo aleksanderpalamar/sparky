@@ -7,6 +7,8 @@ pub mod list;
 pub mod open_with;
 pub mod properties;
 pub mod sidebar;
+#[cfg(test)]
+mod sidebar_tests;
 pub mod status;
 pub mod style;
 pub mod trash_sidebar;
@@ -17,6 +19,7 @@ use iced::{Element, Length};
 use crate::app::message::Message;
 use crate::app::state::Files;
 use crate::domain::grid::ViewMode;
+use crate::i18n;
 
 pub fn view(files: &Files) -> Element<'_, Message> {
     let skin = files.skin;
@@ -37,7 +40,7 @@ pub fn view(files: &Files) -> Element<'_, Message> {
 
 pub fn title(files: &Files) -> String {
     if files.in_trash() {
-        return "Lixeira — Arquivos".to_owned();
+        return i18n::text("window-title-trash");
     }
-    format!("{} — Arquivos", files.shown(&files.location))
+    i18n::with("window-title", "location", files.shown(&files.location))
 }

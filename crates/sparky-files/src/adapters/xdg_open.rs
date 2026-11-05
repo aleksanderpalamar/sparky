@@ -42,7 +42,12 @@ impl Opener for XdgOpen {
         let app = gio::AppInfo::all_for_type(&content_type(path))
             .into_iter()
             .find(|app| app.id().as_deref() == Some(id))
-            .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "aplicativo indisponível"))?;
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::NotFound,
+                    crate::i18n::text("application-unavailable"),
+                )
+            })?;
         app.launch(&[gio::File::for_path(path)], None::<&gio::AppLaunchContext>)
             .map_err(io::Error::other)
     }

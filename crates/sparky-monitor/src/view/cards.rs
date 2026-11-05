@@ -5,6 +5,7 @@ use iced::{Color, Element, Length};
 use sparky_theme::Skin;
 use sparky_ui::style::{SMALL_TEXT, SPACING, TEXT_SIZE};
 
+use super::cards_text::{joined, translated};
 use super::chart::{Labels, chart};
 use super::parts::{link, panel};
 use super::scale::Scale;
@@ -52,7 +53,7 @@ fn cpu<'a>(monitor: &'a Monitor, reading: &Reading) -> Card<'a> {
         info.temperature.map(celsius),
     ];
     Card {
-        title: "CPU".to_owned(),
+        title: crate::i18n::text("cpu"),
         lines: vec![joined(details), info.model.clone().unwrap_or_default()],
         top: top(&monitor.processes, Field::Cpu)
             .map(|row| (row.name.clone(), percent(row.usage.cpu))),
@@ -65,10 +66,10 @@ fn cpu<'a>(monitor: &'a Monitor, reading: &Reading) -> Card<'a> {
 fn memory<'a>(monitor: &'a Monitor, reading: &Reading) -> Card<'a> {
     let memory = reading.memory.unwrap_or_default();
     Card {
-        title: "Memória".to_owned(),
+        title: crate::i18n::text("memory"),
         lines: vec![
             format!("{} · {}", percent(memory.percent()), bytes(memory.used())),
-            format!("de {}", bytes(memory.total)),
+            translated("of-total", &[("total", bytes(memory.total))]),
         ],
         top: top(&monitor.processes, Field::Memory)
             .map(|row| (row.name.clone(), bytes(row.usage.memory))),
@@ -86,8 +87,11 @@ fn disk<'a>(monitor: &'a Monitor, reading: &Reading) -> Card<'a> {
             (read + disk.read, write + disk.write)
         });
     Card {
-        title: "Disco".to_owned(),
-        lines: vec![format!("{} lendo · {} escrevendo", rate(read), rate(write))],
+        title: crate::i18n::text("disk"),
+        lines: vec![translated(
+            "disk-rates",
+            &[("read", rate(read)), ("write", rate(write))],
+        )],
         top: top(&monitor.processes, Field::Disk)
             .map(|row| (row.name.clone(), rate(row.usage.disk))),
         series: vec![
@@ -111,11 +115,10 @@ fn network<'a>(monitor: &'a Monitor, reading: &Reading) -> Card<'a> {
         .iter()
         .max_by(|a, b| (a.received + a.sent).total_cmp(&(b.received + b.sent)));
     Card {
-        title: "Rede".to_owned(),
-        lines: vec![format!(
-            "{} recebendo · {} enviando",
-            rate(received),
-            rate(sent)
+        title: crate::i18n::text("network"),
+        lines: vec![translated(
+            "network-rates",
+            &[("received", rate(received)), ("sent", rate(sent))],
         )],
         top: busiest.map(|net| (net.name.clone(), rate(net.received + net.sent))),
         series: vec![
@@ -181,7 +184,7 @@ fn render<'a>(skin: Skin, card: Card<'a>) -> Element<'a, Message> {
             .align_y(Vertical::Center),
         );
     }
-    info = info.push(link(skin, "Detalhes", card.page));
+    info = info.push(link(skin, crate::i18n::text("details"), card.page));
     let graph = chart(skin, card.series, card.scale, Labels::Hidden, CARD_CHART);
     panel(
         skin,
@@ -191,8 +194,4 @@ fn render<'a>(skin: Skin, card: Card<'a>) -> Element<'a, Message> {
         ]
         .spacing(SPACING * 2.0),
     )
-}
-
-fn joined<const N: usize>(parts: [Option<String>; N]) -> String {
-    parts.into_iter().flatten().collect::<Vec<_>>().join(" · ")
 }

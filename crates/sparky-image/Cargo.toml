@@ -14,6 +14,8 @@ name = "sparky_image"
 path = "src/lib.rs"
 
 [dependencies]
+sparky-i18n.workspace = true
+fluent-bundle = "0.16"
 iced = { version = "0.14", features = ["canvas", "image", "tokio"] }
 image = { version = "0.25", default-features = false, features = ["bmp", "gif", "jpeg", "png", "tiff", "webp"] }
 tokio = { version = "1", features = ["rt"] }

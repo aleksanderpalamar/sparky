@@ -25,8 +25,11 @@ pub fn free_name(name: &str, taken: impl Fn(&str) -> bool) -> String {
     let (stem, extension) = split(name);
     (1..=u32::MAX)
         .map(|number| match number {
-            1 => format!("{stem} (cópia){extension}"),
-            _ => format!("{stem} (cópia {number}){extension}"),
+            1 => format!("{stem} ({}){extension}", crate::i18n::text("copy-suffix")),
+            _ => format!(
+                "{stem} ({}){extension}",
+                crate::i18n::with("copy-number", "number", number.to_string())
+            ),
         })
         .find(|candidate| !taken(candidate))
         .unwrap_or_else(|| name.to_owned())
@@ -49,8 +52,14 @@ mod tests {
 
     #[test]
     fn barra_no_fim_cria_pasta_e_sem_ela_cria_arquivo() {
-        assert_eq!(creation(" Projetos/ "), Some(Creation::Folder("Projetos".to_owned())));
-        assert_eq!(creation("notas.md"), Some(Creation::File("notas.md".to_owned())));
+        assert_eq!(
+            creation(" Projetos/ "),
+            Some(Creation::Folder("Projetos".to_owned()))
+        );
+        assert_eq!(
+            creation("notas.md"),
+            Some(Creation::File("notas.md".to_owned()))
+        );
     }
 
     #[test]
@@ -71,9 +80,15 @@ mod tests {
     #[test]
     fn nome_ocupado_ganha_copia_antes_da_extensao() {
         let ocupados = ["foto.png", "foto (cópia).png", "foto (cópia 2).png"];
-        assert_eq!(free_name("foto.png", |nome| ocupados.contains(&nome)), "foto (cópia 3).png");
+        assert_eq!(
+            free_name("foto.png", |nome| ocupados.contains(&nome)),
+            "foto (cópia 3).png"
+        );
         assert_eq!(free_name("Fotos", |nome| nome == "Fotos"), "Fotos (cópia)");
-        assert_eq!(free_name(".bashrc", |nome| nome == ".bashrc"), ".bashrc (cópia)");
+        assert_eq!(
+            free_name(".bashrc", |nome| nome == ".bashrc"),
+            ".bashrc (cópia)"
+        );
     }
 
     #[test]

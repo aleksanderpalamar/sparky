@@ -1,4 +1,5 @@
 pub mod cards;
+mod cards_text;
 pub mod chart;
 pub mod dashboard;
 pub mod details;
@@ -52,5 +53,5 @@ fn content(monitor: &Monitor) -> Element<'_, Message> {
 }
 
 pub fn title(monitor: &Monitor) -> String {
-    format!("{} — Monitor do sistema", monitor.page.label())
+    format!("{} — {}", monitor.page.label(), crate::i18n::text("title"))
 }

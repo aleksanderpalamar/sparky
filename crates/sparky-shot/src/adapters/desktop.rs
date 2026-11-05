@@ -7,8 +7,6 @@ use sparky_xdg::{UserDir, UserDirs};
 use crate::domain::pictures::FOLDER;
 use crate::ports::{Clipboard, Notifier};
 
-const APP_NAME: &str = "Capturador de tela";
-
 pub struct WlCopy;
 
 impl Clipboard for WlCopy {
@@ -32,15 +30,15 @@ pub struct NotifySend;
 impl Notifier for NotifySend {
     fn saved(&self, path: &Path, copied: bool) {
         let body = match copied {
-            true => format!("{} (também na área de transferência)", path.display()),
+            true => crate::i18n::with("copied", "path", path.display().to_string()),
             false => path.display().to_string(),
         };
         let icon = path.to_string_lossy();
-        notify(&["-i", icon.as_ref(), "Captura salva", &body]);
+        notify(&["-i", icon.as_ref(), &crate::i18n::text("saved"), &body]);
     }
 
     fn failed(&self, message: &str) {
-        notify(&["-u", "critical", "A captura falhou", message]);
+        notify(&["-u", "critical", &crate::i18n::text("failed"), message]);
     }
 }
 
@@ -52,7 +50,10 @@ pub fn screenshot_dir() -> Result<PathBuf, String> {
 }
 
 fn notify(arguments: &[&str]) {
-    let result = Command::new("notify-send").args(["-a", APP_NAME]).args(arguments).status();
+    let result = Command::new("notify-send")
+        .args(["-a", &crate::i18n::text("app-name")])
+        .args(arguments)
+        .status();
     if let Err(error) = result {
         eprintln!("sparky-shot: sem notificação: {error}");
     }

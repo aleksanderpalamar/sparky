@@ -1,5 +1,6 @@
 use super::{action, calendar};
 use crate::app::{center_state::CenterState, message::Message};
+use crate::i18n;
 use iced::{
     Element, Length,
     widget::{column, container, row, rule, scrollable, text},
@@ -28,19 +29,19 @@ fn notifications<'a>(skin: &Skin, center: &'a CenterState) -> Element<'a, Messag
         false => Message::Ignore,
     };
     let header = row![
-        text("Notificações")
+        text(i18n::text("notifications"))
             .size(13)
             .color(skin.foreground)
             .width(Length::Fill),
-        action(skin, "Limpar", clear)
+        action(skin, i18n::text("clear"), clear)
     ]
     .spacing(8);
     let items: Element<'a, Message> = match &center.error {
-        Some(error) => text(format!("Serviço indisponível\n{error}"))
+        Some(error) => text(format!("{}\n{error}", i18n::text("service-unavailable")))
             .size(12)
             .color(skin.urgent)
             .into(),
-        None if center.snapshot.items.is_empty() => text("Nenhuma notificação nesta sessão")
+        None if center.snapshot.items.is_empty() => text(i18n::text("no-notifications"))
             .size(12)
             .color(skin.dark_foreground)
             .into(),
@@ -57,9 +58,9 @@ fn notifications<'a>(skin: &Skin, center: &'a CenterState) -> Element<'a, Messag
         .into(),
     };
     let label = match (ready, center.snapshot.dnd) {
-        (false, _) => "Não perturbe · indisponível",
-        (true, true) => "Não perturbe · ativado",
-        (true, false) => "Não perturbe · desativado",
+        (false, _) => "dnd-unavailable",
+        (true, true) => "dnd-enabled",
+        (true, false) => "dnd-disabled",
     };
     let toggle = match ready {
         true => Message::NotificationCommand(Command::Dnd(!center.snapshot.dnd)),
@@ -69,8 +70,8 @@ fn notifications<'a>(skin: &Skin, center: &'a CenterState) -> Element<'a, Messag
         header,
         scrollable(items).height(Length::Fill),
         rule::horizontal(1),
-        action(skin, label, toggle),
-        text("Silencia pop-ups e mantém o histórico")
+        action(skin, i18n::text(label), toggle),
+        text(i18n::text("dnd-hint"))
             .size(10)
             .color(skin.dark_foreground)
     ]

@@ -105,9 +105,9 @@ pub async fn proxy<'a>(
     interface: &'a str,
 ) -> zbus::Result<Proxy<'a>> {
     if !path.starts_with("/org/bluez/") && path != "/org/bluez" {
-        return Err(zbus::Error::Failure(
-            "Caminho Bluetooth inválido".to_owned(),
-        ));
+        return Err(zbus::Error::Failure(crate::i18n::text(
+            "bluetooth-invalid-path",
+        )));
     }
     zbus::proxy::Builder::new(connection)
         .destination("org.bluez")?

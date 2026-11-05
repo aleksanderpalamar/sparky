@@ -15,9 +15,17 @@ pub fn lease<'a>(skin: Skin, lease: Lease) -> Element<'a, Message> {
         false => value,
     };
     column![
-        caption(skin, "Recebido do roteador"),
-        Line::new("Endereço IP", reading(skin, known(lease.address))).view(skin),
-        Line::new("Gateway", reading(skin, known(lease.gateway))).view(skin),
+        caption(skin, &crate::i18n::text("network-from-router")),
+        Line::new(
+            crate::i18n::text("network-ip"),
+            reading(skin, known(lease.address))
+        )
+        .view(skin),
+        Line::new(
+            crate::i18n::text("network-gateway"),
+            reading(skin, known(lease.gateway))
+        )
+        .view(skin),
         Line::new("DNS", reading(skin, known(lease.dns.join(", ")))).view(skin),
     ]
     .spacing(space::XXS)
@@ -26,20 +34,20 @@ pub fn lease<'a>(skin: Skin, lease: Lease) -> Element<'a, Message> {
 
 pub fn auto_dns<'a>(skin: Skin, draft: &Draft) -> Element<'a, Message> {
     let options = [
-        ("Usar junto com os informados", AutoDns::Use),
-        ("Usar somente os informados", AutoDns::Ignore),
+        ("network-auto-dns-use", AutoDns::Use),
+        ("network-auto-dns-ignore", AutoDns::Ignore),
     ]
     .into_iter()
     .map(|(label, value)| {
         option_row(
             skin,
-            label,
+            crate::i18n::text(label),
             draft.auto_dns == value,
             Message::NetworkAutoDns(value),
         )
     });
     column![
-        caption(skin, "DNS do DHCP"),
+        caption(skin, &crate::i18n::text("network-dhcp-dns")),
         Column::with_children(options).spacing(space::XXS)
     ]
     .spacing(space::MD)
@@ -53,12 +61,13 @@ pub fn input<'a>(
     field: Field,
     value: &'a str,
 ) -> Element<'a, Message> {
-    let control = text_input(example, value)
+    let placeholder = crate::i18n::text(example);
+    let control = text_input(&placeholder, value)
         .on_input(move |value| Message::NetworkInput(field, value))
         .on_submit(Message::NetworkSave)
         .size(size::BODY)
         .padding([space::MD, space::XL])
         .width(CONTROL_WIDTH)
         .style(field_look(skin));
-    Line::new(label, control).view(skin)
+    Line::new(crate::i18n::text(label), control).view(skin)
 }

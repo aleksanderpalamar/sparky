@@ -3,43 +3,71 @@ use sparky_tiling::{Direction, Fullscreen};
 
 pub fn describe(action: &Action) -> String {
     match action {
-        Action::Spawn { command } => format!("Abre {command}"),
-        Action::CloseWindow => "Fecha a janela".to_owned(),
-        Action::ToggleFloating => "Solta ou prende a janela no mosaico".to_owned(),
-        Action::Fullscreen { mode: Fullscreen::Monitor } => "Tela cheia".to_owned(),
-        Action::Fullscreen { mode: Fullscreen::Maximized } => "Maximiza mantendo a barra".to_owned(),
-        Action::ToggleSplit => "Troca a direção da divisão".to_owned(),
-        Action::Focus { direction } => format!("Foca a janela {}", towards(*direction)),
-        Action::Swap { direction } => format!("Troca de lugar com a janela {}", towards(*direction)),
-        Action::Resize { width, height } => format!("Redimensiona ({}, {})", signed(*width), signed(*height)),
-        Action::Workspace { workspace } => format!("Vai para a área {workspace}"),
-        Action::MoveToWorkspace { workspace, follow: true } => format!("Leva a janela para a área {workspace} e vai junto"),
-        Action::MoveToWorkspace { workspace, follow: false } => format!("Manda a janela para a área {workspace}"),
-        Action::RelativeWorkspace { step } if *step > 0 => "Próxima área".to_owned(),
-        Action::RelativeWorkspace { .. } => "Área anterior".to_owned(),
-        Action::PreviousWorkspace => "Volta para a última área usada".to_owned(),
-        Action::ToggleScratchpad => "Mostra ou esconde o rascunho".to_owned(),
-        Action::MoveToScratchpad => "Manda a janela para o rascunho".to_owned(),
-        Action::ToggleGroup => "Agrupa a janela ou desfaz o grupo".to_owned(),
-        Action::LeaveGroup => "Tira a janela do grupo".to_owned(),
-        Action::MoveIntoGroup { direction } => format!("Põe a janela no grupo {}", towards(*direction)),
-        Action::CycleGroup { step } if *step > 0 => "Próxima janela do grupo".to_owned(),
-        Action::CycleGroup { .. } => "Janela anterior do grupo".to_owned(),
-        Action::SelectInGroup { index } => format!("Mostra a janela {index} do grupo"),
-        Action::CycleMonitor { step } if *step > 0 => "Próximo monitor".to_owned(),
-        Action::CycleMonitor { .. } => "Monitor anterior".to_owned(),
-        Action::SwitchTerminal { terminal } => format!("Vai para o terminal virtual {terminal}"),
-        Action::Exit => "Sai do sparky".to_owned(),
+        Action::Spawn { command } => crate::i18n::with("action-spawn", "value", command),
+        Action::CloseWindow => crate::i18n::text("action-close"),
+        Action::ToggleFloating => crate::i18n::text("action-floating"),
+        Action::Fullscreen {
+            mode: Fullscreen::Monitor,
+        } => crate::i18n::text("action-fullscreen"),
+        Action::Fullscreen {
+            mode: Fullscreen::Maximized,
+        } => crate::i18n::text("action-maximized"),
+        Action::ToggleSplit => crate::i18n::text("action-split"),
+        Action::Focus { direction } => {
+            crate::i18n::with("action-focus", "value", &towards(*direction))
+        }
+        Action::Swap { direction } => {
+            crate::i18n::with("action-swap", "value", &towards(*direction))
+        }
+        Action::Resize { width, height } => {
+            let mut args = fluent_bundle::FluentArgs::new();
+            args.set("width", signed(*width));
+            args.set("height", signed(*height));
+            crate::i18n::message("action-resize", Some(&args))
+        }
+        Action::Workspace { workspace } => number("action-workspace", *workspace),
+        Action::MoveToWorkspace {
+            workspace,
+            follow: true,
+        } => number("action-move-follow", *workspace),
+        Action::MoveToWorkspace {
+            workspace,
+            follow: false,
+        } => number("action-move", *workspace),
+        Action::RelativeWorkspace { step } if *step > 0 => {
+            crate::i18n::text("action-next-workspace")
+        }
+        Action::RelativeWorkspace { .. } => crate::i18n::text("action-previous-workspace"),
+        Action::PreviousWorkspace => crate::i18n::text("action-last-workspace"),
+        Action::ToggleScratchpad => crate::i18n::text("action-toggle-scratchpad"),
+        Action::MoveToScratchpad => crate::i18n::text("action-move-scratchpad"),
+        Action::ToggleGroup => crate::i18n::text("action-toggle-group"),
+        Action::LeaveGroup => crate::i18n::text("action-leave-group"),
+        Action::MoveIntoGroup { direction } => {
+            crate::i18n::with("action-move-group", "value", &towards(*direction))
+        }
+        Action::CycleGroup { step } if *step > 0 => crate::i18n::text("action-next-group"),
+        Action::CycleGroup { .. } => crate::i18n::text("action-previous-group"),
+        Action::SelectInGroup { index } => number("action-select-group", *index),
+        Action::CycleMonitor { step } if *step > 0 => crate::i18n::text("action-next-monitor"),
+        Action::CycleMonitor { .. } => crate::i18n::text("action-previous-monitor"),
+        Action::SwitchTerminal { terminal } => number("action-terminal", *terminal),
+        Action::Exit => crate::i18n::text("action-exit"),
     }
 }
 
-fn towards(direction: Direction) -> &'static str {
-    match direction {
-        Direction::Left => "à esquerda",
-        Direction::Right => "à direita",
-        Direction::Up => "de cima",
-        Direction::Down => "de baixo",
-    }
+fn towards(direction: Direction) -> String {
+    let key = match direction {
+        Direction::Left => "direction-left",
+        Direction::Right => "direction-right",
+        Direction::Up => "direction-up",
+        Direction::Down => "direction-down",
+    };
+    crate::i18n::text(key)
+}
+
+fn number(key: &str, value: impl ToString) -> String {
+    crate::i18n::with(key, "value", &value.to_string())
 }
 
 fn signed(number: i32) -> String {
@@ -57,33 +85,75 @@ mod tests {
 
     #[test]
     fn descreve_as_acoes_em_portugues() {
-        assert_eq!(describe(&Action::Spawn { command: "kitty".to_owned() }), "Abre kitty");
-        assert_eq!(describe(&Action::Focus { direction: Direction::Left }), "Foca a janela à esquerda");
-        assert_eq!(describe(&Action::Resize { width: 50, height: 0 }), "Redimensiona (+50, 0)");
-        assert_eq!(describe(&Action::RelativeWorkspace { step: -1 }), "Área anterior");
+        assert_eq!(
+            describe(&Action::Spawn {
+                command: "kitty".to_owned()
+            }),
+            "Abre kitty"
+        );
+        assert_eq!(
+            describe(&Action::Focus {
+                direction: Direction::Left
+            }),
+            "Foca a janela à esquerda"
+        );
+        assert_eq!(
+            describe(&Action::Resize {
+                width: 50,
+                height: 0
+            }),
+            "Redimensiona (+50, 0)"
+        );
+        assert_eq!(
+            describe(&Action::RelativeWorkspace { step: -1 }),
+            "Área anterior"
+        );
     }
 
     #[test]
     fn descreve_os_grupos() {
-        assert_eq!(describe(&Action::MoveIntoGroup { direction: Direction::Right }), "Põe a janela no grupo à direita");
-        assert_eq!(describe(&Action::CycleGroup { step: -1 }), "Janela anterior do grupo");
-        assert_eq!(describe(&Action::SelectInGroup { index: 3 }), "Mostra a janela 3 do grupo");
+        assert_eq!(
+            describe(&Action::MoveIntoGroup {
+                direction: Direction::Right
+            }),
+            "Põe a janela no grupo à direita"
+        );
+        assert_eq!(
+            describe(&Action::CycleGroup { step: -1 }),
+            "Janela anterior do grupo"
+        );
+        assert_eq!(
+            describe(&Action::SelectInGroup { index: 3 }),
+            "Mostra a janela 3 do grupo"
+        );
     }
 
     #[test]
     fn descreve_o_rascunho() {
-        assert_eq!(describe(&Action::ToggleScratchpad), "Mostra ou esconde o rascunho");
-        assert_eq!(describe(&Action::MoveToScratchpad), "Manda a janela para o rascunho");
+        assert_eq!(
+            describe(&Action::ToggleScratchpad),
+            "Mostra ou esconde o rascunho"
+        );
+        assert_eq!(
+            describe(&Action::MoveToScratchpad),
+            "Manda a janela para o rascunho"
+        );
     }
 
     #[test]
     fn mover_para_a_area_diz_se_vai_junto() {
         assert_eq!(
-            describe(&Action::MoveToWorkspace { workspace: 3, follow: false }),
+            describe(&Action::MoveToWorkspace {
+                workspace: 3,
+                follow: false
+            }),
             "Manda a janela para a área 3"
         );
         assert_eq!(
-            describe(&Action::MoveToWorkspace { workspace: 3, follow: true }),
+            describe(&Action::MoveToWorkspace {
+                workspace: 3,
+                follow: true
+            }),
             "Leva a janela para a área 3 e vai junto"
         );
     }

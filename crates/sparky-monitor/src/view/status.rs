@@ -1,3 +1,4 @@
+use fluent_bundle::FluentArgs;
 use iced::alignment::Vertical;
 use iced::widget::{container, row, text};
 use iced::{Element, Length};
@@ -8,12 +9,6 @@ use crate::app::message::Message;
 use crate::app::page::Page;
 use crate::app::state::Monitor;
 
-const TABLE_HINTS: &str =
-    "j/k escolhe · c m g v d n ordena · Del encerra · Shift+Del força · Esc volta";
-const DASHBOARD_HINTS: &str =
-    "1–8 páginas · Tab troca a tabela · j/k escolhe · Del encerra · q fecha";
-const READ_ONLY_HINTS: &str = "1–8 páginas · Esc volta · q fecha";
-
 pub fn status(monitor: &Monitor) -> Element<'_, Message> {
     let skin = monitor.skin;
     let left = match (&monitor.confirm, &monitor.notice) {
@@ -23,7 +18,7 @@ pub fn status(monitor: &Monitor) -> Element<'_, Message> {
     };
     let line = row![
         left.size(TEXT_SIZE).width(Length::Fill),
-        text(hints(monitor.page))
+        text(crate::i18n::text(hints(monitor.page)))
             .size(SMALL_TEXT)
             .color(skin.dark_foreground),
     ]
@@ -40,24 +35,25 @@ pub fn status(monitor: &Monitor) -> Element<'_, Message> {
 
 pub fn summary(monitor: &Monitor) -> String {
     match monitor.reading {
-        None => "Lendo o sistema…".to_owned(),
-        Some(_) => format!(
-            "{} processos · {} aplicativos",
-            monitor.processes.len(),
-            monitor.apps.len()
-        ),
+        None => crate::i18n::text("reading"),
+        Some(_) => {
+            let mut args = FluentArgs::new();
+            args.set("processes", monitor.processes.len().to_string());
+            args.set("applications", monitor.apps.len().to_string());
+            crate::i18n::message("summary", Some(&args))
+        }
     }
 }
 
 fn hints(page: Page) -> &'static str {
     match page {
-        Page::Dashboard => DASHBOARD_HINTS,
-        Page::Network => READ_ONLY_HINTS,
+        Page::Dashboard => "dashboard-hints",
+        Page::Network => "read-only-hints",
         Page::Applications
         | Page::Processes
         | Page::Cpu
         | Page::Memory
         | Page::Disk
-        | Page::Gpu => TABLE_HINTS,
+        | Page::Gpu => "table-hints",
     }
 }

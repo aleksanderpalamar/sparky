@@ -5,6 +5,7 @@ use sparky_storage::{Operation, Volume};
 
 use super::message::Message;
 use super::state::Files;
+use crate::i18n;
 
 pub fn refresh(files: &mut Files) -> Task<Message> {
     request(files, Operation::List)
@@ -58,7 +59,7 @@ fn request(files: &mut Files, operation: Operation) -> Task<Message> {
             let work = operation.clone();
             let result = tokio::task::spawn_blocking(move || source.run(work))
                 .await
-                .map_err(|error| format!("consulta de dispositivos: {error}"))
+                .map_err(|error| i18n::with("device-query-failed", "error", error.to_string()))
                 .and_then(|result| result);
             (operation, result)
         },
@@ -86,13 +87,16 @@ fn apply(files: &mut Files, operation: &Operation, volumes: Vec<Volume>) {
         .iter()
         .filter_map(|volume| volume.mountpoint.as_ref())
         .any(|point| {
-            files.location.starts_with(point) && !volumes.iter().any(|volume| volume.mountpoint.as_ref() == Some(point))
+            files.location.starts_with(point)
+                && !volumes
+                    .iter()
+                    .any(|volume| volume.mountpoint.as_ref() == Some(point))
         });
     files.volumes = volumes;
     files.volume_error = None;
     if departed {
         files.home();
-        files.inform("O dispositivo deixou de estar montado".to_owned());
+        files.inform(i18n::text("device-departed"));
     }
     let Operation::Mount(device) = operation else {
         return;
@@ -106,6 +110,10 @@ fn apply(files: &mut Files, operation: &Operation, volumes: Vec<Volume>) {
         Some(point) if Path::new(&point).is_absolute() => {
             files.go(point.into());
         }
-        _ => files.fail(format!("o dispositivo não está montado: {device}")),
+        _ => files.fail(i18n::with(
+            "device-not-mounted",
+            "device",
+            device.to_string(),
+        )),
     }
 }

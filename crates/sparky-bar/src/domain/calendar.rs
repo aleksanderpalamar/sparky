@@ -1,4 +1,5 @@
 use chrono::{Datelike, Days, Months, NaiveDate};
+use fluent_bundle::FluentArgs;
 
 #[derive(Debug, Clone)]
 pub struct Calendar {
@@ -34,11 +35,10 @@ impl Calendar {
         }
     }
     pub fn title(&self) -> String {
-        format!(
-            "{} de {}",
-            super::clock::MONTHS[self.shown.month0() as usize],
-            self.shown.year()
-        )
+        let mut args = FluentArgs::new();
+        args.set("month", super::clock::month(self.shown.month0()));
+        args.set("year", self.shown.year().to_string());
+        crate::i18n::message("calendar-title", Some(&args))
     }
     pub fn today(&self) -> NaiveDate {
         self.today

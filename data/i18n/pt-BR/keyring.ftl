@@ -1,0 +1,11 @@
+create-title = Crie a senha do cofre
+unlock-title = Destrancar o cofre
+create-explanation = Um aplicativo quer guardar uma senha. Escolha a senha que vai proteger o cofre do sparky.
+unlock-explanation = Um aplicativo quer usar uma senha guardada. Digite a senha do cofre do sparky.
+retry-warning = Senha incorreta. Tente de novo.
+empty-password = A senha não pode ficar vazia.
+password-mismatch = As senhas não conferem.
+password = Senha
+repeat-password = Repita a senha
+long-hint = Enter confirma · Tab troca de campo · Esc cancela
+short-hint = Enter confirma · Esc cancela

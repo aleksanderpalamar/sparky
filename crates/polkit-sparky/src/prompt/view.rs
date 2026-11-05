@@ -1,3 +1,4 @@
+use fluent_bundle::FluentArgs;
 use iced::widget::{button, column, container, pick_list, row, scrollable, text, text_input};
 use iced::{Border, Element, Length};
 use sparky_theme::Skin;
@@ -5,12 +6,17 @@ use sparky_ui::style::{self, Highlight, PADDING, SMALL_TEXT, SPACING, TEXT_SIZE,
 
 use super::Message;
 use crate::domain::{Form, Phase, Secret};
+use crate::i18n;
 
 pub fn view(form: &Form, skin: Skin) -> Element<'_, Message> {
     let user: Element<'_, Message> = match form.request.identities.len() {
-        1 => text(format!("Usuário: {}", form.identity))
-            .size(TEXT_SIZE)
-            .into(),
+        1 => {
+            let mut args = FluentArgs::new();
+            args.set("name", form.identity.to_string());
+            text(i18n::message("user", Some(&args)))
+                .size(TEXT_SIZE)
+                .into()
+        }
         _ => pick_list(
             form.request.identities.as_slice(),
             Some(&form.identity),
@@ -29,7 +35,7 @@ pub fn view(form: &Form, skin: Skin) -> Element<'_, Message> {
         .into(),
     };
     let mut content = column![
-        text("Autenticação do sistema")
+        text(i18n::text("title"))
             .size(TITLE_SIZE)
             .color(skin.bright_foreground),
         text(&form.request.message).size(TEXT_SIZE),
@@ -42,8 +48,8 @@ pub fn view(form: &Form, skin: Skin) -> Element<'_, Message> {
     let entry = matches!(form.phase, Phase::Input { .. });
     let echo = matches!(form.phase, Phase::Input { echo: true });
     let label = match form.prompt.is_empty() {
-        true => "Senha",
-        false => &form.prompt,
+        true => i18n::text("password"),
+        false => form.prompt.clone(),
     };
     content = content.push(text(label).size(TEXT_SIZE));
     content = content.push(
@@ -63,20 +69,24 @@ pub fn view(form: &Form, skin: Skin) -> Element<'_, Message> {
         content = content.push(text(problem).size(SMALL_TEXT).color(skin.urgent));
     }
     let hint = match form.phase {
-        Phase::Waiting => "Preparando autenticação…",
-        Phase::Verifying => "Verificando…",
-        _ => "Enter confirma · Tab muda o controle · Esc cancela",
+        Phase::Waiting => "waiting",
+        Phase::Verifying => "verifying",
+        _ => "hint",
     };
-    content = content.push(text(hint).size(SMALL_TEXT).color(skin.dark_foreground));
+    content = content.push(
+        text(i18n::text(hint))
+            .size(SMALL_TEXT)
+            .color(skin.dark_foreground),
+    );
     let submit = match form.phase {
-        Phase::Retry => "Tentar novamente",
-        _ => "Autenticar",
+        Phase::Retry => "retry",
+        _ => "authenticate",
     };
-    let confirm = button(text(submit).size(TEXT_SIZE))
+    let confirm = button(text(i18n::text(submit)).size(TEXT_SIZE))
         .padding(8)
         .on_press_maybe((entry || form.phase == Phase::Retry).then_some(Message::Submit))
         .style(move |_, status| style::entry(skin, Highlight::Selected, status));
-    let cancel = button(text("Cancelar").size(TEXT_SIZE))
+    let cancel = button(text(i18n::text("cancel")).size(TEXT_SIZE))
         .padding(8)
         .on_press(Message::Close)
         .style(move |_, status| style::entry(skin, Highlight::Plain, status));

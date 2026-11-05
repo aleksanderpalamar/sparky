@@ -63,14 +63,15 @@ fn o_campo_de_usuario_mostra_o_nome_de_quem_bloqueou() {
 #[test]
 fn o_unlock_so_responde_com_senha() {
     let mut locker = bloqueio();
+    let label = sparky_login_look::i18n::text("unlock");
     assert!(
-        !mensagens_ao_clicar(&locker, "Unlock")
+        !mensagens_ao_clicar(&locker, &label)
             .iter()
             .any(|message| matches!(message, Message::Submit))
     );
     locker.unlock.type_password("segredo".into());
     assert!(
-        mensagens_ao_clicar(&locker, "Unlock")
+        mensagens_ao_clicar(&locker, &label)
             .iter()
             .any(|message| matches!(message, Message::Submit))
     );

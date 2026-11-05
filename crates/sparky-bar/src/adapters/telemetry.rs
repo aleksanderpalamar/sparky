@@ -41,7 +41,7 @@ fn counters(base: &Path, interface: &str) -> io::Result<(u64, u64)> {
     {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            "interface inválida",
+            crate::i18n::text("network-invalid-interface"),
         ));
     }
     let stats = base.join(interface).join("statistics");

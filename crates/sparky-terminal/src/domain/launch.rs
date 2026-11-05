@@ -43,9 +43,15 @@ pub enum LaunchError {
 impl fmt::Display for LaunchError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            LaunchError::MissingCommand => formatter.write_str("-e precisa de um comando"),
-            LaunchError::MissingDirectory => formatter.write_str("-d precisa de uma pasta"),
-            LaunchError::Unknown(option) => write!(formatter, "opção desconhecida: {option}"),
+            LaunchError::MissingCommand => {
+                formatter.write_str(&crate::i18n::text("missing-command"))
+            }
+            LaunchError::MissingDirectory => {
+                formatter.write_str(&crate::i18n::text("missing-directory"))
+            }
+            LaunchError::Unknown(option) => {
+                formatter.write_str(&crate::i18n::with("unknown-option", "option", option))
+            }
         }
     }
 }

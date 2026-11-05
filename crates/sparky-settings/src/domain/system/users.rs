@@ -16,34 +16,52 @@ impl User {
         }
     }
 
-    pub fn role(&self) -> &'static str {
+    pub fn role(&self) -> String {
         let Some(groups) = &self.groups else {
-            return "não disponível";
+            return crate::i18n::text("unavailable");
         };
-        match groups.iter().any(|group| matches!(group.as_str(), "wheel" | "sudo")) {
-            true => "administrador",
-            false => "comum",
-        }
+        let key = match groups
+            .iter()
+            .any(|group| matches!(group.as_str(), "wheel" | "sudo"))
+        {
+            true => "users-administrator",
+            false => "users-regular",
+        };
+        crate::i18n::text(key)
     }
 
-    pub fn session(&self) -> &'static str {
-        match self.logged_in {
-            Some(true) => "sessão aberta",
-            Some(false) => "sem sessão",
-            None => "não disponível",
-        }
+    pub fn session(&self) -> String {
+        let key = match self.logged_in {
+            Some(true) => "users-session-open",
+            Some(false) => "users-session-closed",
+            None => "unavailable",
+        };
+        crate::i18n::text(key)
     }
 }
 
 pub fn load(commands: &dyn CommandRunner) -> Vec<User> {
     let passwd = commands.run("getent", &["passwd"]).unwrap_or_default();
     let groups = commands.run("getent", &["group"]).ok();
-    let sessions = commands.run("loginctl", &["list-users", "--no-legend"]).ok();
-    let active: Option<Vec<_>> = sessions.as_ref().map(|output| output.lines()
-        .filter_map(|line| line.split_whitespace().nth(1)).collect());
-    passwd::humans(&passwd).into_iter().map(|account| User {
-        groups: groups.as_ref().map(|contents| passwd::groups_of(contents, &account)),
-        logged_in: active.as_ref().map(|names| names.contains(&account.name.as_str())),
-        account,
-    }).collect()
+    let sessions = commands
+        .run("loginctl", &["list-users", "--no-legend"])
+        .ok();
+    let active: Option<Vec<_>> = sessions.as_ref().map(|output| {
+        output
+            .lines()
+            .filter_map(|line| line.split_whitespace().nth(1))
+            .collect()
+    });
+    passwd::humans(&passwd)
+        .into_iter()
+        .map(|account| User {
+            groups: groups
+                .as_ref()
+                .map(|contents| passwd::groups_of(contents, &account)),
+            logged_in: active
+                .as_ref()
+                .map(|names| names.contains(&account.name.as_str())),
+            account,
+        })
+        .collect()
 }

@@ -32,9 +32,13 @@ pub enum SignalError {
 impl fmt::Display for SignalError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            SignalError::Denied => write!(formatter, "Sem permissão para encerrar este processo"),
-            SignalError::Gone => write!(formatter, "O processo já terminou"),
-            SignalError::Failed(reason) => write!(formatter, "Não foi possível encerrar: {reason}"),
+            SignalError::Denied => formatter.write_str(&crate::i18n::text("stop-denied")),
+            SignalError::Gone => formatter.write_str(&crate::i18n::text("process-gone")),
+            SignalError::Failed(reason) => {
+                let mut args = fluent_bundle::FluentArgs::new();
+                args.set("reason", reason.as_str());
+                formatter.write_str(&crate::i18n::message("stop-failed", Some(&args)))
+            }
         }
     }
 }

@@ -21,18 +21,18 @@ pub(super) fn view(picker: &Picker) -> Element<'_, Message> {
         );
     }
     let content = column![
-        text("Compartilhar a tela")
+        text(crate::i18n::text("share-title"))
             .size(22)
             .color(skin.bright_foreground),
-        text("Escolha o monitor ou a janela que o aplicativo poderá capturar.")
-            .color(skin.foreground),
-        text_input("Buscar fonte...", &picker.selection.query).on_input(Message::Search),
+        text(crate::i18n::text("share-description")).color(skin.foreground),
+        text_input(&crate::i18n::text("share-search"), &picker.selection.query)
+            .on_input(Message::Search),
         scrollable(sources).id(list_id()).height(Length::Fill),
         row![
-            text("↑ ↓ selecionar · Enter compartilhar · Esc cancelar")
+            text(crate::i18n::text("share-hints"))
                 .size(12)
                 .color(skin.foreground),
-            button("Cancelar")
+            button(text(crate::i18n::text("cancel")))
                 .on_press(Message::Cancel)
                 .style(move |_, status| entry(skin, false, status))
         ]

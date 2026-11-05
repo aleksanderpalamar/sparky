@@ -1,3 +1,4 @@
+use fluent_bundle::FluentArgs;
 use iced::widget::{column, row, rule, slider, text};
 use iced::{Alignment, Element, Length};
 use sparky_theme::Skin;
@@ -5,6 +6,7 @@ use sparky_theme::Skin;
 use super::{action, parts};
 use crate::app::{message::Message, panel_state::Panels};
 use crate::domain::audio::{Audio, AudioApp, AudioRequest, AudioState, Direction};
+use crate::i18n;
 
 pub fn view<'a>(skin: &Skin, panels: &'a Panels) -> Element<'a, Message> {
     let Audio::Ready(audio) = &panels.audio else {
@@ -19,7 +21,7 @@ pub fn view<'a>(skin: &Skin, panels: &'a Panels) -> Element<'a, Message> {
             skin,
             "audio-volume-high-symbolic",
             device.label.clone(),
-            format!("Saída padrão · {}%", device.volume),
+            default_output(device.volume),
             Some((
                 !device.muted,
                 Message::AudioRequest(AudioRequest::Mute {
@@ -32,17 +34,17 @@ pub fn view<'a>(skin: &Skin, panels: &'a Panels) -> Element<'a, Message> {
         None => parts::heading(
             skin,
             "audio-volume-muted-symbolic",
-            "Som".to_owned(),
-            "Nenhuma saída disponível".to_owned(),
+            i18n::text("sound"),
+            i18n::text("no-output"),
             None,
         ),
     };
-    let mut body = column![heading, parts::section(skin, "SAÍDA")].spacing(12);
+    let mut body = column![heading, parts::section(skin, i18n::text("output"))].spacing(12);
     body = body.push(device_section(skin, panels, audio, Direction::Output));
-    body = body.push(parts::section(skin, "APLICATIVOS"));
+    body = body.push(parts::section(skin, i18n::text("applications")));
     if audio.applications.is_empty() {
         body = body.push(
-            text("Nenhum aplicativo reproduzindo áudio")
+            text(i18n::text("no-audio-apps"))
                 .size(11)
                 .color(skin.dark_foreground),
         );
@@ -51,7 +53,7 @@ pub fn view<'a>(skin: &Skin, panels: &'a Panels) -> Element<'a, Message> {
         body = body.push(application(skin, panels, app));
     }
     body.push(rule::horizontal(1))
-        .push(parts::section(skin, "MICROFONE"))
+        .push(parts::section(skin, i18n::text("microphone")))
         .push(device_section(skin, panels, audio, Direction::Input))
         .into()
 }
@@ -90,7 +92,7 @@ fn device_section<'a>(
     }
     if audio.devices(direction).is_empty() {
         body = body.push(
-            text("Nenhum dispositivo disponível")
+            text(i18n::text("no-device"))
                 .size(11)
                 .color(skin.dark_foreground),
         );
@@ -127,11 +129,11 @@ fn microphone_toggle<'a>(
     let device = audio.selected(Direction::Input)?;
     Some(action(
         skin,
-        if device.muted {
-            "Ativar microfone"
+        i18n::text(if device.muted {
+            "enable-microphone"
         } else {
-            "Silenciar microfone"
-        },
+            "mute-microphone"
+        }),
         Message::AudioRequest(AudioRequest::Mute {
             direction,
             name: device.name.clone(),
@@ -158,7 +160,7 @@ fn application<'a>(skin: &Skin, panels: &'a Panels, app: &'a AudioApp) -> Elemen
     if !app.writable {
         return column![
             label,
-            text("Controle indisponível")
+            text(i18n::text("control-unavailable"))
                 .size(11)
                 .color(skin.dark_foreground)
         ]
@@ -175,4 +177,10 @@ fn application<'a>(skin: &Skin, panels: &'a Panels, app: &'a AudioApp) -> Elemen
     ]
     .spacing(6)
     .into()
+}
+
+fn default_output(volume: u16) -> String {
+    let mut args = FluentArgs::new();
+    args.set("volume", volume);
+    i18n::message("default-output", Some(&args))
 }

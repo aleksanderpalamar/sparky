@@ -56,7 +56,7 @@ impl Draft {
         }
         for dns in self.servers() {
             dns.parse::<Ipv4Addr>()
-                .map_err(|_| format!("Servidor DNS IPv4 inválido: {dns}"))?;
+                .map_err(|_| crate::i18n::with("network-invalid-dns", "value", dns))?;
         }
         Ok(())
     }
@@ -64,21 +64,21 @@ impl Draft {
     fn validate_manual(&self) -> Result<(), String> {
         let addresses = self.addresses();
         if addresses.is_empty() {
-            return Err("Informe o endereço IPv4 com prefixo, como 192.168.1.10/24".to_owned());
+            return Err(crate::i18n::text("network-address-required"));
         }
         addresses.into_iter().try_for_each(validate_address)?;
         if !self.gateway.trim().is_empty() {
             self.gateway
                 .trim()
                 .parse::<Ipv4Addr>()
-                .map_err(|_| "Gateway IPv4 inválido".to_owned())?;
+                .map_err(|_| crate::i18n::text("network-invalid-gateway"))?;
         }
         Ok(())
     }
 
     fn validate_auto(&self) -> Result<(), String> {
         if self.auto_dns == AutoDns::Ignore && self.servers().next().is_none() {
-            return Err("Informe um servidor DNS para ignorar os do DHCP".to_owned());
+            return Err(crate::i18n::text("network-dns-required"));
         }
         Ok(())
     }
@@ -145,16 +145,14 @@ fn fill(field: &mut String, value: &str) {
 
 fn validate_address(entry: &str) -> Result<(), String> {
     let Some((address, prefix)) = entry.split_once('/') else {
-        return Err(format!(
-            "Informe o prefixo de {entry}, como 192.168.1.10/24"
-        ));
+        return Err(crate::i18n::with("network-prefix-required", "value", entry));
     };
     address
         .parse::<Ipv4Addr>()
-        .map_err(|_| format!("Endereço IPv4 inválido: {entry}"))?;
+        .map_err(|_| crate::i18n::with("network-invalid-address", "value", entry))?;
     match prefix.parse::<u8>() {
         Ok(0..=32) => Ok(()),
-        _ => Err(format!("Prefixo IPv4 inválido em {entry}: use de 0 a 32")),
+        _ => Err(crate::i18n::with("network-invalid-prefix", "value", entry)),
     }
 }
 

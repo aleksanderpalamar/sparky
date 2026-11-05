@@ -6,13 +6,14 @@ pub struct Profile {
     pub active: bool,
 }
 
-pub fn label_of(name: &str) -> &str {
-    match name {
-        "performance" => "Desempenho",
-        "balanced" => "Equilibrado",
-        "power-saver" => "Economia de energia",
-        other => other,
-    }
+pub fn label_of(name: &str) -> String {
+    let key = match name {
+        "performance" => "profile-performance",
+        "balanced" => "profile-balanced",
+        "power-saver" => "profile-power-saver",
+        other => return other.to_owned(),
+    };
+    crate::i18n::text(key)
 }
 
 pub fn parse(listing: &str) -> Vec<Profile> {
@@ -29,7 +30,10 @@ fn profile_of(line: &str) -> Option<Profile> {
     if name.is_empty() || name.contains(char::is_whitespace) {
         return None;
     }
-    Some(Profile { name: name.to_owned(), active })
+    Some(Profile {
+        name: name.to_owned(),
+        active,
+    })
 }
 
 #[cfg(test)]
@@ -41,7 +45,10 @@ mod tests {
     #[test]
     fn le_os_perfis_na_ordem_e_o_ativo() {
         let profiles = parse(LISTING);
-        let names: Vec<&str> = profiles.iter().map(|profile| profile.name.as_str()).collect();
+        let names: Vec<&str> = profiles
+            .iter()
+            .map(|profile| profile.name.as_str())
+            .collect();
         assert_eq!(names, ["performance", "balanced", "power-saver"]);
         assert!(profiles[0].active);
         assert!(!profiles[1].active);

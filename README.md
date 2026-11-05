@@ -467,6 +467,22 @@ são publicados na Release com hashes SHA-256 e o commit de origem.
 
 ## Desenvolvimento
 
+### Idiomas
+
+Os aplicativos nativos usam o `sparky-i18n` e os catálogos Fluent em
+`data/i18n/pt-BR/` e `data/i18n/en/`. O idioma é escolhido por `LC_ALL`,
+`LC_MESSAGES` e `LANG`, nessa ordem. Uma variante regional de inglês usa o
+catálogo `en`; idiomas ainda sem catálogo usam português do Brasil. Arquivos
+instalados em `/usr/share/sparky/i18n/<idioma>/` podem complementar os catálogos
+embutidos. Mensagens ausentes ou inválidas recorrem ao texto embutido.
+
+Os pacotes DEB, RPM e Arch instalam os dois idiomas. As entradas `.desktop`
+também oferecem nome, descrição e palavras-chave em inglês. Para acrescentar
+uma mensagem, use a mesma chave e os mesmos parâmetros nos dois arquivos do
+domínio; `python3 packaging/test_i18n.py` confere essa paridade e os dados
+instalados. A troca de idioma vale para os aplicativos iniciados depois da
+mudança de ambiente; aplicativos já abertos não são reiniciados.
+
 O compositor mantém logs rotativos e amostras de memória e do agendamento de
 quadros em `~/.local/state/sparky/logs/`, respeitando `XDG_STATE_HOME`.
 Veja o [diagnóstico do compositor](docs/DIAGNOSTICS.md) para interpretar os

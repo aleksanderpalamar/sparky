@@ -20,8 +20,13 @@ fn start(app: &mut Workspace, id: TabId, script: &str) {
     let (sender, _receiver) = mpsc::unbounded();
     let launch = Launch {
         program: Program::Command {
-            program: "sh".into(),
-            args: vec!["-c".into(), script.into()],
+            program: "env".into(),
+            args: vec![
+                "LC_ALL=C.UTF-8".into(),
+                "sh".into(),
+                "-c".into(),
+                script.into(),
+            ],
         },
         directory: None,
     };

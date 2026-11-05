@@ -1,11 +1,15 @@
 [Desktop Entry]
 Type=Application
 Name=Arquivos
+Name[en]=Files
 GenericName=Gerenciador de arquivos
+GenericName[en]=File manager
 Comment=Navegue e organize pastas pelo teclado
+Comment[en]=Browse and organize folders with the keyboard
 Exec=sparky-files %f
 Icon=system-file-manager
 Terminal=false
 Categories=System;FileTools;FileManager;
 MimeType=inode/directory;
 Keywords=pastas;arquivos;navegador;
+Keywords[en]=folders;files;browser;

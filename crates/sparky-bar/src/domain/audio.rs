@@ -72,7 +72,7 @@ pub enum Audio {
 
 impl Default for Audio {
     fn default() -> Self {
-        Self::Unavailable("Aguardando o serviço de áudio".to_owned())
+        Self::Unavailable(crate::i18n::text("audio-waiting"))
     }
 }
 

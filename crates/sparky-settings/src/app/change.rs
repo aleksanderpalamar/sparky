@@ -26,7 +26,7 @@ impl Settings {
     }
 
     pub fn set_autostart(&mut self, entries: Vec<String>) {
-        self.edit("Inicialização", |editor| {
+        self.edit(&crate::i18n::text("section-autostart-label"), |editor| {
             editor.set_list("autostart", &entries)
         });
     }
@@ -50,18 +50,27 @@ impl Settings {
 
     pub(crate) fn edit(&mut self, what: &str, change: impl FnOnce(&mut Editor)) {
         let Source::Editable(editor) = &self.source else {
-            return self
-                .fail("o sparky.toml não pôde ser lido; corrija o arquivo antes de mudar algo");
+            return self.fail(crate::i18n::text("config-broken"));
         };
         let mut draft = editor.clone();
         change(&mut draft);
         let contents = draft.contents();
         let config = match parse(&contents) {
             Ok(config) => config,
-            Err(error) => return self.fail(format!("o sparky.toml ficaria inválido: {error}")),
+            Err(error) => {
+                return self.fail(crate::i18n::with(
+                    "config-would-be-invalid",
+                    "reason",
+                    &error.to_string(),
+                ));
+            }
         };
         if let Err(error) = self.services.store.save(&contents) {
-            return self.fail(format!("não deu para salvar: {error}"));
+            return self.fail(crate::i18n::with(
+                "save-failed",
+                "reason",
+                &error.to_string(),
+            ));
         }
         self.source = Source::Editable(draft);
         self.config = config;
@@ -70,9 +79,9 @@ impl Settings {
 
     fn announce(&mut self, what: &str) {
         match self.services.compositor.reload() {
-            Ok(()) => self.inform(format!("{what} (salvo e aplicado)")),
+            Ok(()) => self.inform(crate::i18n::with("saved-applied", "value", what)),
             Err(CompositorError::Unreachable(_)) => {
-                self.inform(format!("{what} (salvo; vale quando o sparky iniciar)"))
+                self.inform(crate::i18n::with("saved-next-start", "value", what))
             }
             Err(refused) => self.fail(refused),
         }

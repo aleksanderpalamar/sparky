@@ -66,10 +66,12 @@ impl NetworkControl for NetworkManager {
             let _operation = self
                 .operation
                 .try_lock()
-                .map_err(|_| "Já existe uma operação de rede em andamento".to_owned())?;
+                .map_err(|_| crate::i18n::text("network-operation-pending"))?;
             commands::send(request, self.prompts.clone())
                 .await
-                .map_err(|error| format!("Rede: {error}"))
+                .map_err(|error| {
+                    crate::i18n::with("network-operation-failed", "reason", &error.to_string())
+                })
         })
     }
 
@@ -84,8 +86,10 @@ impl NetworkControl for NetworkManager {
                     .err()
                     .map_or_else(String::new, |error| error.to_string());
                 if output
-                    .send(Network::Unavailable(format!(
-                        "NetworkManager indisponível: {error}"
+                    .send(Network::Unavailable(crate::i18n::with(
+                        "network-manager-error",
+                        "reason",
+                        &error,
                     )))
                     .await
                     .is_err()
@@ -112,7 +116,9 @@ async fn monitor(output: &mut iced::futures::channel::mpsc::Sender<Network>) -> 
     loop {
         let event = tokio::time::timeout(Duration::from_secs(30), signals.next()).await;
         if matches!(event, Ok(None)) {
-            return Err(zbus::Error::Failure("Conexão encerrada".to_owned()));
+            return Err(zbus::Error::Failure(crate::i18n::text(
+                "network-connection-ended",
+            )));
         }
         tokio::time::sleep(Duration::from_millis(120)).await;
         while let Some(Some(_)) = signals.next().now_or_never() {}

@@ -5,29 +5,47 @@ use sparky_ui::style::{self, PADDING, SMALL_TEXT, SPACING, TEXT_SIZE, TITLE_SIZE
 
 use crate::app::{Message, Window, id_of};
 use crate::domain::form::Field;
-
-const HINT: &str = "Enter confirma · Tab troca de campo · Esc cancela";
-const SHORT_HINT: &str = "Enter confirma · Esc cancela";
+use crate::i18n;
 
 pub fn view(window: &Window) -> Element<'_, Message> {
     let skin = window.skin;
     let form = &window.form;
     let mut content = column![
-        text(form.mode.title()).size(TITLE_SIZE).color(skin.bright_foreground),
-        text(form.mode.explanation()).size(TEXT_SIZE).color(skin.foreground),
+        text(i18n::text(form.mode.title()))
+            .size(TITLE_SIZE)
+            .color(skin.bright_foreground),
+        text(i18n::text(form.mode.explanation()))
+            .size(TEXT_SIZE)
+            .color(skin.foreground),
     ]
     .spacing(SPACING);
-    content = with_line(content, form.mode.warning(), skin);
-    content = content.push(field(Field::Password, "Senha", form.password()));
+    content = with_line(content, form.mode.warning().map(i18n::text), skin);
+    content = content.push(field(
+        Field::Password,
+        i18n::text("password"),
+        form.password(),
+    ));
     if form.mode.confirms() {
-        content = content.push(field(Field::Confirmation, "Repita a senha", form.confirmation()));
+        content = content.push(field(
+            Field::Confirmation,
+            i18n::text("repeat-password"),
+            form.confirmation(),
+        ));
     }
-    content = with_line(content, form.problem.map(|problem| problem.message()), skin);
+    content = with_line(
+        content,
+        form.problem.map(|problem| i18n::text(problem.message())),
+        skin,
+    );
     let hint = match form.mode.confirms() {
-        true => HINT,
-        false => SHORT_HINT,
+        true => "long-hint",
+        false => "short-hint",
     };
-    content = content.push(text(hint).size(SMALL_TEXT).color(skin.dark_foreground));
+    content = content.push(
+        text(i18n::text(hint))
+            .size(SMALL_TEXT)
+            .color(skin.dark_foreground),
+    );
     container(content)
         .padding(PADDING * 1.5)
         .width(Length::Fill)
@@ -36,8 +54,8 @@ pub fn view(window: &Window) -> Element<'_, Message> {
         .into()
 }
 
-fn field<'a>(field: Field, placeholder: &'a str, value: &'a str) -> Element<'a, Message> {
-    text_input(placeholder, value)
+fn field<'a>(field: Field, placeholder: String, value: &'a str) -> Element<'a, Message> {
+    text_input(&placeholder, value)
         .id(id_of(field))
         .secure(true)
         .on_input(move |typed| Message::Typed(field, typed))
@@ -48,7 +66,11 @@ fn field<'a>(field: Field, placeholder: &'a str, value: &'a str) -> Element<'a, 
         .into()
 }
 
-fn with_line<'a>(content: Column<'a, Message>, line: Option<&'static str>, skin: Skin) -> Column<'a, Message> {
+fn with_line<'a>(
+    content: Column<'a, Message>,
+    line: Option<String>,
+    skin: Skin,
+) -> Column<'a, Message> {
     match line {
         Some(line) => content.push(text(line).size(TEXT_SIZE).color(skin.urgent)),
         None => content,
@@ -58,7 +80,11 @@ fn with_line<'a>(content: Column<'a, Message>, line: Option<&'static str>, skin:
 pub fn panel(skin: Skin) -> container::Style {
     container::Style {
         background: Some(Background::Color(skin.background)),
-        border: Border { color: skin.accent, width: 2.0, ..Border::default() },
+        border: Border {
+            color: skin.accent,
+            width: 2.0,
+            ..Border::default()
+        },
         ..container::Style::default()
     }
 }

@@ -134,8 +134,10 @@ async fn wait(connection: &Connection, active: &str) -> zbus::Result<()> {
             match state {
                 2 => return Ok(()),
                 3 | 4 => {
-                    return Err(zbus::Error::Failure(format!(
-                        "A conexão não foi concluída (estado {state})"
+                    return Err(zbus::Error::Failure(crate::i18n::with(
+                        "network-connect-failed",
+                        "state",
+                        &state.to_string(),
                     )));
                 }
                 _ => tokio::time::sleep(Duration::from_millis(500)).await,
@@ -145,8 +147,8 @@ async fn wait(connection: &Connection, active: &str) -> zbus::Result<()> {
     .await;
     match result {
         Ok(result) => result,
-        Err(_) => Err(zbus::Error::Failure(
-            "A conexão excedeu o tempo limite; verifique a senha e o sinal".to_owned(),
-        )),
+        Err(_) => Err(zbus::Error::Failure(crate::i18n::text(
+            "network-connect-timeout",
+        ))),
     }
 }

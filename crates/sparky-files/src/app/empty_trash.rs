@@ -4,6 +4,7 @@ use iced::keyboard::Key;
 use crate::app::keys::{self, Answer};
 use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
+use crate::i18n;
 use crate::ports::EmptyReport;
 
 impl Files {
@@ -12,7 +13,7 @@ impl Files {
             return;
         }
         match self.services.trash.names() {
-            Ok(names) if names.is_empty() => self.inform("Lixeira vazia".to_owned()),
+            Ok(names) if names.is_empty() => self.inform(i18n::text("empty-trash-state")),
             Ok(names) => self.mode = Mode::ConfirmEmptyTrash(names.len()),
             Err(error) => self.fail(error),
         }
@@ -36,7 +37,7 @@ impl Files {
             return Task::none();
         }
         self.emptying = true;
-        self.inform("Esvaziando lixeira...".to_owned());
+        self.inform(i18n::text("emptying-trash"));
         let trash = self.services.trash.clone();
         Task::perform(
             async move {

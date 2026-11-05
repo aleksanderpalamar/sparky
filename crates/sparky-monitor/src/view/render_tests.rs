@@ -106,7 +106,7 @@ fn todas_as_paginas_renderizam_com_seu_conteudo() {
     ];
     for (page, texto) in esperado {
         let _ = update(&mut monitor, Message::Open(page));
-        let textos = renderizar(&monitor, page.label());
+        let textos = renderizar(&monitor, &page.label());
         contem(&textos, &[texto]);
     }
 }

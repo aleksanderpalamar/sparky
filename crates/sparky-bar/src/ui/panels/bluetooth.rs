@@ -6,6 +6,7 @@ use super::{action, parts};
 use crate::app::{message::Message, panel_state::Panels};
 use crate::domain::bluetooth::{Adapter, Bluetooth, BluetoothRequest, Device};
 use crate::domain::panel::PanelKind;
+use crate::i18n;
 
 pub fn view<'a>(skin: &Skin, panels: &'a Panels) -> Element<'a, Message> {
     let Some(Bluetooth::Ready(adapters)) = &panels.bluetooth else {
@@ -13,11 +14,11 @@ pub fn view<'a>(skin: &Skin, panels: &'a Panels) -> Element<'a, Message> {
             parts::heading(
                 skin,
                 "bluetooth-symbolic",
-                "Bluetooth".to_owned(),
-                "Serviço indisponível".to_owned(),
+                i18n::text("bluetooth"),
+                i18n::text("service-unavailable"),
                 None,
             ),
-            text("Nenhum adaptador Bluetooth disponível").size(12),
+            text(i18n::text("no-bluetooth-adapter")).size(12),
         ]
         .spacing(12)
         .into();
@@ -32,9 +33,9 @@ pub fn view<'a>(skin: &Skin, panels: &'a Panels) -> Element<'a, Message> {
 
 fn adapter_view<'a>(skin: &Skin, adapter: &'a Adapter, busy: bool) -> Element<'a, Message> {
     let status = match (adapter.powered, adapter.discovering) {
-        (false, _) => "Desligado",
-        (true, true) => "Procurando aparelhos...",
-        (true, false) => "Ligado",
+        (false, _) => "off",
+        (true, true) => "searching-devices",
+        (true, false) => "on",
     };
     let toggle = Message::BluetoothRequest(BluetoothRequest::Power {
         adapter: adapter.path.clone(),
@@ -43,15 +44,15 @@ fn adapter_view<'a>(skin: &Skin, adapter: &'a Adapter, busy: bool) -> Element<'a
     let mut body = column![parts::heading(
         skin,
         "bluetooth-symbolic",
-        "Bluetooth".to_owned(),
-        status.to_owned(),
+        i18n::text("bluetooth"),
+        i18n::text(status),
         Some((adapter.powered, toggle)),
     )]
     .spacing(10);
     if !adapter.powered {
         return body.into();
     }
-    body = body.push(parts::section(skin, "PAREADOS"));
+    body = body.push(parts::section(skin, i18n::text("paired")));
     let paired: Vec<_> = adapter
         .devices
         .iter()
@@ -60,12 +61,12 @@ fn adapter_view<'a>(skin: &Skin, adapter: &'a Adapter, busy: bool) -> Element<'a
     body = device_list(body, skin, &paired, busy);
     if paired.is_empty() {
         body = body.push(
-            text("Nenhum aparelho pareado")
+            text(i18n::text("no-paired-device"))
                 .size(11)
                 .color(skin.dark_foreground),
         );
     }
-    body = body.push(parts::section(skin, "DISPONÍVEIS"));
+    body = body.push(parts::section(skin, i18n::text("available")));
     let available: Vec<_> = adapter
         .devices
         .iter()
@@ -74,7 +75,7 @@ fn adapter_view<'a>(skin: &Skin, adapter: &'a Adapter, busy: bool) -> Element<'a
     body = device_list(body, skin, &available, busy);
     if available.is_empty() {
         body = body.push(
-            text("Nenhum aparelho encontrado")
+            text(i18n::text("no-device-found"))
                 .size(11)
                 .color(skin.dark_foreground),
         );
@@ -82,7 +83,7 @@ fn adapter_view<'a>(skin: &Skin, adapter: &'a Adapter, busy: bool) -> Element<'a
     if !adapter.discovering && !busy {
         body = body.push(action(
             skin,
-            "Buscar aparelhos",
+            i18n::text("search-devices"),
             Message::BluetoothRequest(BluetoothRequest::Discover(adapter.path.clone())),
         ));
     }
@@ -98,15 +99,15 @@ fn device_list<'a>(
     for device in devices {
         let (trailing, request) = match (device.connected, device.paired) {
             (true, _) => (
-                Some("desconectar"),
+                Some(i18n::text("disconnect-lower")),
                 BluetoothRequest::Disconnect(device.path.clone()),
             ),
             (_, true) => (
-                Some("conectar"),
+                Some(i18n::text("connect-lower")),
                 BluetoothRequest::Connect(device.path.clone()),
             ),
             _ => (
-                Some("parear"),
+                Some(i18n::text("pair-lower")),
                 BluetoothRequest::Pair {
                     device: device.path.clone(),
                     name: device.name.clone(),

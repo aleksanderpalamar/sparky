@@ -7,7 +7,9 @@ license.workspace = true
 
 [dependencies]
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
+fluent-bundle = "0.16"
 iced = { version = "0.14", features = ["image", "svg", "tokio"] }
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
 sparky-login-core.workspace = true
+sparky-i18n.workspace = true
 sparky-theme.workspace = true

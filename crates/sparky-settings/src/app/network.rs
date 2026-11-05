@@ -24,9 +24,9 @@ impl Settings {
             self.network.select(index);
         }
         self.inform(if reapplied {
-            "Configuração IPv4 aplicada".to_owned()
+            crate::i18n::text("network-applied")
         } else {
-            "Configuração IPv4 salva; reconecte a rede para aplicar".to_owned()
+            crate::i18n::text("network-reconnect")
         });
     }
 }

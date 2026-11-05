@@ -15,7 +15,7 @@ pub fn view(settings: &Settings) -> Element<'_, Message> {
     let skin = settings.context.skin;
     let rows = settings.system_rows();
     if rows.is_empty() {
-        return hint(skin, "Nenhum item disponível nesta seção.");
+        return hint(skin, crate::i18n::text("system-empty"));
     }
     let missing = missing(settings.section, &rows);
     let items = rows.into_iter().enumerate().map(|(index, row)| {
@@ -31,7 +31,7 @@ pub fn view(settings: &Settings) -> Element<'_, Message> {
     });
     let mut body = column![grouped(skin, items)].spacing(space::MD);
     for (group, note) in missing {
-        body = body.push(caption(skin, group)).push(hint(skin, note));
+        body = body.push(caption(skin, &group)).push(hint(skin, note));
     }
     if let Some(note) = footnote(settings.section) {
         body = body.push(hint(skin, note));
@@ -87,58 +87,46 @@ fn percent<'a>(settings: &Settings, id: RowId, value: &str) -> Element<'a, Messa
     level(settings.context.skin, slider, format!("{value}%"))
 }
 
-fn group(id: RowId) -> &'static str {
-    match id {
-        RowId::PowerProfile => "Perfil de energia",
-        RowId::Brightness => "Tela",
-        RowId::Battery => "Bateria",
-        RowId::IdleLock => "Bloqueio",
-        RowId::Timezone => "Fuso horário",
-        RowId::LocalTime => "Relógio",
-        RowId::NetworkTime | RowId::LocalClock => "Ajustes",
-        RowId::Locale => "Idioma",
-        RowId::ConsoleKeymap | RowId::SystemLayout => "Teclado",
-        RowId::Theme | RowId::ThemeStatus => "Tema",
-        RowId::Wallpaper => "Papel de parede",
-        RowId::LoginWallpaper => "Tela de login",
-        RowId::Volume(_) | RowId::MediaStatus => "Volumes",
-    }
+fn group(id: RowId) -> String {
+    let key = match id {
+        RowId::PowerProfile => "group-power-profile",
+        RowId::Brightness => "group-screen",
+        RowId::Battery => "group-battery",
+        RowId::IdleLock => "group-lock",
+        RowId::Timezone => "group-timezone",
+        RowId::LocalTime => "group-clock",
+        RowId::NetworkTime | RowId::LocalClock => "group-adjustments",
+        RowId::Locale => "group-language",
+        RowId::ConsoleKeymap | RowId::SystemLayout => "group-keyboard",
+        RowId::Theme | RowId::ThemeStatus => "group-theme",
+        RowId::Wallpaper => "group-wallpaper",
+        RowId::LoginWallpaper => "group-login-screen",
+        RowId::Volume(_) | RowId::MediaStatus => "group-volumes",
+    };
+    crate::i18n::text(key)
 }
 
-fn missing(section: Section, rows: &[Row]) -> Vec<(&'static str, &'static str)> {
+fn missing(section: Section, rows: &[Row]) -> Vec<(String, String)> {
     if section != Section::Power {
         return Vec::new();
     }
     let absent = |id| !rows.iter().any(|row| row.id == id);
     [
-        (
-            RowId::Battery,
-            "Bateria",
-            "Nenhuma bateria: a máquina está sempre na tomada.",
-        ),
-        (
-            RowId::Brightness,
-            "Tela",
-            "Este monitor não expõe controle de brilho ao sistema.",
-        ),
+        (RowId::Battery, "group-battery", "no-battery"),
+        (RowId::Brightness, "group-screen", "no-brightness"),
     ]
     .into_iter()
     .filter(|(id, _, _)| absent(*id))
-    .map(|(_, group, note)| (group, note))
+    .map(|(_, group, note)| (crate::i18n::text(group), crate::i18n::text(note)))
     .collect()
 }
 
-fn footnote(section: Section) -> Option<&'static str> {
-    match section {
-        Section::Region => {
-            Some("Alterar idioma ou teclado pede a sua senha e vale a partir do próximo login.")
-        }
-        Section::DateTime => {
-            Some("O relógio do hardware em hora local só é necessário para conviver com o Windows.")
-        }
-        Section::Themes => {
-            Some("Trocar de tema muda na hora as cores de todos os aplicativos do Sparky.")
-        }
-        _ => None,
-    }
+fn footnote(section: Section) -> Option<String> {
+    let key = match section {
+        Section::Region => "footnote-region",
+        Section::DateTime => "footnote-date-time",
+        Section::Themes => "footnote-themes",
+        _ => return None,
+    };
+    Some(crate::i18n::text(key))
 }

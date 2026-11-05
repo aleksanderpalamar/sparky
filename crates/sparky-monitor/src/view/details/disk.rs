@@ -27,10 +27,10 @@ pub fn view(monitor: &Monitor) -> Element<'_, Message> {
     let numbers = stats(
         skin,
         vec![
-            ("Capacidade", bytes(capacity)),
-            ("Em uso", in_use(used, capacity)),
-            ("Lendo", rate(read)),
-            ("Escrevendo", rate(write)),
+            ("capacity", bytes(capacity)),
+            ("in-use", in_use(used, capacity)),
+            ("reading-rate", rate(read)),
+            ("writing-rate", rate(write)),
         ],
     );
     let total = &monitor.histories.disk;
@@ -43,7 +43,7 @@ pub fn view(monitor: &Monitor) -> Element<'_, Message> {
     );
     let mut content = vec![titled(
         skin,
-        "Todos os discos",
+        crate::i18n::text("all-disks"),
         column![numbers, graph].spacing(SPACING).into(),
     )];
     for disk in &reading.disks {
@@ -53,8 +53,8 @@ pub fn view(monitor: &Monitor) -> Element<'_, Message> {
     content.push(top_processes(monitor));
     page(
         skin,
-        "Disco".to_owned(),
-        Some("leitura em destaque, escrita em ciano".to_owned()),
+        crate::i18n::text("disk"),
+        Some(crate::i18n::text("disk-legend")),
         content,
     )
 }
@@ -69,19 +69,19 @@ fn device<'a>(
         skin,
         vec![
             (
-                "Montagem",
+                "mounts",
                 if sample.mounts.is_empty() {
                     dash()
                 } else {
                     sample.mounts.join(", ")
                 },
             ),
-            ("Capacidade", bytes(sample.capacity)),
-            ("Em uso", in_use(sample.used, sample.capacity)),
-            ("Lendo", rate(disk.read)),
-            ("Escrevendo", rate(disk.write)),
+            ("capacity", bytes(sample.capacity)),
+            ("in-use", in_use(sample.used, sample.capacity)),
+            ("reading-rate", rate(disk.read)),
+            ("writing-rate", rate(disk.write)),
             (
-                "Temperatura",
+                "temperature",
                 sample.temperature.map(celsius).unwrap_or_else(dash),
             ),
         ],
@@ -104,8 +104,8 @@ fn device<'a>(
         );
         body = body.push(
             row![
-                container(titled(skin, "Leitura", reading)).width(Length::Fill),
-                container(titled(skin, "Escrita", writing)).width(Length::Fill),
+                container(titled(skin, crate::i18n::text("read"), reading)).width(Length::Fill),
+                container(titled(skin, crate::i18n::text("write"), writing)).width(Length::Fill),
             ]
             .spacing(SPACING),
         );

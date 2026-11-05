@@ -25,23 +25,24 @@ pub fn view(settings: &Settings) -> Element<'_, Message> {
     grouped(skin, rows)
 }
 
-pub fn group(field: Field) -> &'static str {
-    match field {
-        Field::GapsInner | Field::GapsOuter | Field::Border => "Janelas",
-        Field::FloatWidth | Field::FloatHeight => "Janelas flutuantes",
-        Field::DefaultBinds => "Atalhos",
-        Field::Wallpaper => "Papel de parede",
-        Field::LoginWallpaper => "Tela de login",
-        Field::Layout | Field::Variant | Field::Options => "Layout",
-        Field::RepeatRate | Field::RepeatDelay => "Repetição",
+pub fn group(field: Field) -> String {
+    let key = match field {
+        Field::GapsInner | Field::GapsOuter | Field::Border => "group-windows",
+        Field::FloatWidth | Field::FloatHeight => "group-floating-windows",
+        Field::DefaultBinds => "section-shortcuts-label",
+        Field::Wallpaper => "group-wallpaper",
+        Field::LoginWallpaper => "group-login-screen",
+        Field::Layout | Field::Variant | Field::Options => "field-layout-label",
+        Field::RepeatRate | Field::RepeatDelay => "group-repeat",
         Field::Terminal
         | Field::Launcher
         | Field::Files
         | Field::Settings
         | Field::Screenshot
         | Field::Locker
-        | Field::SystemMenu => "Programas dos atalhos",
-    }
+        | Field::SystemMenu => "group-shortcut-programs",
+    };
+    crate::i18n::text(key)
 }
 
 fn control(settings: &Settings, index: usize, field: Field) -> Element<'_, Message> {

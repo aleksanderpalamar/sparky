@@ -1,0 +1,11 @@
+create-title = Create a vault password
+unlock-title = Unlock the vault
+create-explanation = An application wants to save a password. Choose a password to protect the Sparky vault.
+unlock-explanation = An application wants to use a saved password. Enter the Sparky vault password.
+retry-warning = Incorrect password. Try again.
+empty-password = The password cannot be empty.
+password-mismatch = The passwords do not match.
+password = Password
+repeat-password = Repeat the password
+long-hint = Enter confirms · Tab changes field · Esc cancels
+short-hint = Enter confirms · Esc cancels

@@ -75,7 +75,11 @@ pub fn open_settings() -> Task<Message> {
                 .args(["--section", "network"])
                 .spawn()
                 .map(|_| ())
-                .map_err(|error| format!("Não foi possível abrir Configurações de rede: {error}"))
+                .map_err(|error| {
+                    let mut args = fluent_bundle::FluentArgs::new();
+                    args.set("reason", error.to_string());
+                    crate::i18n::message("network-settings-open-failed", Some(&args))
+                })
         },
         Message::NetworkSettingsOpened,
     )

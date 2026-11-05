@@ -23,7 +23,6 @@ use crate::domain::unlock::Unlock;
 use crate::ports::authenticator::Authenticator;
 
 const TICK: Duration = Duration::from_secs(1);
-const LOST: &str = "a conferência da senha parou no meio";
 
 #[to_session_message]
 #[derive(Debug, Clone)]
@@ -84,7 +83,10 @@ pub fn boot(start: Start) -> (Locker, Task<Message>) {
     };
     let load = match start.wallpaper {
         Some(path) => Task::perform(
-            blocking(move || backdrop::load(&path), Err(LOST.to_owned())),
+            blocking(
+                move || backdrop::load(&path),
+                Err(sparky_login_look::i18n::text("password-check-stopped")),
+            ),
             Message::Backdrop,
         ),
         None => Task::none(),

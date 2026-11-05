@@ -41,7 +41,7 @@ impl Workspace {
     pub fn title(&self) -> String {
         self.tabs
             .active()
-            .map_or_else(|| "Terminal".into(), |tab| tab.value.title.clone())
+            .map_or_else(|| crate::i18n::text("title"), |tab| tab.value.title.clone())
     }
 
     pub fn fit(&mut self, size: Size) {

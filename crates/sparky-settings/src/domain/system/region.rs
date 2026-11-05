@@ -28,17 +28,19 @@ impl Region {
 
     pub fn rows(&self) -> Vec<Row> {
         [
-            (RowId::Locale, "Idioma do sistema"),
-            (RowId::ConsoleKeymap, "Teclado do console"),
-            (RowId::SystemLayout, "Layout do sistema"),
+            (RowId::Locale, "row-system-language"),
+            (RowId::ConsoleKeymap, "row-console-keyboard"),
+            (RowId::SystemLayout, "row-system-layout"),
         ]
         .into_iter()
         .filter_map(|(id, label)| {
             let (current, choices) = self.selection(id)?;
             Some(Row {
                 id,
-                label: label.to_owned(),
-                value: current.as_deref().unwrap_or("não definido").to_owned(),
+                label: crate::i18n::text(label),
+                value: current
+                    .clone()
+                    .unwrap_or_else(|| crate::i18n::text("unset")),
                 control: match choices.is_empty() {
                     true => Control::Reading,
                     false => Control::Choice(choices.to_vec()),

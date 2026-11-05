@@ -14,6 +14,8 @@ name = "sparky_files"
 path = "src/lib.rs"
 
 [dependencies]
+fluent-bundle = "0.16"
+sparky-i18n.workspace = true
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 gio = "0.22"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }

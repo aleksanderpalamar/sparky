@@ -53,15 +53,18 @@ pub fn heading<'a>(
     row.into()
 }
 
-pub fn section<'a>(skin: &Skin, label: &'static str) -> Element<'a, Message> {
-    text(label).size(10).color(skin.dark_foreground).into()
+pub fn section<'a>(skin: &Skin, label: impl Into<String>) -> Element<'a, Message> {
+    text(label.into())
+        .size(10)
+        .color(skin.dark_foreground)
+        .into()
 }
 
 pub fn choice<'a>(
     skin: &Skin,
     icon_name: &str,
     label: String,
-    trailing: Option<&'static str>,
+    trailing: Option<String>,
     selected: bool,
     message: Option<Message>,
 ) -> Element<'a, Message> {

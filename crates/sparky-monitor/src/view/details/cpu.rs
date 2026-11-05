@@ -23,16 +23,16 @@ pub fn view(monitor: &Monitor) -> Element<'_, Message> {
     let numbers = stats(
         skin,
         vec![
-            ("Uso", percent(reading.cpu)),
+            ("usage", percent(reading.cpu)),
             (
-                "Frequência",
+                "frequency",
                 info.frequency.map(frequency).unwrap_or_else(dash),
             ),
             (
-                "Temperatura",
+                "temperature",
                 info.temperature.map(celsius).unwrap_or_else(dash),
             ),
-            ("Núcleos", reading.cores.len().to_string()),
+            ("cores", reading.cores.len().to_string()),
         ],
     );
     let usage = chart(
@@ -45,10 +45,14 @@ pub fn view(monitor: &Monitor) -> Element<'_, Message> {
     let content = vec![
         titled(
             skin,
-            "Uso total",
+            crate::i18n::text("total-usage"),
             column![numbers, usage].spacing(SPACING).into(),
         ),
-        titled(skin, "Núcleos", cores(monitor, &reading.cores)),
+        titled(
+            skin,
+            crate::i18n::text("cores"),
+            cores(monitor, &reading.cores),
+        ),
         top_processes(monitor),
     ];
     page(skin, "CPU".to_owned(), info.model.clone(), content)
@@ -64,7 +68,7 @@ fn cores<'a>(monitor: &'a Monitor, usage: &[f32]) -> Element<'a, Message> {
         .enumerate()
         .map(|(index, (history, value))| {
             column![
-                text(format!("Núcleo {index} · {}", percent(*value)))
+                text(core_label(index, *value))
                     .size(SMALL_TEXT)
                     .color(skin.dark_foreground),
                 chart(
@@ -91,4 +95,11 @@ fn cores<'a>(monitor: &'a Monitor, usage: &[f32]) -> Element<'a, Message> {
 
 pub fn dash() -> String {
     "—".to_owned()
+}
+
+fn core_label(index: usize, value: f32) -> String {
+    let mut args = fluent_bundle::FluentArgs::new();
+    args.set("index", index as i64);
+    args.set("usage", percent(value));
+    crate::i18n::message("core-reading", Some(&args))
 }

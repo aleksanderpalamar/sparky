@@ -7,9 +7,7 @@ use crate::ports::{Claim, Identity, SignalError, Stop};
 impl Monitor {
     pub fn ask(&mut self, stop: Stop) {
         let Some(target) = self.target() else {
-            self.notice = Some(Notice::Error(
-                "Escolha um processo com j/k antes de encerrar".to_owned(),
-            ));
+            self.notice = Some(Notice::Error(crate::i18n::text("select-before-stop")));
             return;
         };
         match self.claim(&target) {
@@ -97,29 +95,37 @@ impl Monitor {
 }
 
 pub fn question(confirm: &Confirm) -> String {
-    let verb = match confirm.stop {
-        Stop::Terminate => "Encerrar",
-        Stop::Kill => "Forçar o fim de",
+    let key = match confirm.stop {
+        Stop::Terminate => "confirm-terminate",
+        Stop::Kill => "confirm-kill",
     };
-    format!(
-        "{verb} {}? Enter confirma · Esc cancela",
-        describe(&confirm.target)
-    )
+    with_target(key, &confirm.target)
 }
 
 fn done(target: &Target, stop: Stop) -> String {
     match stop {
-        Stop::Terminate => format!("Pedido de encerramento enviado a {}", describe(target)),
-        Stop::Kill => format!("{} foi forçado a fechar", describe(target)),
+        Stop::Terminate => with_target("done-terminate", target),
+        Stop::Kill => with_target("done-kill", target),
     }
 }
 
 fn describe(target: &Target) -> String {
     match target {
         Target::Process { pid, name } => format!("{name} (PID {pid})"),
-        Target::App { name, pids } if pids.len() == 1 => format!("{name} (1 processo)"),
-        Target::App { name, pids } => format!("{name} ({} processos)", pids.len()),
+        Target::App { name, pids } => {
+            let mut args = fluent_bundle::FluentArgs::new();
+            args.set("name", name.as_str());
+            args.set("count", pids.len() as i64);
+            crate::i18n::message("app-process-count", Some(&args))
+        }
     }
+}
+
+fn with_target(key: &str, target: &Target) -> String {
+    let label = describe(target);
+    let mut args = fluent_bundle::FluentArgs::new();
+    args.set("target", label.as_str());
+    crate::i18n::message(key, Some(&args))
 }
 
 fn send_all(claims: &[Box<dyn Claim>], stop: Stop) -> Result<(), SignalError> {

@@ -2,8 +2,6 @@ use crate::domain::system::key_value;
 use crate::domain::system::{Change, Control, Request, Row, RowId};
 use crate::ports::commands::CommandRunner;
 
-const UNSET: &str = "não definido";
-
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct DateTime {
     timezone: Option<String>,
@@ -41,20 +39,26 @@ impl DateTime {
         vec![
             Row {
                 id: RowId::Timezone,
-                label: "Fuso horário".to_owned(),
-                value: self.timezone.as_deref().unwrap_or(UNSET).to_owned(),
+                label: crate::i18n::text("row-timezone"),
+                value: self
+                    .timezone
+                    .clone()
+                    .unwrap_or_else(|| crate::i18n::text("unset")),
                 control: self.timezone_control(),
             },
             Row {
                 id: RowId::LocalTime,
-                label: "Hora local".to_owned(),
-                value: self.local_time.as_deref().unwrap_or(UNSET).to_owned(),
+                label: crate::i18n::text("row-local-time"),
+                value: self
+                    .local_time
+                    .clone()
+                    .unwrap_or_else(|| crate::i18n::text("unset")),
                 control: Control::Reading,
             },
             Row {
                 id: RowId::NetworkTime,
-                label: "Hora pela rede".to_owned(),
-                value: self.synchronization_label().to_owned(),
+                label: crate::i18n::text("row-network-time"),
+                value: self.synchronization_label(),
                 control: match self.can_network_time {
                     true => Control::Toggle(self.network_time),
                     false => Control::Reading,
@@ -62,12 +66,11 @@ impl DateTime {
             },
             Row {
                 id: RowId::LocalClock,
-                label: "Relógio do hardware em hora local".to_owned(),
-                value: match self.local_clock {
-                    true => "ligado",
-                    false => "desligado",
-                }
-                .to_owned(),
+                label: crate::i18n::text("row-local-clock"),
+                value: crate::i18n::text(match self.local_clock {
+                    true => "on",
+                    false => "off",
+                }),
                 control: Control::Toggle(self.local_clock),
             },
         ]
@@ -100,11 +103,12 @@ impl DateTime {
         (!self.timezones.iter().any(|known| known == timezone)).then(|| timezone.to_owned())
     }
 
-    fn synchronization_label(&self) -> &'static str {
-        match (self.network_time, self.synchronized) {
-            (false, _) => "desligada",
-            (true, false) => "ligada · sincronizando",
-            (true, true) => "ligada · sincronizado",
-        }
+    fn synchronization_label(&self) -> String {
+        let key = match (self.network_time, self.synchronized) {
+            (false, _) => "network-time-off",
+            (true, false) => "network-time-syncing",
+            (true, true) => "network-time-synced",
+        };
+        crate::i18n::text(key)
     }
 }

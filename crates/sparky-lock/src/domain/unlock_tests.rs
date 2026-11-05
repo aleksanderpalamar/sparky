@@ -43,7 +43,10 @@ fn senha_errada_apaga_a_senha_e_avisa() {
     unlock.submit();
     unlock.refuse(Refusal::Denied);
     assert_eq!(unlock.password(), "");
-    assert_eq!(unlock.warning().as_deref(), Some("Senha incorreta!"));
+    assert_eq!(
+        unlock.warning(),
+        Some(sparky_login_look::i18n::text("wrong-password"))
+    );
 }
 
 #[test]

@@ -1,5 +1,5 @@
 use crate::app::state::Settings;
-use crate::domain::system::idle::{self, KEY, LABEL, TABLE};
+use crate::domain::system::idle::{self, KEY, TABLE};
 use crate::domain::system::{Change, Row};
 use crate::domain::value::Step;
 
@@ -18,12 +18,20 @@ impl Settings {
             Change::Text(text) => idle::chosen(&text),
         };
         let Some(minutes) = minutes else {
-            return self.fail(format!("{LABEL}: escolha uma das opções"));
+            return self.fail(crate::i18n::with(
+                "choose-option",
+                "field",
+                &crate::i18n::text("row-idle-lock"),
+            ));
         };
         let Ok(number) = i32::try_from(minutes) else {
             return;
         };
-        let what = format!("{LABEL}: {}", idle::label(minutes));
+        let what = format!(
+            "{}: {}",
+            crate::i18n::text("row-idle-lock"),
+            idle::label(minutes)
+        );
         self.edit(&what, |editor| editor.set_number(TABLE, KEY, number));
     }
 }

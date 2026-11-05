@@ -61,9 +61,9 @@ pub const ALL: [IconKind; 24] = [
 pub type Icons = BTreeMap<IconKind, PathBuf>;
 
 impl IconKind {
-    pub fn for_entry(entry: &Entry, place: Option<&str>) -> Self {
+    pub fn for_entry(entry: &Entry, place: Option<IconKind>) -> Self {
         if entry.is_directory() {
-            return Self::place(place.unwrap_or_default());
+            return place.unwrap_or(Self::Folder);
         }
         let extension = Path::new(&entry.name)
             .extension()
@@ -87,19 +87,6 @@ impl IconKind {
             | "json" | "toml" | "yaml" | "yml" => Self::Code,
             "txt" | "md" | "log" | "conf" | "ini" => Self::Text,
             _ => Self::File,
-        }
-    }
-
-    pub fn place(label: &str) -> Self {
-        match label {
-            "Pasta pessoal" => Self::Home,
-            "Área de trabalho" => Self::Desktop,
-            "Documentos" => Self::Documents,
-            "Downloads" => Self::Downloads,
-            "Imagens" => Self::Pictures,
-            "Músicas" => Self::Music,
-            "Vídeos" => Self::Videos,
-            _ => Self::Folder,
         }
     }
 

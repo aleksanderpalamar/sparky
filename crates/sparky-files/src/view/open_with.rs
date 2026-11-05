@@ -4,6 +4,7 @@ use sparky_theme::Skin;
 
 use crate::app::message::Message;
 use crate::app::state::{Files, OpenWith};
+use crate::i18n;
 
 pub fn layer<'a>(files: &'a Files, base: Element<'a, Message>) -> Element<'a, Message> {
     let Some(choice) = files.open_with.as_ref() else {
@@ -28,7 +29,7 @@ fn pane(skin: Skin, choice: &OpenWith, height: f32) -> Element<'static, Message>
         .file_name()
         .map(|name| name.to_string_lossy().into_owned())
         .unwrap_or_else(|| choice.path.display().to_string());
-    let title = text(format!("Abrir {filename} com...")).size(15);
+    let title = text(i18n::with("open-file-with", "file", filename)).size(15);
     let apps = choice.apps.iter().map(|app| {
         let id = app.id.clone();
         button(text(app.name.clone()).size(13))
@@ -50,7 +51,7 @@ fn pane(skin: Skin, choice: &OpenWith, height: f32) -> Element<'static, Message>
     let content = column![
         title,
         list,
-        button("Cancelar").on_press(Message::ContextDismiss)
+        button(text(i18n::text("cancel"))).on_press(Message::ContextDismiss)
     ]
     .spacing(12);
     container(content)

@@ -13,25 +13,32 @@ use crate::view::kit::tokens::space;
 pub fn view(settings: &Settings) -> Element<'_, Message> {
     let skin = settings.context.skin;
     if let Some(error) = &settings.network.error {
-        return hint(skin, format!("NetworkManager indisponível: {error}"));
+        return hint(
+            skin,
+            crate::i18n::with("network-manager-unavailable", "reason", &error.to_string()),
+        );
     }
     if settings.network.profiles.is_empty() {
-        return hint(skin, "Nenhuma conexão de rede ativa para configurar");
+        return hint(skin, crate::i18n::text("network-no-connection"));
     }
     let Some(draft) = &settings.network.draft else {
-        return hint(skin, "Configuração IPv4 indisponível");
+        return hint(skin, crate::i18n::text("network-ipv4-unavailable"));
     };
     column![
-        caption(skin, "Conexão ativa"),
+        caption(skin, &crate::i18n::text("network-active")),
         profiles(settings),
-        caption(skin, "Método IPv4"),
+        caption(skin, &crate::i18n::text("network-method")),
         methods(skin, draft),
         addressing(settings, draft),
         dns(skin, draft),
-        hint(skin, "As configurações IPv6 permanecem como estão."),
+        hint(skin, crate::i18n::text("network-ipv6-note")),
         row![
             Space::new().width(Length::Fill),
-            action(skin, "Salvar e aplicar", Message::NetworkSave)
+            action(
+                skin,
+                crate::i18n::text("network-save"),
+                Message::NetworkSave
+            )
         ],
     ]
     .spacing(space::MD)
@@ -59,14 +66,14 @@ fn profiles(settings: &Settings) -> Element<'_, Message> {
 
 fn methods<'a>(skin: Skin, draft: &Draft) -> Element<'a, Message> {
     let options = [
-        ("Automático (DHCP)", Method::Auto),
-        ("Manual", Method::Manual),
+        ("network-auto", Method::Auto),
+        ("network-manual", Method::Manual),
     ]
     .into_iter()
     .map(|(label, method)| {
         option_row(
             skin,
-            label,
+            crate::i18n::text(label),
             draft.method == method,
             Message::NetworkMethod(method),
         )
@@ -87,18 +94,18 @@ fn addressing<'a>(settings: &Settings, draft: &'a Draft) -> Element<'a, Message>
                 .unwrap_or_default(),
         ),
         Method::Manual => column![
-            caption(skin, "Endereço"),
+            caption(skin, &crate::i18n::text("network-address")),
             input(
                 skin,
-                "Endereço IPv4 / prefixo",
-                "ex.: 192.168.1.10/24",
+                "network-ipv4-address",
+                "network-example-address",
                 Field::Address,
                 &draft.address
             ),
             input(
                 skin,
-                "Gateway",
-                "ex.: 192.168.1.1",
+                "network-gateway",
+                "network-example-gateway",
                 Field::Gateway,
                 &draft.gateway
             ),
@@ -113,18 +120,18 @@ fn dns<'a>(skin: Skin, draft: &'a Draft) -> Element<'a, Message> {
     if draft.method == Method::Auto {
         body = body.push(auto_dns(skin, draft));
     }
-    body.push(caption(skin, "Servidores DNS"))
+    body.push(caption(skin, &crate::i18n::text("network-dns-servers")))
         .push(input(
             skin,
-            "DNS primário",
-            "ex.: 1.1.1.1",
+            "network-primary-dns",
+            "network-example-primary-dns",
             Field::PrimaryDns,
             &draft.primary_dns,
         ))
         .push(input(
             skin,
-            "DNS secundário",
-            "ex.: 8.8.8.8",
+            "network-secondary-dns",
+            "network-example-secondary-dns",
             Field::SecondaryDns,
             &draft.secondary_dns,
         ))

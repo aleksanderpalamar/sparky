@@ -3,6 +3,7 @@ use crate::domain::clip::Clip;
 use crate::domain::destination;
 use crate::domain::entry::Kind;
 use crate::domain::wording::{agreed, items};
+use crate::i18n;
 use crate::operations;
 
 impl Files {
@@ -16,13 +17,13 @@ impl Files {
 
     pub fn finish_destination(&mut self, clip: &Clip, input: &str) {
         let Some(target) = destination::resolve(input, &self.location, &self.home) else {
-            self.fail("Informe uma pasta de destino");
+            self.fail(i18n::text("need-destination"));
             return;
         };
         match self.services.disk.properties(&target) {
             Ok(details) if details.kind == Kind::Directory => {}
             Ok(_) => {
-                self.fail("O destino não é uma pasta");
+                self.fail(i18n::text("destination-not-folder"));
                 return;
             }
             Err(error) => {

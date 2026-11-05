@@ -2,11 +2,11 @@ use iced::Element;
 use iced::widget::{button, container, mouse_area, row, svg};
 
 use sparky_login_look::widgets::{Look, underlined};
-use sparky_login_look::{icons, style};
+use sparky_login_look::{i18n, icons, style};
 
 use crate::app::Message;
 use crate::domain::focus::Focus;
-use crate::domain::power::{self, Power};
+use crate::domain::power::{Power, key};
 
 pub fn icons<'a>(look: Look) -> Element<'a, Message> {
     row(Power::ALL.map(|action| icon(action, look)))
@@ -34,7 +34,7 @@ fn icon<'a>(action: Power, look: Look) -> Element<'a, Message> {
 }
 
 fn label<'a>(action: Power, focused: bool, look: Look) -> Element<'a, Message> {
-    let text = container(underlined(power::label(action).to_owned(), focused, look))
+    let text = container(underlined(i18n::text(key(action)), focused, look))
         .center_x(look.layout.power_width);
     mouse_area(text).on_press(Message::Power(action)).into()
 }

@@ -51,15 +51,16 @@ impl<'a> Line<'a> {
     }
 }
 
-pub fn grouped<'a>(
+pub fn grouped<'a, S: Into<String>>(
     skin: Skin,
-    items: impl IntoIterator<Item = (&'static str, Element<'a, Message>)>,
+    items: impl IntoIterator<Item = (S, Element<'a, Message>)>,
 ) -> Element<'a, Message> {
-    let mut current = None;
+    let mut current: Option<String> = None;
     let mut body = Column::new().spacing(space::MD).width(Length::Fill);
     for (group, item) in items {
-        if current != Some(group) {
-            body = body.push(caption(skin, group));
+        let group = group.into();
+        if current.as_deref() != Some(group.as_str()) {
+            body = body.push(caption(skin, &group));
             current = Some(group);
         }
         body = body.push(item);

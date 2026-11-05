@@ -89,30 +89,32 @@ impl Bluetooth {
         "bluetooth-symbolic"
     }
 
-    pub fn title(&self) -> &'static str {
-        match self.icon() {
+    pub fn title(&self) -> String {
+        let key = match self.icon() {
             "bluetooth-disabled-symbolic" if matches!(self, Self::Unavailable) => {
-                "Bluetooth — serviço indisponível"
+                "bluetooth-unavailable-title"
             }
-            "bluetooth-disabled-symbolic" => "Bluetooth desligado",
-            "bluetooth-active-symbolic" => "Bluetooth conectado",
-            _ => "Bluetooth ligado",
-        }
+            "bluetooth-disabled-symbolic" => "bluetooth-off-title",
+            "bluetooth-active-symbolic" => "bluetooth-connected-title",
+            _ => "bluetooth-on-title",
+        };
+        crate::i18n::text(key)
     }
 
     pub fn menu(&self) -> Vec<MenuEntry> {
-        let mut labels = vec![self.title().to_owned()];
+        let mut labels = vec![self.title()];
         if let Self::Ready(adapters) = self {
             labels.extend(adapters.iter().flat_map(|adapter| {
                 let status = match adapter.powered {
-                    true => "ligado",
-                    false => "desligado",
+                    true => "on",
+                    false => "off",
                 };
-                std::iter::once(format!("{} — {status}", adapter.name)).chain(
-                    adapter
-                        .connected
-                        .iter()
-                        .map(|name| format!("Conectado: {name}")),
+                std::iter::once(format!("{} — {}", adapter.name, crate::i18n::text(status))).chain(
+                    adapter.connected.iter().map(|name| {
+                        let mut args = fluent_bundle::FluentArgs::new();
+                        args.set("name", name.as_str());
+                        crate::i18n::message("bluetooth-device-connected", Some(&args))
+                    }),
                 )
             }));
         }

@@ -17,7 +17,7 @@ use crate::app::state::Monitor;
 
 pub fn top_processes(monitor: &Monitor) -> Element<'_, Message> {
     let content = column![
-        section(monitor.skin, "Processos"),
+        section(monitor.skin, crate::i18n::text("processes")),
         table::processes(monitor, DETAIL_ROWS)
     ]
     .spacing(SPACING);
@@ -26,11 +26,11 @@ pub fn top_processes(monitor: &Monitor) -> Element<'_, Message> {
 
 pub fn titled<'a>(
     skin: Skin,
-    title: &'a str,
+    title: impl Into<String>,
     content: Element<'a, Message>,
 ) -> Element<'a, Message> {
     panel(
         skin,
-        column![section(skin, title), content].spacing(SPACING),
+        column![section(skin, title.into()), content].spacing(SPACING),
     )
 }

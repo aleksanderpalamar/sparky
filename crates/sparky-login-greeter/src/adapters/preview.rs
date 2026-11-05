@@ -1,6 +1,8 @@
 use crate::domain::form::{Credentials, Refusal};
-use crate::domain::power::{Power, label};
+use crate::domain::power::{Power, key};
 use crate::ports::backend::Backend;
+use fluent_bundle::FluentArgs;
+use sparky_login_look::i18n;
 
 pub struct Preview;
 
@@ -10,6 +12,8 @@ impl Backend for Preview {
     }
 
     fn power(&self, action: Power) -> Result<(), String> {
-        Err(format!("na prévia, {} não faz nada", label(action)))
+        let mut args = FluentArgs::new();
+        args.set("action", i18n::text(key(action)));
+        Err(i18n::message("preview-power", Some(&args)))
     }
 }

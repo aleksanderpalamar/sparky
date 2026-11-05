@@ -123,7 +123,11 @@ impl Settings {
         }
         match self.services.store.load() {
             Ok(contents) => self.read(contents.as_deref().unwrap_or_default()),
-            Err(error) => self.broken(format!("não deu para ler o sparky.toml: {error}")),
+            Err(error) => self.broken(crate::i18n::with(
+                "config-read-failed",
+                "reason",
+                &error.to_string(),
+            )),
         }
     }
 
@@ -133,7 +137,7 @@ impl Settings {
             .apps
             .terminal
             .clone()
-            .unwrap_or_else(|| "o terminal".to_owned());
+            .unwrap_or_else(|| crate::i18n::text("default-terminal"));
         binds::merged(&self.config, &terminal)
     }
 
@@ -155,7 +159,11 @@ impl Settings {
             Ok(config) => self.config = config,
             Err(error) => {
                 self.config = Config::default();
-                self.fail(format!("o sparky.toml tem um erro: {error}"));
+                self.fail(crate::i18n::with(
+                    "config-invalid",
+                    "reason",
+                    &error.to_string(),
+                ));
             }
         }
     }

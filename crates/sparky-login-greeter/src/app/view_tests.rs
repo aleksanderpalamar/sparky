@@ -54,15 +54,16 @@ fn clicar(greeter: &Greeter, ponto: Point) -> Vec<Message> {
 #[test]
 fn o_login_so_responde_com_usuario_e_senha() {
     let mut greeter = tela(Some("palamar"));
+    let label = sparky_login_look::i18n::text("login");
     let mut ui = simulador(&greeter);
-    let _ = ui.click("Login");
+    let _ = ui.click(label.as_str());
     assert!(
         !ui.into_messages()
             .any(|message| matches!(message, Message::Login))
     );
     greeter.form.type_password("segredo".to_owned());
     let mut ui = simulador(&greeter);
-    let _ = ui.click("Login");
+    let _ = ui.click(label.as_str());
     assert!(
         ui.into_messages()
             .any(|message| matches!(message, Message::Login))

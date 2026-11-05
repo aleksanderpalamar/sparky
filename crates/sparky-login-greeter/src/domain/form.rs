@@ -2,8 +2,6 @@ use zeroize::Zeroizing;
 
 use crate::domain::focus::Focus;
 
-const DENIED: &str = "Falha no login!";
-
 pub use sparky_login_look::reveal::Reveal;
 
 pub use sparky_login_core::protocol::Refusal;
@@ -98,7 +96,7 @@ impl Form {
 
     pub fn warning(&self) -> Option<String> {
         match &self.status {
-            Status::Refused(Refusal::Denied) => Some(DENIED.to_owned()),
+            Status::Refused(Refusal::Denied) => Some(sparky_login_look::i18n::text("login-denied")),
             Status::Refused(Refusal::Unavailable(reason)) => Some(reason.clone()),
             Status::Editing | Status::Waiting => None,
         }

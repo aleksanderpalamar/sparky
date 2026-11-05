@@ -1,3 +1,4 @@
+use fluent_bundle::FluentArgs;
 use iced::widget::{column, row, text};
 use iced::{Element, Length};
 use sparky_theme::Skin;
@@ -8,10 +9,11 @@ use crate::domain::network::{
     DeviceKind, DeviceState, Network, NetworkDevice, NetworkRequest, NetworkState, Security,
 };
 use crate::domain::panel::PanelKind;
+use crate::i18n;
 
 pub fn view<'a>(skin: &Skin, panels: &'a Panels) -> Element<'a, Message> {
     let Network::Ready(state) = &panels.network else {
-        return text("NetworkManager indisponível")
+        return text(i18n::text("network-manager-unavailable"))
             .size(12)
             .color(skin.foreground)
             .into();
@@ -29,7 +31,7 @@ pub fn view<'a>(skin: &Skin, panels: &'a Panels) -> Element<'a, Message> {
     }
     body = body.push(action(
         skin,
-        "Configurações de rede",
+        i18n::text("network-settings"),
         Message::OpenNetworkSettings,
     ));
     for device in &state.devices {
@@ -47,19 +49,18 @@ fn heading<'a>(
         return parts::heading(
             skin,
             "network-offline-symbolic",
-            "Rede".to_owned(),
-            if state.enabled {
-                "Desconectado"
+            i18n::text("network"),
+            i18n::text(if state.enabled {
+                "disconnected"
             } else {
-                "Rede desativada"
-            }
-            .to_owned(),
+                "network-disabled"
+            }),
             None,
         );
     };
     let (icon, medium) = match device.kind {
-        DeviceKind::Ethernet => ("network-wired-symbolic", "Cabo"),
-        DeviceKind::Wifi => (state.icon(), "Wi-Fi"),
+        DeviceKind::Ethernet => ("network-wired-symbolic", i18n::text("wired")),
+        DeviceKind::Wifi => (state.icon(), i18n::text("wifi")),
     };
     let speed = device
         .speed
@@ -81,7 +82,7 @@ fn device_actions<'a>(skin: &Skin, device: &NetworkDevice) -> Element<'a, Messag
     if device.kind == DeviceKind::Ethernet && device.state == DeviceState::Disconnected {
         body = body.push(action(
             skin,
-            "Conectar cabo de rede",
+            i18n::text("connect-wired"),
             Message::NetworkRequest(NetworkRequest::Activate {
                 profile: "/".to_owned(),
                 device: device.path.clone(),
@@ -92,7 +93,7 @@ fn device_actions<'a>(skin: &Skin, device: &NetworkDevice) -> Element<'a, Messag
     if device.state == DeviceState::Activated {
         body = body.push(action(
             skin,
-            "Desconectar",
+            i18n::text("disconnect"),
             Message::NetworkRequest(NetworkRequest::Disconnect(device.path.clone())),
         ));
     }
@@ -106,26 +107,26 @@ fn wireless<'a>(skin: &Skin, state: &'a NetworkState, panels: &Panels) -> Elemen
         .filter(|device| device.kind == DeviceKind::Wifi)
         .collect();
     if devices.is_empty() {
-        return text("Nenhum adaptador Wi-Fi disponível")
+        return text(i18n::text("no-wifi-adapter"))
             .size(11)
             .color(skin.dark_foreground)
             .into();
     }
     let label = if state.wireless {
-        "Desligar Wi-Fi"
+        "turn-off-wifi"
     } else {
-        "Ligar Wi-Fi"
+        "turn-on-wifi"
     };
     let mut body = column![action(
         skin,
-        label,
+        i18n::text(label),
         Message::NetworkRequest(NetworkRequest::Wireless(!state.wireless))
     )]
     .spacing(6);
     if !state.hardware_wireless {
         return body
             .push(
-                text("Wi-Fi bloqueado pelo hardware")
+                text(i18n::text("wifi-hardware-blocked"))
                     .size(11)
                     .color(skin.urgent),
             )
@@ -139,7 +140,7 @@ fn wireless<'a>(skin: &Skin, state: &'a NetworkState, panels: &Panels) -> Elemen
         for device in devices {
             body = body.push(action(
                 skin,
-                format!("Buscar redes · {}", device.interface),
+                scan_label(&device.interface),
                 Message::NetworkRequest(NetworkRequest::Scan(device.path.clone())),
             ));
         }
@@ -151,17 +152,18 @@ fn networks<'a>(skin: &Skin, state: &'a NetworkState, busy: bool) -> Element<'a,
     let mut body = column![].spacing(6);
     for network in &state.networks {
         let secure = match network.security {
-            Security::Open => "aberta",
+            Security::Open => "open-network",
             Security::Personal => "WPA2",
             Security::Sae => "WPA3",
-            Security::Enterprise => "corporativa",
-            Security::Unsupported => "não suportada",
+            Security::Enterprise => "enterprise-network",
+            Security::Unsupported => "unsupported-network",
         };
         let label = format!(
             "{} {} · {}% · {secure}",
             if network.active { "●" } else { "○" },
             network.label(),
-            network.strength
+            network.strength,
+            secure = i18n::text(secure)
         );
         if busy {
             body = body.push(text(label).size(12).color(skin.dark_foreground));
@@ -171,10 +173,16 @@ fn networks<'a>(skin: &Skin, state: &'a NetworkState, busy: bool) -> Element<'a,
     }
     if state.networks.is_empty() {
         body = body.push(
-            text("Nenhuma rede encontrada; use Buscar redes")
+            text(i18n::text("no-networks"))
                 .size(11)
                 .color(skin.dark_foreground),
         );
     }
     row![body.width(Length::Fill)].into()
+}
+
+fn scan_label(interface: &str) -> String {
+    let mut args = FluentArgs::new();
+    args.set("interface", interface.to_owned());
+    i18n::message("scan-networks", Some(&args))
 }

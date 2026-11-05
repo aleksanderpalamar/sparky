@@ -12,7 +12,9 @@ const TAB_WIDTH: f32 = 180.0;
 pub fn view(app: &Workspace) -> Element<'_, Message> {
     let content = match app.tabs.active() {
         Some(tab) => super::view::view(tab.id, &tab.value),
-        None => container(text("Terminal")).height(Length::Fill).into(),
+        None => container(text(crate::i18n::text("title")))
+            .height(Length::Fill)
+            .into(),
     };
     column![header(app), content].height(Length::Fill).into()
 }

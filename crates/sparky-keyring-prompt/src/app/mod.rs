@@ -42,11 +42,20 @@ pub struct Window {
 
 pub fn run(mode: Mode, answered: Arc<AtomicBool>) -> Result<(), iced_layershell::Error> {
     let boot = move || {
-        let window = Window { form: Form::new(mode), skin: Skin::new(sparky_theme::current_palette()), answered: Arc::clone(&answered) };
+        let window = Window {
+            form: Form::new(mode),
+            skin: Skin::new(sparky_theme::current_palette()),
+            answered: Arc::clone(&answered),
+        };
         (window, focus(Field::Password))
     };
     iced_layershell::application(boot, || NAMESPACE.to_owned(), update, view::view)
-        .subscription(|_| Subscription::batch([event::listen_with(keyboard_message), sparky_ui::palette::subscription().map(Message::Palette)]))
+        .subscription(|_| {
+            Subscription::batch([
+                event::listen_with(keyboard_message),
+                sparky_ui::palette::subscription().map(Message::Palette),
+            ])
+        })
         .theme(|window: &Window| window.skin.theme())
         .style(transparent)
         .settings(settings(mode))
@@ -82,7 +91,9 @@ fn follow(window: &Window, step: Step) -> Task<Message> {
         Step::Done(password) => {
             match deliver(&password) {
                 Ok(()) => window.answered.store(true, Ordering::SeqCst),
-                Err(error) => eprintln!("sparky-keyring-prompt: não deu para entregar a senha: {error}"),
+                Err(error) => {
+                    eprintln!("sparky-keyring-prompt: não deu para entregar a senha: {error}")
+                }
             }
             iced::exit()
         }

@@ -28,17 +28,17 @@ impl Page {
         Page::ALL.get(index).copied()
     }
 
-    pub fn label(self) -> &'static str {
-        match self {
-            Page::Dashboard => "Painel",
-            Page::Applications => "Aplicativos",
-            Page::Processes => "Processos",
-            Page::Cpu => "CPU",
-            Page::Memory => "Memória",
-            Page::Disk => "Disco",
-            Page::Network => "Rede",
-            Page::Gpu => "GPU",
-        }
+    pub fn label(self) -> String {
+        crate::i18n::text(match self {
+            Page::Dashboard => "dashboard",
+            Page::Applications => "applications",
+            Page::Processes => "processes",
+            Page::Cpu => "cpu",
+            Page::Memory => "memory",
+            Page::Disk => "disk",
+            Page::Network => "network",
+            Page::Gpu => "gpu",
+        })
     }
 
     pub fn resource(self) -> Option<Column> {

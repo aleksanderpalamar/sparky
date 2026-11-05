@@ -9,25 +9,23 @@ use crate::view::kit::controls::{action, editor};
 use crate::view::kit::rows::{caption, cell, hint};
 use crate::view::kit::tokens::{GLYPH_WIDTH, size, space};
 
-const NOTE: &str = "Os comandos rodam na ordem da lista quando a sessão do Sparky começa.";
-
 pub fn view(settings: &Settings) -> Element<'_, Message> {
     let skin = settings.context.skin;
     let entries = &settings.config.autostart;
     let rows = entries
         .iter()
         .enumerate()
-        .map(|(index, command)| line(settings, index, Slot::Existing(index), command))
+        .map(|(index, command)| line(settings, index, Slot::Existing(index), command.clone()))
         .chain(iter::once(line(
             settings,
             entries.len(),
             Slot::New,
-            "Adicionar comando",
+            crate::i18n::text("autostart-add"),
         )));
     column![
-        caption(skin, "Comandos ao iniciar a sessão"),
+        caption(skin, &crate::i18n::text("autostart-commands")),
         Column::with_children(rows).spacing(space::XXS),
-        hint(skin, NOTE),
+        hint(skin, crate::i18n::text("autostart-note")),
     ]
     .spacing(space::MD)
     .into()
@@ -37,7 +35,7 @@ fn line<'a>(
     settings: &'a Settings,
     index: usize,
     slot: Slot,
-    label: &'a str,
+    label: String,
 ) -> Element<'a, Message> {
     let skin = settings.context.skin;
     let editing = settings.mode == Mode::Editing(Target::Autostart(slot));
@@ -54,7 +52,7 @@ fn line<'a>(
         .into(),
         (false, Slot::Existing(_)) => row![
             text(label).size(size::BODY).width(Length::Fill),
-            action(skin, "Remover", Message::Remove(index)),
+            action(skin, crate::i18n::text("remove"), Message::Remove(index)),
         ]
         .spacing(space::XXL)
         .align_y(Alignment::Center)

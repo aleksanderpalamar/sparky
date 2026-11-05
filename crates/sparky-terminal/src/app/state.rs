@@ -11,7 +11,6 @@ use crate::domain::screen::Screen;
 pub const PADDING: f32 = 18.0;
 pub const WIDTH: f32 = 900.0;
 pub const HEIGHT: f32 = 560.0;
-const TITLE: &str = "Terminal";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Changed {
@@ -54,7 +53,7 @@ impl Terminal {
             },
             screen: Screen::default(),
             cache: canvas::Cache::new(),
-            title: TITLE.to_owned(),
+            title: crate::i18n::text("title"),
             wheel_rest: 0.0,
             error: None,
         }
@@ -115,6 +114,6 @@ impl Terminal {
     }
 
     pub fn reset_title(&mut self) {
-        TITLE.clone_into(&mut self.title);
+        self.title = crate::i18n::text("title");
     }
 }

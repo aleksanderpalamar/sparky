@@ -18,22 +18,28 @@ impl Archiver for TarArchive {
             .iter()
             .map(|path| {
                 let name = path.strip_prefix(source_dir).map_err(|_| {
-                    io::Error::new(io::ErrorKind::InvalidInput, "pastas de origem diferentes")
+                    io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        crate::i18n::text("archive-different-sources"),
+                    )
                 })?;
                 if name.components().count() != 1
                     || !matches!(name.components().next(), Some(Component::Normal(_)))
                 {
                     return Err(io::Error::new(
                         io::ErrorKind::InvalidInput,
-                        "nome de origem inválido",
+                        crate::i18n::text("archive-invalid-source"),
                     ));
                 }
                 Ok(name.to_path_buf())
             })
             .collect::<io::Result<_>>()?;
-        let target_dir = target
-            .parent()
-            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "destino inválido"))?;
+        let target_dir = target.parent().ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                crate::i18n::text("archive-invalid-target"),
+            )
+        })?;
         let temporary = tempfile::NamedTempFile::new_in(target_dir)?;
         let result = Command::new("tar")
             .arg("-czf")
@@ -47,7 +53,7 @@ impl Archiver for TarArchive {
             .stderr(Stdio::null())
             .status()?;
         if !result.success() {
-            return Err(io::Error::other("não foi possível compactar os itens"));
+            return Err(io::Error::other(crate::i18n::text("archive-failed")));
         }
         temporary
             .persist_noclobber(target)

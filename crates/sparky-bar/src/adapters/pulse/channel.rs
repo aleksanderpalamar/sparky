@@ -32,18 +32,20 @@ impl Wake {
     pub fn send(&self, signal: Signal) -> Result<(), String> {
         self.sender
             .send(signal)
-            .map_err(|_| "O serviço de áudio foi encerrado".to_owned())?;
+            .map_err(|_| crate::i18n::text("audio-service-ended"))?;
         let result = self
             .socket
             .lock()
-            .map_err(|_| "O canal de áudio está indisponível".to_owned())?
+            .map_err(|_| crate::i18n::text("audio-channel-unavailable"))?
             .write_all(&[1]);
         match result {
             Ok(()) => Ok(()),
             Err(error) if error.kind() == ErrorKind::WouldBlock => Ok(()),
-            Err(error) => Err(format!(
-                "Não foi possível avisar o serviço de áudio: {error}"
-            )),
+            Err(error) => {
+                let mut args = fluent_bundle::FluentArgs::new();
+                args.set("reason", error.to_string());
+                Err(crate::i18n::message("audio-notify-failed", Some(&args)))
+            }
         }
     }
 }

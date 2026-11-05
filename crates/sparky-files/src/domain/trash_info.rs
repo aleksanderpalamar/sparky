@@ -67,7 +67,7 @@ fn decode(encoded: &[u8]) -> io::Result<Vec<u8>> {
 fn invalid_path() -> io::Error {
     io::Error::new(
         io::ErrorKind::InvalidData,
-        "caminho inválido no registro da lixeira",
+        crate::i18n::text("trash-invalid-path"),
     )
 }
 

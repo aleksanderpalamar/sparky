@@ -19,8 +19,8 @@ pub enum Problem {
 impl Problem {
     pub fn message(self) -> &'static str {
         match self {
-            Problem::Empty => "A senha não pode ficar vazia.",
-            Problem::Mismatch => "As senhas não conferem.",
+            Problem::Empty => "empty-password",
+            Problem::Mismatch => "password-mismatch",
         }
     }
 }
@@ -52,7 +52,13 @@ pub struct Form {
 
 impl Form {
     pub fn new(mode: Mode) -> Self {
-        Self { mode, problem: None, password: Zeroizing::default(), confirmation: Zeroizing::default(), focused: Field::Password }
+        Self {
+            mode,
+            problem: None,
+            password: Zeroizing::default(),
+            confirmation: Zeroizing::default(),
+            focused: Field::Password,
+        }
     }
 
     pub fn password(&self) -> &str {

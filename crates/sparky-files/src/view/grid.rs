@@ -5,6 +5,7 @@ use iced::{Element, Length};
 use crate::app::message::Message;
 use crate::app::state::Files;
 use crate::domain::entry::Entry;
+use crate::i18n;
 use crate::view::icon::entry_icon;
 use crate::view::style::TILE_HEIGHT;
 use sparky_ui::style::{self, Highlight, PADDING, SPACING, TEXT_SIZE};
@@ -27,9 +28,9 @@ pub fn grid(files: &Files) -> Element<'_, Message> {
     });
     let body: Element<'_, Message> = match files.listing.is_empty() {
         true => text(match (files.in_trash(), files.listing.total_len()) {
-            (true, 0) => "Lixeira vazia",
-            (true, _) => "Nenhum item visível",
-            (false, _) => "Pasta vazia",
+            (true, 0) => i18n::text("empty-trash-state"),
+            (true, _) => i18n::text("no-visible-items"),
+            (false, _) => i18n::text("empty-folder"),
         })
         .color(files.skin.dark_foreground)
         .size(TEXT_SIZE)
@@ -58,7 +59,7 @@ fn tile<'a>(files: &'a Files, entry: &'a Entry, index: usize) -> Element<'a, Mes
         .places
         .iter()
         .find(|place| place.path == path)
-        .map(|place| place.label);
+        .map(|place| place.icon);
     let marked = files.listing.is_marked(entry);
     let name = match marked {
         true => format!("✓ {}", entry.name),

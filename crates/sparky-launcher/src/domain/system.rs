@@ -1,22 +1,53 @@
 use sparky_ipc::SessionAction;
 
 use crate::domain::app::{App, Runs};
+use crate::i18n;
 
-const ENTRIES: [(SessionAction, &str, &str, &[&str]); 5] = [
-    (SessionAction::Lock, "Bloquear", "Tranca a tela", &["lock", "trancar", "tela"]),
-    (SessionAction::Suspend, "Suspender", "Tranca a tela e suspende o computador", &["suspend", "dormir"]),
-    (SessionAction::Logout, "Sair da sessão", "Fecha os aplicativos e encerra o sparky", &["logout", "encerrar"]),
-    (SessionAction::Reboot, "Reiniciar", "Fecha os aplicativos e reinicia o computador", &["reboot", "restart"]),
-    (SessionAction::Poweroff, "Desligar", "Fecha os aplicativos e desliga o computador", &["poweroff", "shutdown"]),
+const ENTRIES: [(SessionAction, &str, &str, &str, &[&str]); 5] = [
+    (
+        SessionAction::Lock,
+        "lock",
+        "lock-name",
+        "lock-detail",
+        &["lock", "trancar", "tela"],
+    ),
+    (
+        SessionAction::Suspend,
+        "suspend",
+        "suspend-name",
+        "suspend-detail",
+        &["suspend", "dormir"],
+    ),
+    (
+        SessionAction::Logout,
+        "logout",
+        "logout-name",
+        "logout-detail",
+        &["logout", "encerrar"],
+    ),
+    (
+        SessionAction::Reboot,
+        "reboot",
+        "reboot-name",
+        "reboot-detail",
+        &["reboot", "restart"],
+    ),
+    (
+        SessionAction::Poweroff,
+        "poweroff",
+        "poweroff-name",
+        "poweroff-detail",
+        &["poweroff", "shutdown"],
+    ),
 ];
 
 pub fn entries() -> Vec<App> {
     ENTRIES
         .iter()
-        .map(|(action, name, detail, keywords)| App {
-            id: format!("session-{name}"),
-            name: (*name).to_owned(),
-            detail: Some((*detail).to_owned()),
+        .map(|(action, id, name, detail, keywords)| App {
+            id: format!("session-{id}"),
+            name: i18n::text(name),
+            detail: Some(i18n::text(detail)),
             keywords: keywords.iter().map(|word| (*word).to_owned()).collect(),
             command: String::new(),
             runs: Runs::Session(*action),

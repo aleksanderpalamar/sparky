@@ -20,7 +20,7 @@ use iced::{Element, Length, Padding};
 use crate::app::message::Message;
 use crate::app::state::Settings;
 use crate::domain::section::Section;
-use crate::view::kit::chrome::{TITLE, footer, header, separator};
+use crate::view::kit::chrome::{footer, header, separator};
 use crate::view::kit::look::surface;
 use crate::view::kit::nav::sidebar;
 use crate::view::kit::reveal::CONTENT;
@@ -45,7 +45,11 @@ pub fn view(settings: &Settings) -> Element<'_, Message> {
 }
 
 pub fn title(settings: &Settings) -> String {
-    format!("{} — {TITLE}", settings.section.label())
+    format!(
+        "{} — {}",
+        settings.section.label(),
+        crate::i18n::text("title")
+    )
 }
 
 fn content(settings: &Settings) -> Element<'_, Message> {

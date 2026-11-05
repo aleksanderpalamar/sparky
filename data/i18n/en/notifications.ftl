@@ -1,0 +1,14 @@
+active-limit = Active notification limit reached
+notification-unavailable = Notification unavailable
+wrong-sender = Notification belongs to another application
+state-unavailable = Notification state unavailable
+image-failed = Could not prepare image
+service-not-ready = Native notification service did not become ready
+connection-closed = Notification connection closed
+sender-unavailable = Requester unavailable
+no-state = Service did not return a state
+response-too-large = Notification response exceeded the limit
+service-stopped = Notification service stopped
+service-changed = Notification service changed
+connection-ended = Connection closed
+channel-closed = Channel closed

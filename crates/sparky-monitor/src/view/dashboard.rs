@@ -13,12 +13,16 @@ use crate::app::state::Monitor;
 pub fn dashboard(monitor: &Monitor) -> Element<'_, Message> {
     let skin = monitor.skin;
     let tables = column![
-        section(skin, "Aplicativos"),
+        section(skin, crate::i18n::text("applications")),
         table::applications(monitor, DASHBOARD_APP_ROWS),
-        link(skin, "Ver todos os aplicativos", Page::Applications),
-        section(skin, "Processos"),
+        link(
+            skin,
+            crate::i18n::text("all-applications"),
+            Page::Applications
+        ),
+        section(skin, crate::i18n::text("processes")),
         table::processes(monitor, dashboard_process_rows(monitor.size.height)),
-        link(skin, "Ver todos os processos", Page::Processes),
+        link(skin, crate::i18n::text("all-processes"), Page::Processes),
     ]
     .spacing(SPACING);
     row![

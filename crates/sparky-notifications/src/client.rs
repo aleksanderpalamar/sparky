@@ -77,9 +77,9 @@ impl Client {
             .call_with_flags("Snapshot", MethodFlags::NoAutoStart.into(), &())
             .await
             .map_err(|error| error.to_string())?;
-        let data = data.ok_or("O serviço não retornou o estado")?;
+        let data = data.ok_or_else(|| crate::i18n::text("no-state"))?;
         if data.len() > 12 * 1024 * 1024 {
-            return Err("Resposta de notificações excedeu o limite".to_owned());
+            return Err(crate::i18n::text("response-too-large"));
         }
         serde_json::from_str(&data).map_err(|error| error.to_string())
     }
@@ -120,7 +120,7 @@ pub fn events() -> impl Stream<Item = Event> {
                 return;
             }
             let error = result.err().map_or_else(
-                || "Serviço de notificações encerrado".to_owned(),
+                || crate::i18n::text("service-stopped"),
                 |error| error.to_string(),
             );
             if output.send(Event::Unavailable(error)).await.is_err() {
@@ -146,19 +146,19 @@ async fn monitor(output: &mut iced::futures::channel::mpsc::Sender<Event>) -> Re
     output
         .send(Event::Ready(client.clone()))
         .await
-        .map_err(|_| "Canal fechado")?;
+        .map_err(|_| crate::i18n::text("channel-closed"))?;
     let mut revision = snapshot.revision;
     output
         .send(Event::State(snapshot))
         .await
-        .map_err(|_| "Canal fechado")?;
+        .map_err(|_| crate::i18n::text("channel-closed"))?;
     loop {
         let event = tokio::select! {
-            _ = owners.next() => return Err("O serviço de notificações mudou".to_owned()),
+            _ = owners.next() => return Err(crate::i18n::text("service-changed")),
             event = tokio::time::timeout(Duration::from_secs(30), signals.next()) => event,
         };
         if matches!(event, Ok(None)) {
-            return Err("Conexão encerrada".to_owned());
+            return Err(crate::i18n::text("connection-ended"));
         }
         tokio::time::sleep(Duration::from_millis(80)).await;
         while signals.next().now_or_never().flatten().is_some() {}

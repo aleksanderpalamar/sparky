@@ -9,7 +9,7 @@ pub fn wait() -> Result<(), String> {
     runtime.block_on(async {
         tokio::time::timeout(Duration::from_secs(5), ready())
             .await
-            .map_err(|_| "O serviço nativo de notificações não ficou pronto".to_owned())?
+            .map_err(|_| crate::i18n::text("service-not-ready"))?
             .map_err(|error| error.to_string())
     })
 }

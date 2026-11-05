@@ -6,22 +6,22 @@ use sparky_ui::style::{self, PADDING, SMALL_TEXT, SPACING, STATUS_HEIGHT, TEXT_S
 use crate::app::message::Message;
 use crate::app::state::{Shown, Viewer};
 
-const HINTS: &str = "←/→ imagens · +/− zoom · 0 ajusta · 1 real · r gira · q fecha";
-const SHORT_HINTS: &str = "←/→ imagens · +/− zoom · q fecha";
 const NARROW: f32 = 760.0;
 
 pub fn status(viewer: &Viewer) -> Element<'_, Message> {
     let skin = viewer.skin;
     let hints = match viewer.size.width < NARROW {
-        true => SHORT_HINTS,
-        false => HINTS,
+        true => "short-hints",
+        false => "hints",
     };
     let line = row![
         text(summary(viewer))
             .size(TEXT_SIZE)
             .color(skin.foreground)
             .width(Length::Fill),
-        text(hints).size(SMALL_TEXT).color(skin.dark_foreground),
+        text(crate::i18n::text(hints))
+            .size(SMALL_TEXT)
+            .color(skin.dark_foreground),
     ]
     .spacing(SPACING)
     .align_y(Vertical::Center);

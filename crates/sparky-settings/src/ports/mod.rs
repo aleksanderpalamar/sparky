@@ -1,9 +1,9 @@
 pub mod commands;
-pub mod themes;
 #[cfg(test)]
 pub mod fake;
 #[cfg(test)]
 pub mod fake_themes;
+pub mod themes;
 
 use std::fmt;
 use std::io;
@@ -28,8 +28,12 @@ pub enum CompositorError {
 impl fmt::Display for CompositorError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            CompositorError::Unreachable(reason) => write!(formatter, "o sparky não respondeu ({reason})"),
-            CompositorError::Refused(reason) => write!(formatter, "o sparky recusou: {reason}"),
+            CompositorError::Unreachable(reason) => {
+                formatter.write_str(&crate::i18n::with("sparky-unreachable", "reason", reason))
+            }
+            CompositorError::Refused(reason) => {
+                formatter.write_str(&crate::i18n::with("sparky-refused", "reason", reason))
+            }
         }
     }
 }

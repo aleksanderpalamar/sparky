@@ -4,6 +4,7 @@ use std::io;
 use crate::app::keys::Command;
 use crate::app::message::TrashEvent;
 use crate::app::state::Files;
+use crate::i18n;
 use crate::ports::TrashStore;
 
 impl Files {
@@ -57,7 +58,11 @@ impl Files {
         match self.services.trash.restore(&name) {
             Ok(path) => {
                 self.refresh();
-                self.inform(format!("Restaurado para {}", path.display()));
+                self.inform(i18n::with(
+                    "restored-to",
+                    "path",
+                    path.display().to_string(),
+                ));
             }
             Err(error) => self.fail(format!("{shown}: {error}")),
         }
@@ -94,11 +99,11 @@ fn raw_name(trash: &dyn TrashStore, shown: &str) -> io::Result<OsString> {
         (Some(name), None) => Ok(name),
         (None, _) => Err(io::Error::new(
             io::ErrorKind::NotFound,
-            "item não encontrado",
+            crate::i18n::text("item-not-found"),
         )),
         _ => Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            "nome ambíguo na lixeira",
+            crate::i18n::text("trash-ambiguous-name"),
         )),
     }
 }

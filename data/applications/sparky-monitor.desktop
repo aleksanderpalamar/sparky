@@ -1,10 +1,14 @@
 [Desktop Entry]
 Type=Application
 Name=Monitor do sistema
+Name[en]=System Monitor
 GenericName=Monitor do sistema
+GenericName[en]=System monitor
 Comment=Acompanhe CPU, memória, disco, rede, GPU e processos pelo teclado
+Comment[en]=Monitor CPU, memory, disk, network, GPU, and processes with the keyboard
 Exec=sparky-monitor
 Icon=utilities-system-monitor
 Terminal=false
 Categories=System;Monitor;
 Keywords=processos;cpu;memória;desempenho;tarefas;
+Keywords[en]=processes;cpu;memory;performance;tasks;
