@@ -18,6 +18,16 @@ fn escolhe_o_idioma_da_sessao_e_normaliza_a_regiao() {
 }
 
 #[test]
+fn ignora_variaveis_de_idioma_vazias() {
+    let locale = locale_from_environment(|key| match key {
+        "LC_ALL" | "LC_MESSAGES" => Some(String::new()),
+        "LANG" => Some("en_US.UTF-8".to_owned()),
+        _ => None,
+    });
+    assert_eq!(locale.candidates(), vec!["en-US", "en"]);
+}
+
+#[test]
 fn traduz_e_formata_plurais() {
     let catalog = Catalog::new(&Locale::parse("en_US.UTF-8"), PT, EN).unwrap();
     let mut args = FluentArgs::new();

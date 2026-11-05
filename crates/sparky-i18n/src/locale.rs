@@ -27,6 +27,6 @@ impl Locale {
 pub fn locale_from_environment(get: impl Fn(&str) -> Option<String>) -> Locale {
     ["LC_ALL", "LC_MESSAGES", "LANG"]
         .into_iter()
-        .find_map(get)
+        .find_map(|key| get(key).filter(|value| !value.is_empty()))
         .map_or_else(|| Locale::parse("pt-BR"), |value| Locale::parse(&value))
 }

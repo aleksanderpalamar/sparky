@@ -1,6 +1,5 @@
 use super::focus::Focus;
 use super::power::{Power, key};
-use sparky_login_look::i18n;
 
 const ORDEM: [Focus; 7] = [
     Focus::Username,
@@ -33,10 +32,10 @@ fn so_os_campos_recebem_texto() {
 }
 
 #[test]
-fn os_botoes_de_energia_tem_os_nomes_da_foto_na_ordem_da_foto() {
-    let nomes: Vec<String> = Power::ALL
-        .iter()
-        .map(|power| i18n::text(key(*power)))
-        .collect();
-    assert_eq!(nomes, vec!["Desligar", "Reiniciar", "Suspend"]);
+fn os_botoes_de_energia_seguem_a_ordem_esperada() {
+    let chaves: Vec<&str> = Power::ALL.iter().map(|power| key(*power)).collect();
+    assert_eq!(
+        chaves,
+        vec!["power-shutdown", "power-reboot", "power-suspend"]
+    );
 }

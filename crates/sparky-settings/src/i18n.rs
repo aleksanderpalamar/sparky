@@ -7,13 +7,23 @@ const PORTUGUESE: &str = include_str!("../../../data/i18n/pt-BR/settings.ftl");
 const ENGLISH: &str = include_str!("../../../data/i18n/en/settings.ftl");
 static CATALOG: OnceLock<Result<Catalog, String>> = OnceLock::new();
 
+#[cfg(test)]
+fn load_catalog() -> Result<Catalog, String> {
+    Catalog::new(&sparky_i18n::Locale::parse("pt-BR"), PORTUGUESE, ENGLISH)
+}
+
+#[cfg(not(test))]
+fn load_catalog() -> Result<Catalog, String> {
+    Catalog::for_domain("settings", PORTUGUESE, ENGLISH)
+}
+
 pub fn text(key: &str) -> String {
     message(key, None)
 }
 
 pub fn message(key: &str, args: Option<&FluentArgs<'_>>) -> String {
     CATALOG
-        .get_or_init(|| Catalog::for_domain("settings", PORTUGUESE, ENGLISH))
+        .get_or_init(load_catalog)
         .as_ref()
         .ok()
         .and_then(|catalog| catalog.message(key, args))

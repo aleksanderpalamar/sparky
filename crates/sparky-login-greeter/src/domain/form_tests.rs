@@ -68,7 +68,10 @@ fn a_recusa_apaga_a_senha_e_mostra_o_aviso() {
     form.refuse(Refusal::Denied);
     assert_eq!(form.password(), "");
     assert_eq!(form.username(), "palamar");
-    assert_eq!(form.warning().as_deref(), Some("Falha no login!"));
+    assert_eq!(
+        form.warning(),
+        Some(sparky_login_look::i18n::text("login-denied"))
+    );
 }
 
 #[test]

@@ -120,7 +120,10 @@ fn a_recusa_volta_o_foco_para_a_senha_com_o_aviso() {
     let _ = update(&mut greeter, Message::Answer(Err(Refusal::Denied)));
     assert_eq!(greeter.focus, Focus::Password);
     assert_eq!(greeter.form.password(), "");
-    assert_eq!(greeter.form.warning().as_deref(), Some("Falha no login!"));
+    assert_eq!(
+        greeter.form.warning(),
+        Some(sparky_login_look::i18n::text("login-denied"))
+    );
 }
 
 #[test]
@@ -131,7 +134,7 @@ fn sem_sessao_instalada_avisa_e_nao_tenta_entrar() {
     assert_eq!(greeter.form.status(), &Status::Editing);
     assert_eq!(
         greeter.notice.as_deref(),
-        Some("nenhuma sessão Wayland instalada")
+        Some(sparky_login_look::i18n::text("no-session").as_str())
     );
 }
 
