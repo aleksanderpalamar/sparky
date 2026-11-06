@@ -13,35 +13,24 @@ use crate::view::icon::icon;
 
 pub fn sidebar(files: &Files) -> Element<'_, Message> {
     let skin = files.skin;
-    let places = files.places.iter().enumerate().map(|(index, place)| {
-        let label = row![
-            text((index + 1).to_string())
-                .size(SMALL_TEXT)
-                .color(skin.accent)
-                .width(14),
-            icon(files, place.icon, 20.0),
-            text(i18n::text(place.key)).size(13.0)
-        ]
-        .spacing(6)
-        .align_y(Vertical::Center);
-        let highlight = Highlight::when(place.path == files.location);
-        button(label)
-            .width(Length::Fill)
-            .on_press(Message::Place(index))
-            .style(move |_, status| style::entry(skin, highlight, status))
-            .into()
-    });
+    let places = ordered_places(&files.places);
+    let home = places
+        .first()
+        .map(|(index, place)| place_button(files, *index, place));
+    let folders = places
+        .iter()
+        .skip(1)
+        .map(|(index, place)| place_button(files, *index, place));
     let devices = files
         .volumes
         .iter()
         .enumerate()
         .map(|(index, volume)| device(files, volume, index));
     let mut content = column![
-        text(i18n::text("places"))
-            .size(SMALL_TEXT)
-            .color(skin.bright_foreground),
-        Column::with_children(places).spacing(3),
+        Column::with_children(home).spacing(3),
         crate::view::trash_sidebar::button(files),
+        rule::horizontal(1),
+        Column::with_children(folders).spacing(3),
         rule::horizontal(1),
         text(i18n::text("devices"))
             .size(SMALL_TEXT)
@@ -69,6 +58,48 @@ pub fn sidebar(files: &Files) -> Element<'_, Message> {
         .padding(PADDING)
         .style(move |_| style::panel(skin))
         .into()
+}
+
+fn place_button<'a>(
+    files: &'a Files,
+    index: usize,
+    place: &'a crate::domain::places::Place,
+) -> Element<'a, Message> {
+    let skin = files.skin;
+    let label = row![
+        icon(files, place.icon, 20.0),
+        text(i18n::text(place.key)).size(13.0).width(Length::Fill)
+    ]
+    .spacing(6)
+    .align_y(Vertical::Center);
+    let highlight = Highlight::when(place.path == files.location);
+    button(label)
+        .width(Length::Fill)
+        .on_press(Message::Place(index))
+        .style(move |_, status| style::entry(skin, highlight, status))
+        .into()
+}
+
+pub(super) fn ordered_places(
+    places: &[crate::domain::places::Place],
+) -> Vec<(usize, &crate::domain::places::Place)> {
+    const ORDER: [&str; 6] = [
+        "place-home",
+        "place-documents",
+        "place-music",
+        "place-pictures",
+        "place-videos",
+        "place-downloads",
+    ];
+    ORDER
+        .iter()
+        .filter_map(|key| {
+            places
+                .iter()
+                .enumerate()
+                .find(|(_, place)| place.key == *key)
+        })
+        .collect()
 }
 
 fn device<'a>(files: &'a Files, volume: &'a Volume, index: usize) -> Element<'a, Message> {

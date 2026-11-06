@@ -1,5 +1,19 @@
-use super::sidebar::{device_detail, work_label};
+use super::sidebar::{device_detail, ordered_places, work_label};
 use sparky_storage::{Operation, Volume};
+
+#[test]
+fn ordem_visual_preserva_indices_dos_atalhos() {
+    let dirs = sparky_xdg::UserDirs::new("/home/p", None);
+    let places = crate::domain::places::places(&dirs);
+    let ordered = ordered_places(&places);
+    let indices: Vec<_> = ordered.iter().map(|(index, _)| *index).collect();
+    assert_eq!(indices, vec![0, 2, 5, 4, 6, 3]);
+    assert!(
+        ordered
+            .iter()
+            .all(|(_, place)| place.key != "place-desktop")
+    );
+}
 
 #[test]
 fn telefone_indica_mtp_sem_inventar_capacidade() {
