@@ -32,7 +32,7 @@ impl Files {
     }
 
     pub fn in_trash(&self) -> bool {
-        self.location == self.services.trash.directory()
+        self.sidebar_page.is_none() && self.location == self.services.trash.directory()
     }
 
     pub fn open_trash(&mut self) {

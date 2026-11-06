@@ -44,6 +44,8 @@ mod test_scene;
 #[cfg(test)]
 mod test_sources;
 #[cfg(test)]
+mod trash_sidebar_tests;
+#[cfg(test)]
 mod trash_tests;
 #[cfg(test)]
 mod volume_pending_tests;
