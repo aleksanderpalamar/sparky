@@ -1,9 +1,11 @@
 use crate::Volume;
+use crate::description::device_name;
 
 pub(super) fn phone(
     serial: Option<&str>,
     bus: Option<&str>,
     address: Option<&str>,
+    vendor: Option<&str>,
     label: Option<&str>,
 ) -> Option<Volume> {
     let host = serial
@@ -13,10 +15,7 @@ pub(super) fn phone(
     Some(Volume {
         path: format!("mtp://{host}/"),
         size: String::new(),
-        label: label
-            .filter(|name| !name.trim().is_empty())
-            .unwrap_or("Dispositivo MTP")
-            .to_owned(),
+        label: device_name(vendor, label).unwrap_or_else(|| "Dispositivo móvel".to_owned()),
         filesystem: "mtp".to_owned(),
         mountpoint: None,
         removable: true,

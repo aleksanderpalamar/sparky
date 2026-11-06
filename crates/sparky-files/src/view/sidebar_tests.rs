@@ -1,5 +1,5 @@
 use super::sidebar::ordered_places;
-use super::sidebar_device::{DeviceAction, device_action, device_detail, work_label};
+use super::sidebar_device::{DeviceAction, device_action, display_name, work_label};
 use sparky_storage::{Operation, Volume};
 
 #[test]
@@ -17,18 +17,35 @@ fn ordem_visual_preserva_indices_dos_atalhos() {
 }
 
 #[test]
-fn telefone_indica_mtp_sem_inventar_capacidade() {
+fn telefone_mostra_nome_sem_tipo_ou_estado() {
     let mut volume = Volume {
         path: "mtp://Android_Test/".to_owned(),
-        label: "Android".to_owned(),
+        label: "Samsung Galaxy S22 Ultra".to_owned(),
         filesystem: "mtp".to_owned(),
         size: String::new(),
         mountpoint: None,
         removable: true,
     };
-    assert_eq!(device_detail(&volume), "MTP · não montado");
+    assert_eq!(display_name(&volume), "Samsung Galaxy S22 Ultra");
     volume.mountpoint = Some("/run/user/1000/gvfs/mtp:host=Android_Test".to_owned());
-    assert_eq!(device_detail(&volume), "MTP · montado");
+    assert_eq!(display_name(&volume), "Samsung Galaxy S22 Ultra");
+}
+
+#[test]
+fn disco_prioriza_o_nome_e_usa_capacidade_quando_sem_descricao() {
+    let mut volume = Volume {
+        path: "/dev/sdb1".to_owned(),
+        label: "Dados".to_owned(),
+        filesystem: "ext4".to_owned(),
+        size: "299,1G".to_owned(),
+        mountpoint: None,
+        removable: false,
+    };
+    assert_eq!(display_name(&volume), "Dados");
+    volume.mountpoint = Some("/run/media/Dados".to_owned());
+    assert_eq!(display_name(&volume), "Dados");
+    volume.label.clear();
+    assert_eq!(display_name(&volume), "Volume de 299,1G");
 }
 
 #[test]

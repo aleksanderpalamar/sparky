@@ -4,6 +4,7 @@ use std::path::{Component, Path};
 use serde::Deserialize;
 
 use crate::Volume;
+use crate::description::device_name;
 
 #[derive(Deserialize, Default)]
 #[serde(default)]
@@ -28,6 +29,8 @@ struct Node {
     mountpoint: Option<String>,
     mountpoints: Vec<Option<String>>,
     label: Option<String>,
+    vendor: Option<String>,
+    model: Option<String>,
     rm: bool,
     hotplug: bool,
     fstype: Option<String>,
@@ -49,17 +52,25 @@ fn parse_with(output: &str, selection: Selection) -> Result<Vec<Volume>, serde_j
     let listing: Listing = serde_json::from_str(output)?;
     let mut volumes = Vec::new();
     for node in &listing.blockdevices {
-        collect(node, false, selection, &mut volumes);
+        collect(node, false, None, selection, &mut volumes);
     }
     let mut devices = BTreeSet::new();
     volumes.retain(|volume| devices.insert(volume.path.clone()));
     Ok(volumes)
 }
 
-fn collect(node: &Node, parent_removable: bool, selection: Selection, volumes: &mut Vec<Volume>) {
+fn collect(
+    node: &Node,
+    parent_removable: bool,
+    parent_name: Option<&str>,
+    selection: Selection,
+    volumes: &mut Vec<Volume>,
+) {
     let removable = parent_removable || node.rm || node.hotplug;
+    let hardware = device_name(node.vendor.as_deref(), node.model.as_deref())
+        .or_else(|| parent_name.map(str::to_owned));
     for child in &node.children {
-        collect(child, removable, selection, volumes);
+        collect(child, removable, hardware.as_deref(), selection, volumes);
     }
     if !eligible(node, selection) {
         return;
@@ -73,7 +84,14 @@ fn collect(node: &Node, parent_removable: bool, selection: Selection, volumes: &
     volumes.push(Volume {
         path: node.path.clone(),
         size: node.size.clone(),
-        label: node.label.clone().unwrap_or_default(),
+        label: node
+            .label
+            .as_deref()
+            .map(str::trim)
+            .filter(|label| !label.is_empty())
+            .map(str::to_owned)
+            .or(hardware)
+            .unwrap_or_default(),
         filesystem: node.fstype.clone().unwrap_or_default(),
         mountpoint,
         removable,
@@ -121,7 +139,8 @@ fn device_path(path: &str) -> bool {
 
 fn protected(point: &str, selection: Selection) -> bool {
     if selection == Selection::External {
-        return matches!(point, "/" | "/boot" | "/home" | "/usr" | "/var") || point.starts_with("/boot/");
+        return matches!(point, "/" | "/boot" | "/home" | "/usr" | "/var")
+            || point.starts_with("/boot/");
     }
     let path = Path::new(point);
     ["/", "/home", "/run", "/tmp"]

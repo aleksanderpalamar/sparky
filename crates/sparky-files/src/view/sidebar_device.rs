@@ -1,6 +1,6 @@
 use fluent_bundle::FluentArgs;
 use iced::alignment::Vertical;
-use iced::widget::{button, column, row, text, tooltip};
+use iced::widget::{button, row, text, tooltip};
 use iced::{Element, Length};
 use sparky_storage::{Operation, Volume, VolumeKind};
 use sparky_ui::style::{self, Highlight, SMALL_TEXT, TEXT_SIZE};
@@ -22,18 +22,7 @@ pub(super) fn device<'a>(
         VolumeKind::Block if volume.removable => IconKind::Removable,
         VolumeKind::Block => IconKind::Drive,
     };
-    let name = match volume.label.is_empty() {
-        true if !volume.size.is_empty() => i18n::with("volume-of", "size", volume.size.clone()),
-        true => volume.path.clone(),
-        false => volume.label.clone(),
-    };
-    let label = column![
-        text(name).size(TEXT_SIZE),
-        text(device_detail(volume))
-            .size(SMALL_TEXT)
-            .color(skin.foreground)
-    ]
-    .spacing(2);
+    let label = text(display_name(volume)).size(TEXT_SIZE);
     let selected = files.sidebar_page.is_none()
         && volume
             .mountpoint
@@ -53,10 +42,7 @@ pub(super) fn device<'a>(
         .style(move |_| style::tooltip(skin));
     let mut line = row![open].align_y(Vertical::Center).spacing(2);
     if let Some(action) = device_action(volume) {
-        let icon: Element<'_, Message> = match action {
-            DeviceAction::Eject => sidebar_icon(files, IconKind::Eject, 18.0),
-            DeviceAction::Unmount => text("−").size(TEXT_SIZE).into(),
-        };
+        let icon = sidebar_icon(files, IconKind::Eject, 18.0);
         let message = match action {
             DeviceAction::Eject => Message::EjectVolume(volume.path.clone()),
             DeviceAction::Unmount => Message::UnmountVolume(volume.path.clone()),
@@ -94,18 +80,11 @@ pub(super) fn device_action(volume: &Volume) -> Option<DeviceAction> {
     volume.mounted().then_some(DeviceAction::Unmount)
 }
 
-pub(super) fn device_detail(volume: &Volume) -> String {
-    let state = match volume.mounted() {
-        true => "mounted",
-        false => "state-not-mounted",
-    };
-    let summary = match volume.kind() {
-        VolumeKind::Mtp => "MTP",
-        VolumeKind::Block => &volume.size,
-    };
-    match summary.is_empty() {
-        true => i18n::text(state),
-        false => format!("{summary} · {}", i18n::text(state)),
+pub(super) fn display_name(volume: &Volume) -> String {
+    match volume.label.is_empty() {
+        true if !volume.size.is_empty() => i18n::with("volume-of", "size", volume.size.clone()),
+        true => volume.path.clone(),
+        false => volume.label.clone(),
     }
 }
 

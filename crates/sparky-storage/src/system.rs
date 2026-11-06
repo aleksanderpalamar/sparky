@@ -5,7 +5,7 @@ use crate::{Operation, Volume, VolumeSource, parse};
 pub const LIST_ARGUMENTS: &[&str] = &[
     "-J",
     "-o",
-    "NAME,PATH,SIZE,TYPE,MOUNTPOINT,LABEL,RM,HOTPLUG,FSTYPE,MOUNTPOINTS",
+    "NAME,PATH,SIZE,TYPE,MOUNTPOINT,LABEL,RM,HOTPLUG,FSTYPE,MOUNTPOINTS,VENDOR,MODEL",
 ];
 
 pub trait Commands: Send + Sync {

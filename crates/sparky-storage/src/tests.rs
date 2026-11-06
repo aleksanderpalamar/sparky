@@ -25,6 +25,20 @@ fn lista_ssd_interno_desmontado_usb_e_montagens_personalizadas() {
 }
 
 #[test]
+fn volume_sem_rotulo_herda_marca_e_modelo_da_unidade() {
+    let output = r#"{"blockdevices":[{"path":"/dev/sdb","type":"disk","vendor":"SanDisk","model":"Ultra USB","children":[{"path":"/dev/sdb1","type":"part","fstype":"vfat","size":"64G"}]}]}"#;
+    let volumes = parse(output).unwrap();
+    assert_eq!(volumes[0].label, "SanDisk Ultra USB");
+}
+
+#[test]
+fn rotulo_do_sistema_de_arquivos_tem_prioridade_sobre_a_marca() {
+    let output = r#"{"blockdevices":[{"path":"/dev/sdb","type":"disk","vendor":"SanDisk","model":"Ultra USB","children":[{"path":"/dev/sdb1","type":"part","fstype":"vfat","label":"Fotos"}]}]}"#;
+    let volumes = parse(output).unwrap();
+    assert_eq!(volumes[0].label, "Fotos");
+}
+
+#[test]
 fn painel_preserva_o_filtro_de_volumes_externos() {
     let volumes = external_volumes(DISKS).unwrap_or_default();
     assert_eq!(

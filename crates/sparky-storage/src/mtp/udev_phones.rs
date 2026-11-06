@@ -30,6 +30,10 @@ impl Phones for UdevPhones {
                         .attribute_value("devnum")
                         .and_then(|value| value.to_str()),
                     device
+                        .attribute_value("manufacturer")
+                        .or_else(|| device.property_value("ID_VENDOR"))
+                        .and_then(|value| value.to_str()),
+                    device
                         .attribute_value("product")
                         .and_then(|value| value.to_str()),
                 )
