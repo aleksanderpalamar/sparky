@@ -74,10 +74,13 @@ pub(super) enum DeviceAction {
 }
 
 pub(super) fn device_action(volume: &Volume) -> Option<DeviceAction> {
+    if volume.mounted() {
+        return Some(DeviceAction::Unmount);
+    }
     if volume.can_eject() {
         return Some(DeviceAction::Eject);
     }
-    volume.mounted().then_some(DeviceAction::Unmount)
+    None
 }
 
 pub(super) fn display_name(volume: &Volume) -> String {

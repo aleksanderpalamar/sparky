@@ -78,7 +78,7 @@ fn ejetar_so_e_oferecido_para_unidade_removivel_de_bloco() {
     };
     assert_eq!(device_action(&volume), Some(DeviceAction::Eject));
     volume.mountpoint = Some("/run/media/USB".to_owned());
-    assert_eq!(device_action(&volume), Some(DeviceAction::Eject));
+    assert_eq!(device_action(&volume), Some(DeviceAction::Unmount));
     volume.removable = false;
     assert_eq!(device_action(&volume), Some(DeviceAction::Unmount));
     volume.path = "mtp://Android/".to_owned();
