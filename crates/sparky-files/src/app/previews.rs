@@ -64,6 +64,9 @@ impl Previews {
 
 impl Files {
     pub fn request_previews(&mut self) -> Task<Message> {
+        if self.sidebar_page.is_some() {
+            return Task::none();
+        }
         let range = match self.view_mode {
             ViewMode::Grid => self.layout.range(self.viewport.top(), self.listing.len()),
             ViewMode::List => self.viewport.range(self.listing.len()),

@@ -1,5 +1,6 @@
 use crate::domain::context::Action;
 use crate::domain::grid::ViewMode;
+use crate::domain::sidebar_location::SidebarLocation;
 use crate::domain::thumbnail::Thumbnail;
 use crate::ports::EmptyReport;
 use iced::keyboard::{Key, Modifiers};
@@ -28,6 +29,10 @@ pub enum Message {
     PreviewReady(PathBuf, Option<SystemTime>, Option<Thumbnail>),
     Resized(Size),
     Place(usize),
+    Sidebar(SidebarLocation),
+    SidebarItem(usize),
+    FavoriteSelected,
+    RemoveFavorite(usize),
     Trash(TrashEvent),
     TrashEmptied(Result<EmptyReport, String>),
     Tick,

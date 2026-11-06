@@ -19,8 +19,9 @@ use crate::domain::icons::Icons;
 use crate::domain::listing::Listing;
 use crate::domain::places::Place;
 use crate::domain::properties::Properties;
+use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::ports::{
-    Archiver, Disk, IconSource, ImageClipboard, Opener, ThumbnailSource, TrashStore,
+    Archiver, Disk, IconSource, ImageClipboard, Opener, SidebarSource, ThumbnailSource, TrashStore,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -45,6 +46,7 @@ pub struct Services {
     pub thumbnails: Arc<dyn ThumbnailSource>,
     pub trash: Arc<dyn TrashStore>,
     pub image_clipboard: Box<dyn ImageClipboard>,
+    pub sidebar: Box<dyn SidebarSource>,
 }
 
 pub struct Setup {
@@ -79,6 +81,10 @@ pub struct Files {
     pub size: Size,
     pub icons: Icons,
     pub sidebar_icons: Icons,
+    pub sidebar_page: Option<SidebarLocation>,
+    pub network_uri: Option<String>,
+    pub sidebar_items: Vec<SidebarItem>,
+    pub sidebar_cursor: usize,
     pub volumes: Vec<Volume>,
     pub volume_work: Option<Operation>,
     pub volume_error: Option<String>,
@@ -116,6 +122,10 @@ impl Files {
             ),
             icons,
             sidebar_icons,
+            sidebar_page: None,
+            network_uri: None,
+            sidebar_items: Vec::new(),
+            sidebar_cursor: 0,
             volumes: Vec::new(),
             volume_work: None,
             volume_error: None,

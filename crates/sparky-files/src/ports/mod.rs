@@ -9,6 +9,7 @@ use crate::domain::entry::Entry;
 use crate::domain::icons::Icons;
 use crate::domain::image::ImageMime;
 use crate::domain::properties::Properties;
+use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::domain::thumbnail::Thumbnail;
 
 pub trait IconSource {
@@ -17,6 +18,15 @@ pub trait IconSource {
     fn load_sidebar(&mut self) -> Icons {
         self.load()
     }
+}
+
+pub trait SidebarSource: Send + Sync {
+    fn list(&self, location: SidebarLocation) -> Result<Vec<SidebarItem>, String>;
+    fn network_children(&self, uri: &str) -> Result<Vec<SidebarItem>, String>;
+    fn open_remote(&self, uri: &str) -> Result<(), String>;
+    fn favorite(&self, path: &Path, enabled: bool) -> Result<(), String>;
+    fn is_favorite(&self, path: &Path) -> bool;
+    fn relocated(&self, from: &Path, to: &Path) -> Result<(), String>;
 }
 
 pub trait ImageClipboard {

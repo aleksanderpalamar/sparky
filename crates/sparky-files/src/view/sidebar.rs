@@ -8,6 +8,7 @@ use sparky_ui::style::{self, Highlight, PADDING, SIDEBAR_WIDTH, SMALL_TEXT, SPAC
 use crate::app::message::Message;
 use crate::app::state::Files;
 use crate::domain::icons::IconKind;
+use crate::domain::sidebar_location::SidebarLocation;
 use crate::i18n;
 use crate::view::icon::sidebar_icon;
 
@@ -28,6 +29,24 @@ pub fn sidebar(files: &Files) -> Element<'_, Message> {
         .map(|(index, volume)| device(files, volume, index));
     let mut content = column![
         Column::with_children(home).spacing(3),
+        virtual_button(
+            files,
+            SidebarLocation::Recent,
+            IconKind::Recent,
+            "place-recent"
+        ),
+        virtual_button(
+            files,
+            SidebarLocation::Favorites,
+            IconKind::Favorite,
+            "place-favorites"
+        ),
+        virtual_button(
+            files,
+            SidebarLocation::Network,
+            IconKind::Network,
+            "place-network"
+        ),
         crate::view::trash_sidebar::button(files),
         rule::horizontal(1),
         Column::with_children(folders).spacing(3),
@@ -60,6 +79,32 @@ pub fn sidebar(files: &Files) -> Element<'_, Message> {
         .into()
 }
 
+fn virtual_button<'a>(
+    files: &'a Files,
+    page: SidebarLocation,
+    kind: IconKind,
+    label: &'static str,
+) -> Element<'a, Message> {
+    let skin = files.skin;
+    let content = row![
+        sidebar_icon(files, kind, 20.0),
+        text(i18n::text(label)).size(13.0)
+    ]
+    .spacing(6)
+    .align_y(Vertical::Center);
+    button(content)
+        .width(Length::Fill)
+        .on_press(Message::Sidebar(page))
+        .style(move |_, status| {
+            style::entry(
+                skin,
+                Highlight::when(files.sidebar_page == Some(page)),
+                status,
+            )
+        })
+        .into()
+}
+
 fn place_button<'a>(
     files: &'a Files,
     index: usize,
@@ -72,7 +117,7 @@ fn place_button<'a>(
     ]
     .spacing(6)
     .align_y(Vertical::Center);
-    let highlight = Highlight::when(place.path == files.location);
+    let highlight = Highlight::when(files.sidebar_page.is_none() && place.path == files.location);
     button(label)
         .width(Length::Fill)
         .on_press(Message::Place(index))

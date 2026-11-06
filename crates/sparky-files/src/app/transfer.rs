@@ -34,12 +34,18 @@ impl Files {
         let result = operations::paste(clip, &target, self.services.disk.as_ref());
         self.refresh();
         match result {
-            Ok(names) => self.inform(format!(
-                "{} {} para {}",
-                items(names.len()),
-                agreed(clip.verb(), names.len()),
-                target.display()
-            )),
+            Ok(names) => {
+                if let Err(error) = self.sync_favorite_moves(clip, &names, &target) {
+                    self.fail(error);
+                    return;
+                }
+                self.inform(format!(
+                    "{} {} para {}",
+                    items(names.len()),
+                    agreed(clip.verb(), names.len()),
+                    target.display()
+                ));
+            }
             Err(error) => self.fail(error),
         }
     }

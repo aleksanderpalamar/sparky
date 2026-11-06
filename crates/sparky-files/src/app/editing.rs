@@ -33,6 +33,10 @@ impl Files {
         self.refresh();
         match result {
             Ok(names) => {
+                if let Err(error) = self.sync_favorite_moves(&clip, &names, &self.location) {
+                    self.fail(error);
+                    return;
+                }
                 if let Some(last) = names.last() {
                     self.listing.select_name(last);
                 }
@@ -171,6 +175,12 @@ impl Files {
         self.refresh();
         match result {
             Ok(()) => {
+                let from = self.location.join(original);
+                let to = self.location.join(new);
+                if let Err(error) = self.services.sidebar.relocated(&from, &to) {
+                    self.fail(error);
+                    return;
+                }
                 self.listing.select_name(new);
                 self.inform(i18n::with("renamed-to", "name", new.to_owned()));
             }

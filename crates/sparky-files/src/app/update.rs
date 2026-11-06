@@ -40,6 +40,10 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::PreviewReady(path, stamp, image) => files.preview_ready(path, stamp, image),
         Message::Trash(action) => files.handle_trash(action),
         Message::TrashEmptied(result) => files.trash_emptied(result),
+        Message::Sidebar(page) => files.open_sidebar(page),
+        Message::SidebarItem(index) => files.open_sidebar_item(index),
+        Message::FavoriteSelected => files.toggle_favorite(),
+        Message::RemoveFavorite(index) => files.remove_favorite(index),
         Message::ContextAction(action) => return context::choose(files, action),
         Message::Submit => {
             let task = files.submit();
@@ -108,6 +112,9 @@ fn key_pressed(files: &mut Files, key: &Key, modifiers: Modifiers) -> Task<Messa
 }
 
 fn run(files: &mut Files, command: Command) -> Task<Message> {
+    if files.sidebar_page.is_some() {
+        return virtual_command(files, command);
+    }
     if files.blocks_in_trash(command) {
         return Task::none();
     }
@@ -142,6 +149,29 @@ fn run(files: &mut Files, command: Command) -> Task<Message> {
             Task::none()
         }
     }
+}
+
+fn virtual_command(files: &mut Files, command: Command) -> Task<Message> {
+    let last = files.sidebar_items.len().saturating_sub(1);
+    match command {
+        Command::Down => files.sidebar_cursor = (files.sidebar_cursor + 1).min(last),
+        Command::Up => files.sidebar_cursor = files.sidebar_cursor.saturating_sub(1),
+        Command::First => files.sidebar_cursor = 0,
+        Command::Last => files.sidebar_cursor = last,
+        Command::Open => files.open_selected(),
+        Command::Parent => files.parent(),
+        Command::Home => files.home(),
+        Command::Place(index) => files.place(index),
+        Command::Volume(index) => {
+            let device = files.volumes.get(index).map(|volume| volume.path.clone());
+            return device.map_or_else(Task::none, |device| volumes::open(files, &device));
+        }
+        Command::UnmountCurrent => return volumes::unmount_current(files),
+        Command::Refresh => files.refresh(),
+        Command::Quit => return iced::exit(),
+        _ => {}
+    }
+    Task::none()
 }
 
 fn act(files: &mut Files, command: Command) {

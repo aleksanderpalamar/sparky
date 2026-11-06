@@ -3,6 +3,10 @@ pub mod clipboard;
 pub mod home_trash;
 pub mod icons;
 pub mod local_disk;
+mod sidebar_recent;
+pub mod sidebar_source;
+#[cfg(test)]
+mod sidebar_source_tests;
 pub mod thumbnail;
 pub mod tree;
 pub mod xdg_open;

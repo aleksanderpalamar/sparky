@@ -10,6 +10,7 @@ pub mod message;
 pub mod navigation;
 pub mod presentation;
 pub mod previews;
+mod sidebar_navigation;
 pub mod state;
 pub mod transfer;
 pub mod trash;
@@ -34,6 +35,8 @@ mod mtp_tests;
 mod presentation_tests;
 #[cfg(test)]
 mod previews_tests;
+#[cfg(test)]
+mod sidebar_tests;
 #[cfg(test)]
 mod test_scene;
 #[cfg(test)]
