@@ -55,6 +55,7 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::View(mode) => files.change_view(mode),
         Message::OpenVolume(device) => return volumes::open(files, &device),
         Message::UnmountVolume(device) => return volumes::unmount(files, &device),
+        Message::EjectVolume(device) => return volumes::eject(files, &device),
         Message::VolumesCompleted(operation, result) => {
             volumes::completed(files, operation, result)
         }

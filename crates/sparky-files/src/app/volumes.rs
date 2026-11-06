@@ -33,6 +33,17 @@ pub fn unmount(files: &mut Files, device: &str) -> Task<Message> {
     request(files, Operation::Unmount(device.to_owned()))
 }
 
+pub fn eject(files: &mut Files, device: &str) -> Task<Message> {
+    if !files
+        .volumes
+        .iter()
+        .any(|volume| volume.path == device && volume.can_eject())
+    {
+        return Task::none();
+    }
+    request(files, Operation::Eject(device.to_owned()))
+}
+
 pub fn unmount_current(files: &mut Files) -> Task<Message> {
     let device = files
         .volumes

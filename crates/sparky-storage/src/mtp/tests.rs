@@ -113,3 +113,10 @@ fn falha_do_backend_e_exposta_sem_transformar_o_telefone_em_montado() {
     );
     assert_eq!(source.run(Operation::List).unwrap(), vec![phone()]);
 }
+
+#[test]
+fn telefone_mtp_recusa_ejecao_fisica() {
+    let source = source();
+    assert!(source.run(Operation::Eject(URI.to_owned())).is_err());
+    assert!(source.mounts.calls.lock().unwrap().is_empty());
+}

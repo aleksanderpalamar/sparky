@@ -28,6 +28,10 @@ impl Volume {
         let point = self.mountpoint.as_deref().unwrap_or_default();
         self.removable || point.starts_with("/run/media/") || point.starts_with("/media/")
     }
+
+    pub fn can_eject(&self) -> bool {
+        self.kind() == VolumeKind::Block && self.removable
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -50,6 +54,7 @@ pub enum Operation {
     List,
     Mount(String),
     Unmount(String),
+    Eject(String),
 }
 
 impl Operation {
@@ -58,6 +63,7 @@ impl Operation {
             Self::List => None,
             Self::Mount(device) => Some(("mount", device)),
             Self::Unmount(device) => Some(("unmount", device)),
+            Self::Eject(device) => Some(("power-off", device)),
         }
     }
 }

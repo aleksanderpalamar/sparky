@@ -7,6 +7,7 @@ pub mod list;
 pub mod open_with;
 pub mod properties;
 pub mod sidebar;
+mod sidebar_device;
 #[cfg(test)]
 mod sidebar_tests;
 pub mod status;

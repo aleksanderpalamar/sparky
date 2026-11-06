@@ -22,7 +22,7 @@ pub fn system() -> impl VolumeSource {
 impl<B: VolumeSource, M: VolumeSource> VolumeSource for DesktopVolumes<B, M> {
     fn run(&self, operation: Operation) -> Result<Vec<Volume>, String> {
         let (disk_operation, mobile_operation) = match &operation {
-            Operation::Mount(path) | Operation::Unmount(path)
+            Operation::Mount(path) | Operation::Unmount(path) | Operation::Eject(path)
                 if VolumeKind::for_path(path) == VolumeKind::Mtp =>
             {
                 (Operation::List, operation)

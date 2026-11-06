@@ -72,3 +72,15 @@ fn operacoes_de_disco_preservam_o_backend_existente() {
     assert_eq!(*source.disks.calls.lock().unwrap(), [operation]);
     assert_eq!(*source.mobile.calls.lock().unwrap(), [Operation::List]);
 }
+
+#[test]
+fn ejecao_de_telefone_nao_vai_para_backend_de_disco() {
+    let source = DesktopVolumes {
+        disks: Source::new("/dev/sda1"),
+        mobile: Source::new("mtp://Android/"),
+    };
+    let operation = Operation::Eject("mtp://Android/".to_owned());
+    source.run(operation.clone()).unwrap();
+    assert_eq!(*source.disks.calls.lock().unwrap(), [Operation::List]);
+    assert_eq!(*source.mobile.calls.lock().unwrap(), [operation]);
+}

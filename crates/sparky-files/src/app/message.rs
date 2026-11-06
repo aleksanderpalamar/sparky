@@ -40,6 +40,7 @@ pub enum Message {
     View(ViewMode),
     OpenVolume(String),
     UnmountVolume(String),
+    EjectVolume(String),
     VolumesCompleted(Operation, Result<Vec<Volume>, String>),
 }
 

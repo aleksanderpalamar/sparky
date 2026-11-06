@@ -1,4 +1,5 @@
-use super::sidebar::{device_detail, ordered_places, work_label};
+use super::sidebar::ordered_places;
+use super::sidebar_device::{DeviceAction, device_action, device_detail, work_label};
 use sparky_storage::{Operation, Volume};
 
 #[test]
@@ -45,5 +46,34 @@ fn montar_e_desmontar_continuam_com_indicacao_de_progresso() {
     assert_eq!(
         work_label(Some(&Operation::Unmount(device))),
         Some(crate::i18n::text("unmounting"))
+    );
+}
+
+#[test]
+fn ejetar_so_e_oferecido_para_unidade_removivel_de_bloco() {
+    let mut volume = Volume {
+        path: "/dev/sdb1".to_owned(),
+        label: "USB".to_owned(),
+        filesystem: "vfat".to_owned(),
+        size: "32G".to_owned(),
+        mountpoint: None,
+        removable: true,
+    };
+    assert_eq!(device_action(&volume), Some(DeviceAction::Eject));
+    volume.mountpoint = Some("/run/media/USB".to_owned());
+    assert_eq!(device_action(&volume), Some(DeviceAction::Eject));
+    volume.removable = false;
+    assert_eq!(device_action(&volume), Some(DeviceAction::Unmount));
+    volume.path = "mtp://Android/".to_owned();
+    assert_eq!(device_action(&volume), Some(DeviceAction::Unmount));
+    volume.mountpoint = None;
+    assert_eq!(device_action(&volume), None);
+}
+
+#[test]
+fn ejecao_tem_indicacao_distinta_de_montagem() {
+    assert_eq!(
+        work_label(Some(&Operation::Eject("/dev/sdb1".to_owned()))),
+        Some(crate::i18n::text("ejecting"))
     );
 }

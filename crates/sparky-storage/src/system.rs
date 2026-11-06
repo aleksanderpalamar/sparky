@@ -55,6 +55,9 @@ pub(crate) fn failure(program: &str, detail: &str) -> String {
         return "Operação não autorizada. Verifique o agente gráfico polkit e tente novamente."
             .to_owned();
     }
+    if detail.contains(".DeviceBusy") || detail.contains("Device is busy") {
+        return "Dispositivo em uso. Feche os arquivos abertos e tente novamente.".to_owned();
+    }
     format!("{program}: {detail}")
 }
 
@@ -77,9 +80,15 @@ impl<C: Commands> VolumeSource for SystemVolumes<C> {
             .iter()
             .find(|volume| volume.path == device)
             .ok_or_else(|| format!("dispositivo indisponível: {device}"))?;
-        let desired = matches!(operation, Operation::Mount(_));
-        if volume.mounted() == desired {
-            return Ok(volumes);
+        match &operation {
+            Operation::Eject(_) if !volume.can_eject() => {
+                return Err(format!(
+                    "ejeção não permitida para este dispositivo: {device}"
+                ));
+            }
+            Operation::Mount(_) if volume.mounted() => return Ok(volumes),
+            Operation::Unmount(_) if !volume.mounted() => return Ok(volumes),
+            _ => {}
         }
         self.0.output("udisksctl", &[action, "-b", device])?;
         self.list()
