@@ -21,6 +21,9 @@ pub struct MtpVolumes<D, M> {
 
 impl<D: Phones, M: Mounts> VolumeSource for MtpVolumes<D, M> {
     fn run(&self, operation: Operation) -> Result<Vec<Volume>, String> {
+        if matches!(operation, Operation::Eject(_)) {
+            return Err("Ejeção física não é suportada para telefones MTP.".to_owned());
+        }
         let devices = self.devices.connected()?;
         let Some((_, uri)) = operation.command() else {
             return self.with_mountpoints(devices);

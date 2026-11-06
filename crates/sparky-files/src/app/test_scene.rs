@@ -13,6 +13,7 @@ use tempfile::TempDir;
 use super::test_sources::{CopiedImages, NoIcons, NoVolumes};
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::local_disk::LocalDisk;
+use crate::adapters::sidebar_source::DesktopSidebar;
 use crate::adapters::thumbnail::FileThumbnail;
 use crate::app::message::Message;
 use crate::app::state::{Files, Services, Setup};
@@ -82,6 +83,7 @@ impl Cena {
             thumbnails: Arc::new(FileThumbnail),
             trash: Arc::new(trash),
             image_clipboard: Box::new(imagens.clone()),
+            sidebar: Arc::new(DesktopSidebar::new(dir.path().join("data"))),
         };
         let setup = Setup {
             start: work.clone(),

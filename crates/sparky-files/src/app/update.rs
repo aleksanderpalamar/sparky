@@ -1,15 +1,14 @@
-use std::path::PathBuf;
-
 use iced::Task;
 use iced::keyboard::{Key, Modifiers};
 
+use crate::app::commands::act;
 use crate::app::context;
 use crate::app::keys::{self, Command};
 use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
+use crate::app::virtual_commands::virtual_command;
 use crate::app::volumes;
 use crate::domain::entry::Kind;
-use crate::domain::grid::{Direction, ViewMode};
 use sparky_ui::prompt;
 
 pub fn update(files: &mut Files, message: Message) -> Task<Message> {
@@ -40,6 +39,11 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::PreviewReady(path, stamp, image) => files.preview_ready(path, stamp, image),
         Message::Trash(action) => files.handle_trash(action),
         Message::TrashEmptied(result) => files.trash_emptied(result),
+        Message::Sidebar(page) => files.open_sidebar(page),
+        Message::SidebarItem(index) => return files.open_sidebar_item(index),
+        Message::NetworkLoaded(uri, result) => files.network_loaded(&uri, result),
+        Message::FavoriteSelected => files.toggle_favorite(),
+        Message::RemoveFavorite(index) => files.remove_favorite(index),
         Message::ContextAction(action) => return context::choose(files, action),
         Message::Submit => {
             let task = files.submit();
@@ -50,12 +54,14 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::View(mode) => files.change_view(mode),
         Message::OpenVolume(device) => return volumes::open(files, &device),
         Message::UnmountVolume(device) => return volumes::unmount(files, &device),
+        Message::EjectVolume(device) => return volumes::eject(files, &device),
         Message::VolumesCompleted(operation, result) => {
             volumes::completed(files, operation, result)
         }
         Message::Tick => {
             files.refresh_if_changed();
             files.icons = files.services.icons.load();
+            files.sidebar_icons = files.services.icons.load_sidebar();
             return volumes::refresh(files);
         }
         other => return steer(files, other),
@@ -107,6 +113,9 @@ fn key_pressed(files: &mut Files, key: &Key, modifiers: Modifiers) -> Task<Messa
 }
 
 fn run(files: &mut Files, command: Command) -> Task<Message> {
+    if files.sidebar_page.is_some() {
+        return virtual_command(files, command);
+    }
     if files.blocks_in_trash(command) {
         return Task::none();
     }
@@ -141,55 +150,4 @@ fn run(files: &mut Files, command: Command) -> Task<Message> {
             Task::none()
         }
     }
-}
-
-fn act(files: &mut Files, command: Command) {
-    let page = files.layout.capacity() as isize;
-    match command {
-        Command::Down => files.move_cursor(Direction::Down),
-        Command::Up => files.move_cursor(Direction::Up),
-        Command::Left if files.view_mode == ViewMode::List => files.parent(),
-        Command::Right if files.view_mode == ViewMode::List => files.open_selected(),
-        Command::Left => files.move_cursor(Direction::Left),
-        Command::Right => files.move_cursor(Direction::Right),
-        Command::PageDown => files.listing.move_by(page),
-        Command::PageUp => files.listing.move_by(-page),
-        Command::First => files.listing.first(),
-        Command::Last => files.listing.last(),
-        Command::Open => files.open_selected(),
-        Command::Parent => files.parent(),
-        Command::Home => files.home(),
-        Command::Place(index) => files.place(index),
-        Command::ToggleHidden => files.listing.toggle_hidden(),
-        Command::Mark => {
-            files.listing.toggle_mark();
-            files.listing.move_by(1);
-        }
-        Command::Copy => files.copy(),
-        Command::Cut => files.cut(),
-        Command::Paste => files.paste(),
-        Command::Trash => files.ask_trash(),
-        Command::SelectAll => files.listing.select_all(),
-        Command::Properties => {
-            let path = selected_path(files);
-            context::properties(files, &path);
-        }
-        Command::Filter
-        | Command::Create
-        | Command::NewFolder
-        | Command::Rename
-        | Command::Quit
-        | Command::View(_)
-        | Command::Volume(_)
-        | Command::UnmountCurrent
-        | Command::Refresh => {}
-    }
-}
-
-fn selected_path(files: &Files) -> PathBuf {
-    let selected = files.listing.selected();
-    selected.map_or_else(
-        || files.location.clone(),
-        |entry| files.location.join(&entry.name),
-    )
 }

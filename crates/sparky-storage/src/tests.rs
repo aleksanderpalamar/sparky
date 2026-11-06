@@ -15,17 +15,37 @@ const DISKS: &str = r#"{"blockdevices":[
 fn lista_ssd_interno_desmontado_usb_e_montagens_personalizadas() {
     let volumes = parse(DISKS).unwrap_or_default();
     let devices: Vec<_> = volumes.iter().map(|volume| volume.path.as_str()).collect();
-    assert_eq!(devices, ["/dev/nvme0n1p3", "/dev/sda1", "/dev/sdb1", "/dev/sdc1"]);
+    assert_eq!(
+        devices,
+        ["/dev/nvme0n1p3", "/dev/sda1", "/dev/sdb1", "/dev/sdc1"]
+    );
     assert!(!volumes[0].mounted());
     assert!(volumes[1].removable);
     assert_eq!(volumes[2].mountpoint.as_deref(), Some("/mnt/backup"));
 }
 
 #[test]
+fn volume_sem_rotulo_herda_marca_e_modelo_da_unidade() {
+    let output = r#"{"blockdevices":[{"path":"/dev/sdb","type":"disk","vendor":"SanDisk","model":"Ultra USB","children":[{"path":"/dev/sdb1","type":"part","fstype":"vfat","size":"64G"}]}]}"#;
+    let volumes = parse(output).unwrap();
+    assert_eq!(volumes[0].label, "SanDisk Ultra USB");
+}
+
+#[test]
+fn rotulo_do_sistema_de_arquivos_tem_prioridade_sobre_a_marca() {
+    let output = r#"{"blockdevices":[{"path":"/dev/sdb","type":"disk","vendor":"SanDisk","model":"Ultra USB","children":[{"path":"/dev/sdb1","type":"part","fstype":"vfat","label":"Fotos"}]}]}"#;
+    let volumes = parse(output).unwrap();
+    assert_eq!(volumes[0].label, "Fotos");
+}
+
+#[test]
 fn painel_preserva_o_filtro_de_volumes_externos() {
     let volumes = external_volumes(DISKS).unwrap_or_default();
     assert_eq!(
-        volumes.iter().map(|volume| volume.path.as_str()).collect::<Vec<_>>(),
+        volumes
+            .iter()
+            .map(|volume| volume.path.as_str())
+            .collect::<Vec<_>>(),
         ["/dev/sda1", "/dev/sdc1"]
     );
 }
@@ -35,7 +55,10 @@ fn painel_mantem_os_tipos_e_montagens_que_ja_oferecia() {
     let output = r#"{"blockdevices":[{"path":"/dev/sda1","type":"part","fstype":"ext4","rm":true,"mountpoint":"/var/backups/USB"},{"path":"/dev/dm-1","type":"crypt","fstype":"ext4","rm":true}]}"#;
     let volumes = external_volumes(output).unwrap_or_default();
     assert_eq!(
-        volumes.iter().map(|volume| volume.path.as_str()).collect::<Vec<_>>(),
+        volumes
+            .iter()
+            .map(|volume| volume.path.as_str())
+            .collect::<Vec<_>>(),
         ["/dev/sda1"]
     );
 }
@@ -79,6 +102,10 @@ fn operacoes_usam_o_caminho_do_dispositivo_como_argumento_separado() {
         Some(("unmount", "/dev/sda1"))
     );
     assert_eq!(Operation::List.command(), None);
+    assert_eq!(
+        Operation::Eject("/dev/sda1".to_owned()).command(),
+        Some(("power-off", "/dev/sda1"))
+    );
     let volume = Volume {
         path: "/dev/sda1".to_owned(),
         label: String::new(),

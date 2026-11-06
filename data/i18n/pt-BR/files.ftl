@@ -50,6 +50,8 @@ state-not-mounted = não montado
 mounting = Montando…
 unmounting = Desmontando…
 unmount-hint = Desmontar · Alt+U para o volume aberto
+eject-hint = Ejetar unidade física e todas as partições com segurança
+ejecting = Ejetando…
 volume-hint = { $path } · { $filesystem }
     { $mountpoint }
     Alt+{ $index }: montar e abrir
@@ -90,6 +92,16 @@ many-cut = { $count } recortados
 one-copied = 1 copiado
 many-copied = { $count } copiados
 place-home = Pasta pessoal
+place-recent = Recentes
+place-favorites = Favoritos
+place-network = Rede
+network-browse = Explorar rede
+network-loading = Abrindo localização de rede…
+favorite-added = Adicionado aos favoritos
+favorite-removed = Removido dos favoritos
+favorite-action = Favoritar ou desfavoritar
+favorite-remove = Remover
+sidebar-empty = Nenhum item disponível
 place-desktop = Área de trabalho
 place-documents = Documentos
 place-downloads = Downloads

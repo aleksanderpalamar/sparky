@@ -50,6 +50,8 @@ state-not-mounted = not mounted
 mounting = Mounting…
 unmounting = Unmounting…
 unmount-hint = Unmount · Alt+U for the open volume
+eject-hint = Safely eject physical drive and all its partitions
+ejecting = Ejecting…
 volume-hint = { $path } · { $filesystem }
     { $mountpoint }
     Alt+{ $index }: mount and open
@@ -90,6 +92,16 @@ many-cut = { $count } cut
 one-copied = 1 copied
 many-copied = { $count } copied
 place-home = Home
+place-recent = Recent
+place-favorites = Favorites
+place-network = Network
+network-browse = Browse network
+network-loading = Opening network location…
+favorite-added = Added to favorites
+favorite-removed = Removed from favorites
+favorite-action = Toggle favorite
+favorite-remove = Remove
+sidebar-empty = No items available
 place-desktop = Desktop
 place-documents = Documents
 place-downloads = Downloads

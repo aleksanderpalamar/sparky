@@ -187,3 +187,6 @@ fn consulta_periodica_atualiza_a_lateral_sem_montar_automaticamente() {
     assert_eq!(scene.files.volumes, vec![volume(None)]);
     assert_eq!(source.calls.lock().unwrap().as_slice(), &[Operation::List]);
 }
+
+#[path = "volumes_eject_tests.rs"]
+mod eject_tests;

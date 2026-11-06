@@ -1,6 +1,7 @@
 pub mod archive;
 pub mod boot;
 pub mod clipboard;
+mod commands;
 pub mod context;
 pub mod editing;
 mod empty_trash;
@@ -10,10 +11,12 @@ pub mod message;
 pub mod navigation;
 pub mod presentation;
 pub mod previews;
+mod sidebar_navigation;
 pub mod state;
 pub mod transfer;
 pub mod trash;
 pub mod update;
+mod virtual_commands;
 pub mod volumes;
 
 #[cfg(test)]
@@ -35,9 +38,13 @@ mod presentation_tests;
 #[cfg(test)]
 mod previews_tests;
 #[cfg(test)]
+mod sidebar_tests;
+#[cfg(test)]
 mod test_scene;
 #[cfg(test)]
 mod test_sources;
+#[cfg(test)]
+mod trash_sidebar_tests;
 #[cfg(test)]
 mod trash_tests;
 #[cfg(test)]

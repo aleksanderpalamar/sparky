@@ -14,6 +14,10 @@ impl Files {
                 self.viewport = Viewport::new(self.viewport.rows());
                 self.stamp = self.services.disk.stamp(&path);
                 self.location = path;
+                self.sidebar_page = None;
+                self.network_uri = None;
+                self.network_pending = None;
+                self.sidebar_items.clear();
                 self.mode = Mode::Browse;
                 true
             }
@@ -25,6 +29,9 @@ impl Files {
     }
 
     pub fn open_selected(&mut self) {
+        if self.sidebar_page.is_some() {
+            return;
+        }
         if self.in_trash() {
             self.inform("Restaure o item para abri-lo".to_owned());
             return;
@@ -42,6 +49,10 @@ impl Files {
     }
 
     pub fn parent(&mut self) {
+        if self.sidebar_page.is_some() {
+            self.home();
+            return;
+        }
         if self.in_trash() {
             self.home();
             return;
@@ -71,6 +82,13 @@ impl Files {
     }
 
     pub fn refresh(&mut self) {
+        if self.network_uri.is_some() {
+            return;
+        }
+        if let Some(page) = self.sidebar_page {
+            self.open_sidebar(page);
+            return;
+        }
         match self.services.disk.list(&self.location) {
             Ok(entries) => {
                 self.listing.replace(entries);
@@ -82,12 +100,15 @@ impl Files {
     }
 
     pub fn refresh_if_changed(&mut self) {
+        if self.sidebar_page.is_some() {
+            return;
+        }
         if self.services.disk.stamp(&self.location) != self.stamp {
             self.refresh();
         }
     }
 
-    fn launch(&mut self, path: &Path) {
+    pub(super) fn launch(&mut self, path: &Path) {
         let name = path
             .file_name()
             .map(|name| name.to_string_lossy().into_owned())

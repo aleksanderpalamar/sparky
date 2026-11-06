@@ -11,6 +11,7 @@ use crate::adapters::clipboard::WlImageClipboard;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::icons::ThemeIcons;
 use crate::adapters::local_disk::LocalDisk;
+use crate::adapters::sidebar_source::DesktopSidebar;
 use crate::adapters::thumbnail::FileThumbnail;
 use crate::adapters::xdg_open::XdgOpen;
 use crate::app::message::Message;
@@ -42,6 +43,7 @@ pub fn boot() -> (Files, Task<Message>) {
         thumbnails: Arc::new(FileThumbnail),
         trash: Arc::new(trash),
         image_clipboard: Box::new(WlImageClipboard),
+        sidebar: std::sync::Arc::new(DesktopSidebar::from_env()),
     };
     let mut files = Files::new(setup, services);
     files.resize(Size::new(WINDOW_WIDTH, WINDOW_HEIGHT));

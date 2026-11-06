@@ -12,7 +12,9 @@ use sparky_ui::style::{HEADER_HEIGHT, PADDING, SMALL_TEXT, SPACING, TITLE_SIZE};
 
 pub fn header(files: &Files) -> Element<'_, Message> {
     let skin = files.skin;
-    let label = if files.in_trash() {
+    let label = if files.sidebar_page.is_some() {
+        crate::view::virtual_page::label(files)
+    } else if files.in_trash() {
         i18n::text("trash")
     } else {
         files.shown(&files.location)
@@ -60,17 +62,23 @@ pub fn header(files: &Files) -> Element<'_, Message> {
             files.listing.total_len() > 0 && !files.emptying,
         ));
     }
-    container(
-        heading
-            .push(modes)
-            .spacing(SPACING * 2.0)
-            .align_y(Vertical::Center),
-    )
-    .height(HEADER_HEIGHT)
-    .width(Length::Fill)
-    .padding([0.0, PADDING])
-    .align_y(Vertical::Center)
-    .into()
+    if files.sidebar_page.is_none() && !files.in_trash() && files.listing.selected().is_some() {
+        heading = heading.push(trash_button(
+            files,
+            i18n::text("favorite-action"),
+            Message::FavoriteSelected,
+            true,
+        ));
+    }
+    if files.sidebar_page.is_none() {
+        heading = heading.push(modes);
+    }
+    container(heading.spacing(SPACING * 2.0).align_y(Vertical::Center))
+        .height(HEADER_HEIGHT)
+        .width(Length::Fill)
+        .padding([0.0, PADDING])
+        .align_y(Vertical::Center)
+        .into()
 }
 
 fn trash_button<'a>(

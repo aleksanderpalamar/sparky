@@ -1,3 +1,4 @@
+mod description;
 pub mod desktop;
 mod listing;
 pub mod mtp;

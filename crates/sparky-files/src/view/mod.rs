@@ -7,11 +7,13 @@ pub mod list;
 pub mod open_with;
 pub mod properties;
 pub mod sidebar;
+mod sidebar_device;
 #[cfg(test)]
 mod sidebar_tests;
 pub mod status;
 pub mod style;
 pub mod trash_sidebar;
+pub mod virtual_page;
 
 use iced::widget::{column, container, row};
 use iced::{Element, Length};
@@ -23,9 +25,10 @@ use crate::i18n;
 
 pub fn view(files: &Files) -> Element<'_, Message> {
     let skin = files.skin;
-    let content = match files.view_mode {
-        ViewMode::Grid => grid::grid(files),
-        ViewMode::List => list::list(files),
+    let content = match (files.sidebar_page, files.view_mode) {
+        (Some(_), _) => virtual_page::view(files),
+        (None, ViewMode::Grid) => grid::grid(files),
+        (None, ViewMode::List) => list::list(files),
     };
     let main = column![header::header(files), content]
         .width(Length::Fill)
@@ -39,6 +42,9 @@ pub fn view(files: &Files) -> Element<'_, Message> {
 }
 
 pub fn title(files: &Files) -> String {
+    if files.sidebar_page.is_some() {
+        return i18n::with("window-title", "location", virtual_page::label(files));
+    }
     if files.in_trash() {
         return i18n::text("window-title-trash");
     }

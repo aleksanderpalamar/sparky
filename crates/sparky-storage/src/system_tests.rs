@@ -79,6 +79,36 @@ fn desmontar_nao_forca_e_reconsulta_o_estado() {
 }
 
 #[test]
+fn ejetar_dispositivo_removivel_usa_desligamento_seguro_e_reconsulta() {
+    let source = SystemVolumes(Fake::new(&[
+        Ok(MOUNTED),
+        Ok("Powered off"),
+        Ok(r#"{"blockdevices":[]}"#),
+    ]));
+    let result = source
+        .run(Operation::Eject("/dev/sda1".to_owned()))
+        .unwrap();
+    assert!(result.is_empty());
+    assert_eq!(
+        source.0.calls.lock().unwrap()[1].1,
+        ["power-off", "-b", "/dev/sda1"]
+    );
+}
+
+#[test]
+fn ejecao_recusa_disco_fixo_sem_invocar_udisksctl() {
+    let fixed =
+        r#"{"blockdevices":[{"path":"/dev/nvme0n1p3","type":"part","fstype":"ext4","rm":false}]}"#;
+    let source = SystemVolumes(Fake::new(&[Ok(fixed)]));
+    assert!(
+        source
+            .run(Operation::Eject("/dev/nvme0n1p3".to_owned()))
+            .is_err()
+    );
+    assert_eq!(source.0.calls.lock().unwrap().len(), 1);
+}
+
+#[test]
 fn volume_removido_e_sistema_protegido_nao_disparam_udisksctl() {
     for device in ["/dev/desapareceu", "/dev/root", "--help"] {
         let source = SystemVolumes(Fake::new(&[Ok(USB)]));
@@ -136,5 +166,9 @@ fn a_recusa_explicita_o_agente_grafico_sem_despejar_o_terminal_na_interface() {
     assert_eq!(
         failure("lsblk", "erro de leitura"),
         "lsblk: erro de leitura"
+    );
+    assert_eq!(
+        failure("udisksctl", "org.freedesktop.UDisks2.Error.DeviceBusy"),
+        "Dispositivo em uso. Feche os arquivos abertos e tente novamente."
     );
 }

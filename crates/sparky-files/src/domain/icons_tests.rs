@@ -44,3 +44,25 @@ fn cada_tipo_tem_icone_de_tema_e_fallback_generico() {
     assert_eq!(IconKind::Phone.names()[0], "phone");
     assert!(super::icons::ALL.contains(&IconKind::Phone));
 }
+
+#[test]
+fn sidebar_prefere_simbolico_e_preserva_fallback_do_tema() {
+    assert_eq!(
+        IconKind::Home.sidebar_names(),
+        [
+            "user-home-symbolic",
+            "folder-symbolic",
+            "user-home",
+            "folder"
+        ]
+    );
+    assert_eq!(
+        IconKind::Recent.sidebar_names()[0],
+        "document-open-recent-symbolic"
+    );
+    assert_eq!(IconKind::Favorite.sidebar_names()[0], "starred-symbolic");
+    assert_eq!(
+        IconKind::Network.sidebar_names()[0],
+        "network-workgroup-symbolic"
+    );
+}
