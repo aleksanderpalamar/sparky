@@ -134,7 +134,7 @@ impl SidebarSource for DesktopSidebar {
 
     fn favorite(&self, path: &Path, enabled: bool) -> Result<(), String> {
         let mut paths = self.favorites()?;
-        paths.retain(|saved| saved != path && saved.exists());
+        paths.retain(|saved| saved != path);
         if enabled && path.exists() {
             paths.push(path.to_path_buf());
         }

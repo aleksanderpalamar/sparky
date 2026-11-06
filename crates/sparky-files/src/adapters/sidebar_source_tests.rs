@@ -131,3 +131,37 @@ fn rede_usa_uri_do_filho_quando_destino_falta_ou_entrada_e_comum() {
         }
     );
 }
+
+#[test]
+fn favoritos_indisponiveis_sobrevivem_a_alteracoes_de_outros_itens() {
+    let dir = tempfile::tempdir().unwrap();
+    let drive = dir.path().join("unidade");
+    let offline = dir.path().join("desconectada");
+    fs::create_dir(&drive).unwrap();
+    let saved = drive.join("arquivo.txt");
+    let other = dir.path().join("outro.txt");
+    fs::write(&saved, "dados").unwrap();
+    fs::write(&other, "dados").unwrap();
+    let data = dir.path().join("data");
+    let source = DesktopSidebar::new(data.clone());
+    source.favorite(&saved, true).unwrap();
+    fs::rename(&drive, &offline).unwrap();
+    source.favorite(&other, true).unwrap();
+    source.favorite(&other, false).unwrap();
+    let reopened = DesktopSidebar::new(data);
+    assert!(reopened.is_favorite(&saved));
+    assert!(
+        reopened
+            .list(SidebarLocation::Favorites)
+            .unwrap()
+            .is_empty()
+    );
+    fs::rename(&offline, &drive).unwrap();
+    assert_eq!(
+        reopened.list(SidebarLocation::Favorites).unwrap()[0].target,
+        SidebarTarget::Local(saved.clone())
+    );
+    fs::rename(&drive, &offline).unwrap();
+    reopened.favorite(&saved, false).unwrap();
+    assert!(!reopened.is_favorite(&saved));
+}
