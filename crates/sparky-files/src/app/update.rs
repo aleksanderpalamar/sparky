@@ -1,15 +1,14 @@
-use std::path::PathBuf;
-
 use iced::Task;
 use iced::keyboard::{Key, Modifiers};
 
+use crate::app::commands::act;
 use crate::app::context;
 use crate::app::keys::{self, Command};
 use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
+use crate::app::virtual_commands::virtual_command;
 use crate::app::volumes;
 use crate::domain::entry::Kind;
-use crate::domain::grid::{Direction, ViewMode};
 use sparky_ui::prompt;
 
 pub fn update(files: &mut Files, message: Message) -> Task<Message> {
@@ -151,84 +150,4 @@ fn run(files: &mut Files, command: Command) -> Task<Message> {
             Task::none()
         }
     }
-}
-
-fn virtual_command(files: &mut Files, command: Command) -> Task<Message> {
-    let last = files.sidebar_items.len().saturating_sub(1);
-    match command {
-        Command::Down => files.sidebar_cursor = (files.sidebar_cursor + 1).min(last),
-        Command::Up => files.sidebar_cursor = files.sidebar_cursor.saturating_sub(1),
-        Command::First => files.sidebar_cursor = 0,
-        Command::Last => files.sidebar_cursor = last,
-        Command::Open => return files.open_sidebar_item(files.sidebar_cursor),
-        Command::Parent if files.network_uri.is_some() => return files.network_parent(),
-        Command::Parent => files.parent(),
-        Command::Home => files.home(),
-        Command::Place(index) => files.place(index),
-        Command::Volume(index) => {
-            let device = files.volumes.get(index).map(|volume| volume.path.clone());
-            return device.map_or_else(Task::none, |device| volumes::open(files, &device));
-        }
-        Command::UnmountCurrent => return volumes::unmount_current(files),
-        Command::Refresh => {
-            if let Some(uri) = files.network_uri.clone() {
-                return files.load_network(uri);
-            }
-            files.refresh();
-        }
-        Command::Quit => return iced::exit(),
-        _ => {}
-    }
-    Task::none()
-}
-
-fn act(files: &mut Files, command: Command) {
-    let page = files.layout.capacity() as isize;
-    match command {
-        Command::Down => files.move_cursor(Direction::Down),
-        Command::Up => files.move_cursor(Direction::Up),
-        Command::Left if files.view_mode == ViewMode::List => files.parent(),
-        Command::Right if files.view_mode == ViewMode::List => files.open_selected(),
-        Command::Left => files.move_cursor(Direction::Left),
-        Command::Right => files.move_cursor(Direction::Right),
-        Command::PageDown => files.listing.move_by(page),
-        Command::PageUp => files.listing.move_by(-page),
-        Command::First => files.listing.first(),
-        Command::Last => files.listing.last(),
-        Command::Open => files.open_selected(),
-        Command::Parent => files.parent(),
-        Command::Home => files.home(),
-        Command::Place(index) => files.place(index),
-        Command::ToggleHidden => files.listing.toggle_hidden(),
-        Command::Mark => {
-            files.listing.toggle_mark();
-            files.listing.move_by(1);
-        }
-        Command::Copy => files.copy(),
-        Command::Cut => files.cut(),
-        Command::Paste => files.paste(),
-        Command::Trash => files.ask_trash(),
-        Command::SelectAll => files.listing.select_all(),
-        Command::Properties => {
-            let path = selected_path(files);
-            context::properties(files, &path);
-        }
-        Command::Filter
-        | Command::Create
-        | Command::NewFolder
-        | Command::Rename
-        | Command::Quit
-        | Command::View(_)
-        | Command::Volume(_)
-        | Command::UnmountCurrent
-        | Command::Refresh => {}
-    }
-}
-
-fn selected_path(files: &Files) -> PathBuf {
-    let selected = files.listing.selected();
-    selected.map_or_else(
-        || files.location.clone(),
-        |entry| files.location.join(&entry.name),
-    )
 }

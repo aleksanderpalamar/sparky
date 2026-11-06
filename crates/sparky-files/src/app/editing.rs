@@ -1,5 +1,4 @@
-use std::mem;
-use std::path::PathBuf;
+use std::{mem, path::PathBuf};
 
 use iced::Task;
 

@@ -1,6 +1,7 @@
 pub mod archive;
 pub mod boot;
 pub mod clipboard;
+mod commands;
 pub mod context;
 pub mod editing;
 mod empty_trash;
@@ -15,6 +16,7 @@ pub mod state;
 pub mod transfer;
 pub mod trash;
 pub mod update;
+mod virtual_commands;
 pub mod volumes;
 
 #[cfg(test)]
