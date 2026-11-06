@@ -94,6 +94,7 @@ place-recent = Recentes
 place-favorites = Favoritos
 place-network = Rede
 network-browse = Explorar rede
+network-loading = Abrindo localização de rede…
 favorite-added = Adicionado aos favoritos
 favorite-removed = Removido dos favoritos
 favorite-action = Favoritar ou desfavoritar

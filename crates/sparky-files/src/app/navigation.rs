@@ -16,6 +16,7 @@ impl Files {
                 self.location = path;
                 self.sidebar_page = None;
                 self.network_uri = None;
+                self.network_pending = None;
                 self.sidebar_items.clear();
                 self.mode = Mode::Browse;
                 true
@@ -29,7 +30,6 @@ impl Files {
 
     pub fn open_selected(&mut self) {
         if self.sidebar_page.is_some() {
-            self.open_sidebar_item(self.sidebar_cursor);
             return;
         }
         if self.in_trash() {
@@ -49,10 +49,6 @@ impl Files {
     }
 
     pub fn parent(&mut self) {
-        if self.network_uri.is_some() {
-            self.network_parent();
-            return;
-        }
         if self.sidebar_page.is_some() {
             self.home();
             return;
@@ -86,8 +82,7 @@ impl Files {
     }
 
     pub fn refresh(&mut self) {
-        if let Some(uri) = self.network_uri.clone() {
-            self.open_network(&uri);
+        if self.network_uri.is_some() {
             return;
         }
         if let Some(page) = self.sidebar_page {

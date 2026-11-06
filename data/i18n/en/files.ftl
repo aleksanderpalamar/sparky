@@ -94,6 +94,7 @@ place-recent = Recent
 place-favorites = Favorites
 place-network = Network
 network-browse = Browse network
+network-loading = Opening network location…
 favorite-added = Added to favorites
 favorite-removed = Removed from favorites
 favorite-action = Toggle favorite

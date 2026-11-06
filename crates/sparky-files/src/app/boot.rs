@@ -43,7 +43,7 @@ pub fn boot() -> (Files, Task<Message>) {
         thumbnails: Arc::new(FileThumbnail),
         trash: Arc::new(trash),
         image_clipboard: Box::new(WlImageClipboard),
-        sidebar: Box::new(DesktopSidebar::from_env()),
+        sidebar: std::sync::Arc::new(DesktopSidebar::from_env()),
     };
     let mut files = Files::new(setup, services);
     files.resize(Size::new(WINDOW_WIDTH, WINDOW_HEIGHT));

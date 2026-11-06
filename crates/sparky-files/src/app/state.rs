@@ -46,7 +46,7 @@ pub struct Services {
     pub thumbnails: Arc<dyn ThumbnailSource>,
     pub trash: Arc<dyn TrashStore>,
     pub image_clipboard: Box<dyn ImageClipboard>,
-    pub sidebar: Box<dyn SidebarSource>,
+    pub sidebar: Arc<dyn SidebarSource>,
 }
 
 pub struct Setup {
@@ -83,6 +83,7 @@ pub struct Files {
     pub sidebar_icons: Icons,
     pub sidebar_page: Option<SidebarLocation>,
     pub network_uri: Option<String>,
+    pub network_pending: Option<String>,
     pub sidebar_items: Vec<SidebarItem>,
     pub sidebar_cursor: usize,
     pub volumes: Vec<Volume>,
@@ -124,6 +125,7 @@ impl Files {
             sidebar_icons,
             sidebar_page: None,
             network_uri: None,
+            network_pending: None,
             sidebar_items: Vec::new(),
             sidebar_cursor: 0,
             volumes: Vec::new(),

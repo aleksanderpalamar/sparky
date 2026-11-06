@@ -83,7 +83,7 @@ impl Cena {
             thumbnails: Arc::new(FileThumbnail),
             trash: Arc::new(trash),
             image_clipboard: Box::new(imagens.clone()),
-            sidebar: Box::new(DesktopSidebar::new(dir.path().join("data"))),
+            sidebar: Arc::new(DesktopSidebar::new(dir.path().join("data"))),
         };
         let setup = Setup {
             start: work.clone(),

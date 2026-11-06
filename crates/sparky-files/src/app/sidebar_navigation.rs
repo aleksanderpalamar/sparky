@@ -1,10 +1,12 @@
 use std::path::{Path, PathBuf};
 
 use gio::prelude::*;
+use iced::Task;
 
+use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
 use crate::domain::clip::Clip;
-use crate::domain::sidebar_location::{SidebarLocation, SidebarTarget};
+use crate::domain::sidebar_location::{SidebarItem, SidebarLocation, SidebarTarget};
 
 impl Files {
     pub fn open_sidebar(&mut self, page: SidebarLocation) {
@@ -13,6 +15,7 @@ impl Files {
                 self.sidebar_items = items;
                 self.sidebar_page = Some(page);
                 self.network_uri = None;
+                self.network_pending = None;
                 self.sidebar_cursor = 0;
                 self.mode = Mode::Browse;
             }
@@ -20,21 +23,21 @@ impl Files {
         }
     }
 
-    pub fn open_sidebar_item(&mut self, index: usize) {
+    pub fn open_sidebar_item(&mut self, index: usize) -> Task<Message> {
         self.sidebar_cursor = index;
         let Some(target) = self
             .sidebar_items
             .get(index)
             .map(|item| item.target.clone())
         else {
-            return;
+            return Task::none();
         };
         match target {
             SidebarTarget::Local(path) => self.open_local_sidebar_item(path),
             SidebarTarget::Remote {
                 uri,
                 directory: true,
-            } => self.open_network(&uri),
+            } => return self.load_network(uri),
             SidebarTarget::Remote {
                 uri,
                 directory: false,
@@ -44,6 +47,7 @@ impl Files {
                 }
             }
         }
+        Task::none()
     }
 
     fn open_local_sidebar_item(&mut self, path: PathBuf) {
@@ -106,8 +110,28 @@ impl Files {
         Ok(())
     }
 
-    pub(super) fn open_network(&mut self, uri: &str) {
-        match self.services.sidebar.network_children(uri) {
+    pub(super) fn load_network(&mut self, uri: String) -> Task<Message> {
+        self.network_pending = Some(uri.clone());
+        let source = self.services.sidebar.clone();
+        Task::perform(
+            async move {
+                let target = uri.clone();
+                let result = tokio::task::spawn_blocking(move || source.network_children(&target))
+                    .await
+                    .map_err(|error| error.to_string())
+                    .and_then(|result| result);
+                (uri, result)
+            },
+            |(uri, result)| Message::NetworkLoaded(uri, result),
+        )
+    }
+
+    pub(super) fn network_loaded(&mut self, uri: &str, result: Result<Vec<SidebarItem>, String>) {
+        if self.network_pending.as_deref() != Some(uri) {
+            return;
+        }
+        self.network_pending = None;
+        match result {
             Ok(items) => {
                 self.sidebar_items = items;
                 self.sidebar_page = Some(SidebarLocation::Network);
@@ -118,20 +142,20 @@ impl Files {
         }
     }
 
-    pub(super) fn network_parent(&mut self) {
+    pub(super) fn network_parent(&mut self) -> Task<Message> {
         let Some(uri) = self.network_uri.as_ref() else {
-            return;
+            return Task::none();
         };
         let file = gio::File::for_uri(uri);
         let Some(parent) = file.parent() else {
             self.open_sidebar(SidebarLocation::Network);
-            return;
+            return Task::none();
         };
         let parent_uri = parent.uri();
         if parent_uri.as_str() == "network:///" {
             self.open_sidebar(SidebarLocation::Network);
-        } else {
-            self.open_network(&parent_uri);
+            return Task::none();
         }
+        self.load_network(parent_uri.to_string())
     }
 }

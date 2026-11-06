@@ -1,6 +1,6 @@
 use crate::domain::context::Action;
 use crate::domain::grid::ViewMode;
-use crate::domain::sidebar_location::SidebarLocation;
+use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::domain::thumbnail::Thumbnail;
 use crate::ports::EmptyReport;
 use iced::keyboard::{Key, Modifiers};
@@ -31,6 +31,7 @@ pub enum Message {
     Place(usize),
     Sidebar(SidebarLocation),
     SidebarItem(usize),
+    NetworkLoaded(String, Result<Vec<SidebarItem>, String>),
     FavoriteSelected,
     RemoveFavorite(usize),
     Trash(TrashEvent),

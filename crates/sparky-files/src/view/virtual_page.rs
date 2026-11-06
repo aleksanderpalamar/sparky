@@ -18,6 +18,9 @@ pub fn label(files: &Files) -> String {
 
 pub fn view(files: &Files) -> Element<'_, Message> {
     let skin = files.skin;
+    if files.network_pending.is_some() {
+        return text(i18n::text("network-loading")).size(TEXT_SIZE).into();
+    }
     if files.sidebar_items.is_empty() {
         return text(i18n::text("sidebar-empty")).size(TEXT_SIZE).into();
     }

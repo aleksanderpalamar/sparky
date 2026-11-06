@@ -41,7 +41,8 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::Trash(action) => files.handle_trash(action),
         Message::TrashEmptied(result) => files.trash_emptied(result),
         Message::Sidebar(page) => files.open_sidebar(page),
-        Message::SidebarItem(index) => files.open_sidebar_item(index),
+        Message::SidebarItem(index) => return files.open_sidebar_item(index),
+        Message::NetworkLoaded(uri, result) => files.network_loaded(&uri, result),
         Message::FavoriteSelected => files.toggle_favorite(),
         Message::RemoveFavorite(index) => files.remove_favorite(index),
         Message::ContextAction(action) => return context::choose(files, action),
@@ -158,7 +159,8 @@ fn virtual_command(files: &mut Files, command: Command) -> Task<Message> {
         Command::Up => files.sidebar_cursor = files.sidebar_cursor.saturating_sub(1),
         Command::First => files.sidebar_cursor = 0,
         Command::Last => files.sidebar_cursor = last,
-        Command::Open => files.open_selected(),
+        Command::Open => return files.open_sidebar_item(files.sidebar_cursor),
+        Command::Parent if files.network_uri.is_some() => return files.network_parent(),
         Command::Parent => files.parent(),
         Command::Home => files.home(),
         Command::Place(index) => files.place(index),
@@ -167,7 +169,12 @@ fn virtual_command(files: &mut Files, command: Command) -> Task<Message> {
             return device.map_or_else(Task::none, |device| volumes::open(files, &device));
         }
         Command::UnmountCurrent => return volumes::unmount_current(files),
-        Command::Refresh => files.refresh(),
+        Command::Refresh => {
+            if let Some(uri) = files.network_uri.clone() {
+                return files.load_network(uri);
+            }
+            files.refresh();
+        }
         Command::Quit => return iced::exit(),
         _ => {}
     }
