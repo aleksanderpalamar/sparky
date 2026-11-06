@@ -56,6 +56,7 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::Tick => {
             files.refresh_if_changed();
             files.icons = files.services.icons.load();
+            files.sidebar_icons = files.services.icons.load_sidebar();
             return volumes::refresh(files);
         }
         other => return steer(files, other),

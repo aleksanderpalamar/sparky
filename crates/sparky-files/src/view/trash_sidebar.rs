@@ -6,12 +6,12 @@ use sparky_ui::style::{self, Highlight};
 use crate::app::message::{Message, TrashEvent};
 use crate::app::state::Files;
 use crate::domain::icons::IconKind;
-use crate::view::icon::icon;
+use crate::view::icon::sidebar_icon;
 
 pub fn button(files: &Files) -> Element<'_, Message> {
     let skin = files.skin;
     let label = row![
-        icon(files, IconKind::Trash, 20.0),
+        sidebar_icon(files, IconKind::Trash, 20.0),
         text(crate::i18n::text("trash")).size(13.0)
     ]
     .spacing(6)

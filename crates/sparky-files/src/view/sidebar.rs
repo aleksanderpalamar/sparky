@@ -9,7 +9,7 @@ use crate::app::message::Message;
 use crate::app::state::Files;
 use crate::domain::icons::IconKind;
 use crate::i18n;
-use crate::view::icon::icon;
+use crate::view::icon::sidebar_icon;
 
 pub fn sidebar(files: &Files) -> Element<'_, Message> {
     let skin = files.skin;
@@ -67,7 +67,7 @@ fn place_button<'a>(
 ) -> Element<'a, Message> {
     let skin = files.skin;
     let label = row![
-        icon(files, place.icon, 20.0),
+        sidebar_icon(files, place.icon, 20.0),
         text(i18n::text(place.key)).size(13.0).width(Length::Fill)
     ]
     .spacing(6)
@@ -126,7 +126,7 @@ fn device<'a>(files: &'a Files, volume: &'a Volume, index: usize) -> Element<'a,
         .as_ref()
         .is_some_and(|point| files.location.starts_with(point));
     let highlight = Highlight::when(selected);
-    let body = row![icon(files, kind, 22.0), label]
+    let body = row![sidebar_icon(files, kind, 22.0), label]
         .spacing(6)
         .align_y(Vertical::Center);
     let busy = files.volume_work.is_some();
@@ -139,7 +139,7 @@ fn device<'a>(files: &'a Files, volume: &'a Volume, index: usize) -> Element<'a,
         .style(move |_| style::tooltip(skin));
     let mut line = row![open].align_y(Vertical::Center).spacing(2);
     if volume.mounted() {
-        let eject = button(icon(files, IconKind::Eject, 18.0))
+        let eject = button(sidebar_icon(files, IconKind::Eject, 18.0))
             .padding(5)
             .on_press_maybe((!busy).then(|| Message::UnmountVolume(volume.path.clone())))
             .style(move |_, status| style::entry(skin, Highlight::Plain, status));

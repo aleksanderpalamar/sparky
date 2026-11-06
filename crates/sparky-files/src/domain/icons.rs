@@ -29,6 +29,9 @@ pub enum IconKind {
     Phone,
     Eject,
     Trash,
+    Recent,
+    Favorite,
+    Network,
 }
 
 pub const ALL: [IconKind; 24] = [
@@ -59,6 +62,23 @@ pub const ALL: [IconKind; 24] = [
 ];
 
 pub type Icons = BTreeMap<IconKind, PathBuf>;
+
+pub const SIDEBAR: [IconKind; 14] = [
+    IconKind::Home,
+    IconKind::Recent,
+    IconKind::Favorite,
+    IconKind::Network,
+    IconKind::Trash,
+    IconKind::Documents,
+    IconKind::Music,
+    IconKind::Pictures,
+    IconKind::Videos,
+    IconKind::Downloads,
+    IconKind::Drive,
+    IconKind::Removable,
+    IconKind::Phone,
+    IconKind::Eject,
+];
 
 impl IconKind {
     pub fn for_entry(entry: &Entry, place: Option<IconKind>) -> Self {
@@ -119,6 +139,17 @@ impl IconKind {
             Self::Phone => &["phone", "multimedia-player", "drive-removable-media"],
             Self::Eject => &["media-eject", "media-eject-symbolic"],
             Self::Trash => &["user-trash", "user-trash-full"],
+            Self::Recent => &["document-open-recent", "folder"],
+            Self::Favorite => &["starred", "folder"],
+            Self::Network => &["network-workgroup", "folder"],
         }
+    }
+
+    pub fn sidebar_names(self) -> Vec<String> {
+        self.names()
+            .iter()
+            .map(|name| format!("{name}-symbolic"))
+            .chain(self.names().iter().map(|name| (*name).to_owned()))
+            .collect()
     }
 }

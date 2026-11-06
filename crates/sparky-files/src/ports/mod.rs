@@ -13,6 +13,10 @@ use crate::domain::thumbnail::Thumbnail;
 
 pub trait IconSource {
     fn load(&mut self) -> Icons;
+
+    fn load_sidebar(&mut self) -> Icons {
+        self.load()
+    }
 }
 
 pub trait ImageClipboard {

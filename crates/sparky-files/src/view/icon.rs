@@ -24,7 +24,20 @@ pub fn entry_icon(
 }
 
 pub fn icon(files: &Files, kind: IconKind, size: f32) -> Element<'static, Message> {
-    match files.icons.get(&kind) {
+    render_icon(files, files.icons.get(&kind), kind, size)
+}
+
+pub fn sidebar_icon(files: &Files, kind: IconKind, size: f32) -> Element<'static, Message> {
+    render_icon(files, files.sidebar_icons.get(&kind), kind, size)
+}
+
+fn render_icon(
+    files: &Files,
+    path: Option<&std::path::PathBuf>,
+    kind: IconKind,
+    size: f32,
+) -> Element<'static, Message> {
+    match path {
         Some(path) if path.extension().is_some_and(|extension| extension == "svg") => {
             let symbolic = path
                 .file_name()

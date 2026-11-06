@@ -78,6 +78,7 @@ pub struct Files {
     pub layout: Layout,
     pub size: Size,
     pub icons: Icons,
+    pub sidebar_icons: Icons,
     pub volumes: Vec<Volume>,
     pub volume_work: Option<Operation>,
     pub volume_error: Option<String>,
@@ -100,6 +101,7 @@ pub struct Files {
 impl Files {
     pub fn new(setup: Setup, mut services: Services) -> Self {
         let icons = services.icons.load();
+        let sidebar_icons = services.icons.load_sidebar();
         let mut files = Self {
             location: setup.start.clone(),
             home: setup.home,
@@ -113,6 +115,7 @@ impl Files {
                 crate::view::style::WINDOW_HEIGHT,
             ),
             icons,
+            sidebar_icons,
             volumes: Vec::new(),
             volume_work: None,
             volume_error: None,
