@@ -3,6 +3,7 @@ pub mod clipboard;
 pub mod home_trash;
 pub mod icons;
 pub mod local_disk;
+mod sidebar_network;
 mod sidebar_recent;
 pub mod sidebar_source;
 #[cfg(test)]

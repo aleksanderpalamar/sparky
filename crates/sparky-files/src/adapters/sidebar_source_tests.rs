@@ -83,3 +83,51 @@ fn rede_lista_arquivos_por_uri_gio() {
             }
         )));
 }
+
+#[test]
+fn atalho_de_rede_abre_a_uri_de_destino() {
+    let root = gio::File::for_uri("network:///");
+    let info = gio::FileInfo::new();
+    info.set_name("servidor");
+    info.set_display_name("Servidor");
+    info.set_file_type(gio::FileType::Shortcut);
+    info.set_attribute_string("standard::target-uri", "smb://servidor/");
+    let item = super::sidebar_network::item(&root, &info);
+    assert_eq!(
+        item.target,
+        SidebarTarget::Remote {
+            uri: "smb://servidor/".into(),
+            directory: true
+        }
+    );
+}
+
+#[test]
+fn rede_usa_uri_do_filho_quando_destino_falta_ou_entrada_e_comum() {
+    let root = gio::File::for_uri("network:///");
+    let info = gio::FileInfo::new();
+    info.set_name("pasta");
+    info.set_display_name("Pasta");
+    info.set_file_type(gio::FileType::Shortcut);
+    for target in [None, Some("")] {
+        if let Some(target) = target {
+            info.set_attribute_string("standard::target-uri", target);
+        }
+        assert_eq!(
+            super::sidebar_network::item(&root, &info).target,
+            SidebarTarget::Remote {
+                uri: "network:///pasta".into(),
+                directory: true
+            }
+        );
+    }
+    info.set_file_type(gio::FileType::Regular);
+    info.set_attribute_string("standard::target-uri", "smb://outro/");
+    assert_eq!(
+        super::sidebar_network::item(&root, &info).target,
+        SidebarTarget::Remote {
+            uri: "network:///pasta".into(),
+            directory: false
+        }
+    );
+}

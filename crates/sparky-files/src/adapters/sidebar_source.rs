@@ -114,7 +114,7 @@ impl SidebarSource for DesktopSidebar {
         let root = gio::File::for_uri(uri);
         let children = root
             .enumerate_children(
-                "standard::name,standard::display-name,standard::type",
+                "standard::name,standard::display-name,standard::type,standard::target-uri",
                 gio::FileQueryInfoFlags::NONE,
                 gio::Cancellable::NONE,
             )
@@ -122,15 +122,7 @@ impl SidebarSource for DesktopSidebar {
         children
             .map(|info| {
                 let info = info.map_err(|error| error.to_string())?;
-                let child = root.child(info.name());
-                let directory = info.file_type() != gio::FileType::Regular;
-                Ok(SidebarItem {
-                    target: SidebarTarget::Remote {
-                        uri: child.uri().to_string(),
-                        directory,
-                    },
-                    name: info.display_name().to_string(),
-                })
+                Ok(super::sidebar_network::item(&root, &info))
             })
             .collect()
     }
