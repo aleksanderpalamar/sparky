@@ -6,6 +6,7 @@ use sparky_login::adapters::appearance::UserAppearance;
 use sparky_login::adapters::launcher::UserLauncher;
 use sparky_login::adapters::stop;
 use sparky_login::cli::{self, Command};
+use sparky_login::domain::environment::locale_variables;
 use sparky_login::service::{self, settings::Settings};
 use sparky_login::worker::Worker;
 use sparky_pam::LinuxPam;
@@ -37,11 +38,13 @@ fn main() -> ExitCode {
 fn work() -> Result<(), String> {
     stop::watch()?;
     let pam = LinuxPam::default();
+    let locale = locale_variables(|name| std::env::var(name).ok());
     let worker = Worker {
         pam: &pam,
         accounts: &SystemAccounts,
         launcher: &UserLauncher,
         appearance: &UserAppearance,
+        locale: &locale,
     };
     let mut input = BufReader::new(io::stdin().lock());
     worker.run(&mut input, &mut io::stdout().lock())

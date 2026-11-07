@@ -112,3 +112,21 @@ fn a_sessao_roda_pelo_shell_de_login_do_usuario() {
         vec!["/bin/sh", "-l", "-c", "exec sparky"]
     );
 }
+
+#[test]
+fn o_idioma_do_sistema_vai_para_a_tela_de_login() {
+    let ambiente = |name: &str| match name {
+        "LANG" => Some("pt_BR.UTF-8".to_owned()),
+        "LC_TIME" => Some("en_GB.UTF-8".to_owned()),
+        "LC_ALL" => Some(String::new()),
+        "HOME" => Some("/root".to_owned()),
+        _ => None,
+    };
+    assert_eq!(
+        crate::domain::environment::locale_variables(ambiente),
+        vec![
+            ("LANG".to_owned(), "pt_BR.UTF-8".to_owned()),
+            ("LC_TIME".to_owned(), "en_GB.UTF-8".to_owned())
+        ]
+    );
+}

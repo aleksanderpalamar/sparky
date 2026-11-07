@@ -30,13 +30,13 @@ impl Catalog {
 
     pub fn new(locale: &Locale, portuguese: &str, english: &str) -> Result<Self, String> {
         let selected_text = match locale.language() {
-            "en" => english,
-            _ => portuguese,
+            "pt" => portuguese,
+            _ => english,
         };
         Ok(Self {
             installed: None,
             selected: bundle(locale.language(), selected_text)?,
-            fallback: bundle("pt-BR", portuguese)?,
+            fallback: bundle("en", english)?,
         })
     }
 

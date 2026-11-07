@@ -506,10 +506,12 @@ são publicados na Release com hashes SHA-256 e o commit de origem.
 
 Os aplicativos nativos usam o `sparky-i18n` e os catálogos Fluent em
 `data/i18n/pt-BR/` e `data/i18n/en/`. O idioma é escolhido por `LC_ALL`,
-`LC_MESSAGES` e `LANG`, nessa ordem. Uma variante regional de inglês usa o
-catálogo `en`; idiomas ainda sem catálogo usam português do Brasil. Arquivos
-instalados em `/usr/share/sparky/i18n/<idioma>/` podem complementar os catálogos
-embutidos. Mensagens ausentes ou inválidas recorrem ao texto embutido.
+`LC_MESSAGES` e `LANG`, nessa ordem. Qualquer variante regional de português
+usa o catálogo `pt-BR`; os demais idiomas, inclusive `C` e `POSIX`, usam o
+catálogo `en`. Arquivos instalados em `/usr/share/sparky/i18n/<idioma>/` podem
+complementar os catálogos embutidos. Mensagens ausentes ou inválidas recorrem
+ao texto embutido em inglês. A tela de login recebe as variáveis de idioma do
+serviço `sparky-login`, que o systemd preenche a partir de `/etc/locale.conf`.
 
 Os pacotes DEB, RPM e Arch instalam os dois idiomas. As entradas `.desktop`
 também oferecem nome, descrição e palavras-chave em inglês. Para acrescentar

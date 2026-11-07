@@ -1,3 +1,5 @@
+const FALLBACK: &str = "en";
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Locale(String);
 
@@ -6,13 +8,13 @@ impl Locale {
         let value = value.split(['.', '@']).next().unwrap_or_default();
         let value = value.replace('_', "-");
         match value.as_str() {
-            "" | "C" | "POSIX" => Self("pt-BR".to_owned()),
+            "" | "C" | "POSIX" => Self(FALLBACK.to_owned()),
             _ => Self(value),
         }
     }
 
     pub fn language(&self) -> &str {
-        self.0.split('-').next().unwrap_or("pt")
+        self.0.split('-').next().unwrap_or(FALLBACK)
     }
 
     pub fn candidates(&self) -> Vec<String> {
@@ -28,5 +30,5 @@ pub fn locale_from_environment(get: impl Fn(&str) -> Option<String>) -> Locale {
     ["LC_ALL", "LC_MESSAGES", "LANG"]
         .into_iter()
         .find_map(|key| get(key).filter(|value| !value.is_empty()))
-        .map_or_else(|| Locale::parse("pt-BR"), |value| Locale::parse(&value))
+        .map_or_else(|| Locale::parse(FALLBACK), |value| Locale::parse(&value))
 }
