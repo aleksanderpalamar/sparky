@@ -19,9 +19,9 @@ fn pacman_conta_as_entradas_sem_o_arquivo_de_versao() {
 
 #[test]
 fn dpkg_conta_apenas_os_instalados() {
-    let status = "Package: a\nStatus: install ok installed\n\nPackage: b\nStatus: deinstall ok config-files\n\nPackage: c\nStatus: install ok installed\n";
+    let status = "Package: a\nStatus: install ok installed\n\nPackage: b\nStatus: deinstall ok config-files\n\nPackage: c\nStatus: install ok installed\n\nPackage: d\nStatus: hold ok installed\n";
     let host = Fake::default().file("/var/lib/dpkg/status", status);
-    assert_eq!(packages::collect(&host), text("2 (dpkg)"));
+    assert_eq!(packages::collect(&host), text("3 (dpkg)"));
 }
 
 #[test]

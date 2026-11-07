@@ -1,4 +1,4 @@
-mod ansi;
+pub(crate) mod ansi;
 mod fit;
 mod info;
 mod layout;

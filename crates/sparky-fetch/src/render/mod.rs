@@ -27,8 +27,12 @@ pub fn label(field: Field) -> String {
 
 pub fn shown(status: &Status) -> String {
     match status.value() {
-        Some(Value::Text(text)) => text.clone(),
-        Some(Value::Lines(lines)) => lines.join(", "),
+        Some(Value::Text(text)) => clean(text),
+        Some(Value::Lines(lines)) => lines
+            .iter()
+            .map(|line| clean(line))
+            .collect::<Vec<_>>()
+            .join(", "),
         Some(Value::Colors(colors)) => colors
             .iter()
             .map(|color| hex(*color))
@@ -36,4 +40,8 @@ pub fn shown(status: &Status) -> String {
             .join(" "),
         None => i18n::text("not-available"),
     }
+}
+
+fn clean(text: &str) -> String {
+    visual::ansi::strip(text).trim().to_owned()
 }

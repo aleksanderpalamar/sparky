@@ -70,3 +70,14 @@ fn formato_e_largura_pedidos_valem_mesmo_no_pipe() {
     let visao = View::resolve(&pedido, &terminal(false, false));
     assert_eq!((visao.format, visao.width), (Format::Json, 50));
 }
+
+#[test]
+fn texto_simples_limpa_escapes_e_quebras_dos_valores() {
+    let report = Report {
+        entries: vec![Entry::new(
+            Field::Terminal,
+            Status::text("\x1b]0;titulo\x07evil\nlinha"),
+        )],
+    };
+    assert_eq!(plain::render(&report), "Terminal: evil linha\n");
+}

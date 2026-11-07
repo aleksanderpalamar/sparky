@@ -2,6 +2,7 @@ use std::env;
 use std::fs;
 use std::io::Read;
 use std::process::{Child, Command, Stdio};
+use std::sync::mpsc;
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -42,12 +43,15 @@ pub fn run(program: &str, arguments: &[String], limit: Duration) -> Option<Vec<u
         .spawn()
         .ok()?;
     let mut stdout = child.stdout.take()?;
-    let reader = thread::spawn(move || {
+    let deadline = Instant::now() + limit;
+    let (sender, receiver) = mpsc::channel();
+    thread::spawn(move || {
         let mut output = Vec::new();
-        stdout.read_to_end(&mut output).map(|_| output)
+        let _ = sender.send(stdout.read_to_end(&mut output).map(|_| output));
     });
     let finished = wait(&mut child, limit)?;
-    let output = reader.join().ok()?.ok()?;
+    let left = deadline.saturating_duration_since(Instant::now());
+    let output = receiver.recv_timeout(left).ok()?.ok()?;
     (finished && !output.is_empty()).then_some(output)
 }
 

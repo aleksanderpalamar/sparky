@@ -9,7 +9,8 @@ use crate::linux::tally::{self, Tally};
 const PACMAN: &str = "/var/lib/pacman/local";
 const PACMAN_VERSION: &str = "ALPM_DB_VERSION";
 const DPKG: &str = "/var/lib/dpkg/status";
-const INSTALLED: &str = "Status: install ok installed";
+const STATUS: &str = "Status:";
+const INSTALLED: &str = "installed";
 const FLATPAK: &str = "/var/lib/flatpak/app";
 const RPM_TIMEOUT: Duration = Duration::from_millis(300);
 
@@ -37,7 +38,8 @@ fn dpkg(host: &dyn Host) -> Tally {
     match files::read(host, Path::new(DPKG)) {
         Ok(text) => Tally::Present(
             text.lines()
-                .filter(|line| line.trim_end() == INSTALLED)
+                .filter_map(|line| line.strip_prefix(STATUS))
+                .filter(|status| status.split_whitespace().nth(2) == Some(INSTALLED))
                 .count(),
         ),
         Err(status) => Tally::from(status),

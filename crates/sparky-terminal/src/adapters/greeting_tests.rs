@@ -63,3 +63,10 @@ fn a_saudacao_vai_para_a_tela_antes_do_shell() {
         .collect();
     assert_eq!(&linhas[..3], ["Sparky", "Kernel: Linux", ""]);
 }
+
+#[test]
+fn filho_que_segura_a_saida_nao_passa_do_prazo() {
+    let inicio = Instant::now();
+    let saida = run("sh", &argumentos(&["-c", "sleep 5 & echo oi"]), PRAZO);
+    assert!(inicio.elapsed() < Duration::from_secs(2), "{saida:?}");
+}
