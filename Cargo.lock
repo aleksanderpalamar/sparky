@@ -4943,6 +4943,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "sparky-hardware"
+version = "0.30.0"
+
+[[package]]
 name = "sparky-i18n"
 version = "0.30.0"
 dependencies = [
@@ -5169,6 +5173,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sparky-config",
+ "sparky-hardware",
  "sparky-i18n",
  "sparky-ipc",
  "sparky-storage",

@@ -14,6 +14,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sparky-i18n = { path = "crates/sparky-i18n" }
 sparky-config = { path = "crates/sparky-config" }
+sparky-hardware = { path = "crates/sparky-hardware" }
 sparky-ipc = { path = "crates/sparky-ipc" }
 sparky-login-core = { path = "crates/sparky-login-core" }
 sparky-login-look = { path = "crates/sparky-login-look" }
