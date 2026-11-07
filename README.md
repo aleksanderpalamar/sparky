@@ -149,6 +149,7 @@ sparky-msg focus-workspace 3   # vai para a área 3
 sparky-msg subscribe           # avisa a cada mudança nas áreas e no bloqueio
 sparky-msg reload              # relê o sparky.toml
 sparky-msg outputs             # lista os monitores e qual está em foco
+sparky-msg info                # versão do compositor, sessão, tema e cores em uso
 sparky-msg capture output tela.png                 # o monitor em foco
 sparky-msg capture window janela.png               # a janela em foco, sem a borda
 sparky-msg capture region 0 0 800 600 regiao.png   # região relativa ao monitor em foco

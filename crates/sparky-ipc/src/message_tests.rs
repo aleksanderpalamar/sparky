@@ -112,3 +112,56 @@ fn bloquear_e_desbloquear_viram_eventos() {
         r#"{"reply":"event","event":"unlocked"}"#
     );
 }
+
+#[test]
+fn o_pedido_de_informacoes_da_sessao_e_um_pedido_sem_campos() {
+    let json = serde_json::to_string(&Request::Info).unwrap_or_default();
+    assert_eq!(json, r#"{"request":"info"}"#);
+    assert_eq!(
+        serde_json::from_str::<Request>(&json).ok(),
+        Some(Request::Info)
+    );
+}
+
+#[test]
+fn a_resposta_de_informacoes_volta_inteira() {
+    use crate::info::{SessionInfo, SessionKind};
+    let reply = Reply::Info {
+        info: SessionInfo {
+            version: "0.30.0".to_owned(),
+            display: "wayland-1".to_owned(),
+            session: SessionKind::Real,
+            theme: Some("tokyo-night".to_owned()),
+            accent: "#7aa2f7".to_owned(),
+            swatches: vec!["#1a1b26".to_owned(), "#f7768e".to_owned()],
+        },
+    };
+    let json = serde_json::to_string(&reply).unwrap_or_default();
+    assert!(
+        json.starts_with(
+            r#"{"reply":"info","info":{"version":"0.30.0","display":"wayland-1","session":"real""#
+        ),
+        "{json}"
+    );
+    assert_eq!(serde_json::from_str::<Reply>(&json).ok(), Some(reply));
+}
+
+#[test]
+fn informacoes_sem_os_campos_novos_ainda_sao_lidas() {
+    use crate::info::{SessionInfo, SessionKind};
+    let json = r#"{"reply":"info","info":{"version":"0.30.0","display":"wayland-1"}}"#;
+    let Ok(Reply::Info { info }) = serde_json::from_str::<Reply>(json) else {
+        panic!("deveria ler a resposta antiga");
+    };
+    assert_eq!(
+        info,
+        SessionInfo {
+            version: "0.30.0".to_owned(),
+            display: "wayland-1".to_owned(),
+            session: SessionKind::Unknown,
+            theme: None,
+            accent: String::new(),
+            swatches: Vec::new(),
+        }
+    );
+}
