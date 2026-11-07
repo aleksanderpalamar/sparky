@@ -50,11 +50,13 @@ pub fn entrada(job: &Job, orders: &[Order]) -> Vec<u8> {
 }
 
 pub fn rodar(cena: &Cena, bytes: Vec<u8>) -> (Result<(), String>, Vec<Report>) {
+    let locale = vec![par("LANG", "pt_BR.UTF-8")];
     let worker = Worker {
         pam: &cena.pam,
         accounts: &FakeAccounts,
         launcher: &cena.launcher,
         appearance: &cena.appearance,
+        locale: &locale,
     };
     let mut output = Vec::new();
     let result = worker.run(&mut BufReader::new(Cursor::new(bytes)), &mut output);

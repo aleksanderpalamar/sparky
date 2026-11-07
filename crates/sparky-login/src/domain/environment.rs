@@ -7,6 +7,23 @@ use sparky_login_core::sessions::Session;
 pub const SEAT: &str = "seat0";
 const DEFAULT_PATH: &str = "/usr/local/bin:/usr/bin:/bin";
 const FALLBACK_SHELL: &str = "/bin/sh";
+const LOCALE: [&str; 15] = [
+    "LANG",
+    "LANGUAGE",
+    "LC_ALL",
+    "LC_MESSAGES",
+    "LC_CTYPE",
+    "LC_NUMERIC",
+    "LC_TIME",
+    "LC_COLLATE",
+    "LC_MONETARY",
+    "LC_PAPER",
+    "LC_NAME",
+    "LC_ADDRESS",
+    "LC_TELEPHONE",
+    "LC_MEASUREMENT",
+    "LC_IDENTIFICATION",
+];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Account {
@@ -67,6 +84,16 @@ pub fn environment(account: &Account, pam: Vec<(String, String)>) -> Vec<(String
     ];
     let merged: BTreeMap<String, String> = base.into_iter().chain(pam).collect();
     merged.into_iter().collect()
+}
+
+pub fn locale_variables(get: impl Fn(&str) -> Option<String>) -> Vec<(String, String)> {
+    LOCALE
+        .iter()
+        .filter_map(|name| {
+            let value = get(name).filter(|value| !value.is_empty())?;
+            Some(pair(name, &value))
+        })
+        .collect()
 }
 
 pub fn login_command(account: &Account, exec: &str) -> Vec<String> {

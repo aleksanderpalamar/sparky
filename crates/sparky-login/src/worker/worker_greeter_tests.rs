@@ -43,6 +43,7 @@ fn a_tela_abre_sessao_de_greeter_roda_o_comando_e_fecha_no_fim() {
         "/run/sparky-login/greeter.sock"
     )));
     assert!(environment.contains(&par("XDG_SESSION_CLASS", "greeter")));
+    assert!(environment.contains(&par("LANG", "pt_BR.UTF-8")));
     assert_eq!(tty, &PathBuf::from("/dev/tty1"));
 }
 

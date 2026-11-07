@@ -29,6 +29,7 @@ pub struct Worker<'a> {
     pub accounts: &'a dyn Accounts,
     pub launcher: &'a dyn Launcher,
     pub appearance: &'a dyn Appearance,
+    pub locale: &'a [(String, String)],
 }
 
 impl Worker<'_> {
@@ -60,6 +61,7 @@ impl Worker<'_> {
         let mut transaction = self.pam.begin(GREETER_SERVICE, user, None)?;
         open(transaction.as_mut(), Class::Greeter, vt, None)?;
         let mut variables = environment(&account, transaction.environment());
+        variables.extend(self.locale.iter().cloned());
         variables.push((
             SOCKET_VARIABLE.to_owned(),
             socket.to_string_lossy().into_owned(),
