@@ -4912,6 +4912,7 @@ dependencies = [
  "libc",
  "serde",
  "serde_json",
+ "sparky-hardware",
  "sparky-i18n",
  "sparky-ipc",
  "sparky-theme",

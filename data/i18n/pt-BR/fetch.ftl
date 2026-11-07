@@ -37,3 +37,7 @@ usage =
       --list-fields                lista os campos
       -h, --help                   mostra esta ajuda
       -V, --version                mostra a versão
+error-read = não foi possível ler { $path }: { $error }
+error-format = formato inesperado em { $path }
+error-command = { $command } falhou: { $error }
+error-command-timeout = { $command } não respondeu a tempo
