@@ -6,7 +6,6 @@ pub mod hardware;
 pub mod keymaps;
 pub mod labels;
 pub mod network;
-pub mod pci;
 pub mod screens;
 pub mod section;
 pub mod system;

@@ -4905,6 +4905,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "sparky-fetch"
+version = "0.30.0"
+dependencies = [
+ "fluent-bundle",
+ "libc",
+ "serde",
+ "serde_json",
+ "sparky-config",
+ "sparky-hardware",
+ "sparky-i18n",
+ "sparky-ipc",
+ "sparky-theme",
+ "tempfile",
+ "toml 0.8.23",
+ "unicode-width",
+]
+
+[[package]]
 name = "sparky-files"
 version = "0.30.0"
 dependencies = [
@@ -4925,6 +4943,10 @@ dependencies = [
  "tempfile",
  "tokio",
 ]
+
+[[package]]
+name = "sparky-hardware"
+version = "0.30.0"
 
 [[package]]
 name = "sparky-i18n"
@@ -4957,6 +4979,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sparky-config",
+ "tempfile",
 ]
 
 [[package]]
@@ -5153,6 +5176,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sparky-config",
+ "sparky-hardware",
  "sparky-i18n",
  "sparky-ipc",
  "sparky-storage",
@@ -5197,6 +5221,7 @@ dependencies = [
  "fluent-bundle",
  "iced",
  "iced_runtime",
+ "sparky-config",
  "sparky-i18n",
  "sparky-theme",
  "sparky-ui",

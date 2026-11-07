@@ -22,6 +22,7 @@ serde.workspace = true
 serde_json.workspace = true
 tempfile = "3"
 sparky-config.workspace = true
+sparky-hardware.workspace = true
 sparky-ipc.workspace = true
 sparky-theme.workspace = true
 sparky-tiling.workspace = true

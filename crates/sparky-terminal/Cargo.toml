@@ -16,6 +16,7 @@ path = "src/lib.rs"
 [dependencies]
 alacritty_terminal = "0.26"
 iced = { version = "0.14", features = ["advanced", "canvas", "tokio"] }
+sparky-config.workspace = true
 sparky-theme.workspace = true
 sparky-ui.workspace = true
 sparky-xdg.workspace = true

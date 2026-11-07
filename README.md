@@ -14,6 +14,8 @@ Somente os temas vem do [Omarchy](https://github.com/basecamp/omarchy): como pal
 | `crates/sparky-tiling` | O mosaico: árvore dwindle, folgas, foco por direção, flutuantes, tela cheia, áreas de trabalho e monitores. Não depende de Wayland |
 | `crates/sparky-config` | O `sparky.toml`: esquema, padrões do sparky, ações e a tabela de atalhos padrão |
 | `crates/sparky-ipc` | Protocolo do IPC do sparky (JSON por linha num socket Unix), o cliente usado pela barra e pelos aplicativos, e o `sparky-msg` |
+| `crates/sparky-fetch` | Informações do sistema e da sessão no terminal (`sparky-fetch`): Linux lido direto do sistema e Sparky pelo IPC, em saída visual, JSON ou texto simples |
+| `crates/sparky-hardware` | Leitura de processador, memória e placas de vídeo, usada pelo sparky-settings e pelo sparky-fetch |
 | `crates/sparky-shot` | O capturador de tela (`sparky-shot`): seletor de modo, seleção de região pelo teclado ou mouse, PNG salvo e copiado |
 | `crates/sparky-files` | O gerenciador de arquivos (`sparky-files`): grade e lista com ícones e miniaturas, menus de contexto, dispositivos, lugares, filtro, copiar, recortar, colar, renomear, criar, compactar e lixeira |
 | `crates/sparky-image` | O visualizador de imagens (`sparky-image`): abre PNG, JPEG, WebP, GIF, BMP e TIFF, navega pela pasta, zoom, deslocamento e rotação pelo teclado |
@@ -149,6 +151,7 @@ sparky-msg focus-workspace 3   # vai para a área 3
 sparky-msg subscribe           # avisa a cada mudança nas áreas e no bloqueio
 sparky-msg reload              # relê o sparky.toml
 sparky-msg outputs             # lista os monitores e qual está em foco
+sparky-msg info                # versão do compositor, sessão, tema e cores em uso
 sparky-msg capture output tela.png                 # o monitor em foco
 sparky-msg capture window janela.png               # a janela em foco, sem a borda
 sparky-msg capture region 0 0 800 600 regiao.png   # região relativa ao monitor em foco
@@ -196,7 +199,7 @@ Sair, Reiniciar e Desligar esperam os aplicativos fecharem sozinhos, como o hypr
 
 ## Terminal
 
-O `sparky-terminal` é o terminal padrão: o sparky o procura antes dos outros terminais instalados, então ele abre no `SUPER + ENTER` e nos aplicativos de terminal do lançador. Ele abre o zsh com a configuração do próprio sparky (`ZDOTDIR=/usr/share/sparky/zsh`), sem ler o `~/.zshrc`, o oh-my-zsh ou o powerlevel10k do usuário; numa máquina nova ele já sai pronto. Para personalizar, copie a pasta para `~/.config/sparky/zsh/` (respeitando `XDG_CONFIG_HOME`): com um `.zshrc` lá, ela substitui a do sistema. Sem zsh instalado, abre o shell da conta. O shell recebe `TERM=xterm-256color`, `COLORTERM=truecolor` e `TERM_PROGRAM=sparky-terminal`.
+O `sparky-terminal` é o terminal padrão: o sparky o procura antes dos outros terminais instalados, então ele abre no `SUPER + ENTER` e nos aplicativos de terminal do lançador. Ele abre o zsh com a configuração do próprio sparky (`ZDOTDIR=/usr/share/sparky/zsh`), sem ler o `~/.zshrc`, o oh-my-zsh ou o powerlevel10k do usuário; numa máquina nova ele já sai pronto. Para personalizar, copie a pasta para `~/.config/sparky/zsh/` (respeitando `XDG_CONFIG_HOME`): com um `.zshrc` lá, ela substitui a do sistema. Sem zsh instalado, abre o shell da conta. O shell recebe `TERM=xterm-256color`, `COLORTERM=truecolor` e `TERM_PROGRAM=sparky-terminal`. Com `fetch_on_start = true` em `[terminal]` no `sparky.toml` (desligado por padrão), cada aba que abre o shell mostra antes o `sparky-fetch` na largura da aba; abas com `-e comando` não mostram, e se o `sparky-fetch` faltar, falhar ou passar de 1,5 s, a aba abre normalmente sem ele.
 
 A configuração (`data/zsh/`) reproduz a do powerlevel10k *rainbow* em zsh puro, nas cores do tema:
 
@@ -230,6 +233,38 @@ sparky-terminal -e htop               # roda um comando; o resto da linha são o
 ```
 
 A barra de abas usa a fonte, as cores e os cantos retos do Sparky e acompanha o tema ao vivo. Clique no título para alternar, em `×` para fechar ou em `+` para criar. Muitas abas podem ser percorridas pela rolagem horizontal; a aba escolhida pelo teclado é trazida para a área visível. A primeira aba respeita `-e` e `-d`; as seguintes abrem o shell do Sparky na pasta inicial escolhida por `-d`, quando informada. Os atalhos de abas são tratados pelo terminal antes do envio ao PTY; `CTRL + C` continua interrompendo comandos. Divisões de janelas continuam com o mosaico e os grupos do Sparky. O envio de mouse aos programas cobre somente a roda vertical; cliques e arrastos continuam dedicados à seleção e colagem do terminal. O protocolo de teclado do kitty ainda não está implementado.
+
+## sparky-fetch
+
+O `sparky-fetch` mostra no terminal as informações do sistema e da sessão, com o logotipo do Sparky ao lado. Do Linux, ele lê direto do sistema: sistema, kernel, tempo ligado, CPU, GPU, memória, disco, terminal, shell e pacotes (pacman, dpkg, rpm e flatpak). Do Sparky, consulta o compositor pelo IPC: versão, sessão Wayland, monitores, resolução, tema e cores do tema. Ícones e fonte vêm das configurações do GTK que o sparky-settings grava. Fora de uma sessão do Sparky, ou com o compositor sem resposta, as informações do Linux continuam aparecendo.
+
+```bash
+sparky-fetch                                # no terminal: visual e colorido; num pipe: texto simples
+sparky-fetch --json                         # todos os campos, com o estado de cada um
+sparky-fetch --fields os,kernel,memory      # escolhe os campos e a ordem (--list-fields lista todos)
+sparky-fetch --hide gpu,packages --no-logo
+sparky-fetch --layout stacked --width 60 --accent '#ff9e64'
+```
+
+A configuração fica em `~/.config/sparky-fetch/config.toml` (respeitando `XDG_CONFIG_HOME`); o que vem pela linha de comando vale sobre o arquivo, e o arquivo vale sobre os padrões. `--config` usa outro arquivo e `--no-config` não lê nenhum.
+
+```toml
+fields = ["os", "kernel", "cpu", "memory", "compositor", "theme", "colors"]
+hide = ["gpu"]
+format = "visual"      # visual, json ou plain
+color = "auto"         # auto, always ou never (NO_COLOR também desliga)
+logo = true
+layout = "classic"     # classic (logotipo ao lado) ou stacked (logotipo acima)
+width = 90
+timeout_ms = 400
+
+[colors]
+accent = "#7aa2f7"     # logotipo e rótulos; sem ele, vale o destaque do tema
+label = "#7aa2f7"
+value = "#c0caf5"
+```
+
+No modo visual, o logotipo passa para cima quando a largura não comporta os dois lado a lado e some quando nem ele cabe; valores longos são cortados com `…`. No JSON, cada campo traz `status`: `ready` (com `value`), `unavailable` (com `reason`: `missing`, `no_compositor`, `unsupported` ou `uncollected`), `timed_out` ou `failed` (com `error`); na saída visual e no texto simples, tudo que não ficou pronto aparece como `N/A`. A coleta roda em paralelo, com até quatro coletores ao mesmo tempo e um prazo total (`timeout_ms`, 400 ms por padrão); o que não responde a tempo vira `timed_out` sem segurar o resto. Um compositor anterior ao pedido `info` do IPC responde só monitores e resolução, e os outros campos do Sparky ficam como `unsupported`. Para o `sparky-terminal` abrir cada aba com o `sparky-fetch`, use `fetch_on_start = true` em `[terminal]` no `sparky.toml` (veja [Terminal](#terminal)).
 
 ## Chaveiro
 

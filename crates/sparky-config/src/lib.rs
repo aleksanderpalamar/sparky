@@ -8,6 +8,7 @@ pub mod lock;
 pub mod output;
 pub mod schema;
 pub mod screen;
+pub mod terminal;
 
 #[cfg(test)]
 mod defaults_tests;
@@ -27,3 +28,4 @@ pub use lock::Lock;
 pub use output::{OutputRule, OutputScale, rule_for, scale_for};
 pub use schema::{Apps, Config, General, Input, Login};
 pub use screen::{OutputMode, Rotation};
+pub use terminal::{Greeting, Terminal};

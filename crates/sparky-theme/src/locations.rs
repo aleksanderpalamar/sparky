@@ -46,6 +46,24 @@ pub fn color_files_from_env() -> Vec<PathBuf> {
     })
 }
 
+pub fn theme_roots(data_home: Option<&str>, home: &str, sparky: Option<&str>) -> Vec<PathBuf> {
+    let data = match filled(data_home) {
+        Some(path) => PathBuf::from(path),
+        None => Path::new(home).join(".local/share"),
+    };
+    vec![
+        data.join("sparky/themes"),
+        sparky_path(sparky).join("themes"),
+    ]
+}
+
+pub fn theme_roots_from_env() -> Vec<PathBuf> {
+    let home = env::var("HOME").unwrap_or_default();
+    let data_home = env::var("XDG_DATA_HOME").ok();
+    let sparky = env::var("SPARKY_PATH").ok();
+    theme_roots(data_home.as_deref(), &home, sparky.as_deref())
+}
+
 fn filled(value: Option<&str>) -> Option<&str> {
     value.map(str::trim).filter(|text| !text.is_empty())
 }
@@ -71,7 +89,10 @@ mod tests {
 
     #[test]
     fn sparky_path_aponta_para_o_repositorio_em_desenvolvimento() {
-        assert_eq!(sparky_path(Some("/src/sparky/data")), PathBuf::from("/src/sparky/data"));
+        assert_eq!(
+            sparky_path(Some("/src/sparky/data")),
+            PathBuf::from("/src/sparky/data")
+        );
     }
 
     #[test]
@@ -101,6 +122,9 @@ mod tests {
     fn o_tema_padrao_segue_o_sparky_path() {
         let files = color_files(&ambiente(Some("/x"), Some("/dados")));
         assert_eq!(files[0], PathBuf::from("/x/sparky/colors.toml"));
-        assert_eq!(files[1], PathBuf::from("/dados/themes/tokyo-night/colors.toml"));
+        assert_eq!(
+            files[1],
+            PathBuf::from("/dados/themes/tokyo-night/colors.toml")
+        );
     }
 }

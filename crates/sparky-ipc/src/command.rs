@@ -35,6 +35,7 @@ pub fn parse(arguments: &[String]) -> Result<Request, CommandError> {
         "subscribe" => Ok(Request::Subscribe),
         "reload" => Ok(Request::ReloadConfig),
         "outputs" => Ok(Request::Outputs),
+        "info" => Ok(Request::Info),
         "capture" => capture(&arguments[1..]),
         "focus-workspace" => workspace(arguments.get(1)),
         "session" => session(arguments.get(1)),

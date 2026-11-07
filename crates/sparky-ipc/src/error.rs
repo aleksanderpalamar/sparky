@@ -4,6 +4,7 @@ pub enum IpcError {
     Io(String),
     Malformed(String),
     Closed,
+    TimedOut,
 }
 
 impl std::fmt::Display for IpcError {
@@ -13,6 +14,7 @@ impl std::fmt::Display for IpcError {
             IpcError::Io(message) => write!(formatter, "falha no socket do sparky: {message}"),
             IpcError::Malformed(message) => write!(formatter, "mensagem inválida: {message}"),
             IpcError::Closed => write!(formatter, "o sparky fechou a conexão"),
+            IpcError::TimedOut => write!(formatter, "o sparky não respondeu a tempo"),
         }
     }
 }

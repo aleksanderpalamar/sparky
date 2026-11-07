@@ -1,5 +1,6 @@
 pub mod colors_file;
 pub mod locations;
+pub mod names;
 pub mod palette;
 pub mod rgb;
 pub mod skin;
@@ -11,6 +12,8 @@ pub use rgb::Rgb;
 pub use skin::Skin;
 pub use terminal::TerminalPalette;
 
+#[cfg(test)]
+mod names_tests;
 #[cfg(test)]
 mod terminal_tests;
 

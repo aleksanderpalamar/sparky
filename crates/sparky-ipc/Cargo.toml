@@ -9,3 +9,6 @@ license.workspace = true
 serde.workspace = true
 sparky-config.workspace = true
 serde_json.workspace = true
+
+[dev-dependencies]
+tempfile = "3"
