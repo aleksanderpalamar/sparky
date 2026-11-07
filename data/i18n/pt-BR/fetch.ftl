@@ -42,3 +42,7 @@ session-real = Wayland · { $display }
 session-nested = Wayland aninhado · { $display }
 session-unknown = Wayland · { $display }
 theme-custom = Personalizado
+error-read = não foi possível ler { $path }: { $error }
+error-format = formato inesperado em { $path }
+error-command = { $command } falhou: { $error }
+error-command-timeout = { $command } não respondeu a tempo

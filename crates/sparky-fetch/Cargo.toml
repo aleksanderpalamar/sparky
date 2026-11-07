@@ -20,6 +20,7 @@ serde.workspace = true
 serde_json.workspace = true
 sparky-i18n.workspace = true
 sparky-ipc.workspace = true
+sparky-hardware.workspace = true
 sparky-theme.workspace = true
 toml = "0.8"
 unicode-width = "0.2"

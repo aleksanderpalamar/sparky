@@ -1,4 +1,6 @@
-use super::name;
+use std::path::Path;
+
+use super::{DATABASES, database, name};
 
 const DATABASE: &str = "# PCI IDs\n1002  AMD\n\t73ff  Radeon RX 6600\n\t\t1234 5678  Variante\n\n8086  Intel\n\t73ff  Outro dispositivo\n\t1234  UHD Graphics\n";
 
@@ -23,4 +25,11 @@ fn modelo_nao_vaza_de_outro_vendor_ou_de_um_subsistema() {
 fn entradas_malformadas_e_comentarios_nao_atrapalham_a_busca() {
     let database = "zzzz  inválido\n1002\n1002  AMD\n\tzzzz  inválido\n# comentário\n\tABCD\tModelo de teste\n";
     assert_eq!(name(database, 0x1002, 0xabcd), "AMD Modelo de teste");
+}
+
+#[test]
+fn base_pci_vem_do_primeiro_caminho_disponivel() {
+    let read = |path: &Path| (path == Path::new(DATABASES[1])).then(|| "1002  AMD\n".to_owned());
+    assert_eq!(database(read), "1002  AMD\n");
+    assert_eq!(database(|_: &Path| None), "");
 }

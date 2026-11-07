@@ -4913,6 +4913,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sparky-config",
+ "sparky-hardware",
  "sparky-i18n",
  "sparky-ipc",
  "sparky-theme",
@@ -4942,6 +4943,10 @@ dependencies = [
  "tempfile",
  "tokio",
 ]
+
+[[package]]
+name = "sparky-hardware"
+version = "0.30.0"
 
 [[package]]
 name = "sparky-i18n"
@@ -5171,6 +5176,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sparky-config",
+ "sparky-hardware",
  "sparky-i18n",
  "sparky-ipc",
  "sparky-storage",

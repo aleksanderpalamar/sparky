@@ -42,3 +42,7 @@ session-real = Wayland · { $display }
 session-nested = Nested Wayland · { $display }
 session-unknown = Wayland · { $display }
 theme-custom = Custom
+error-read = could not read { $path }: { $error }
+error-format = unexpected format in { $path }
+error-command = { $command } failed: { $error }
+error-command-timeout = { $command } did not answer in time

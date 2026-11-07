@@ -1,3 +1,18 @@
+use std::path::Path;
+
+pub const DATABASES: [&str; 3] = [
+    "/usr/share/hwdata/pci.ids",
+    "/usr/share/misc/pci.ids",
+    "/usr/share/pci.ids",
+];
+
+pub fn database(read: impl Fn(&Path) -> Option<String>) -> String {
+    DATABASES
+        .into_iter()
+        .find_map(|path| read(Path::new(path)))
+        .unwrap_or_default()
+}
+
 pub fn name(database: &str, vendor: u16, device: u16) -> String {
     let ids = format!("{vendor:04x}:{device:04x}");
     let mut lines = database.lines();
