@@ -5213,6 +5213,7 @@ dependencies = [
  "fluent-bundle",
  "iced",
  "iced_runtime",
+ "sparky-config",
  "sparky-i18n",
  "sparky-theme",
  "sparky-ui",

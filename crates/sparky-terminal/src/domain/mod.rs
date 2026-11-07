@@ -1,4 +1,5 @@
 pub mod color;
+pub mod greeting;
 pub mod grid;
 pub mod input;
 pub mod launch;
@@ -14,6 +15,8 @@ mod tabs_tests;
 
 #[cfg(test)]
 mod color_tests;
+#[cfg(test)]
+mod greeting_tests;
 #[cfg(test)]
 mod grid_tests;
 #[cfg(test)]

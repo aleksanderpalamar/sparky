@@ -196,7 +196,7 @@ Sair, Reiniciar e Desligar esperam os aplicativos fecharem sozinhos, como o hypr
 
 ## Terminal
 
-O `sparky-terminal` é o terminal padrão: o sparky o procura antes dos outros terminais instalados, então ele abre no `SUPER + ENTER` e nos aplicativos de terminal do lançador. Ele abre o zsh com a configuração do próprio sparky (`ZDOTDIR=/usr/share/sparky/zsh`), sem ler o `~/.zshrc`, o oh-my-zsh ou o powerlevel10k do usuário; numa máquina nova ele já sai pronto. Para personalizar, copie a pasta para `~/.config/sparky/zsh/` (respeitando `XDG_CONFIG_HOME`): com um `.zshrc` lá, ela substitui a do sistema. Sem zsh instalado, abre o shell da conta. O shell recebe `TERM=xterm-256color`, `COLORTERM=truecolor` e `TERM_PROGRAM=sparky-terminal`.
+O `sparky-terminal` é o terminal padrão: o sparky o procura antes dos outros terminais instalados, então ele abre no `SUPER + ENTER` e nos aplicativos de terminal do lançador. Ele abre o zsh com a configuração do próprio sparky (`ZDOTDIR=/usr/share/sparky/zsh`), sem ler o `~/.zshrc`, o oh-my-zsh ou o powerlevel10k do usuário; numa máquina nova ele já sai pronto. Para personalizar, copie a pasta para `~/.config/sparky/zsh/` (respeitando `XDG_CONFIG_HOME`): com um `.zshrc` lá, ela substitui a do sistema. Sem zsh instalado, abre o shell da conta. O shell recebe `TERM=xterm-256color`, `COLORTERM=truecolor` e `TERM_PROGRAM=sparky-terminal`. Com `fetch_on_start = true` em `[terminal]` no `sparky.toml` (desligado por padrão), cada aba que abre o shell mostra antes o `sparky-fetch` na largura da aba; abas com `-e comando` não mostram, e se o `sparky-fetch` faltar, falhar ou passar de 1,5 s, a aba abre normalmente sem ele.
 
 A configuração (`data/zsh/`) reproduz a do powerlevel10k *rainbow* em zsh puro, nas cores do tema:
 
