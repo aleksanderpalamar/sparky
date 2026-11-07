@@ -103,6 +103,9 @@ jobs:
             flags+=(--release)
           fi
           bash ci/cargo.sh test --locked --workspace "${flags[@]}"
+      - name: Benchmark do sparky-fetch
+        if: matrix.profile == 'release'
+        run: bash ci/cargo.sh bench --locked -p sparky-fetch
       - name: Clippy sem warnings
         if: matrix.profile == 'debug'
         run: bash ci/cargo.sh clippy --locked --workspace --all-targets -- -D warnings
