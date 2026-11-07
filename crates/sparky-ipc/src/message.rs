@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::info::SessionInfo;
 use crate::output::OutputInfo;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -13,6 +14,7 @@ pub enum Request {
     Outputs,
     Session { action: SessionAction },
     Idle { hold: IdleHold },
+    Info,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -70,6 +72,7 @@ pub enum Reply {
     Done,
     Workspaces { workspaces: Vec<WorkspaceInfo> },
     Outputs { outputs: Vec<OutputInfo> },
+    Info { info: SessionInfo },
     Event { event: Event },
     Error { message: String },
 }

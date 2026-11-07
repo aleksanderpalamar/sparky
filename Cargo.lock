@@ -4912,6 +4912,7 @@ dependencies = [
  "libc",
  "serde",
  "serde_json",
+ "sparky-config",
  "sparky-i18n",
  "sparky-ipc",
  "sparky-theme",
@@ -4973,6 +4974,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sparky-config",
+ "tempfile",
 ]
 
 [[package]]

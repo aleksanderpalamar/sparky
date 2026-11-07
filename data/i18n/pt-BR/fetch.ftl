@@ -37,3 +37,8 @@ usage =
       --list-fields                lista os campos
       -h, --help                   mostra esta ajuda
       -V, --version                mostra a versão
+compositor-version = Sparky { $version }
+session-real = Wayland · { $display }
+session-nested = Wayland aninhado · { $display }
+session-unknown = Wayland · { $display }
+theme-custom = Personalizado

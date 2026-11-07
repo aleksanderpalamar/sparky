@@ -94,6 +94,7 @@ fn le_os_tres_comandos() {
     );
     assert_eq!(ler(&["reload"]), Ok(Request::ReloadConfig));
     assert_eq!(ler(&["outputs"]), Ok(Request::Outputs));
+    assert_eq!(ler(&["info"]), Ok(Request::Info));
 }
 
 #[test]

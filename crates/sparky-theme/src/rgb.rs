@@ -10,6 +10,10 @@ impl Rgb {
         Self { red, green, blue }
     }
 
+    pub fn hex(self) -> String {
+        format!("#{:02x}{:02x}{:02x}", self.red, self.green, self.blue)
+    }
+
     pub fn parse(spec: &str) -> Option<Self> {
         let trimmed = spec.trim();
         let digits = trimmed.strip_prefix('#').unwrap_or(trimmed);

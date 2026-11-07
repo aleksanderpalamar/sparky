@@ -10,6 +10,8 @@ mod events;
 mod fixture;
 #[path = "capture_protocols/idle.rs"]
 mod idle;
+#[path = "capture_protocols/info_ipc.rs"]
+mod info_ipc;
 #[path = "capture_protocols/legacy.rs"]
 mod legacy;
 #[path = "capture_protocols/lifecycle.rs"]

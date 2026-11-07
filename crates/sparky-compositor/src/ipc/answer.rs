@@ -28,6 +28,9 @@ impl Sparky {
                 }
             }
             Request::Session { action } => self.session_request(action),
+            Request::Info => Reply::Info {
+                info: self.session_info(),
+            },
             Request::Idle { hold: wanted } => {
                 self.idle.hold(*hold, wanted);
                 *hold = wanted;
