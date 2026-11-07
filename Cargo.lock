@@ -4905,6 +4905,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "sparky-fetch"
+version = "0.30.0"
+dependencies = [
+ "fluent-bundle",
+ "libc",
+ "serde",
+ "serde_json",
+ "sparky-i18n",
+ "sparky-ipc",
+ "sparky-theme",
+ "tempfile",
+ "toml 0.8.23",
+ "unicode-width",
+]
+
+[[package]]
 name = "sparky-files"
 version = "0.30.0"
 dependencies = [

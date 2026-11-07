@@ -1,0 +1,28 @@
+[package]
+name = "sparky-fetch"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "sparky-fetch"
+path = "src/main.rs"
+
+[lib]
+name = "sparky_fetch"
+path = "src/lib.rs"
+
+[dependencies]
+fluent-bundle = "0.16"
+libc = "0.2"
+serde.workspace = true
+serde_json.workspace = true
+sparky-i18n.workspace = true
+sparky-ipc.workspace = true
+sparky-theme.workspace = true
+toml = "0.8"
+unicode-width = "0.2"
+
+[dev-dependencies]
+tempfile = "3"
