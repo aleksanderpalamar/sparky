@@ -4,6 +4,7 @@ use sparky_tiling::{Gaps, Style};
 use crate::action::Bind;
 use crate::lock::Lock;
 use crate::output::OutputRule;
+use crate::terminal::Terminal;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -13,6 +14,7 @@ pub struct Config {
     pub apps: Apps,
     pub login: Login,
     pub lock: Lock,
+    pub terminal: Terminal,
     pub autostart: Vec<String>,
     pub bind: Vec<Bind>,
     pub output: Vec<OutputRule>,

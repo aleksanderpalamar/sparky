@@ -15,6 +15,7 @@ use alacritty_terminal::tty::{self, Options, Shell};
 use sparky_theme::TerminalPalette;
 use sparky_xdg::programs::installed;
 
+use crate::adapters::greeting::greet;
 use crate::adapters::listener::Listener;
 use crate::adapters::snapshot::snapshot;
 use crate::domain::grid::{Cell, Half, Spot};
@@ -88,6 +89,7 @@ impl Session {
             &size,
             listener.clone(),
         )));
+        greet(launch, &term, size.columns);
         let event_loop = EventLoop::new(Arc::clone(&term), listener, pty, false, false)?;
         let notifier = Notifier(event_loop.channel());
         event_loop.spawn();

@@ -22,3 +22,6 @@ system_menu = "sparky-launcher --system"
 
 [lock]
 idle_minutes = 10
+
+[terminal]
+fetch_on_start = false
