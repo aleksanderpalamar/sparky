@@ -1,0 +1,5 @@
+Sistema:   Arch Linux
+Monitores: DP-1 2560x1440 @ 165 Hz
+           HDMI-A-1 1920x1080 @ 60 Hz
+GPU:       Radeon
+           Intel

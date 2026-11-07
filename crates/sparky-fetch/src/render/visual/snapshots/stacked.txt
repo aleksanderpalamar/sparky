@@ -1,0 +1,25 @@
+             ▄▄▄▄▄▄▄▄▄
+   +       ▄████████▀
+         ▄███████▀
+       ▄███████▀      *
+     ▄█████████████▄
+      ▀▀▀▀▀▀██████▀
+  *       ▄█████▀
+        ▄████▀      +
+       ▄███▀
+      ▄█▀
+     ▀
+
+Sistema:      Arch Linux
+Kernel:       6.17.1-arch1-1
+Tempo ligado: 3 h 12 min
+CPU:          AMD Ryzen 7 5800X (16) @ 4.85 GHz
+GPU:          N/A
+Memória:      6.2 GiB / 31.3 GiB
+Pacotes:      N/A
+Compositor:   Sparky 0.30.0
+Monitores:    DP-1 2560x1440 @ 165 Hz
+              HDMI-A-1 1920x1080 @ 60 Hz
+Tema:         Tokyo Night
+
+#f7768e #9ece6a #e0af68 #7aa2f7
