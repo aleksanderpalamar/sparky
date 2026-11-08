@@ -21,7 +21,7 @@ fn a_secao_de_energia_mostra_o_perfil_e_troca_pelas_setas() {
             .accepting("powerprofilesctl set balanced"),
     );
     let (mut settings, _) = painel_com(None, Sparky::default(), shared.clone());
-    tecla(&mut settings, "7");
+    tecla(&mut settings, "6");
     assert_eq!(settings.section, Section::Power);
     assert_eq!(settings.count(), 2);
     tecla(&mut settings, "l");
@@ -40,7 +40,7 @@ fn a_secao_de_energia_mostra_o_perfil_e_troca_pelas_setas() {
 fn recusa_do_sistema_vira_aviso_de_erro() {
     let shared = comandos(FakeCommands::new().with("powerprofilesctl list", PERFIS));
     let (mut settings, _) = painel_com(None, Sparky::default(), shared);
-    tecla(&mut settings, "7");
+    tecla(&mut settings, "6");
     tecla(&mut settings, "l");
     assert_eq!(
         settings.notice,

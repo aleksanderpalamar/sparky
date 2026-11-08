@@ -14,7 +14,7 @@ pub fn hints(section: Section, mode: Mode) -> String {
 
 fn browsing(section: Section) -> String {
     let key = match section {
-        Section::Appearance | Section::Keyboard | Section::Apps => "hint-fields",
+        Section::Appearance | Section::Apps => "hint-fields",
         Section::Autostart => "hint-autostart",
         Section::Shortcuts => "hint-shortcuts",
         Section::Monitors => "hint-monitors",
@@ -50,6 +50,6 @@ mod tests {
     #[test]
     fn cada_secao_ensina_as_proprias_teclas() {
         assert!(hints(Section::Autostart, Mode::Browse).contains("d remove"));
-        assert!(hints(Section::Keyboard, Mode::Browse).contains("h/l ajusta"));
+        assert!(hints(Section::Apps, Mode::Browse).contains("h/l ajusta"));
     }
 }

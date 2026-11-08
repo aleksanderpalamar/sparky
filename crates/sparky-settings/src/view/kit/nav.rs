@@ -47,7 +47,6 @@ fn item<'a>(skin: Skin, section: Section, selected: bool) -> Element<'a, Message
 pub const fn glyph(section: Section) -> char {
     match section {
         Section::Appearance => '\u{f0614}',
-        Section::Keyboard => '\u{f030c}',
         Section::Apps => '\u{f003b}',
         Section::Autostart => '\u{f14de}',
         Section::Shortcuts => '\u{f09f9}',

@@ -14,9 +14,7 @@ pub enum Opened {
 impl Settings {
     pub fn count(&self) -> usize {
         match self.section {
-            Section::Appearance | Section::Keyboard | Section::Apps => {
-                Field::of(self.section).len()
-            }
+            Section::Appearance | Section::Apps => Field::of(self.section).len(),
             Section::Autostart => self.config.autostart.len() + 1,
             Section::Shortcuts => self.binds().len(),
             Section::Monitors => self.outputs.as_ref().map_or(0, Vec::len),
