@@ -45,18 +45,12 @@ fn painel_alterna_fecha_anterior_e_limpa_senha_ao_fechar() {
 }
 
 #[test]
-fn foco_perdido_de_outra_janela_nao_fecha_o_painel() {
-    let mut bar = bar();
-    let _ = messages(update(&mut bar, Message::Panel(PanelKind::Network)));
-    let window = bar.panels.open.unwrap().window;
-    let _ = update(
-        &mut bar,
-        Message::PanelUnfocused(iced::window::Id::unique()),
-    );
-    assert_eq!(bar.panels.open.unwrap().window, window);
-    assert!(removes(
-        &messages(update(&mut bar, Message::PanelUnfocused(window))),
-        window
+fn perder_o_teclado_nao_fecha_o_painel() {
+    let window = iced::window::Id::unique();
+    assert!(super::subscription::window_message(window, iced::window::Event::Unfocused).is_none());
+    assert!(matches!(
+        super::subscription::window_message(window, iced::window::Event::Focused),
+        Some(Message::PanelFocused(found)) if found == window
     ));
 }
 
