@@ -25,15 +25,18 @@ pub fn subscription(bar: &Bar) -> Subscription<Message> {
         Subscription::run(super::bluetooth::events),
         Subscription::run(super::native_events::events),
         Subscription::run(sparky_notifications::client::events).map(Message::Notifications),
-        iced::window::events().filter_map(|(window, event)| match event {
-            iced::window::Event::Unfocused => Some(Message::PanelUnfocused(window)),
-            iced::window::Event::Focused => Some(Message::PanelFocused(window)),
-            _ => None,
-        }),
+        iced::window::events().filter_map(|(window, event)| window_message(window, event)),
         animation,
         time::every(CLOCK_INTERVAL).map(|_| Message::Tick),
         keyboard::listen().filter_map(panel_key),
     ])
+}
+
+pub fn window_message(window: iced::window::Id, event: iced::window::Event) -> Option<Message> {
+    match event {
+        iced::window::Event::Focused => Some(Message::PanelFocused(window)),
+        _ => None,
+    }
 }
 
 fn panel_key(event: keyboard::Event) -> Option<Message> {

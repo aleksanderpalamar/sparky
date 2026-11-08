@@ -40,7 +40,6 @@ async fn painel_libera_teclado_para_polkit_e_recupera_apos_operacao() {
         Message::NetworkRequest(NetworkRequest::Wireless(true)),
     ));
     assert!(output.iter().any(|message| matches!(message, Message::KeyboardInteractivityChange { id, keyboard_interactivity: KeyboardInteractivity::None } if *id == window)));
-    let _ = messages(update(&mut bar, Message::PanelUnfocused(window)));
     assert!(bar.panels.open.is_some());
     let completed = output
         .into_iter()
