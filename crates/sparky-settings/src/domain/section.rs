@@ -2,7 +2,6 @@
 pub enum Section {
     #[default]
     Appearance,
-    Keyboard,
     Apps,
     Autostart,
     Shortcuts,
@@ -18,9 +17,8 @@ pub enum Section {
 }
 
 impl Section {
-    pub const ALL: [Section; 14] = [
+    pub const ALL: [Section; 13] = [
         Section::Appearance,
-        Section::Keyboard,
         Section::Apps,
         Section::Autostart,
         Section::Shortcuts,
@@ -46,7 +44,6 @@ impl Section {
     fn key(self) -> &'static str {
         match self {
             Section::Appearance => "appearance",
-            Section::Keyboard => "keyboard",
             Section::Apps => "apps",
             Section::Autostart => "autostart",
             Section::Shortcuts => "shortcuts",
@@ -88,7 +85,7 @@ mod tests {
 
     #[test]
     fn tab_percorre_as_secoes_e_volta_ao_comeco() {
-        assert_eq!(Section::Appearance.next(), Section::Keyboard);
+        assert_eq!(Section::Appearance.next(), Section::Apps);
         assert_eq!(Section::About.next(), Section::Appearance);
         assert_eq!(Section::Appearance.previous(), Section::About);
     }
@@ -96,15 +93,16 @@ mod tests {
     #[test]
     fn os_numeros_levam_a_cada_secao() {
         assert_eq!(Section::nth(0), Some(Section::Appearance));
-        assert_eq!(Section::nth(6), Some(Section::Power));
-        assert_eq!(Section::nth(7), Some(Section::DateTime));
-        assert_eq!(Section::nth(8), Some(Section::Region));
-        assert_eq!(Section::nth(9), Some(Section::Users));
-        assert_eq!(Section::nth(10), Some(Section::Media));
-        assert_eq!(Section::nth(11), Some(Section::Themes));
-        assert_eq!(Section::nth(12), Some(Section::Network));
-        assert_eq!(Section::nth(13), Some(Section::About));
-        assert_eq!(Section::nth(14), None);
-        assert_eq!(Section::Monitors.index(), 5);
+        assert_eq!(Section::nth(1), Some(Section::Apps));
+        assert_eq!(Section::nth(5), Some(Section::Power));
+        assert_eq!(Section::nth(6), Some(Section::DateTime));
+        assert_eq!(Section::nth(7), Some(Section::Region));
+        assert_eq!(Section::nth(8), Some(Section::Users));
+        assert_eq!(Section::nth(9), Some(Section::Media));
+        assert_eq!(Section::nth(10), Some(Section::Themes));
+        assert_eq!(Section::nth(11), Some(Section::Network));
+        assert_eq!(Section::nth(12), Some(Section::About));
+        assert_eq!(Section::nth(13), None);
+        assert_eq!(Section::Monitors.index(), 4);
     }
 }

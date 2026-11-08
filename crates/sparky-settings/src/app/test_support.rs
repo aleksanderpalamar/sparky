@@ -12,7 +12,6 @@ use crate::app::message::Message;
 use crate::app::state::{Context, Services, Settings};
 use crate::app::update::update;
 use crate::domain::about::About;
-use crate::domain::keymaps::Keymaps;
 use crate::domain::section::Section;
 use crate::domain::system::themes::Theme;
 use crate::ports::commands::{CommandError, CommandRunner};
@@ -68,8 +67,6 @@ impl Compositor for Sparky {
     }
 }
 
-pub const REGRAS: &str = "! layout\n  us  English (US)\n  br  Portuguese (Brazil)\n\n! variant\n  abnt2  br: Portuguese (Brazil)\n";
-
 pub fn painel(conteudo: Option<&str>, sparky: Sparky) -> (Settings, Arquivo) {
     painel_com(conteudo, sparky, Comandos::default())
 }
@@ -89,7 +86,6 @@ pub fn painel_com(
     let context = Context {
         home: PathBuf::from("/h"),
         about: About::default(),
-        keymaps: Keymaps::parse(REGRAS),
         skin: Skin::default(),
         rows: 10,
     };

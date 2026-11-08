@@ -20,7 +20,6 @@ pub fn boot() -> Settings {
     let context = Context {
         home: std::env::var("HOME").map(PathBuf::from).unwrap_or_default(),
         about: system::about(),
-        keymaps: system::keymaps(),
         skin: Skin::new(sparky_theme::current_palette()),
         rows: rows_for(WINDOW_HEIGHT),
     };

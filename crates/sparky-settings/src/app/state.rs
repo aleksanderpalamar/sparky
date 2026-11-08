@@ -10,7 +10,6 @@ use sparky_ui::viewport::Viewport;
 use crate::app::pickers::Pickers;
 use crate::domain::about::About;
 use crate::domain::field::Field;
-use crate::domain::keymaps::Keymaps;
 use crate::domain::section::Section;
 use crate::domain::system::RowId;
 use crate::domain::system::datetime::DateTime;
@@ -58,7 +57,6 @@ pub struct Services {
 pub struct Context {
     pub home: PathBuf,
     pub about: About,
-    pub keymaps: Keymaps,
     pub skin: Skin,
     pub rows: usize,
 }

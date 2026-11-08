@@ -77,7 +77,7 @@ fn content(settings: &Settings) -> Element<'_, Message> {
 
 fn section(settings: &Settings) -> Element<'_, Message> {
     match settings.section {
-        Section::Appearance | Section::Keyboard | Section::Apps => fields::view(settings),
+        Section::Appearance | Section::Apps => fields::view(settings),
         Section::Autostart => autostart::view(settings),
         Section::Shortcuts => shortcuts::view(settings),
         Section::Monitors => monitors::view(settings),

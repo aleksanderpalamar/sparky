@@ -3,7 +3,6 @@ pub mod describe;
 pub mod diagram;
 pub mod field;
 pub mod hardware;
-pub mod keymaps;
 pub mod labels;
 pub mod network;
 pub mod screens;

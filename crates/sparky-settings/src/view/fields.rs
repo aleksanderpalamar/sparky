@@ -32,7 +32,6 @@ pub fn group(field: Field) -> String {
         Field::DefaultBinds => "section-shortcuts-label",
         Field::Wallpaper => "group-wallpaper",
         Field::LoginWallpaper => "group-login-screen",
-        Field::Layout | Field::Variant | Field::Options => "field-layout-label",
         Field::RepeatRate | Field::RepeatDelay => "group-repeat",
         Field::Terminal
         | Field::Launcher

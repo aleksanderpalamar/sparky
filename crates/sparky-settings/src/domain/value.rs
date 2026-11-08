@@ -133,9 +133,6 @@ fn required(field: Field, config: &mut Config) -> Option<&mut String> {
 
 fn optional(field: Field, config: &mut Config) -> Option<&mut Option<String>> {
     match field {
-        Field::Layout => Some(&mut config.input.layout),
-        Field::Variant => Some(&mut config.input.variant),
-        Field::Options => Some(&mut config.input.options),
         Field::Terminal => Some(&mut config.apps.terminal),
         Field::Wallpaper => Some(&mut config.general.wallpaper),
         Field::LoginWallpaper => Some(&mut config.login.wallpaper),
