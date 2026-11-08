@@ -8,6 +8,7 @@ pub mod passwd;
 pub mod power;
 pub mod profiles;
 pub mod region;
+pub mod repeat;
 pub mod themes;
 pub mod users;
 pub mod volumes;
@@ -32,6 +33,7 @@ mod users_tests;
 #[cfg(test)]
 mod wallpaper_tests;
 
+use crate::domain::field::Bounds;
 use crate::domain::value::Step;
 use crate::ports::commands::{CommandError, CommandRunner};
 
@@ -40,6 +42,7 @@ pub enum Control {
     Choice(Vec<String>),
     Options(Vec<String>),
     Level,
+    Number(Bounds),
     Text,
     Toggle(bool),
     Reading,
@@ -58,6 +61,8 @@ pub enum RowId {
     Locale,
     ConsoleKeymap,
     SystemLayout,
+    RepeatRate,
+    RepeatDelay,
     Volume(usize),
     MediaStatus,
     Theme,

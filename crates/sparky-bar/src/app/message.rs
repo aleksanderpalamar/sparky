@@ -23,7 +23,6 @@ pub enum Message {
     ),
     Panel(crate::domain::panel::PanelKind),
     ClosePanel,
-    PanelUnfocused(iced::window::Id),
     PanelFocused(iced::window::Id),
     PanelFocusSettled(iced::window::Id),
     PanelTab(bool),

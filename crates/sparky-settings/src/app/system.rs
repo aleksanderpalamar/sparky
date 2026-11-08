@@ -7,7 +7,7 @@ use crate::domain::system::power::Power;
 use crate::domain::system::region::Region;
 use crate::domain::system::themes::Themes;
 use crate::domain::system::users;
-use crate::domain::system::{Change, Control, Request, Row, RowId, perform};
+use crate::domain::system::{Change, Control, Request, Row, RowId, perform, repeat};
 
 impl Settings {
     pub fn is_system(&self) -> bool {
@@ -21,7 +21,7 @@ impl Settings {
         match self.section {
             Section::Power => self.power_rows(),
             Section::DateTime => self.datetime.rows(),
-            Section::Region => self.region.rows(),
+            Section::Region => self.region_rows(),
             Section::Media => self.media.rows(),
             Section::Themes => self.theme_rows(),
             _ => Vec::new(),
@@ -32,7 +32,7 @@ impl Settings {
         let rows = [
             self.power_rows(),
             self.datetime.rows(),
-            self.region.rows(),
+            self.region_rows(),
             self.theme_rows(),
         ]
         .concat();
@@ -56,7 +56,10 @@ impl Settings {
         let Some(row) = self.system_rows().into_iter().nth(self.focus) else {
             return Opened::Nothing;
         };
-        if matches!(row.control, Control::Text | Control::Choice(_)) {
+        if matches!(
+            row.control,
+            Control::Text | Control::Choice(_) | Control::Number(_)
+        ) {
             self.input = row.value;
             self.mode = Mode::Editing(Target::System(row.id));
             return Opened::Prompt;
@@ -74,6 +77,9 @@ impl Settings {
         };
         if row.id == RowId::IdleLock {
             return self.change_idle(change);
+        }
+        if let Some(field) = repeat::field(row.id) {
+            return self.change_repeat(field, change);
         }
         self.apply_system(&row, change);
     }

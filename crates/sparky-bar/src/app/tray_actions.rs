@@ -5,6 +5,7 @@ use iced_layershell::reexport::{
 
 use crate::app::message::Message;
 use crate::app::state::Bar;
+use crate::app::surface;
 use crate::app::tray_state::OpenMenu;
 use crate::domain::tray::{PrimaryAction, TrayChange, TrayRequest};
 use crate::ui::style::{HEIGHT, MENU_ROW, MENU_WIDTH};
@@ -59,10 +60,7 @@ pub fn open_menu(bar: &mut Bar, address: String) -> Task<Message> {
         events_transparent: false,
         namespace: Some("sparky-bar-menu".to_owned()),
     };
-    let open = Task::done(Message::NewLayerShell {
-        settings,
-        id: window,
-    });
+    let open = surface::create(settings, window);
     let previous = bar.tray_mut().open_menu(OpenMenu { window, address });
     Task::batch([super::panel_actions::close(bar), close(previous), open])
 }

@@ -3,6 +3,7 @@ use iced::widget::{Column, column};
 
 use crate::app::message::Message;
 use crate::app::state::{Mode, Settings, Target};
+use crate::domain::field::Bounds;
 use crate::domain::section::Section;
 use crate::domain::system::{Control, Row, RowId};
 use crate::view::fields::sliding;
@@ -69,22 +70,43 @@ fn control(settings: &Settings, index: usize, row: Row) -> Element<'_, Message> 
         }),
         (Control::Choice(_) | Control::Text, _) => boxed(skin, row.value, Message::Activate(index)),
         (Control::Level, _) => percent(settings, id, &row.value),
+        (Control::Number(bounds), _) => number(settings, id, bounds, &row.value),
         (Control::Toggle(on), _) => switch(skin, on, Message::Activate(index)),
         (Control::Reading | Control::Options(_), _) => reading(skin, row.value),
     }
 }
 
 fn percent<'a>(settings: &Settings, id: RowId, value: &str) -> Element<'a, Message> {
-    let target = Target::System(id);
     let current = value.trim_end_matches('%').parse().unwrap_or(0);
-    let value = sliding(settings, target).unwrap_or(current);
-    let slider = Level {
-        target,
-        range: 1..=100,
+    let bounds = Bounds {
+        min: 1,
+        max: 100,
         step: 1,
+    };
+    slider(settings, id, bounds, current, |value| format!("{value}%"))
+}
+
+fn number<'a>(settings: &Settings, id: RowId, bounds: Bounds, value: &str) -> Element<'a, Message> {
+    let current = value.parse().unwrap_or(bounds.min);
+    slider(settings, id, bounds, current, |value| value.to_string())
+}
+
+fn slider<'a>(
+    settings: &Settings,
+    id: RowId,
+    bounds: Bounds,
+    current: i32,
+    shown: impl Fn(i32) -> String,
+) -> Element<'a, Message> {
+    let target = Target::System(id);
+    let value = sliding(settings, target).unwrap_or(current);
+    let range = Level {
+        target,
+        range: bounds.min..=bounds.max,
+        step: bounds.step,
         value,
     };
-    level(settings.context.skin, slider, format!("{value}%"))
+    level(settings.context.skin, range, shown(value))
 }
 
 fn group(id: RowId) -> String {
@@ -98,6 +120,7 @@ fn group(id: RowId) -> String {
         RowId::NetworkTime | RowId::LocalClock => "group-adjustments",
         RowId::Locale => "group-language",
         RowId::ConsoleKeymap | RowId::SystemLayout => "group-keyboard",
+        RowId::RepeatRate | RowId::RepeatDelay => "group-repeat",
         RowId::Theme | RowId::ThemeStatus => "group-theme",
         RowId::Wallpaper => "group-wallpaper",
         RowId::LoginWallpaper => "group-login-screen",

@@ -5,6 +5,7 @@ use iced::futures::{
 };
 
 use super::bluetooth::{apply, events_from};
+use super::message::Message;
 use super::tray_actions::open_menu;
 use super::tray_test_support::{bar, messages, removes};
 use crate::domain::bluetooth::{ADDRESS, Adapter, Bluetooth};
@@ -48,7 +49,13 @@ fn retirar_o_adaptador_fecha_seu_menu_informativo() {
     let event = block_on(events_from(&FakeBluetooth, |_| None).next()).unwrap();
     let _ = super::update::update(&mut bar, event);
     let opened = messages(open_menu(&mut bar, ADDRESS.to_owned()));
-    assert_eq!(opened.len(), 1);
+    assert_eq!(
+        opened
+            .iter()
+            .filter(|message| matches!(message, Message::NewLayerShell { .. }))
+            .count(),
+        1
+    );
     let window = bar.tray().menu().unwrap().window;
     let closed = messages(apply(&mut bar, None));
     assert!(removes(&closed, window));

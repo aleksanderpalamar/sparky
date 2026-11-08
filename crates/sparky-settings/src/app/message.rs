@@ -26,7 +26,6 @@ pub enum Message {
     Remove(usize),
     Scrolled(isize),
     Resized(Size),
-    Close,
     Slide(Target, i32),
     Release,
     Choose(RowId, String),

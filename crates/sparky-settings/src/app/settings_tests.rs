@@ -16,12 +16,20 @@ fn sem_arquivo_ajustar_cria_o_sparky_toml_e_pede_a_recarga() {
     assert!(salvo(&arquivo).contains("gaps_inner = 6"));
     assert_eq!(settings.config.general.gaps_inner, 6);
     assert_eq!(sparky.recargas.get(), 1);
-    assert_eq!(settings.notice, Some(Notice::Info("Folga entre janelas: 6 (salvo e aplicado)".to_owned())));
+    assert_eq!(
+        settings.notice,
+        Some(Notice::Info(
+            "Folga entre janelas: 6 (salvo e aplicado)".to_owned()
+        ))
+    );
 }
 
 #[test]
 fn mudar_um_valor_guarda_os_comentarios_do_usuario() {
-    let (mut settings, arquivo) = painel(Some("# meu sparky\n[general]\ngaps_inner = 5\n"), Sparky::default());
+    let (mut settings, arquivo) = painel(
+        Some("# meu sparky\n[general]\ngaps_inner = 5\n"),
+        Sparky::default(),
+    );
     tecla(&mut settings, "h");
     assert_eq!(salvo(&arquivo), "# meu sparky\n[general]\ngaps_inner = 4\n");
 }
@@ -41,20 +49,6 @@ fn numero_digitado_e_validado_antes_de_salvar() {
 }
 
 #[test]
-fn layout_que_o_xkb_nao_conhece_e_recusado() {
-    let (mut settings, arquivo) = painel(None, Sparky::default());
-    tecla(&mut settings, "2");
-    assert_eq!(settings.section, Section::Keyboard);
-    enter(&mut settings);
-    digitar(&mut settings, "xx");
-    assert_eq!(settings.notice, Some(Notice::Error("layout desconhecido: xx".to_owned())));
-    assert_eq!(salvo(&arquivo), "");
-    enter(&mut settings);
-    digitar(&mut settings, "br");
-    assert_eq!(settings.config.input.layout.as_deref(), Some("br"));
-}
-
-#[test]
 fn enter_liga_e_desliga_os_atalhos_padrao() {
     let (mut settings, _) = painel(None, Sparky::default());
     for _ in 0..5 {
@@ -68,7 +62,7 @@ fn enter_liga_e_desliga_os_atalhos_padrao() {
 #[test]
 fn inicializacao_adiciona_edita_e_remove_comandos() {
     let (mut settings, _) = painel(None, Sparky::default());
-    tecla(&mut settings, "4");
+    tecla(&mut settings, "3");
     enter(&mut settings);
     digitar(&mut settings, "mako");
     assert_eq!(settings.config.autostart, ["mako"]);
@@ -101,22 +95,30 @@ fn arquivo_quebrado_nao_e_sobrescrito() {
 
 #[test]
 fn com_o_sparky_fora_do_ar_salva_e_avisa_que_vale_depois() {
-    let sparky = Sparky { fora_do_ar: true, ..Sparky::default() };
+    let sparky = Sparky {
+        fora_do_ar: true,
+        ..Sparky::default()
+    };
     let (mut settings, arquivo) = painel(None, sparky);
     tecla(&mut settings, "l");
     assert!(salvo(&arquivo).contains("gaps_inner = 6"));
     assert_eq!(
         settings.notice,
-        Some(Notice::Info("Folga entre janelas: 6 (salvo; vale quando o sparky iniciar)".to_owned()))
+        Some(Notice::Info(
+            "Folga entre janelas: 6 (salvo; vale quando o sparky iniciar)".to_owned()
+        ))
     );
 }
 
 #[test]
 fn tab_troca_de_secao_e_os_atalhos_listam_os_padroes() {
     let (mut settings, _) = painel(None, Sparky::default());
-    let _ = update(&mut settings, Message::Key(Key::Named(Named::Tab), Modifiers::SHIFT));
+    let _ = update(
+        &mut settings,
+        Message::Key(Key::Named(Named::Tab), Modifiers::SHIFT),
+    );
     assert_eq!(settings.section, Section::About);
-    tecla(&mut settings, "5");
+    tecla(&mut settings, "4");
     assert_eq!(settings.section, Section::Shortcuts);
     assert!(settings.count() > 20);
     tecla(&mut settings, "j");

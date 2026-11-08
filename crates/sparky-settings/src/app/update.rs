@@ -20,7 +20,6 @@ pub fn update(settings: &mut Settings, message: Message) -> Task<Message> {
 fn dispatch(settings: &mut Settings, message: Message) -> Task<Message> {
     match message {
         Message::Key(key, modifiers) => key_pressed(settings, &key, modifiers),
-        Message::Close => iced::exit(),
         Message::Activate(index) => {
             settings.point(index);
             opened(settings.activate())
@@ -64,7 +63,7 @@ fn apply(settings: &mut Settings, message: Message) {
         Message::Release => settings.release(),
         Message::Choose(id, value) => settings.choose(id, value),
         Message::Screen(name, change) => settings.change_screen(&name, change),
-        Message::Key(..) | Message::Activate(_) | Message::Close => {}
+        Message::Key(..) | Message::Activate(_) => {}
     }
 }
 

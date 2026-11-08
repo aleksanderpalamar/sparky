@@ -2,14 +2,11 @@ use sparky_config::{Editor, parse};
 
 use crate::app::state::{Settings, Source, Target};
 use crate::domain::field::Field;
-use crate::domain::value::{Value, read, shown, store};
+use crate::domain::value::{Value, shown, store};
 use crate::ports::CompositorError;
 
 impl Settings {
     pub fn set(&mut self, field: Field, value: Value) {
-        if let Err(problem) = self.check(field, &value) {
-            return self.fail(problem);
-        }
         let label = format!("{}: {}", field.label(), shown(&value));
         self.edit(&label, |editor| store(field, &value, editor));
     }
@@ -29,23 +26,6 @@ impl Settings {
         self.edit(&crate::i18n::text("section-autostart-label"), |editor| {
             editor.set_list("autostart", &entries)
         });
-    }
-
-    fn check(&self, field: Field, value: &Value) -> Result<(), String> {
-        let text = |field: Field| match read(field, &self.config) {
-            Value::Text(text) => text,
-            Value::Number(_) | Value::Flag(_) => String::new(),
-        };
-        let checked = match (field, value) {
-            (Field::Layout, Value::Text(layout)) => {
-                self.context.keymaps.check(layout, &text(Field::Variant))
-            }
-            (Field::Variant, Value::Text(variant)) => {
-                self.context.keymaps.check(&text(Field::Layout), variant)
-            }
-            _ => Ok(()),
-        };
-        checked.map_err(|unknown| unknown.to_string())
     }
 
     pub(crate) fn edit(&mut self, what: &str, change: impl FnOnce(&mut Editor)) {

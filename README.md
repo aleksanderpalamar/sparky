@@ -133,7 +133,7 @@ A bandeja usa StatusNotifierItem pelo D-Bus. O clique esquerdo ativa o aplicativ
 
 Os ícones simbólicos do tema de ícones ativo (Yaru nos temas distribuídos) acompanham a cor da barra. A busca respeita a herança do tema e prioriza as variantes simbólicas de rede, preservando os estados de conexão; ícones próprios e pixmaps continuam disponíveis como fallback. Rede, Bluetooth e itens que pedem atenção permanecem visíveis. Os demais aplicativos ficam numa área recolhível: passar o mouse na seta abre os ícones para a esquerda, com transição de 600 ms e desaceleração cúbica; sair recolhe, mantendo a área aberta enquanto seu menu está visível. Cada monitor tem seu próprio estado, e o temporizador da animação para ao terminar a transição. Itens passivos não aparecem.
 
-Os ícones de som, rede e Bluetooth abrem painéis nativos com o clique esquerdo; clicar novamente ou usar Esc fecha. Um painel aparece por vez, no monitor da interação, com fundo opaco, cantos retos e a paleta atual do Sparky. O restante da bandeja preserva os menus dos aplicativos e a gaveta animada. A barra fornece indicadores próprios de áudio e rede, evitando duplicá-los com applets; o indicador Bluetooth só aparece quando há adaptador.
+Os ícones de som, rede e Bluetooth abrem painéis nativos com o clique esquerdo; clicar novamente ou usar Esc fecha. O painel continua aberto quando outra superfície pega o teclado, como a seleção do `sparky-shot`, e por isso aparece na captura. Um painel aparece por vez, no monitor da interação, com fundo opaco, cantos retos e a paleta atual do Sparky. O restante da bandeja preserva os menus dos aplicativos e a gaveta animada. A barra fornece indicadores próprios de áudio e rede, evitando duplicá-los com applets; o indicador Bluetooth só aparece quando há adaptador.
 
 O painel de som controla volume, mudo, saída padrão, microfone e o volume individual dos aplicativos em reprodução pelo protocolo PulseAudio, compatível com PipeWire-Pulse. O cliente não abre fluxos de gravação ou reprodução. É necessário um servidor compatível em execução; o pacote exige a biblioteca cliente libpulse e recomenda PipeWire-Pulse. As mudanças de estado chegam por eventos e não por subprocessos de controle.
 
@@ -428,21 +428,20 @@ O `sparky-settings` abre pelo `SUPER + ALT + ESPAÇO`. As mudanças de configura
 | Seção | O que muda |
 |---|---|
 | Aparência | Folgas, espessura da borda, tamanho das janelas flutuantes, os atalhos padrão e o papel de parede |
-| Teclado | Layout, variante e opções do XKB (conferidos com o `evdev.lst` antes de gravar) e a repetição das teclas |
 | Aplicativos | Terminal, lançador, arquivos, configurações, capturador e bloqueio de tela que os atalhos abrem |
 | Inicialização | Comandos rodados quando a sessão começa |
 | Atalhos | Lista dos atalhos em uso, com o que cada um faz |
 | Monitores | Desenho da posição dos monitores e, para cada um, resolução, escala, giro, taxa variável e se a tela fica ligada, gravados no `[[output]]` e HDR, que só aparece nas telas que o suportam |
 | Energia | Perfil de energia (`powerprofilesctl`), brilho da tela (`brightnessctl`), bateria (`upower`) e o tempo parado até bloquear a tela (`[lock] idle_minutes`) |
 | Data e hora | Fuso horário, hora local, sincronização pela rede e relógio do hardware (`timedatectl`) |
-| Região e idioma | Idioma, teclado do console e layout padrão do sistema (`localectl`) |
+| Região e idioma | Idioma, teclado do console e layout padrão do sistema (`localectl`), e a repetição das teclas da sessão (`[input]` do `sparky.toml`, vale na hora) |
 | Usuários | Consulta de contas, identificadores, grupos e sessões (`getent` e `loginctl`) |
 | Mídia | Volumes externos, montagem e desmontagem (`lsblk` e `udisksctl`) |
 | Temas | Tema atual e papel de parede do tema, escolhidos em listas |
 | Rede | Conexão ativa, DHCP ou IPv4 manual e DNS (`nmcli`) |
 | Sobre | Versão do sparky, sistema, kernel, computador, processador, GPUs e RAM total |
 
-A janela tem cabeçalho com o botão × para fechar, barra lateral com o ícone de cada seção e itens agrupados por legendas. `Tab` e `SHIFT + Tab` (ou `1` a `9`) trocam de seção, `j`/`k` escolhem o item, `h`/`l` ajustam números, ligam e desligam ou passam para a opção vizinha de uma lista, `Enter` edita um texto ou um número e permite digitar o valor de uma lista, `d` remove um comando da inicialização, `Esc` desiste da edição e `q` fecha; o rodapé mostra as teclas de cada seção. O mouse também funciona: controles deslizantes (o valor é gravado ao soltar), interruptores, listas suspensas que filtram pela digitação, opções marcadas com ✓, botões como Montar/Desmontar e clique duplo na inicialização.
+A janela tem cabeçalho, barra lateral com o ícone de cada seção e itens agrupados por legendas. `Tab` e `SHIFT + Tab` (ou `1` a `9`) trocam de seção, `j`/`k` escolhem o item, `h`/`l` ajustam números, ligam e desligam ou passam para a opção vizinha de uma lista, `Enter` edita um texto ou um número e permite digitar o valor de uma lista, `d` remove um comando da inicialização, `Esc` desiste da edição e `q` fecha; o rodapé mostra as teclas de cada seção. O mouse também funciona: controles deslizantes (o valor é gravado ao soltar), interruptores, listas suspensas que filtram pela digitação, opções marcadas com ✓, botões como Montar/Desmontar e clique duplo na inicialização.
 
 Em Data e hora, `Enter` ou um clique no fuso abre a edição; o nome precisa existir na lista de `timedatectl list-timezones`. A hora local é somente leitura. `Enter` ou `h`/`l` alternam a hora pela rede e o uso de hora local no relógio do hardware; sem serviço NTP disponível, a linha da rede é somente leitura. `F5` atualiza os dados. Alterações dependem das permissões do sistema, e recusas aparecem no aviso do painel.
 

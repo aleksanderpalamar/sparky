@@ -16,12 +16,6 @@ pub fn update(bar: &mut Bar, message: Message) -> Task<Message> {
         }
         Message::Panel(kind) => return panel_actions::open(bar, kind),
         Message::ClosePanel => return panel_actions::close(bar),
-        Message::PanelUnfocused(window)
-            if bar.panels.open.is_some_and(|open| open.window == window)
-                && bar.panels.input_focus == super::panel_state::InputFocus::Interactive =>
-        {
-            return panel_actions::close(bar);
-        }
         Message::PanelFocused(window)
             if bar.panels.open.is_some_and(|open| open.window == window) =>
         {
