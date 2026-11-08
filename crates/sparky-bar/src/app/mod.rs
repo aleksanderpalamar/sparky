@@ -16,6 +16,7 @@ pub mod panel_state;
 pub mod panel_update;
 pub mod state;
 pub mod subscription;
+pub mod surface;
 pub mod tray_actions;
 pub mod tray_state;
 pub mod tray_subscription;
@@ -91,3 +92,6 @@ mod network_sampling_tests;
 
 #[cfg(test)]
 mod panel_keyboard_tests;
+
+#[cfg(test)]
+mod surface_output_tests;

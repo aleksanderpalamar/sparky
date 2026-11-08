@@ -3,7 +3,7 @@ use iced_layershell::reexport::{
     Anchor, KeyboardInteractivity, Layer, NewLayerShellSettings, OutputOption,
 };
 
-use crate::app::{message::Message, panel_state::OpenPanel, state::Bar, tray_actions};
+use crate::app::{message::Message, panel_state::OpenPanel, state::Bar, surface, tray_actions};
 use crate::domain::{indicator::Role, panel::PanelKind};
 
 pub fn kind(role: Role) -> Option<PanelKind> {
@@ -78,10 +78,7 @@ pub fn open(bar: &mut Bar, kind: PanelKind) -> Task<Message> {
         discovery,
         telemetry,
         menu,
-        Task::done(Message::NewLayerShell {
-            settings,
-            id: window,
-        }),
+        surface::create(settings, window),
     ])
 }
 
