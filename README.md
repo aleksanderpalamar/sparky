@@ -1,79 +1,93 @@
 # Sparky
 
-Ambiente de desktop Wayland escrito em Rust, com compositor próprio, feito para ser usado pelo teclado. O mouse funciona, mas tudo tem atalho.
+English | [Português (Brasil)](README.pt-BR.md)
 
-Somente os temas vem do [Omarchy](https://github.com/basecamp/omarchy): como paletas de cores e os wallpapers.
+Sparky is a keyboard-focused Wayland desktop environment written in Rust, with its own compositor. The mouse works too, but everything has a keyboard shortcut.
 
-## Organização
+Only the themes, such as color palettes and wallpapers, come from [Omarchy](https://github.com/basecamp/omarchy).
 
-| Caminho | O que é |
+## Screenshots
+
+![Sparky desktop](.github/images/main_image.png)
+
+![Sparky screenshot 2](.github/images/02.png)
+
+![Sparky screenshot 3](.github/images/03.png)
+
+![Sparky screenshot 4](.github/images/04.png)
+
+![Sparky screenshot 5](.github/images/05.png)
+
+## Organization
+
+| Path | Description |
 |---|---|
-| `crates/sparky-notifications` | Serviço nativo freedesktop de notificações, pop-ups temáticos, histórico da sessão e Não perturbe |
-| `crates/sparky-bar` | A barra do topo (`sparky-bar`): áreas de trabalho, relógio e bandeja, uma por monitor |
-| `crates/sparky-compositor` | O compositor Wayland (binário `sparky`), feito com a biblioteca Smithay: protocolos, janelas, bordas, teclado e ponteiro |
-| `crates/sparky-tiling` | O mosaico: árvore dwindle, folgas, foco por direção, flutuantes, tela cheia, áreas de trabalho e monitores. Não depende de Wayland |
-| `crates/sparky-config` | O `sparky.toml`: esquema, padrões do sparky, ações e a tabela de atalhos padrão |
-| `crates/sparky-ipc` | Protocolo do IPC do sparky (JSON por linha num socket Unix), o cliente usado pela barra e pelos aplicativos, e o `sparky-msg` |
-| `crates/sparky-fetch` | Informações do sistema e da sessão no terminal (`sparky-fetch`): Linux lido direto do sistema e Sparky pelo IPC, em saída visual, JSON ou texto simples |
-| `crates/sparky-hardware` | Leitura de processador, memória e placas de vídeo, usada pelo sparky-settings e pelo sparky-fetch |
-| `crates/sparky-shot` | O capturador de tela (`sparky-shot`): seletor de modo, seleção de região pelo teclado ou mouse, PNG salvo e copiado |
-| `crates/sparky-files` | O gerenciador de arquivos (`sparky-files`): grade e lista com ícones e miniaturas, menus de contexto, dispositivos, lugares, filtro, copiar, recortar, colar, renomear, criar, compactar e lixeira |
-| `crates/sparky-image` | O visualizador de imagens (`sparky-image`): abre PNG, JPEG, WebP, GIF, BMP e TIFF, navega pela pasta, zoom, deslocamento e rotação pelo teclado |
-| `crates/sparky-monitor` | O monitor do sistema (`sparky-monitor`): aplicativos e processos com CPU, memória, GPU, VRAM e disco, gráficos de CPU, memória, disco, rede e GPU, e encerramento de processos pelo teclado |
-| `crates/sparky-storage` | Volumes de bloco pelo udisksctl e smartphones MTP pelo udev/GIO/GVfs; parser de discos compartilhado com o painel |
-| `crates/sparky-xdg` | Convenções XDG compartilhadas: pastas do usuário, leitura e listagem dos `.desktop` instalados, busca de programas e resolução de ícones dos temas |
-| `crates/sparky-settings` | O painel de configurações (`sparky-settings`): edita o `sparky.toml` e aplica na hora pelo IPC |
-| `crates/sparky-ui` | Peças comuns dos aplicativos iced: teclas, prompt, estilos, lateral numerada, rolagem e janela |
-| `crates/sparky-launcher` | O lançador de aplicativos (`sparky-launcher`): busca nos `.desktop` instalados e abre pelo teclado |
-| `crates/sparky-terminal` | O terminal padrão (`sparky-terminal`): abre o shell do usuário com as cores, a fonte e o layout do tema do sparky |
-| `crates/sparky-keyring` | O chaveiro (`sparky-keyring`): guarda as senhas dos aplicativos num cofre cifrado e atende a API Secret Service do D-Bus |
-| `crates/sparky-keyring-prompt` | A janela que pede a senha do cofre (`sparky-keyring-prompt`) |
-| `crates/sparky-login` | O gerenciador de login (`sparky-login`): serviço do sistema que autentica pelo PAM, registra a sessão no logind e abre a sessão do usuário |
-| `crates/sparky-login-greeter` | A tela de login (`sparky-login-greeter`): relógio, usuário, senha, energia e escolha da sessão |
-| `crates/sparky-login-core` | Protocolo entre a tela e o serviço de login, a lista das sessões Wayland instaladas e a escolha do papel de parede do login |
-| `crates/sparky-login-look` | O visual comum à tela de login e à de bloqueio: relógio, campos, papel de parede desfocado, cores e ícones |
-| `crates/sparky-pam` | A autenticação pelo PAM, com a libpam carregada em tempo de execução, usada pelo login e pelo bloqueio |
-| `crates/sparky-lock` | A tela de bloqueio (`sparky-lock`): relógio, nome do usuário e senha, pelo protocolo ext-session-lock |
-| `crates/sparky-lockd` | O guarda do bloqueio (`sparky-lockd`): atende os pedidos de bloqueio do logind e bloqueia antes de suspender |
-| `crates/polkit-sparky` | Agente de autenticação do sistema, com janela nativa, temas e integração polkit/PAM |
-| `crates/sparky-theme` | Paleta de cores compartilhada pelos aplicativos, lida do `colors.toml` do tema |
-| `data/themes` | Temas no formato `colors.toml` |
+| `crates/sparky-notifications` | Native freedesktop notification service, themed pop-ups, session history, and Do Not Disturb |
+| `crates/sparky-bar` | Top bar (`sparky-bar`): workspaces, clock, and tray, one per monitor |
+| `crates/sparky-compositor` | Wayland compositor (`sparky` binary), built with Smithay: protocols, windows, borders, keyboard, and pointer |
+| `crates/sparky-tiling` | Tiling: dwindle tree, gaps, directional focus, floating windows, fullscreen, workspaces, and monitors. Independent of Wayland |
+| `crates/sparky-config` | `sparky.toml` schema, Sparky defaults, actions, and default key bindings |
+| `crates/sparky-ipc` | Sparky IPC protocol (one JSON message per line over a Unix socket), client used by the bar and applications, and `sparky-msg` |
+| `crates/sparky-fetch` | System and session information in the terminal (`sparky-fetch`): Linux information read directly and Sparky information obtained over IPC, with visual, JSON, and plain-text output |
+| `crates/sparky-hardware` | CPU, memory, and GPU information shared by sparky-settings and sparky-fetch |
+| `crates/sparky-shot` | Screenshot tool (`sparky-shot`): mode picker, keyboard or mouse region selection, saved and copied PNG |
+| `crates/sparky-files` | File manager (`sparky-files`): grid and list views with icons and thumbnails, context menus, devices, places, filtering, copy, cut, paste, rename, creation, compression, and trash |
+| `crates/sparky-image` | Image viewer (`sparky-image`): opens PNG, JPEG, WebP, GIF, BMP, and TIFF, navigates folders, and supports keyboard zoom, panning, and rotation |
+| `crates/sparky-monitor` | System monitor (`sparky-monitor`): application and process CPU, memory, GPU, VRAM, and disk use; resource graphs; and keyboard-driven process termination |
+| `crates/sparky-storage` | Block volumes through udisksctl and MTP smartphones through udev/GIO/GVfs; disk parser shared with the panel |
+| `crates/sparky-xdg` | Shared XDG conventions: user directories, installed `.desktop` files, application search, and theme icon resolution |
+| `crates/sparky-settings` | Settings panel (`sparky-settings`): edits `sparky.toml` and applies changes immediately through IPC |
+| `crates/sparky-ui` | Shared iced application components: keys, prompts, styles, numbered sidebar, scrolling, and windows |
+| `crates/sparky-launcher` | Application launcher (`sparky-launcher`): searches installed `.desktop` files and launches them from the keyboard |
+| `crates/sparky-terminal` | Default terminal (`sparky-terminal`): opens the user's shell with Sparky theme colors, font, and layout |
+| `crates/sparky-keyring` | Keyring (`sparky-keyring`): stores application passwords in an encrypted vault and implements the D-Bus Secret Service API |
+| `crates/sparky-keyring-prompt` | Vault password prompt (`sparky-keyring-prompt`) |
+| `crates/sparky-login` | Login manager (`sparky-login`): system service that authenticates with PAM, registers the session with logind, and starts the user's session |
+| `crates/sparky-login-greeter` | Login screen (`sparky-login-greeter`): clock, user, password, power controls, and session selection |
+| `crates/sparky-login-core` | Protocol between the greeter and login service, installed Wayland session list, and login wallpaper selection |
+| `crates/sparky-login-look` | Shared login and lock screen appearance: clock, fields, blurred wallpaper, colors, and icons |
+| `crates/sparky-pam` | PAM authentication, dynamically loading libpam, used by login and lock |
+| `crates/sparky-lock` | Lock screen (`sparky-lock`): clock, username, and password using ext-session-lock |
+| `crates/sparky-lockd` | Lock daemon (`sparky-lockd`): handles logind lock requests and locks before suspend |
+| `crates/polkit-sparky` | System authentication agent with a native window, themes, and polkit/PAM integration |
+| `crates/sparky-theme` | Application color palette read from the theme's `colors.toml` |
+| `data/themes` | Themes in `colors.toml` format |
 
-## Mosaico
+## Tiling
 
-Cada janela nova divide a caixa da janela em foco: lado a lado se a caixa for mais larga que alta, empilhada se não, e a nova fica à direita ou embaixo. A divisão escolhida é preservada quando a caixa muda de tamanho e pode ser invertida à mão. Fechar uma janela devolve o espaço para a vizinha. Entre janelas a folga é de 5 px de cada lado, e de 10 px até a borda da tela (`Gaps::SPARKY`).
+Each new window splits the focused window's box: side by side if it is wider than it is tall, stacked otherwise, with the new window to the right or below. The split is preserved when the box is resized and can be toggled manually. Closing a window returns its space to its neighbor. Gaps are 5 px on each side between windows and 10 px at the screen edge (`Gaps::SPARKY`).
 
-As áreas de trabalho vão de 1 a 10 e cada uma pertence a um monitor. Ir para uma área visível em outro monitor leva o foco até ele; uma área vazia que sai da tela deixa de existir.
+Workspaces range from 1 to 10, and each belongs to a monitor. Switching to a workspace visible on another monitor focuses that monitor; an empty workspace ceases to exist when it leaves the screen.
 
-O rascunho é uma área extra que aparece por cima da área atual, como a área especial do Hyprland: `SUPER + S` (ou `SUPER` + a tecla à esquerda do 1) mostra e esconde, e `SUPER + ALT + S` (ou com `SHIFT` na tecla à esquerda do 1) manda a janela em foco para ele. Com o rascunho aberto, as janelas novas abrem nele, o foco fica nele e as janelas de baixo não respondem ao mouse; trocar de área esconde o rascunho e ele abre no monitor em foco. As ações no `sparky.toml` são `toggle-scratchpad` e `move-to-scratchpad`.
+The scratchpad is an extra workspace displayed over the current one, like Hyprland's special workspace. `SUPER + S` (or `SUPER` plus the key left of 1) toggles it, and `SUPER + ALT + S` (or `SHIFT` with that key) moves the focused window into it. While open, new windows and focus go to the scratchpad and underlying windows do not respond to the mouse. Switching workspaces hides it, and it opens on the focused monitor. The `sparky.toml` actions are `toggle-scratchpad` and `move-to-scratchpad`.
 
-Grupos juntam várias janelas num só quadro do mosaico, com uma barra de abas no topo mostrando o título de cada uma: `SUPER + G` agrupa a janela em foco (ou desfaz o grupo), `SUPER + ALT + G` tira a janela do grupo, `SUPER + ALT` + seta põe a janela no grupo vizinho, `SUPER + ALT + TAB` e `SUPER + CTRL` + seta andam pelas abas e `SUPER + ALT + 1` a `5` escolhem a aba. Uma janela aberta a partir de outra que está num grupo entra nele. As ações no `sparky.toml` são `toggle-group`, `leave-group`, `move-into-group` (com `direction`), `cycle-group` (com `step`) e `select-in-group` (com `index`, a partir de 1).
+Groups combine windows into one tiled frame with a title bar of tabs. `SUPER + G` groups the focused window or dissolves the group; `SUPER + ALT + G` removes a window; `SUPER + ALT` plus an arrow moves it into a neighboring group; `SUPER + ALT + TAB` and `SUPER + CTRL` plus an arrow cycle tabs; and `SUPER + ALT + 1` through `5` select a tab. A window opened from another window in a group joins that group. The `sparky.toml` actions are `toggle-group`, `leave-group`, `move-into-group` (with `direction`), `cycle-group` (with `step`), and `select-in-group` (with a 1-based `index`).
 
-Com o mouse, como no Omarchy: `SUPER` + botão esquerdo arrasta uma janela flutuante, e numa janela do mosaico troca de lugar com a janela onde ela for solta; `SUPER` + botão direito redimensiona pelo canto mais perto do ponteiro (no mosaico, move a divisão). Uma janela não encolhe abaixo de 120 × 80. Os pedidos de mover e redimensionar feitos pelos próprios aplicativos (barra de título desenhada pelo cliente, Wayland ou X11) usam o mesmo caminho.
+As in Omarchy, `SUPER` plus left mouse button drags a floating window or swaps a tiled window with the window on which it is dropped. `SUPER` plus right mouse button resizes from the corner nearest the pointer; in tiling, it moves the split. Windows cannot shrink below 120 × 80. Move and resize requests from applications themselves (client-drawn title bars, Wayland or X11) use the same path.
 
 ## Compositor
 
-O `sparky` é o próprio compositor Wayland; não depende de nenhum outro. Fala xdg-shell (janelas), wlr-layer-shell (barra, lançador, notificações), decorações do lado do servidor, área de transferência (incluindo seleção primária e wlr-data-control), viewporter, cursor-shape (o aplicativo pede o cursor pelo nome: texto, mão, redimensionar), relative-pointer (movimento cru do mouse, para jogos e programas 3D) e pointer-constraints (o aplicativo pode travar o ponteiro no lugar ou prendê-lo dentro da janela) e ext-session-lock (tela de bloqueio).
+`sparky` is the Wayland compositor itself and does not depend on another. It supports xdg-shell (windows), wlr-layer-shell (bar, launcher, notifications), server-side decorations, clipboard (including primary selection and wlr-data-control), viewporter, cursor-shape (applications request named cursors such as text, hand, or resize), relative-pointer (raw mouse movement for games and 3D applications), pointer-constraints (applications can lock the pointer in place or confine it to a window), and ext-session-lock (lock screen).
 
-Aplicativos X11 rodam pelo XWayland, que o sparky sobe sozinho e controla com o gerenciador de janelas X11 do Smithay: janelas X11 entram no mosaico como as Wayland, menus e dicas X11 (janelas sem gerência) ficam por cima de tudo, e a área de transferência e a seleção primária passam nos dois sentidos. Os programas abertos pelo sparky recebem `DISPLAY` e `WAYLAND_DISPLAY`.
+X11 applications run through XWayland, which Sparky starts and controls using Smithay's X11 window manager. X11 windows enter the tiling layout like Wayland windows; unmanaged X11 menus and tooltips appear above everything; and clipboard and primary selection work in both directions. Programs launched by Sparky receive `DISPLAY` and `WAYLAND_DISPLAY`.
 
-`SUPER + CTRL + L` bloqueia a sessão com o locker de `[apps]` (o `sparky-lock` por padrão, descrito em [Tela de bloqueio](#tela-de-bloqueio); `swaylock`, `hyprlock` e outros que falem ext-session-lock também servem). Bloqueado, só a tela do locker aparece e recebe teclado e mouse, os atalhos param (menos `Ctrl+Alt+F1…F12`) e a captura de tela também só vê o locker. Se o locker morrer sem desbloquear, a sessão continua bloqueada com a tela vazia, e um locker aberto de novo retoma o bloqueio.
+`SUPER + CTRL + L` locks the session using the locker configured in `[apps]` (`sparky-lock` by default, described under [Lock screen](#lock-screen); `swaylock`, `hyprlock`, and other ext-session-lock clients also work). While locked, only the locker is shown and receives input, shortcuts stop except `Ctrl+Alt+F1…F12`, and screenshots see only the locker. If the locker dies without unlocking, the session stays locked with a blank screen and a newly started locker can take over.
 
-Toda janela comum entra no mosaico. Flutuam as que têm janela-mãe (diálogos), as de tamanho fixo e as do painel de configurações e do capturador. A borda da janela em foco usa a cor de destaque do tema, e o foco do teclado acompanha o ponteiro.
+Normal windows are tiled. Dialogs with a parent, fixed-size windows, settings, and the screenshot tool float. The focused window's border uses the theme accent, and keyboard focus follows the pointer.
 
-Rodado num terminal virtual (ou pelo gerenciador de login), o `sparky` assume a placa de vídeo pela sessão do sistema (libseat), liga cada monitor conectado lado a lado da esquerda para a direita, acompanha monitor ligado e desligado em tempo real, lê teclado, mouse e touchpad pelo libinput (toque para clicar ligado) e desenha o cursor do tema `XCURSOR_THEME`, com o formato que cada aplicativo pedir. `Ctrl+Alt+F1…F12` troca de terminal virtual.
+On a virtual terminal or through a login manager, `sparky` takes control of the GPU through the system session (libseat), arranges connected monitors left to right, tracks hotplugging, reads keyboard, mouse, and touchpad via libinput (tap-to-click enabled), and draws the `XCURSOR_THEME` cursor in the shape requested by each application. `Ctrl+Alt+F1…F12` switches virtual terminals.
 
-Para testar dentro de outra sessão Wayland, o `sparky` abre numa janela:
+To test inside another Wayland session, run Sparky in a window:
 
 ```bash
 cargo run -p sparky-compositor -- --spawn kitty
 ```
 
-`--spawn` pode se repetir e abre cada comando já dentro do sparky. O layout do teclado vem do `/etc/vconsole.conf` ou, no Debian, do `/etc/default/keyboard`.
+`--spawn` can be repeated and starts each command inside Sparky. The keyboard layout comes from `/etc/vconsole.conf`, or `/etc/default/keyboard` on Debian.
 
-## Configuração
+## Configuration
 
-Tudo fica em `~/.config/sparky/sparky.toml`; sem o arquivo valem os padrões do sparky, que estão por extenso em `data/config/sparky.toml`. O sparky confere o arquivo a cada segundo e aplica a mudança sem reiniciar (`sparky-msg reload` força na hora); um arquivo inválido é recusado e a configuração anterior continua valendo.
+Everything is configured in `~/.config/sparky/sparky.toml`; without this file, Sparky uses the defaults listed in full in `data/config/sparky.toml`. Sparky checks the file every second and applies changes without restarting (`sparky-msg reload` forces an immediate reload). Invalid files are rejected and the previous configuration remains active.
 
 ```toml
 autostart = ["nm-applet"]
@@ -108,201 +122,209 @@ name = "DP-1"
 scale = 1.5
 ```
 
-Um `[[bind]]` com a mesma combinação de um atalho padrão substitui o padrão; `default_binds = false` descarta todos os padrões. Ações: `spawn` (`command`), `close-window`, `toggle-floating`, `fullscreen` (`mode` = `monitor` ou `maximized`), `toggle-split`, `focus` e `swap` (`direction` = `left`, `right`, `up`, `down`), `resize` (`width`, `height`), `workspace` (`workspace`), `move-to-workspace` (`workspace`, `follow`), `relative-workspace` (`step`), `previous-workspace`, `cycle-monitor` (`step`), `exit`. Cada `[[output]]` configura um monitor pelo nome (`sparky-msg outputs` lista os nomes): `scale` de 0.5 a 4, inclusive fracionada como 1.25 ou 1.5 (sem regra vale 1); `mode` com resolução e taxa, como `"1920x1080@60.000"` (sem ela, ou se o monitor não tiver esse modo, vale o modo preferido); `rotation` em graus (0, 90, 180 ou 270); `vrr = true` liga a taxa variável nos monitores que a suportam; `enabled = false` desliga a tela, mas a última tela ligada nunca é desligada; `hdr = true` envia HDR10 (cores BT.2020, curva PQ, metadados estáticos e 10 bits por cor) aos monitores cujo EDID anuncia PQ e BT.2020 e cujo conector expõe `Colorspace`, `max bpc` e `HDR_OUTPUT_METADATA`, desde que a placa de vídeo consiga compor em FP16. Com o HDR ligado, cada quadro desse monitor é convertido para PQ: as cores sRGB passam para BT.2020 sem exagerar a saturação e o branco do SDR fica em 203 nits, o valor de referência da ITU-R BT.2408. Nessas telas não há scanout direto nem cursor por plano de hardware, e as capturas de tela continuam em SDR. Os aplicativos descrevem a cor do próprio conteúdo pelo protocolo `wp-color-management-v1` (curvas sRGB, chamada `compound_power_2_4` na versão 2 do protocolo, gama 2.2, linear estendida e PQ; primárias sRGB, BT.2020, Display P3 e DCI-P3; scRGB do Windows), e o compositor converte cada janela para a tela: em HDR, o conteúdo HDR aparece com o brilho declarado até o pico da tela informado pelo EDID (1000 nits sem esse dado); em SDR e nas capturas, o que passa do branco é cortado, sem mapeamento de tons. Ao abrir a sessão, a tela liga em SDR e passa para HDR assim que exibe o primeiro quadro; se um quadro em HDR falhar ou a tela o recusar, o sparky a volta para SDR sem mudar o `sparky.toml`, registra o motivo no log do compositor e tenta de novo a cada recarga da configuração, como ao ligar o HDR na seção Monitores. A seção Monitores do sparky-settings grava essas opções e só mostra o HDR nas telas que o suportam. Os aplicativos recebem a escala pelo fractional-scale-v1 e desenham nítidos nela, e ao mudar a escala os monitores se reposicionam lado a lado. Sem `layout` em `[input]`, vale o teclado do sistema. Sem `terminal` em `[apps]`, vale `$TERMINAL` ou o primeiro terminal instalado, começando pelo `sparky-terminal`. `wallpaper` em `[general]` é o caminho da imagem de fundo (`~/` vale a pasta pessoal); `wallpaper = ""` deixa só a cor do tema, e sem a chave vale o primeiro papel de parede do Tokyo Night, se o pacote `sparky-wallpapers` estiver instalado. `wallpaper` em `[login]` é o papel de parede da tela de login; sem a chave, vale o da área de trabalho.
+A `[[bind]]` with the same key combination as a default binding replaces it; `default_binds = false` disables all default bindings. Actions: `spawn` (`command`), `close-window`, `toggle-floating`, `fullscreen` (`mode` = `monitor` or `maximized`), `toggle-split`, `focus` and `swap` (`direction` = `left`, `right`, `up`, `down`), `resize` (`width`, `height`), `workspace` (`workspace`), `move-to-workspace` (`workspace`, `follow`), `relative-workspace` (`step`), `previous-workspace`, `cycle-monitor` (`step`), and `exit`.
 
-## Sessão
+Each `[[output]]` configures a monitor by name (`sparky-msg outputs` lists the names): `scale` ranges from 0.5 to 4, including fractional values such as 1.25 or 1.5 (default: 1); `mode` specifies resolution and refresh rate, such as `"1920x1080@60.000"` (the preferred mode is used when omitted or unsupported); `rotation` is in degrees (0, 90, 180, or 270); `vrr = true` enables variable refresh rate on supported monitors; `enabled = false` turns off a display, but the last active display is never disabled.
 
-O gerenciador de login (SDDM, GDM…) lista a sessão **Sparky** pelo `data/session/sparky.desktop`, instalado em `/usr/share/wayland-sessions`, que abre o `sparky` com `XDG_CURRENT_DESKTOP=sparky`. Ao subir direto no hardware, o sparky:
+`hdr = true` sends HDR10 (BT.2020 colors, PQ transfer function, static metadata, and 10 bits per color) to monitors whose EDID advertises PQ and BT.2020 and whose connector exposes `Colorspace`, `max bpc`, and `HDR_OUTPUT_METADATA`, provided the GPU supports FP16 composition. With HDR enabled, every frame on that monitor is converted to PQ: sRGB colors are converted to BT.2020 without oversaturation, and SDR white is set to 203 nits, the ITU-R BT.2408 reference value. These displays use neither direct scanout nor a hardware cursor plane, and screenshots remain SDR.
 
-- exporta `WAYLAND_DISPLAY`, `DISPLAY`, `XDG_CURRENT_DESKTOP`, `XDG_SESSION_TYPE` e `SPARKY_SOCKET` para o D-Bus e o systemd (`dbus-update-activation-environment --systemd`), para os portais e os serviços ativados acharem a sessão;
-- reinicia o `sparky-session.target` do usuário, que prende o `graphical-session.target`: os portais (`xdg-desktop-portal`, `-wlr`, `-gtk`) e os serviços da sessão gráfica que sobraram de uma sessão anterior param e voltam presos ao compositor atual, mesmo com o `systemd --user` vivo entre um login e outro (linger);
-- abre o chaveiro (`sparky-keyring`), o agente de autenticação (`polkit-sparky`), o guarda do bloqueio (`sparky-lockd`), as notificações nativas (`sparky-notifications`) e a barra (`sparky-bar`);
-- abre o autostart XDG (`~/.config/autostart` e `/etc/xdg/autostart`), respeitando `Hidden`, `OnlyShowIn`, `NotShowIn`, `TryExec` e `X-GNOME-Autostart-enabled`; um arquivo do usuário substitui o do sistema com o mesmo nome.
+Applications describe their content's color through `wp-color-management-v1` (sRGB, called `compound_power_2_4` in version 2 of the protocol, gamma 2.2, extended linear, and PQ transfer functions; sRGB, BT.2020, Display P3, and DCI-P3 primaries; Windows scRGB). The compositor converts each window for its display: in HDR, HDR content uses its declared brightness up to the display peak reported by EDID (1000 nits if unavailable); in SDR and screenshots, values above white are clipped without tone mapping. At session startup, the display starts in SDR and switches to HDR when it presents its first frame. If an HDR frame fails or the display rejects it, Sparky returns to SDR without changing `sparky.toml`, logs the reason, and retries on each configuration reload, such as when enabling HDR in Displays. The Displays section of sparky-settings saves these options and only offers HDR on supported displays. Applications receive their scale through fractional-scale-v1 and render sharply at that scale; changing the scale rearranges monitors side by side.
 
-Aninhado em outra sessão, nada disso acontece. Os portais usam `data/portals/sparky-portals.conf` (GTK, wlr para a tela e `sparky-keyring` para senhas), instalado em `/usr/share/xdg-desktop-portal`.
+Without `layout` in `[input]`, the system keyboard layout is used. Without `terminal` in `[apps]`, Sparky uses `$TERMINAL` or the first installed terminal, starting with `sparky-terminal`. `wallpaper` in `[general]` is the background image path (`~/` means the home directory); `wallpaper = ""` uses only the theme background color. If omitted, the first Tokyo Night wallpaper is used when `sparky-wallpapers` is installed. `wallpaper` in `[login]` sets the login screen wallpaper; when omitted, the desktop wallpaper is used.
 
-O `polkit-sparky` apresenta pedidos de autorização do sistema, como montar partições internas. A janela é própria do Sparky: usa a paleta ativa, a fonte e os cantos retos dos aplicativos nativos, com campo de senha, seleção dos usuários permitidos pelo sistema, Enter para confirmar, Tab para mudar o controle e Esc para cancelar. A paleta acompanha as mudanças de tema enquanto a janela está aberta.
+## Session
 
-A autenticação usa o polkit e o PAM do sistema por meio da biblioteca `libpolkit-agent-1`; os pacotes não dependem de outro agente gráfico. A senha solicitada é a da conta indicada pelo polkit e é independente da senha do cofre `sparky-keyring`. O agente não guarda essa senha. Cookies de autenticação são enviados ao processo da janela por um pipe privado, sem argumentos de linha de comando. Pedidos são serializados e cancelados quando a autoridade solicita ou a sessão termina. O registro é limitado à sessão logind atual. A inicialização automática ocorre no próximo login no Sparky.
+Login managers (SDDM, GDM, etc.) list the **Sparky** session through `data/session/sparky.desktop`, installed in `/usr/share/wayland-sessions`, which starts `sparky` with `XDG_CURRENT_DESKTOP=sparky`. When running directly on hardware, Sparky:
 
-## Barra
+- exports `WAYLAND_DISPLAY`, `DISPLAY`, `XDG_CURRENT_DESKTOP`, `XDG_SESSION_TYPE`, and `SPARKY_SOCKET` to D-Bus and systemd (`dbus-update-activation-environment --systemd`) so portals and activated services can find the session;
+- restarts the user's `sparky-session.target`, which anchors `graphical-session.target`: portals (`xdg-desktop-portal`, `-wlr`, `-gtk`) and graphical services left over from an earlier session stop and restart attached to the current compositor, even when `systemd --user` persists between logins (linger);
+- starts the keyring (`sparky-keyring`), authentication agent (`polkit-sparky`), lock daemon (`sparky-lockd`), native notifications (`sparky-notifications`), and bar (`sparky-bar`);
+- runs XDG autostart entries (`~/.config/autostart` and `/etc/xdg/autostart`), respecting `Hidden`, `OnlyShowIn`, `NotShowIn`, `TryExec`, and `X-GNOME-Autostart-enabled`; a user file overrides a system file with the same name.
 
-Uma barra de 26 px no topo de cada monitor, como a do Omarchy: as áreas de trabalho à esquerda (de 1 a 5 sempre, as outras até a 10 quando existem; a ativa vira um ponto, as vazias ficam apagadas, a 10 aparece como 0), o relógio no centro e a bandeja à direita. Clicar numa área vai para ela; o botão direito no relógio alterna entre `quarta 09:05` e `quarta, 07 de outubro de 2026`. A barra fala com o sparky pelo IPC e se atualiza a cada mudança.
+None of this happens when nested in another session. Portals use `data/portals/sparky-portals.conf` (GTK, wlr for screen capture, and `sparky-keyring` for passwords), installed in `/usr/share/xdg-desktop-portal`.
 
-A bandeja usa StatusNotifierItem pelo D-Bus. O clique esquerdo ativa o aplicativo ou abre o menu quando o item anuncia apenas um menu; o direito abre o menu. Escolher uma entrada habilitada ou pressionar Esc fecha o menu. A superfície também fecha quando o item desaparece ou o menu fica vazio.
+`polkit-sparky` displays system authorization requests, such as mounting internal partitions. Its native Sparky window uses the active palette, font, and square corners, with a password field, selection among users allowed by the system, Enter to confirm, Tab to switch controls, and Esc to cancel. The palette follows theme changes while the window is open.
 
-Os ícones simbólicos do tema de ícones ativo (Yaru nos temas distribuídos) acompanham a cor da barra. A busca respeita a herança do tema e prioriza as variantes simbólicas de rede, preservando os estados de conexão; ícones próprios e pixmaps continuam disponíveis como fallback. Rede, Bluetooth e itens que pedem atenção permanecem visíveis. Os demais aplicativos ficam numa área recolhível: passar o mouse na seta abre os ícones para a esquerda, com transição de 600 ms e desaceleração cúbica; sair recolhe, mantendo a área aberta enquanto seu menu está visível. Cada monitor tem seu próprio estado, e o temporizador da animação para ao terminar a transição. Itens passivos não aparecem.
+Authentication uses the system polkit and PAM through `libpolkit-agent-1`; packages do not depend on another graphical agent. The requested password belongs to the account selected by polkit and is independent of the `sparky-keyring` vault password. The agent does not store it. Authentication cookies reach the window process through a private pipe, not command-line arguments. Requests are serialized and canceled when requested by the authority or when the session ends. Registration is limited to the current logind session. Automatic startup takes effect on the next Sparky login.
 
-Os ícones de som, rede e Bluetooth abrem painéis nativos com o clique esquerdo; clicar novamente ou usar Esc fecha. O painel continua aberto quando outra superfície pega o teclado, como a seleção do `sparky-shot`, e por isso aparece na captura. Um painel aparece por vez, no monitor da interação, com fundo opaco, cantos retos e a paleta atual do Sparky. O restante da bandeja preserva os menus dos aplicativos e a gaveta animada. A barra fornece indicadores próprios de áudio e rede, evitando duplicá-los com applets; o indicador Bluetooth só aparece quando há adaptador.
+## Bar
 
-O painel de som controla volume, mudo, saída padrão, microfone e o volume individual dos aplicativos em reprodução pelo protocolo PulseAudio, compatível com PipeWire-Pulse. O cliente não abre fluxos de gravação ou reprodução. É necessário um servidor compatível em execução; o pacote exige a biblioteca cliente libpulse e recomenda PipeWire-Pulse. As mudanças de estado chegam por eventos e não por subprocessos de controle.
+A 26 px bar at the top of each monitor, like Omarchy's: workspaces on the left (1 through 5 always, the others up to 10 when they exist; the active one becomes a dot, empty ones are dimmed, and 10 appears as 0), the clock in the center, and the tray on the right. Clicking a workspace switches to it; right-clicking the clock toggles between `Wednesday 09:05` and `Wednesday, October 7, 2026`. The bar communicates with sparky over IPC and updates on every change.
 
-O painel de rede usa a API D-Bus do NetworkManager para mostrar interfaces, IPv4/gateway, conectividade e redes Wi-Fi; permite ligar/desligar o Wi-Fi, buscar redes, conectar/desconectar e escolher conexões salvas. Enquanto o painel está aberto, lê os contadores de tráfego da interface e mede ping e perda de pacotes por ICMP no gateway IPv4. O ping usa socket ICMP de datagrama, sem privilégios, permitido pelo `net.ipv4.ping_group_range` padrão do systemd; sem essa permissão ou sem gateway, o painel mostra "indisponível", e um pedido sem resposta aparece como "sem resposta". Novas redes abertas, WPA2-Personal e WPA3-Personal podem ser conectadas no próprio painel, com campo de senha e opção de lembrar. Perfis lembrados ficam no armazenamento protegido do NetworkManager; perfis temporários usam persistência volatile. Um agente de segredos limitado à conexão solicitada atende os pedidos de senha dessa operação. Redes corporativas e outros modos de segurança precisam de um perfil previamente configurado; o painel não configura VPN ou certificados. O botão Configurações de rede abre a seção Rede do sparky-settings, onde é possível selecionar uma conexão ativa e escolher entre DHCP e IPv4 manual. Em DHCP, a seção mostra o endereço IP, o gateway e o DNS recebidos do roteador, e os DNS primário e secundário informados podem ser usados junto com os do DHCP ou no lugar deles; a escolha atual do perfil é preservada. No modo manual, endereço IPv4/prefixo, gateway e DNS primário e secundário são editáveis, já preenchidos com o que o roteador entregou, e validados antes de salvar. Perfis com outros métodos IPv4, como compartilhado ou desativado, não aparecem para edição. Essa edição usa nmcli do NetworkManager, preserva as propriedades IPv6 e os endereços fixos extras de um perfil que continua em DHCP (sair do modo manual remove o endereço e o gateway manuais) e solicita a reaplicação da conexão; se a reaplicação não for possível, a configuração salva exige reconexão. Operações que exigem privilégios continuam usando polkit-sparky, com liberação temporária do teclado do painel para a autenticação.
+The tray uses StatusNotifierItem over D-Bus. Left-click activates the application or opens its menu when the item advertises only a menu; right-click opens the menu. Selecting an enabled entry or pressing Esc closes the menu. The surface also closes when the item disappears or the menu becomes empty.
 
-O painel Bluetooth usa BlueZ para ligar/desligar adaptadores, listar dispositivos, conectar/desconectar e parear novos aparelhos. A busca dura até 15 segundos e encerra somente a sessão de descoberta iniciada pela barra. O agente nativo de pareamento atende confirmação de código, PIN, passkey e autorização para operações iniciadas no painel; não assume o papel de agente padrão global para pedidos externos. Ao concluir um pareamento aprovado, marca o dispositivo como confiável e solicita a conexão. Fechar o painel cancela as perguntas pendentes e a descoberta do próprio cliente. Ausência de hardware, serviço indisponível e falhas de operação aparecem no painel. NetworkManager e BlueZ são serviços opcionais recomendados; sem eles, as funções correspondentes ficam indisponíveis.
+Symbolic icons from the active icon theme (Yaru in the bundled themes) follow the bar's color. Lookup respects theme inheritance and prioritizes symbolic network variants, preserving connection states; custom icons and pixmaps remain available as fallbacks. Network, Bluetooth, and items requesting attention remain visible. Other applications sit in a collapsible area: hovering over the arrow reveals the icons to the left, with a 600 ms transition and cubic ease-out; moving away collapses it, keeping the area open while its menu is visible. Each monitor has its own state, and the animation timer stops when the transition ends. Passive items are not shown.
+
+The sound, network, and Bluetooth icons open native panels on left-click; clicking again or pressing Esc closes them. The panel stays open when another surface takes keyboard focus, such as the `sparky-shot` selection, so it appears in the screenshot. One panel appears at a time, on the monitor where the interaction occurred, with an opaque background, square corners, and the current Sparky palette. The rest of the tray retains application menus and the animated drawer. The bar provides its own audio and network indicators, avoiding duplicates from applets; the Bluetooth indicator appears only when an adapter is present.
+
+The sound panel controls volume, mute, default output, microphone, and individual playback application volumes through the PulseAudio protocol, compatible with PipeWire-Pulse. The client does not open recording or playback streams. A compatible server must be running; the package requires the libpulse client library and recommends PipeWire-Pulse. State changes arrive through events rather than control subprocesses.
+
+The network panel uses NetworkManager's D-Bus API to display interfaces, IPv4/gateway, connectivity, and Wi-Fi networks; it can enable/disable Wi-Fi, scan for networks, connect/disconnect, and select saved connections. While the panel is open, it reads interface traffic counters and measures ping and packet loss via ICMP to the IPv4 gateway. Ping uses an unprivileged ICMP datagram socket, permitted by systemd's default `net.ipv4.ping_group_range`; without that permission or a gateway, the panel shows "unavailable", and an unanswered request appears as "no response". New open, WPA2-Personal, and WPA3-Personal networks can be connected directly from the panel, with a password field and a remember option. Remembered profiles remain in NetworkManager's protected storage; temporary profiles use volatile persistence. A secret agent scoped to the requested connection handles password requests for that operation. Enterprise networks and other security modes require a previously configured profile; the panel does not configure VPNs or certificates. The Network settings button opens the Network section in sparky-settings, where you can select an active connection and choose between DHCP and manual IPv4. In DHCP mode, the section displays the IP address, gateway, and DNS received from the router, and any entered primary and secondary DNS servers can be used alongside or instead of those from DHCP; the profile's current choice is preserved. In manual mode, the IPv4 address/prefix, gateway, and primary and secondary DNS servers are editable, prefilled with what the router supplied, and validated before saving. Profiles with other IPv4 methods, such as shared or disabled, are not offered for editing. This editing uses NetworkManager's nmcli, preserves IPv6 properties and extra static addresses in a profile that remains on DHCP (leaving manual mode removes the manual address and gateway), and requests that the connection be reapplied; if reapplication is not possible, the saved configuration requires reconnection. Operations requiring privileges continue to use polkit-sparky, with the panel temporarily releasing the keyboard for authentication.
+
+The Bluetooth panel uses BlueZ to enable/disable adapters, list devices, connect/disconnect, and pair new devices. Scanning lasts up to 15 seconds and ends only the discovery session started by the bar. The native pairing agent handles code confirmation, PIN, passkey, and authorization for operations initiated in the panel; it does not become the global default agent for external requests. After an approved pairing completes, it marks the device as trusted and requests a connection. Closing the panel cancels pending prompts and the client's own discovery session. Missing hardware, unavailable services, and operation failures appear in the panel. NetworkManager and BlueZ are recommended optional services; without them, the corresponding features are unavailable.
 
 ## IPC
 
-O sparky abre um socket em `$XDG_RUNTIME_DIR/sparky-<WAYLAND_DISPLAY>.sock` e exporta o caminho em `SPARKY_SOCKET` para os programas que abre. Cada pedido e cada resposta é uma linha de JSON.
+sparky opens a socket at `$XDG_RUNTIME_DIR/sparky-<WAYLAND_DISPLAY>.sock` and exports its path in `SPARKY_SOCKET` to the programs it launches. Each request and each response is a line of JSON.
 
 ```bash
-sparky-msg workspaces          # lista as áreas de trabalho
-sparky-msg focus-workspace 3   # vai para a área 3
-sparky-msg subscribe           # avisa a cada mudança nas áreas e no bloqueio
-sparky-msg reload              # relê o sparky.toml
-sparky-msg outputs             # lista os monitores e qual está em foco
-sparky-msg info                # versão do compositor, sessão, tema e cores em uso
-sparky-msg capture output tela.png                 # o monitor em foco
-sparky-msg capture window janela.png               # a janela em foco, sem a borda
-sparky-msg capture region 0 0 800 600 regiao.png   # região relativa ao monitor em foco
-sparky-msg session lock        # o mesmo que as opções do menu do sistema:
-sparky-msg session suspend     #   lock, suspend, logout, reboot e poweroff
-sparky-msg session unlock      # pede ao locker que desbloqueie (SIGUSR1)
+sparky-msg workspaces          # list workspaces
+sparky-msg focus-workspace 3   # switch to workspace 3
+sparky-msg subscribe           # notify on workspace and lock changes
+sparky-msg reload              # reread sparky.toml
+sparky-msg outputs             # list monitors and the focused one
+sparky-msg info                # compositor version, session, theme, and current colors
+sparky-msg capture output tela.png                 # the focused monitor
+sparky-msg capture window janela.png               # the focused window, without its border
+sparky-msg capture region 0 0 800 600 regiao.png   # region relative to the focused monitor
+sparky-msg session lock        # same as the system menu options:
+sparky-msg session suspend     #   lock, suspend, logout, reboot, and poweroff
+sparky-msg session unlock      # ask the locker to unlock (SIGUSR1)
 ```
 
-## Captura de tela
+## Screen capture
 
-O próprio sparky desenha a área pedida numa textura fora da tela (as mesmas janelas e camadas da tela, sem o cursor) e grava o PNG. O pedido chega pelo IPC (`capture`), com o monitor inteiro, a janela em foco ou uma região relativa a um monitor; uma região que sai da tela é cortada na borda.
+sparky itself draws the requested area into an offscreen texture (the same windows and layers as on screen, without the cursor) and saves the PNG. The request arrives over IPC (`capture`), targeting the entire monitor, the focused window, or a region relative to a monitor; a region extending offscreen is clipped at the edge.
 
-Programas de terceiros capturam monitor ou janela individual pelos protocolos `ext-image-copy-capture-v1` e `ext-image-capture-source-v1`, com lista de janelas por `ext-foreign-toplevel-list-v1`. O compositor desenha diretamente em DMA-BUF na GPU, e o `xdg-desktop-portal-wlr` leva a imagem ao OBS e aos navegadores pelo PipeWire. O seletor nativo respeita o tema do Sparky. Os pacotes incluem os portais e o PipeWire como dependências. Captura de janela exige o backend wlr 0.8.0 ou posterior; recomenda-se 0.8.4 ou posterior. O protocolo `wlr-screencopy-unstable-v1` continua compatível com `grim` e backends antigos, com SHM para screenshots e DMA-BUF para vídeo. Veja [configuração, arquitetura e validação de desempenho](docs/SCREENCAST.md).
+Third-party programs capture a monitor or an individual window through the `ext-image-copy-capture-v1` and `ext-image-capture-source-v1` protocols, with window listing through `ext-foreign-toplevel-list-v1`. The compositor renders directly into DMA-BUF on the GPU, and `xdg-desktop-portal-wlr` delivers the image to OBS and browsers through PipeWire. The native picker follows Sparky's theme. Packages include the portals and PipeWire as dependencies. Window capture requires wlr backend 0.8.0 or later; 0.8.4 or later is recommended. The `wlr-screencopy-unstable-v1` protocol remains compatible with `grim` and older backends, using SHM for screenshots and DMA-BUF for video. See [configuration, architecture, and performance validation](docs/SCREENCAST.md).
 
-O `sparky-shot` é o capturador que usa esse pedido:
+`sparky-shot` is the screenshot tool that uses this request:
 
-| Atalho | Comando | O que faz |
+| Shortcut | Command | Action |
 |---|---|---|
-| `PRINT` | `sparky-shot region` | Abre a seleção de região no monitor em foco |
-| `SHIFT + PRINT` | `sparky-shot window` | Captura a janela em foco |
-| `CTRL + PRINT` | `sparky-shot output` | Captura o monitor em foco |
-| `SUPER + PRINT` | `sparky-shot` | Abre o seletor: `R` região, `J` janela, `M` monitor, `Tab` troca o atraso (nenhum, 3, 5 ou 10 s), `Esc` cancela |
+| `PRINT` | `sparky-shot region` | Opens region selection on the focused monitor |
+| `SHIFT + PRINT` | `sparky-shot window` | Captures the focused window |
+| `CTRL + PRINT` | `sparky-shot output` | Captures the focused monitor |
+| `SUPER + PRINT` | `sparky-shot` | Opens the picker: `R` for region, `J` for window, `M` for monitor, `Tab` changes the delay (none, 3, 5, or 10 s), `Esc` cancels |
 
-Na seleção de região, as setas movem a área 10 px (1 px com `CTRL`), `SHIFT` com as setas redimensiona, `A` pega a tela toda, `Enter` captura e `Esc` cancela. Arrastar com o mouse desenha uma área nova. O atraso conta depois da seleção, para dar tempo de abrir um menu.
+During region selection, arrow keys move the area by 10 px (1 px with `CTRL`), `SHIFT` with arrow keys resizes it, `A` selects the whole screen, `Enter` captures, and `Esc` cancels. Dragging with the mouse draws a new area. The delay starts after selection, allowing time to open a menu.
 
-A imagem vai para `Capturas de tela` dentro da pasta de imagens (`XDG_PICTURES_DIR`, ou `~/Pictures`) com o nome `captura-AAAA-MM-DD_HH-MM-SS.png`, é copiada para a área de transferência pelo `wl-copy` e uma notificação avisa onde ficou (`notify-send`).
+The image is saved in `Capturas de tela` inside the pictures folder (`XDG_PICTURES_DIR`, or `~/Pictures`) as `captura-AAAA-MM-DD_HH-MM-SS.png`, copied to the clipboard through `wl-copy`, and a notification reports its location (`notify-send`).
 
-## Lançador
+## Launcher
 
-O `sparky-launcher` abre pelo `SUPER + ESPAÇO`: uma caixa no centro da tela com a busca já focada e a lista dos aplicativos instalados, com o nome no idioma do sistema. Digitar filtra (começo do nome primeiro, depois começo de palavra, trecho do nome, palavras-chave e descrição, e por fim as letras na ordem, como `ffx` para Firefox); setas, `Tab`/`SHIFT + Tab` ou `CTRL + N`/`P` (ou `J`/`K`) escolhem; `Enter` abre e `Esc` fecha. O clique também abre. A lista vem dos `.desktop` de `~/.local/share/applications` e das pastas de `XDG_DATA_DIRS` (Flatpak incluso), respeitando `NoDisplay`, `Hidden`, `OnlyShowIn`/`NotShowIn` e `TryExec`; aplicativos de terminal abrem no terminal escolhido, que o sparky passa aos programas em `TERMINAL`.
+`sparky-launcher` opens with `SUPER + SPACE`: a box in the center of the screen with search already focused and a list of installed applications, named in the system language. Typing filters the list (name prefixes first, then word prefixes, name substrings, keywords and description, and finally letters in order, such as `ffx` for Firefox); arrow keys, `Tab`/`SHIFT + Tab`, or `CTRL + N`/`P` (or `J`/`K`) select; `Enter` opens and `Esc` closes. Clicking also opens an application. The list comes from `.desktop` files in `~/.local/share/applications` and the `XDG_DATA_DIRS` directories (including Flatpak), respecting `NoDisplay`, `Hidden`, `OnlyShowIn`/`NotShowIn`, and `TryExec`; terminal applications open in the selected terminal, which sparky passes to programs in `TERMINAL`.
 
-### Menu do sistema
+### System menu
 
-`SUPER + ESC` abre o `sparky-launcher --system` (o `system_menu` de `[apps]`), com as mesmas teclas do lançador e cinco opções nesta ordem:
+`SUPER + ESC` opens `sparky-launcher --system` (`system_menu` in `[apps]`), with the same keys as the launcher and five options in this order:
 
-| Opção | O que faz |
+| Option | Action |
 |---|---|
-| Bloquear | Abre o locker de `[apps]`, se a tela ainda não estiver bloqueada |
-| Suspender | Bloqueia e suspende (`systemctl suspend`) assim que a tela trancar; se o locker não trancar em 5 segundos, suspende mesmo assim |
-| Sair da sessão | Pede para todas as janelas fecharem e encerra o sparky quando a última fechar |
-| Reiniciar | Fecha as janelas do mesmo jeito e roda `systemctl reboot` |
-| Desligar | Fecha as janelas do mesmo jeito e roda `systemctl poweroff` |
+| Lock | Opens the locker from `[apps]` if the screen is not already locked |
+| Suspend | Locks and suspends (`systemctl suspend`) as soon as the screen locks; if the locker does not lock within 5 seconds, suspends anyway |
+| Log out | Asks all windows to close and exits sparky when the last one closes |
+| Restart | Closes windows the same way and runs `systemctl reboot` |
+| Power off | Closes windows the same way and runs `systemctl poweroff` |
 
-Sair, Reiniciar e Desligar esperam os aplicativos fecharem sozinhos, como o hyprshutdown: nenhum é encerrado à força. Se depois de 8 segundos alguma janela continuar aberta (um aplicativo perguntando se quer salvar, por exemplo), o pedido é cancelado e uma notificação avisa quantas faltam; `SUPER + SHIFT + ESC` continua saindo na hora. Com o sparky aninhado em outra sessão, Suspender, Reiniciar e Desligar são recusados, para um teste nunca desligar a máquina; Bloquear e Sair funcionam.
+Log out, Restart, and Power off wait for applications to close on their own, like hyprshutdown: none are forcibly terminated. If any window remains open after 8 seconds (an application asking whether to save, for example), the request is canceled and a notification reports how many remain; `SUPER + SHIFT + ESC` still exits immediately. When sparky is nested in another session, Suspend, Restart, and Power off are rejected so a test never shuts down the machine; Lock and Log out work.
 
 ## Terminal
 
-O `sparky-terminal` é o terminal padrão: o sparky o procura antes dos outros terminais instalados, então ele abre no `SUPER + ENTER` e nos aplicativos de terminal do lançador. Ele abre o zsh com a configuração do próprio sparky (`ZDOTDIR=/usr/share/sparky/zsh`), sem ler o `~/.zshrc`, o oh-my-zsh ou o powerlevel10k do usuário; numa máquina nova ele já sai pronto. Para personalizar, copie a pasta para `~/.config/sparky/zsh/` (respeitando `XDG_CONFIG_HOME`): com um `.zshrc` lá, ela substitui a do sistema. Sem zsh instalado, abre o shell da conta. O shell recebe `TERM=xterm-256color`, `COLORTERM=truecolor` e `TERM_PROGRAM=sparky-terminal`. Com `fetch_on_start = true` em `[terminal]` no `sparky.toml` (desligado por padrão), cada aba que abre o shell mostra antes o `sparky-fetch` na largura da aba; abas com `-e comando` não mostram, e se o `sparky-fetch` faltar, falhar ou passar de 1,5 s, a aba abre normalmente sem ele.
+`sparky-terminal` is the default terminal: sparky looks for it before other installed terminals, so it opens with `SUPER + ENTER` and for terminal applications in the launcher. It launches zsh with sparky's own configuration (`ZDOTDIR=/usr/share/sparky/zsh`), without reading the user's `~/.zshrc`, oh-my-zsh, or powerlevel10k; it is ready to use on a new machine. To customize it, copy the folder to `~/.config/sparky/zsh/` (respecting `XDG_CONFIG_HOME`): with a `.zshrc` there, it replaces the system configuration. Without zsh installed, it launches the account's shell. The shell receives `TERM=xterm-256color`, `COLORTERM=truecolor`, and `TERM_PROGRAM=sparky-terminal`. With `fetch_on_start = true` in `[terminal]` in `sparky.toml` (disabled by default), each tab that launches the shell first displays `sparky-fetch` at the tab's width; tabs using `-e comando` do not, and if `sparky-fetch` is missing, fails, or takes longer than 1.5 s, the tab opens normally without it.
 
-A configuração (`data/zsh/`) reproduz a do powerlevel10k *rainbow* em zsh puro, nas cores do tema:
+The configuration (`data/zsh/`) reproduces powerlevel10k's *rainbow* setup in pure zsh, using the theme's colors:
 
-- prompt em duas linhas com moldura `╭─`/`╰─`, a pasta em azul, o git em verde (limpo) ou amarelo (com mudanças) com ramo, `⇣⇡`, `*` stash, `~` conflitos, `+` preparados, `!` alterados e `?` novos, o pontilhado até a direita, `✔` ou `✘ código`, o tempo do comando a partir de 3 segundos, tarefas em segundo plano e a hora; depois de executar, o prompt anterior encolhe para `❯`;
-- histórico de 50 mil linhas em `~/.local/state/sparky/zsh_history`, completação com menu e sem diferenciar maiúsculas, setas buscando pelo começo da linha, `CTRL + ←/→` por palavra;
-- aliases do git (`gst`, `gco`, `gcb`, `gaa`, `gcmsg`, `gp`, `gpsup`, `glog` e outros no padrão do oh-my-zsh), `copyfile`, `CTRL + O` copiando a linha (copybuffer), `ALT + ←/→/↑` voltando, avançando e subindo entre pastas (dirhistory), `google`, `ddg`, `github`, `youtube`, `wiki` e `stackoverflow` (web-search), e o autojump e o fzf quando instalados;
-- `zsh-autosuggestions` e `zsh-syntax-highlighting` dos pacotes da distribuição, que o sparky instala junto.
+- a two-line prompt with a `╭─`/`╰─` frame, the directory in blue, git in green (clean) or yellow (with changes) with the branch, `⇣⇡`, `*` stash, `~` conflicts, `+` staged, `!` modified, and `?` new files, a dotted line to the right, `✔` or `✘ code`, command duration from 3 seconds onward, background jobs, and the time; after execution, the previous prompt shrinks to `❯`;
+- 50,000 lines of history in `~/.local/state/sparky/zsh_history`, case-insensitive menu completion, arrow keys searching by the beginning of the line, and `CTRL + ←/→` moving by word;
+- git aliases (`gst`, `gco`, `gcb`, `gaa`, `gcmsg`, `gp`, `gpsup`, `glog`, and others following oh-my-zsh conventions), `copyfile`, `CTRL + O` to copy the line (copybuffer), `ALT + ←/→/↑` to go back, forward, and up between directories (dirhistory), `google`, `ddg`, `github`, `youtube`, `wiki`, and `stackoverflow` (web-search), plus autojump and fzf when installed;
+- `zsh-autosuggestions` and `zsh-syntax-highlighting` from distribution packages, which sparky installs alongside it.
 
-A emulação (PTY, sequências VT/xterm, histórico de 10 mil linhas e seleção) vem da biblioteca `alacritty_terminal`; a janela, o desenho das células, o teclado e as cores são do sparky. O texto usa a JetBrainsMono Nerd Font em 12 px, com a margem de 18 px e os cantos retos do sparky, e mede a célula com o mesmo motor de texto que desenha, para as colunas não desalinharem. Negrito, itálico, sublinhado, riscado, inverso, esmaecido, 256 cores, truecolor, caracteres largos e os glifos da Nerd Font aparecem como no kitty.
+Emulation (PTY, VT/xterm sequences, 10,000 lines of history, and selection) comes from the `alacritty_terminal` library; the window, cell rendering, keyboard handling, and colors are sparky's. Text uses JetBrainsMono Nerd Font at 12 px, with an 18 px margin and sparky's square corners, and cell measurements use the same text engine as rendering so columns stay aligned. Bold, italic, underline, strikethrough, inverse, dim, 256 colors, truecolor, wide characters, and Nerd Font glyphs appear as they do in kitty.
 
-As cores seguem o tema do sparky, inclusive com o terminal aberto: as 16 cores ANSI saem do `colors.toml` na mesma ordem que o Omarchy usa no kitty (`background`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `foreground`, `muted` e as `bright_*`), o cursor e a seleção usam `bright_foreground` e `selection`, e aplicar outro tema no painel recolore o terminal em até um segundo. Cores trocadas por um programa (OSC 4, 10, 11 e 12) valem até o programa desfazer.
+Colors follow sparky's theme, including while the terminal is open: the 16 ANSI colors come from `colors.toml` in the same order Omarchy uses in kitty (`background`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `foreground`, `muted`, and the `bright_*` colors), the cursor and selection use `bright_foreground` and `selection`, and applying another theme in the settings panel recolors the terminal within one second. Colors changed by a program (OSC 4, 10, 11, and 12) remain until the program resets them.
 
-| Tecla | O que faz |
+| Key | Action |
 |---|---|
-| `CTRL + SHIFT + C` ou `CTRL + INSERT` | Copia a seleção |
-| `CTRL + SHIFT + V` ou `SHIFT + INSERT` | Cola, entre as marcas de bracketed paste quando o programa pede, sem deixar o texto colado fechar o bloco |
-| `SHIFT + PGUP` / `SHIFT + PGDN` | Rola o histórico uma página |
-| `SHIFT + HOME` / `SHIFT + END` | Vai para o começo ou o fim do histórico |
-| `CTRL + SHIFT + T` | Cria uma aba com um novo shell |
-| `CTRL + SHIFT + Q` | Fecha a aba atual |
-| `CTRL + SHIFT + ←/→` | Alterna entre abas, voltando pelas extremidades |
-| Clique no botão do meio | Cola a seleção primária |
-| `SHIFT + ENTER` / `ALT + SHIFT + ENTER` | Envia `\e[13;2u` / `\e[13;4u`, como no kitty |
+| `CTRL + SHIFT + C` or `CTRL + INSERT` | Copies the selection |
+| `CTRL + SHIFT + V` or `SHIFT + INSERT` | Pastes between bracketed paste markers when requested by the program, preventing pasted text from closing the block |
+| `SHIFT + PGUP` / `SHIFT + PGDN` | Scrolls history by one page |
+| `SHIFT + HOME` / `SHIFT + END` | Goes to the beginning or end of history |
+| `CTRL + SHIFT + T` | Creates a tab with a new shell |
+| `CTRL + SHIFT + Q` | Closes the current tab |
+| `CTRL + SHIFT + ←/→` | Switches tabs, wrapping at either end |
+| Middle-click | Pastes the primary selection |
+| `SHIFT + ENTER` / `ALT + SHIFT + ENTER` | Sends `\e[13;2u` / `\e[13;4u`, as in kitty |
 
-O mouse seleciona arrastando com o botão esquerdo; soltar publica o texto na seleção primária, separada da área de transferência de `CTRL + SHIFT + C/V`. Clicar na rodinha cola essa seleção, inclusive quando vem de outro aplicativo. A roda rola o histórico. Quando o programa solicita eventos de mouse, recebe a roda com as coordenadas da célula no formato pedido (SGR, UTF-8 ou legado), nos buffers principal e alternativo. Sem essa solicitação, a roda em tela alternativa (`less`, `man`) continua virando setas. Movimentos fracionários são acumulados até completar uma linha. Digitar volta ao fim do histórico e limpa a seleção. O título da janela vem do shell da aba ativa. Cada aba mantém seu PTY, histórico, seleção e rolagem, e os programas continuam funcionando nas abas inativas. O fim de um shell fecha somente sua aba; fechar a última encerra a janela. Uma colagem assíncrona permanece vinculada à aba que a pediu e é descartada se ela já tiver sido fechada.
+Dragging with the left mouse button selects text; releasing it publishes the text to the primary selection, separate from the `CTRL + SHIFT + C/V` clipboard. Clicking the wheel pastes that selection, including when it comes from another application. The wheel scrolls history. When a program requests mouse events, it receives wheel events with cell coordinates in the requested format (SGR, UTF-8, or legacy), in both the main and alternate buffers. Without such a request, the wheel in the alternate screen (`less`, `man`) continues to generate arrow keys. Fractional movements accumulate until they reach a full line. Typing returns to the end of history and clears the selection. The window title comes from the active tab's shell. Each tab keeps its own PTY, history, selection, and scroll position, and programs continue running in inactive tabs. A shell exiting closes only its tab; closing the last tab exits the window. An asynchronous paste remains bound to the tab that requested it and is discarded if that tab has already closed.
 
 ```bash
-sparky-terminal                       # o shell do usuário
-sparky-terminal -d ~/Projetos         # começando nessa pasta
-sparky-terminal -e htop               # roda um comando; o resto da linha são os argumentos dele
+sparky-terminal                       # the user's shell
+sparky-terminal -d ~/Projetos         # starting in this directory
+sparky-terminal -e htop               # run a command; the rest of the line is its arguments
 ```
 
-A barra de abas usa a fonte, as cores e os cantos retos do Sparky e acompanha o tema ao vivo. Clique no título para alternar, em `×` para fechar ou em `+` para criar. Muitas abas podem ser percorridas pela rolagem horizontal; a aba escolhida pelo teclado é trazida para a área visível. A primeira aba respeita `-e` e `-d`; as seguintes abrem o shell do Sparky na pasta inicial escolhida por `-d`, quando informada. Os atalhos de abas são tratados pelo terminal antes do envio ao PTY; `CTRL + C` continua interrompendo comandos. Divisões de janelas continuam com o mosaico e os grupos do Sparky. O envio de mouse aos programas cobre somente a roda vertical; cliques e arrastos continuam dedicados à seleção e colagem do terminal. O protocolo de teclado do kitty ainda não está implementado.
+The tab bar uses Sparky's font, colors, and square corners, and follows theme changes live. Click a title to switch, `×` to close, or `+` to create. Many tabs can be browsed with horizontal scrolling; a tab selected by keyboard is brought into view. The first tab respects `-e` and `-d`; subsequent tabs launch Sparky's shell in the initial directory selected by `-d`, when provided. Tab shortcuts are handled by the terminal before being sent to the PTY; `CTRL + C` still interrupts commands. Window splits remain handled by Sparky's tiling and groups. Mouse forwarding to programs covers only the vertical wheel; clicks and drags remain dedicated to terminal selection and pasting. The kitty keyboard protocol is not yet implemented.
 
 ## sparky-fetch
 
-O `sparky-fetch` mostra no terminal as informações do sistema e da sessão, com o logotipo do Sparky ao lado. Do Linux, ele lê direto do sistema: sistema, kernel, tempo ligado, CPU, GPU, memória, disco, terminal, shell e pacotes (pacman, dpkg, rpm e flatpak). Do Sparky, consulta o compositor pelo IPC: versão, sessão Wayland, monitores, resolução, tema e cores do tema. Ícones e fonte vêm das configurações do GTK que o sparky-settings grava. Fora de uma sessão do Sparky, ou com o compositor sem resposta, as informações do Linux continuam aparecendo.
+`sparky-fetch` displays system and session information in the terminal, with the Sparky logo alongside it. For Linux, it reads directly from the system: OS, kernel, uptime, CPU, GPU, memory, disk, terminal, shell, and packages (pacman, dpkg, rpm, and flatpak). For Sparky, it queries the compositor over IPC: version, Wayland session, monitors, resolution, theme, and theme colors. Icons and font come from the GTK settings written by sparky-settings. Outside a Sparky session, or when the compositor does not respond, Linux information is still displayed.
 
 ```bash
-sparky-fetch                                # no terminal: visual e colorido; num pipe: texto simples
-sparky-fetch --json                         # todos os campos, com o estado de cada um
-sparky-fetch --fields os,kernel,memory      # escolhe os campos e a ordem (--list-fields lista todos)
+sparky-fetch                                # in a terminal: visual and colorful; in a pipe: plain text
+sparky-fetch --json                         # all fields, with each field's status
+sparky-fetch --fields os,kernel,memory      # choose fields and their order (--list-fields lists all)
 sparky-fetch --hide gpu,packages --no-logo
 sparky-fetch --layout stacked --width 60 --accent '#ff9e64'
 ```
 
-A configuração fica em `~/.config/sparky-fetch/config.toml` (respeitando `XDG_CONFIG_HOME`); o que vem pela linha de comando vale sobre o arquivo, e o arquivo vale sobre os padrões. `--config` usa outro arquivo e `--no-config` não lê nenhum.
+Configuration lives in `~/.config/sparky-fetch/config.toml` (respecting `XDG_CONFIG_HOME`); command-line options override the file, and the file overrides defaults. `--config` uses another file and `--no-config` reads none.
 
 ```toml
 fields = ["os", "kernel", "cpu", "memory", "compositor", "theme", "colors"]
 hide = ["gpu"]
-format = "visual"      # visual, json ou plain
-color = "auto"         # auto, always ou never (NO_COLOR também desliga)
+format = "visual"      # visual, json, or plain
+color = "auto"         # auto, always, or never (NO_COLOR also disables it)
 logo = true
-layout = "classic"     # classic (logotipo ao lado) ou stacked (logotipo acima)
+layout = "classic"     # classic (logo alongside) or stacked (logo above)
 width = 90
 timeout_ms = 400
 
 [colors]
-accent = "#7aa2f7"     # logotipo e rótulos; sem ele, vale o destaque do tema
+accent = "#7aa2f7"     # logo and labels; without it, the theme's accent is used
 label = "#7aa2f7"
 value = "#c0caf5"
 ```
 
-No modo visual, o logotipo passa para cima quando a largura não comporta os dois lado a lado e some quando nem ele cabe; valores longos são cortados com `…`. No JSON, cada campo traz `status`: `ready` (com `value`), `unavailable` (com `reason`: `missing`, `no_compositor`, `unsupported` ou `uncollected`), `timed_out` ou `failed` (com `error`); na saída visual e no texto simples, tudo que não ficou pronto aparece como `N/A`. A coleta roda em paralelo, com até quatro coletores ao mesmo tempo e um prazo total (`timeout_ms`, 400 ms por padrão); o que não responde a tempo vira `timed_out` sem segurar o resto. Um compositor anterior ao pedido `info` do IPC responde só monitores e resolução, e os outros campos do Sparky ficam como `unsupported`. Para o `sparky-terminal` abrir cada aba com o `sparky-fetch`, use `fetch_on_start = true` em `[terminal]` no `sparky.toml` (veja [Terminal](#terminal)).
+In visual mode, the logo moves above the information when the width cannot fit both side by side, and disappears when even the logo does not fit; long values are truncated with `…`. In JSON, each field includes `status`: `ready` (with `value`), `unavailable` (with `reason`: `missing`, `no_compositor`, `unsupported`, or `uncollected`), `timed_out`, or `failed` (with `error`); in visual and plain-text output, anything that is not ready appears as `N/A`. Collection runs in parallel, with up to four collectors at once and an overall deadline (`timeout_ms`, 400 ms by default); anything that does not respond in time becomes `timed_out` without holding up the rest. A compositor predating the IPC `info` request returns only monitors and resolution, and the other Sparky fields become `unsupported`. To have `sparky-terminal` open each tab with `sparky-fetch`, use `fetch_on_start = true` in `[terminal]` in `sparky.toml` (see [Terminal](#terminal)).
 
-## Chaveiro
+## Keyring
 
-O `sparky-keyring` guarda as senhas e tokens que os aplicativos pedem para lembrar (navegadores, VS Code, git com `libsecret`, clientes de e-mail). Ele atende o nome `org.freedesktop.secrets` no D-Bus da sessão com a API Secret Service, a mesma do gnome-keyring, então os aplicativos funcionam sem configuração. Para os aplicativos Flatpak, atende também o portal de segredos (`data/portals/sparky-keyring.portal`).
+`sparky-keyring` stores passwords and tokens that applications ask to remember (browsers, VS Code, git with `libsecret`, email clients). It owns the `org.freedesktop.secrets` name on the session D-Bus with the Secret Service API, the same one used by gnome-keyring, so applications work without configuration. For Flatpak applications, it also provides the secrets portal (`data/portals/sparky-keyring.portal`).
 
-- O cofre fica em `~/.local/share/sparky/keyrings/login.json` (respeitando `XDG_DATA_HOME`), com a pasta só para o dono (700) e o arquivo também (600). Cada gravação substitui o arquivo de uma vez, sem deixar o cofre pela metade.
-- O conteúdo é cifrado com XChaCha20-Poly1305 por uma chave derivada da senha pelo Argon2id (64 MiB, 3 passagens). Rótulos, atributos e segredos só existem cifrados; para a busca funcionar com o cofre trancado, o arquivo guarda um resumo SHA-256 de cada atributo, protegido contra alteração junto com o conteúdo.
-- A senha do cofre é própria, separada da senha de login. Na primeira vez que um aplicativo quer guardar algo, o `sparky-keyring-prompt` pede para criar a senha (duas vezes, para conferir); depois, na primeira vez em cada sessão que um aplicativo precisa de uma senha guardada, pede para destrancar. Senha errada pede de novo; `Esc` cancela e o aplicativo recebe a recusa.
-- O cofre fica destrancado até a sessão acabar: quando o compositor fecha, o `sparky-keyring` encerra e a chave some da memória.
-- Há um cofre só, o padrão (`default`/`login`). O transporte das senhas pelo D-Bus usa o algoritmo `plain` da especificação; aplicativos que pedem o algoritmo cifrado recebem a recusa e repetem com `plain`, como manda a especificação.
+- The vault lives at `~/.local/share/sparky/keyrings/login.json` (respecting `XDG_DATA_HOME`), with an owner-only directory (700) and file (600). Each write replaces the file atomically, never leaving a partially written vault.
+- Contents are encrypted with XChaCha20-Poly1305 using a key derived from the password with Argon2id (64 MiB, 3 passes). Labels, attributes, and secrets are stored only in encrypted form; to allow searching while the vault is locked, the file stores a SHA-256 digest of each attribute, protected against tampering together with the contents.
+- The vault has its own password, separate from the login password. The first time an application wants to store something, `sparky-keyring-prompt` asks you to create a password (twice, to confirm); afterward, the first time in each session that an application needs a stored password, it asks you to unlock the vault. A wrong password prompts again; `Esc` cancels and the application receives a refusal.
+- The vault stays unlocked until the session ends: when the compositor closes, `sparky-keyring` exits and the key is removed from memory.
+- There is a single vault, the default (`default`/`login`). Password transport over D-Bus uses the specification's `plain` algorithm; applications requesting the encrypted algorithm receive a refusal and retry with `plain`, as required by the specification.
 
-Se outro chaveiro (gnome-keyring, KWallet) já tiver o nome `org.freedesktop.secrets` quando a sessão subir, o `sparky-keyring` avisa no log e não sobe; as senhas continuam com o outro chaveiro. As senhas que já estavam no gnome-keyring não são copiadas: cada aplicativo pede login uma vez dentro do sparky.
+If another keyring (gnome-keyring, KWallet) already owns `org.freedesktop.secrets` when the session starts, `sparky-keyring` logs a warning and does not start; passwords remain with the other keyring. Passwords already in gnome-keyring are not copied: each application asks you to log in once within sparky.
 
-## Tela de login
+## Login screen
 
-O `sparky-login-greeter` é a tela de login própria do sparky, feita para substituir o SDDM, o GDM e afins. À esquerda, em 40% da largura, ficam o relógio em 12 horas (`06:19 PM`), a data (`Monday 2 November`), o usuário, a senha, o botão **Login**, os botões **Desligar**, **Reiniciar** e **Suspend** e a sessão (`Session (Sparky)`); essa faixa recebe um desfoque leve do papel de parede, que cobre a tela sem distorcer. Os tamanhos seguem a altura da tela (em 1080 linhas, o relógio tem 156 px e os campos 39 px) e as cores vêm do tema do sparky.
+`sparky-login-greeter` is sparky's own login screen, designed to replace SDDM, GDM, and similar tools. On the left, occupying 40% of the width, are the 12-hour clock (`06:19 PM`), date (`Monday 2 November`), username, password, **Login** button, **Power off**, **Restart**, and **Suspend** buttons, and session (`Session (Sparky)`); this strip has a lightly blurred wallpaper background, with the wallpaper covering the screen without distortion. Sizes scale with screen height (at 1080 lines, the clock is 156 px and the fields are 39 px), and colors come from sparky's theme.
 
-- O nome de usuário fica em minúsculas; com o último usuário já preenchido, o foco começa na senha.
-- `Tab` e `SHIFT + Tab` passam por usuário, senha, Login, energia e sessão; `Enter` confirma o que está em foco, e na sessão passa para a próxima.
-- O olho no campo da senha mostra e esconde o que foi digitado.
-- As sessões vêm dos `.desktop` de `wayland-sessions` em `$XDG_DATA_DIRS` (sem a variável, `/usr/local/share` e `/usr/share`), sem as ocultas e as que não estão instaladas; a primeira pasta vence quando o arquivo se repete, e sem preferência vale o Sparky.
-- Senha errada apaga a senha e mostra `Falha no login!` acima do usuário.
+- The username is lowercase; with the last user already filled in, focus starts in the password field.
+- `Tab` and `SHIFT + Tab` move through username, password, Login, power controls, and session; `Enter` activates the focused control, and advances to the next option in the session selector.
+- The eye in the password field shows and hides the entered text.
+- Sessions come from `.desktop` files in `wayland-sessions` under `$XDG_DATA_DIRS` (without the variable, `/usr/local/share` and `/usr/share`), excluding hidden and uninstalled sessions; the first directory wins when a filename is repeated, and Sparky is used when there is no preference.
+- A wrong password clears the password and displays `Login failed!` above the username.
 
-A sessão escolhida fica guardada junto com o usuário: no próximo login, os dois já vêm escolhidos.
+The selected session is saved together with the user: both are preselected at the next login.
 
-### Serviço de login
+### Login service
 
-O `sparky-login` é o serviço do sistema que substitui o SDDM e o GDM. Ele roda como root pelo `sparky-login.service`, ocupa o terminal 1 e, a cada tela de login, abre o compositor em modo restrito (`sparky --login-screen sparky-login-greeter`) como o usuário de sistema `sparky-login`, numa sessão do logind de classe `greeter`. Nesse modo o compositor não tem atalhos, autostart, IPC nem XWayland; só a troca de terminal (`CTRL + ALT + F1` a `F12`) continua valendo, e ele fecha quando a tela fecha.
+`sparky-login` is the system service that replaces SDDM and GDM. It runs as root through `sparky-login.service`, occupies terminal 1, and launches the compositor in restricted mode (`sparky --login-screen sparky-login-greeter`) for each login screen, as the `sparky-login` system user in a logind session of class `greeter`. In this mode, the compositor has no shortcuts, autostart, IPC, or XWayland; only terminal switching (`CTRL + ALT + F1` through `F12`) remains available, and it exits when the login screen closes.
 
-- A tela fala com o serviço por `/run/sparky-login/greeter.sock`, que só o usuário `sparky-login` acessa (0600, conferido pela credencial do processo do outro lado).
-- Cada tentativa de login roda num processo próprio (`sparky-login --worker`), que autentica pelo serviço PAM `sparky-login` (`pam_authenticate` e `pam_acct_mgmt`). Senha errada, usuário desconhecido e tentativas demais dão a mesma recusa; senha ou conta expirada explicam o motivo.
-- Com a senha certa, o serviço guarda o usuário e a sessão em `/var/lib/sparky-login/memory.json`, espera a tela fechar e abre a sessão: `XDG_SESSION_TYPE=wayland`, `XDG_SESSION_CLASS=user`, `XDG_SEAT=seat0`, `XDG_VTNR`, `XDG_SESSION_DESKTOP` (o nome do `.desktop`) e `XDG_CURRENT_DESKTOP` (o `DesktopNames` dele) para o `pam_systemd`, credenciais e sessão do PAM, e o `Exec` da sessão pelo shell de login do usuário (`$SHELL -l -c`), já com os grupos, o gid e o uid dele e o terminal como terminal de controle.
-- Quando a sessão acaba, o serviço fecha a sessão do PAM e abre a tela de novo. Se a tela cair, ela volta sozinha; se não fechar depois do login, recebe `SIGTERM` depois de 10 s.
-- Desligar, Reiniciar e Suspend pedem ao logind (`PowerOff`, `Reboot`, `Suspend`).
-- O PAM próprio não liga o gnome-keyring: dentro do sparky, as senhas ficam com o `sparky-keyring`.
-- A tela usa as cores e o papel de parede de quem entrou por último. No começo e no fim de cada sessão, o serviço lê, com as permissões do próprio usuário, o `colors.toml` do tema e a imagem escolhida para a tela de login (sem escolha, a da área de trabalho) e guarda uma cópia em `/var/lib/sparky-login/appearance`, que só o root e a tela leem. A imagem precisa ser um arquivo comum de até 32 MiB. Sem a cópia, valem o tema e o papel de parede padrão.
+- The screen communicates with the service through `/run/sparky-login/greeter.sock`, accessible only to the `sparky-login` user (0600, checked against the peer process credentials).
+- Each login attempt runs in its own process (`sparky-login --worker`), which authenticates through the `sparky-login` PAM service (`pam_authenticate` and `pam_acct_mgmt`). Wrong passwords, unknown users, and too many attempts produce the same refusal; expired passwords or accounts explain the reason.
+- With the correct password, the service saves the user and session in `/var/lib/sparky-login/memory.json`, waits for the screen to close, and starts the session: `XDG_SESSION_TYPE=wayland`, `XDG_SESSION_CLASS=user`, `XDG_SEAT=seat0`, `XDG_VTNR`, `XDG_SESSION_DESKTOP` (the `.desktop` name), and `XDG_CURRENT_DESKTOP` (its `DesktopNames`) for `pam_systemd`, PAM credentials and session, and the session's `Exec` through the user's login shell (`$SHELL -l -c`), with the user's groups, gid, and uid already set and the terminal as its controlling terminal.
+- When the session ends, the service closes the PAM session and opens the login screen again. If the screen crashes, it restarts automatically; if it does not close after login, it receives `SIGTERM` after 10 s.
+- Power off, Restart, and Suspend send requests to logind (`PowerOff`, `Reboot`, `Suspend`).
+- The dedicated PAM configuration does not start gnome-keyring: within sparky, passwords are managed by `sparky-keyring`.
+- The screen uses the colors and wallpaper of the last user to log in. At the beginning and end of each session, the service reads, with the user's own permissions, the theme's `colors.toml` and the image selected for the login screen (the desktop image if none was selected), and stores a copy in `/var/lib/sparky-login/appearance`, readable only by root and the login screen. The image must be a regular file no larger than 32 MiB. Without the copy, the default theme and wallpaper are used.
 
-Os pacotes instalam o serviço, o usuário (`sysusers.d`), a pasta da tela (`tmpfiles.d`) e os dois arquivos do PAM (`/etc/pam.d/sparky-login`, do jeito de cada distribuição, e `/etc/pam.d/sparky-login-greeter`), mas não habilitam o serviço. Para trocar o SDDM pelo sparky-login:
+Packages install the service, user (`sysusers.d`), screen directory (`tmpfiles.d`), and both PAM files (`/etc/pam.d/sparky-login`, tailored to each distribution, and `/etc/pam.d/sparky-login-greeter`), but do not enable the service. To replace SDDM with sparky-login:
 
 ```sh
 sudo systemctl disable sddm
@@ -310,245 +332,245 @@ sudo systemctl enable sparky-login
 sudo reboot
 ```
 
-Para voltar, entre num terminal com `CTRL + ALT + F2`, faça login e rode `sudo systemctl disable sparky-login && sudo systemctl enable sddm && sudo reboot`. O log do serviço fica no journal: `journalctl -u sparky-login -b`.
+To switch back, enter a terminal with `CTRL + ALT + F2`, log in, and run `sudo systemctl disable sparky-login && sudo systemctl enable sddm && sudo reboot`. The service log is in the journal: `journalctl -u sparky-login -b`.
 
-A prévia abre em qualquer sessão Wayland com layer-shell: `sparky-login-greeter --preview [--wallpaper <imagem>]`. Sem `--wallpaper`, vale o primeiro papel de parede do tema padrão. Na prévia nenhuma senha entra, os botões de energia não fazem nada e `Esc` fecha; na tela de verdade, `Esc` não fecha nada.
+The preview opens in any Wayland session with layer-shell: `sparky-login-greeter --preview [--wallpaper <imagem>]`. Without `--wallpaper`, the default theme's first wallpaper is used. In preview mode, no password is accepted, power buttons do nothing, and `Esc` closes the screen; on the real login screen, `Esc` does not close anything.
 
-## Tela de bloqueio
+## Lock screen
 
-O `sparky-lock` é a tela de bloqueio padrão do sparky (`locker` em `[apps]`), aberta pelo `SUPER + CTRL + L` e pelo Bloquear do menu do sistema. Ela tem o mesmo visual da tela de login: relógio, data, a faixa desfocada à esquerda, o nome do usuário fixo e o campo de senha, sem seletor de sessão nem botões de energia. As cores vêm do tema do sparky e o papel de parede é o da tela de login (`[login] wallpaper`; sem ele, o da área de trabalho).
+`sparky-lock` is sparky's default lock screen (`locker` in `[apps]`), opened with `SUPER + CTRL + L` and Lock in the system menu. It has the same appearance as the login screen: clock, date, blurred strip on the left, a fixed username, and password field, without a session selector or power buttons. Colors come from sparky's theme and the wallpaper is the login screen's (`[login] wallpaper`; without it, the desktop wallpaper).
 
-- A mesma tela aparece em cada monitor, e a senha digitada em qualquer um deles vale.
-- `Enter` ou **Unlock** conferem a senha pelo serviço PAM `sparky-lock` (no Arch e no Fedora, `auth include login`; no Debian, `common-auth`). Senha errada apaga a senha e mostra `Senha incorreta!`; as mensagens do próprio PAM, como a de conta bloqueada por tentativas demais, aparecem no lugar do aviso.
-- `Esc` apaga a senha digitada; o olho mostra e esconde a senha.
-- O bloqueio usa o protocolo ext-session-lock: o compositor só mostra a tela de bloqueio, os atalhos param e as capturas de tela são recusadas. Se o `sparky-lock` cair, a sessão continua bloqueada; para destrancar, entre num terminal (`Ctrl+Alt+F2`) e rode `WAYLAND_DISPLAY=wayland-1 sparky-lock` (o número do `WAYLAND_DISPLAY` é o da sessão), depois volte com `Ctrl+Alt+F1`.
+- The same screen appears on every monitor, and the password entered on any of them is accepted.
+- `Enter` or **Unlock** checks the password through the `sparky-lock` PAM service (on Arch and Fedora, `auth include login`; on Debian, `common-auth`). A wrong password clears the field and shows `Incorrect password!`; PAM's own messages, such as an account locked after too many attempts, replace that notice.
+- `Esc` clears the entered password; the eye shows and hides it.
+- Locking uses the ext-session-lock protocol: the compositor displays only the lock screen, shortcuts stop working, and screenshot requests are rejected. If `sparky-lock` crashes, the session stays locked; to unlock, enter a terminal (`Ctrl+Alt+F2`) and run `WAYLAND_DISPLAY=wayland-1 sparky-lock` (use the session's `WAYLAND_DISPLAY` number), then return with `Ctrl+Alt+F1`.
 
-O `sparky-lockd` sobe com a sessão e liga o bloqueio ao logind:
+`sparky-lockd` starts with the session and connects locking to logind:
 
-- `loginctl lock-session` (e quem pede o bloqueio ao logind) abre o locker; `loginctl unlock-session` pede ao locker que desbloqueie, mandando `SIGUSR1` para ele (o `sparky-lock`, o `swaylock` e o `hyprlock` desbloqueiam com esse sinal).
-- Antes de suspender, por qualquer caminho (menu, `systemctl suspend`, tampa do notebook), ele segura a suspensão com um inibidor de atraso do logind até a tela estar bloqueada; se o bloqueio não vier em 5 segundos, a suspensão segue assim mesmo.
-- A dica `LockedHint` da sessão no logind acompanha o bloqueio, para outros programas saberem que a tela está bloqueada.
-- O compositor avisa no IPC quando bloqueia e desbloqueia (`sparky-msg subscribe` mostra `locked` e `unlocked`) e aceita `sparky-msg session unlock`.
+- `loginctl lock-session` (and anything requesting a lock through logind) opens the locker; `loginctl unlock-session` asks the locker to unlock by sending it `SIGUSR1` (`sparky-lock`, `swaylock`, and `hyprlock` unlock on this signal).
+- Before suspending through any path (menu, `systemctl suspend`, laptop lid), it holds off suspension with a logind delay inhibitor until the screen is locked; if locking does not happen within 5 seconds, suspension proceeds anyway.
+- The session's `LockedHint` in logind follows the lock state, letting other programs know the screen is locked.
+- The compositor announces locking and unlocking over IPC (`sparky-msg subscribe` shows `locked` and `unlocked`) and accepts `sparky-msg session unlock`.
 
-A sessão também bloqueia sozinha depois de um tempo sem teclado nem mouse: `idle_minutes` em `[lock]` (10 minutos por padrão; `0` desliga), também ajustável na seção Energia do sparky-settings (Nunca, 1, 2, 5, 10, 15 ou 30 minutos, ou 1 hora). Enquanto um programa pede para a tela não apagar, como um navegador ou player tocando vídeo, o tempo parado não bloqueia: vale o protocolo idle-inhibit e também o serviço `org.freedesktop.ScreenSaver` (`Inhibit`/`UnInhibit`) que o `sparky-lockd` oferece na sessão, usado pelo Firefox, pelo Chrome, pelo VLC e pelo portal `xdg-desktop-portal`; um pedido some sozinho quando o programa que o fez sai. O compositor também oferece o ext-idle-notify, para programas como o `swayidle` saberem quando a sessão está parada.
+The session also locks automatically after a period without keyboard or mouse input: `idle_minutes` in `[lock]` (10 minutes by default; `0` disables it), also adjustable in the Power section of sparky-settings (Never, 1, 2, 5, 10, 15, or 30 minutes, or 1 hour). While a program requests that the screen stay on, such as a browser or player playing video, idle time does not trigger locking: this supports both the idle-inhibit protocol and the `org.freedesktop.ScreenSaver` service (`Inhibit`/`UnInhibit`) provided by `sparky-lockd` in the session, used by Firefox, Chrome, VLC, and the `xdg-desktop-portal` portal; a request disappears automatically when the requesting program exits. The compositor also provides ext-idle-notify so programs such as `swayidle` can detect when the session is idle.
 
-## Arquivos
+## Files
 
-O `sparky-files` abre pelo `SUPER + SHIFT + F` (ou `sparky-files <pasta>`). Abre em grade, com ícones e nomes de pastas e arquivos, e permite alternar para a lista com tamanho e data pelos botões Grade/Lista ou por `CTRL + 1`/`CTRL + 2`. A grade se adapta à largura da janela; as pastas vêm primeiro, e a visualização se atualiza quando a pasta muda. Trocar a visualização preserva filtro, seleção e itens marcados.
+`sparky-files` opens with `SUPER + SHIFT + F` (or `sparky-files <folder>`). It opens in a grid, with icons and names for folders and files, and can switch to a list with size and date using the Grid/List buttons or `CTRL + 1`/`CTRL + 2`. The grid adapts to the window width; folders come first, and the view updates when the folder changes. Switching views preserves the filter, selection, and marked items.
 
-Os ícones seguem o tema configurado pelo painel no GTK, incluindo sua herança (`index.theme`). O gerenciador prefere os tamanhos do tema mais próximos de 96 px, inclusive as pastas em escala dupla (`48x48@2x`), para os ícones não ficarem borrados. Pastas especiais e tipos comuns de arquivo têm ícones próprios; sem um ícone instalado, o sparky desenha um ícone de reserva. Uma troca de tema atualiza os ícones sem fechar o gerenciador.
+Icons follow the theme configured by the settings panel in GTK, including its inheritance (`index.theme`). The file manager prefers the theme sizes closest to 96 px, including double-scale folders (`48x48@2x`), to keep icons from looking blurry. Special folders and common file types have their own icons; without an installed icon, sparky draws a fallback icon. Changing the theme updates the icons without closing the file manager.
 
-Imagens PNG, JPEG e WebP mostram uma miniatura do conteúdo no lugar do ícone. As miniaturas são geradas em segundo plano, duas por vez e só para os itens visíveis, a partir de arquivos de até 16 MiB e 8192 px de lado. Ficam em memória e são refeitas quando o arquivo muda; nada é gravado em disco. Arquivos maiores ou que não puderem ser lidos ficam com o ícone do tipo.
+PNG, JPEG, and WebP images display a content thumbnail instead of an icon. Thumbnails are generated in the background, two at a time and only for visible items, from files up to 16 MiB and 8192 px per side. They stay in memory and are regenerated when the file changes; nothing is written to disk. Larger files or files that cannot be read keep their file-type icon.
 
-A lateral também permite abrir a **Lixeira**. Ela mostra os itens de `~/.local/share/Trash/files`, incluindo os enviados por outros aplicativos para esse local. Selecione um item e use **Restaurar item** no topo ou no menu de contexto para devolvê-lo ao caminho registrado em seu `.trashinfo`; **Restaurar todos** devolve todos os itens da lixeira, inclusive os ocultos pelo filtro. **Esvaziar lixeira** pede confirmação antes de excluir permanentemente todos os itens, inclusive os ocultos pelo filtro. Se o destino já existir ou o registro estiver ausente/inválido, o item permanece na lixeira e o erro é exibido. Dentro da lixeira, criar, renomear, recortar, colar e mover novamente para a lixeira ficam indisponíveis; restaure o item antes de abri-lo.
+The sidebar also provides access to the **Trash**. It shows items from `~/.local/share/Trash/files`, including those sent there by other applications. Select an item and use **Restore item** at the top or in the context menu to return it to the path recorded in its `.trashinfo`; **Restore all** returns all items in the trash, including those hidden by the filter. **Empty trash** asks for confirmation before permanently deleting all items, including those hidden by the filter. If the destination already exists or the record is missing/invalid, the item stays in the trash and an error is displayed. Inside the trash, creating, renaming, cutting, pasting, and moving to the trash again are unavailable; restore the item before opening it.
 
-Na lateral ficam os lugares e os dispositivos: SSDs, partições e unidades removíveis com sistema de arquivos, montados ou não. A lista se atualiza a cada dois segundos. Um clique abre o volume montado; se estiver desmontado, pede a montagem pelo `udisksctl` e abre o ponto retornado. O botão de desmontar é separado e nunca força a operação. `ALT + 1` a `9` montam/abrem os dispositivos correspondentes; `ALT + U` pede a desmontagem do volume aberto. A montagem depende do `udisks2` e das permissões do sistema; recusas e dispositivos ocupados aparecem como aviso. As consultas usam `lsblk` (`util-linux`). Partições do sistema, swap e contêineres criptografados ainda trancados não são oferecidos para montagem/desmontagem. Ao retirar o volume em que está navegando, o gerenciador volta à pasta pessoal.
+The sidebar contains places and devices: SSDs, partitions, and removable drives with a filesystem, whether mounted or not. The list updates every two seconds. Clicking opens a mounted volume; if unmounted, it requests mounting through `udisksctl` and opens the returned mount point. The unmount button is separate and never forces the operation. `ALT + 1` through `9` mount/open the corresponding devices; `ALT + U` requests unmounting the open volume. Mounting depends on `udisks2` and system permissions; refusals and busy devices appear as warnings. Queries use `lsblk` (`util-linux`). System partitions, swap, and encrypted containers that are still locked are not offered for mounting/unmounting. Removing the volume being browsed returns the file manager to the home folder.
 
-Smartphones Android em modo de transferência de arquivos também aparecem na lateral, com ícone de telefone e indicação MTP. A descoberta usa os registros USB do udev e não monta automaticamente. Clicar conecta pelo GIO/GVfs, reutilizando um acesso existente e abrindo seu caminho FUSE dentro do próprio sparky-files. O botão de desmontar encerra esse acesso sem forçar. O telefone deve estar desbloqueado e autorizar a transferência de arquivos; dispositivos em modo de carregamento e iPhones não estão cobertos por esse suporte MTP.
+Android smartphones in file transfer mode also appear in the sidebar, with a phone icon and an MTP indicator. Discovery uses udev USB records and does not mount automatically. Clicking connects through GIO/GVfs, reusing existing access and opening its FUSE path inside sparky-files itself. The unmount button ends that access without forcing it. The phone must be unlocked and allow file transfer; devices in charging mode and iPhones are not covered by this MTP support.
 
-O backend depende de `gvfs-mtp` no Arch e Fedora; no Debian/Ubuntu, de `gvfs-backends` e `gvfs-fuse`. No Fedora também é necessário `gvfs-fuse`; no Arch o acesso FUSE já faz parte de `gvfs`. Os pacotes declaram esses componentes como dependências opcionais/recomendadas, mantendo a política usada para o udisks2. Não é necessário executar outro gerenciador de arquivos. Falhas de acesso, backend ausente e telefone ocupado aparecem como aviso, e a espera das operações assíncronas de montagem/desmontagem é limitada a 30 segundos.
+The backend depends on `gvfs-mtp` on Arch and Fedora; on Debian/Ubuntu, it depends on `gvfs-backends` and `gvfs-fuse`. Fedora also requires `gvfs-fuse`; on Arch, FUSE access is already part of `gvfs`. The packages declare these components as optional/recommended dependencies, maintaining the policy used for udisks2. There is no need to run another file manager. Access failures, a missing backend, and a busy phone appear as warnings, and the wait for asynchronous mount/unmount operations is limited to 30 seconds.
 
-Quando o polkit exige autenticação, o agente gráfico da sessão pede a senha. O gerenciador continua respondendo enquanto aguarda e permite tentar novamente após cancelar. O `udisksctl` é executado sem o terminal de controle da sessão, pelo `setsid` do `util-linux`, para evitar pedidos de senha invisíveis no terminal. Os tooltips têm fundo opaco com as cores do tema.
+When polkit requires authentication, the session's graphical agent asks for the password. The file manager remains responsive while waiting and allows another attempt after cancellation. `udisksctl` runs without the session's controlling terminal, through `setsid` from `util-linux`, to avoid invisible password prompts in the terminal. Tooltips have an opaque background using the theme colors.
 
-As consultas periódicas de dispositivos não exibem indicador de atualização. A lateral mostra progresso apenas durante montagem e desmontagem, mantém os avisos de erro e preserva a mensagem de lista vazia durante as consultas.
+Periodic device queries do not display a refresh indicator. The sidebar shows progress only during mounting and unmounting, keeps error warnings, and preserves the empty-list message during queries.
 
-| Tecla | Ação |
+| Key | Action |
 |---|---|
-| `j` `k` ou `↑` `↓` | Desce e sobe uma linha da grade ou lista |
-| `←` `→` | Na grade, escolhe o item vizinho; na lista, volta/abre |
-| `Enter` ou `l` | Abre a pasta ou o arquivo (no aplicativo padrão, pelo `xdg-open`) |
-| `h`, `Backspace` ou `ALT + ↑` | Volta para a pasta de cima, com a de origem selecionada |
-| `g` / `G`, `Home` / `End`, `PageUp` / `PageDown` | Começo, fim e páginas |
-| `1` a `9` | Vai para o lugar com esse número |
-| `/` | Filtra pelo nome enquanto digita; `Enter` fixa, `Esc` limpa |
-| `.` ou `CTRL + H` | Mostra ou esconde os ocultos |
-| `Espaço` | Marca o item e avança; as ações valem para os marcados ou, sem marcas, para o selecionado |
-| `y` / `x` / `p` (ou `CTRL + C` / `X` / `V`) | Copia, recorta e cola; colar na mesma pasta cria `nome (cópia).ext` |
-| `r` ou `F2` | Renomeia, já com o nome sem a extensão selecionado |
-| `a` | Cria: `nome/` vira pasta, sem a barra vira arquivo vazio |
-| `d` ou `Delete` | Manda para a lixeira (`~/.local/share/Trash`, com o `.trashinfo`), depois de confirmar com `Enter` |
-| `F5` ou `CTRL + R` | Relê a pasta |
-| `q` ou `CTRL + Q` | Fecha |
+| `j` `k` or `↑` `↓` | Move down and up one grid or list row |
+| `←` `→` | In the grid, select the neighboring item; in the list, go back/open |
+| `Enter` or `l` | Open the folder or file (in the default application, through `xdg-open`) |
+| `h`, `Backspace`, or `ALT + ↑` | Go to the parent folder, with the previous folder selected |
+| `g` / `G`, `Home` / `End`, `PageUp` / `PageDown` | Beginning, end, and pages |
+| `1` through `9` | Go to the place with that number |
+| `/` | Filter by name while typing; `Enter` keeps the filter, `Esc` clears it |
+| `.` or `CTRL + H` | Show or hide hidden items |
+| `Space` | Mark the item and advance; actions apply to marked items or, if none are marked, to the selected item |
+| `y` / `x` / `p` (or `CTRL + C` / `X` / `V`) | Copy, cut, and paste; pasting in the same folder creates `name (copy).ext` |
+| `r` or `F2` | Rename, with the name excluding its extension already selected |
+| `a` | Create: `name/` becomes a folder; without the slash, it becomes an empty file |
+| `d` or `Delete` | Move to the trash (`~/.local/share/Trash`, with `.trashinfo`), after confirming with `Enter` |
+| `F5` or `CTRL + R` | Reread the folder |
+| `q` or `CTRL + Q` | Close |
 
-| `CTRL + SHIFT + N` | Cria uma pasta, com o nome sugerido selecionado |
-| `CTRL + A` | Marca todos os itens visíveis |
-| `ALT + Enter` | Mostra as propriedades do item selecionado ou, sem seleção, da pasta aberta |
+| `CTRL + SHIFT + N` | Create a folder, with the suggested name selected |
+| `CTRL + A` | Mark all visible items |
+| `ALT + Enter` | Show properties for the selected item or, without a selection, for the open folder |
 
-Com o mouse, um clique seleciona, dois cliques abrem e a roda rola a lista.
+With the mouse, one click selects, a double-click opens, and the wheel scrolls the list.
 
-O clique direito abre um menu de contexto nas cores do tema. Sobre um arquivo ou pasta, oferece abrir, abrir com outro aplicativo, recortar, copiar, mover para, copiar para, renomear, comprimir, e-mail, mover para a lixeira e propriedades. Na área vazia, oferece nova pasta, novo documento, abrir a pasta com outro aplicativo, colar, selecionar tudo e propriedades. Se o item já estiver marcado, o menu age sobre todos os marcados. Enquanto um menu ou diálogo está aberto, as teclas não agem sobre a lista; `Esc` ou um clique fora fecha.
+Right-click opens a context menu in the theme colors. On a file or folder, it offers open, open with another application, cut, copy, move to, copy to, rename, compress, email, move to trash, and properties. In an empty area, it offers new folder, new document, open the folder with another application, paste, select all, and properties. If the item is already marked, the menu acts on all marked items. While a menu or dialog is open, keys do not act on the list; `Esc` or a click outside closes it.
 
-- **Abrir com** lista os aplicativos registrados para o tipo do arquivo, pelo GIO.
-- **Mover para** e **Copiar para** pedem o caminho da pasta de destino na barra inferior (aceitam `~` e caminhos relativos) e não alteram a área de transferência.
-- **Comprimir** cria um `.tar.gz` na pasta aberta pelo `tar`, sem travar a janela. O arquivo é escrito num temporário e nunca substitui um item existente.
-- **E-mail** abre o cliente de e-mail padrão pelo `xdg-email`, com os arquivos anexados; pastas precisam ser comprimidas antes.
-- **Propriedades** mostra nome, tipo, caminho, tamanho, data de modificação e permissões.
+- **Open with** lists the applications registered for the file type, through GIO.
+- **Move to** and **Copy to** ask for the destination folder path in the bottom bar (accepting `~` and relative paths) and do not change the clipboard.
+- **Compress** creates a `.tar.gz` in the open folder through `tar`, without freezing the window. The archive is written to a temporary file and never replaces an existing item.
+- **Email** opens the default email client through `xdg-email`, with the files attached; folders must be compressed first.
+- **Properties** shows the name, type, path, size, modification date, and permissions.
 
-Ao copiar uma única imagem PNG, JPEG ou WebP, o `sparky-files` também publica seus bytes na área de transferência do sistema. Assim, `CTRL + V` em outro aplicativo pode colar a imagem; a cópia de arquivos dentro do gerenciador continua disponível.
+When copying a single PNG, JPEG, or WebP image, `sparky-files` also publishes its bytes to the system clipboard. This allows `CTRL + V` in another application to paste the image; file copying within the file manager remains available.
 
-## Imagens
+## Images
 
-O `sparky-image` é o visualizador de imagens nativo. Abre pelo `sparky-files` (ou `sparky-image <arquivo ou pasta>`) e mostra PNG, JPEG, WebP, GIF, BMP e TIFF com a paleta e a fonte do tema ativo, acompanhando as trocas de tema. A imagem aparece ajustada à janela, sem ampliar as pequenas, e fotos com orientação EXIF ficam em pé. A barra de status mostra nome, posição na pasta, dimensões e zoom.
+`sparky-image` is the native image viewer. It opens through `sparky-files` (or `sparky-image <file or folder>`) and displays PNG, JPEG, WebP, GIF, BMP, and TIFF using the active theme's palette and font, following theme changes. The image fits the window without enlarging small images, and photos with EXIF orientation are shown upright. The status bar shows the name, position in the folder, dimensions, and zoom.
 
-| Tecla | Ação |
+| Key | Action |
 |---|---|
-| `←`/`→` ou `h`/`l` | Imagem anterior e seguinte da pasta, na mesma ordem do `sparky-files` (com zoom, deslocam a imagem) |
-| `↑`/`↓` ou `k`/`j` | Deslocam a imagem quando ela passa da janela |
-| `Espaço`/`Backspace`, `PageDown`/`PageUp` | Seguinte e anterior, mesmo com zoom |
-| `Home`/`End` | Primeira e última imagem |
-| `+`/`-` | Aumenta e diminui o zoom (a roda do mouse também) |
-| `0` / `1` | Ajusta à janela / tamanho real |
-| `r` / `SHIFT + R` | Gira 90° no sentido horário / anti-horário, só na visualização |
-| `q` ou `Esc` | Fecha |
+| `←`/`→` or `h`/`l` | Previous and next image in the folder, in the same order as `sparky-files` (when zoomed, pan the image) |
+| `↑`/`↓` or `k`/`j` | Pan the image when it extends beyond the window |
+| `Space`/`Backspace`, `PageDown`/`PageUp` | Next and previous, even when zoomed |
+| `Home`/`End` | First and last image |
+| `+`/`-` | Zoom in and out (also available through the mouse wheel) |
+| `0` / `1` | Fit to window / actual size |
+| `r` / `SHIFT + R` | Rotate 90° clockwise / counterclockwise, in the view only |
+| `q` or `Esc` | Close |
 
-Com zoom, arrastar com o botão esquerdo desloca a imagem. A decodificação roda fora da interface e recusa imagens acima de 16384 pixels por lado; arquivos corrompidos ou em formato não suportado mostram o motivo na tela. GIFs animados mostram o primeiro quadro.
+When zoomed, dragging with the left button pans the image. Decoding runs outside the UI and rejects images above 16384 pixels per side; corrupted files or unsupported formats display the reason on screen. Animated GIFs show the first frame.
 
-## Monitor do sistema
+## System monitor
 
-O `sparky-monitor` acompanha o computador a cada segundo, com a paleta, a fonte e os cantos retos do tema ativo. O painel mostra à esquerda as tabelas de **Aplicativos** e **Processos** e, à direita, cartões de CPU, memória, disco, rede e GPU com gráfico dos últimos 60 segundos, os valores atuais e o processo que mais usa cada recurso. Cada cartão leva à página de detalhes, com gráficos com escala, os números do recurso e os processos ordenados por ele: núcleos, frequência e temperatura da CPU; memória e swap; capacidade, uso, leitura, escrita e temperatura de cada disco; tráfego por interface de rede; uso e VRAM de cada GPU.
+`sparky-monitor` checks the computer every second, using the active theme's palette, font, and square corners. The dashboard shows **Applications** and **Processes** tables on the left and CPU, memory, disk, network, and GPU cards on the right, with a graph of the last 60 seconds, current values, and the process using the most of each resource. Each card leads to a details page, with scaled graphs, resource figures, and processes sorted by that resource: CPU cores, frequency, and temperature; memory and swap; capacity, usage, reads, writes, and temperature for each disk; traffic per network interface; usage and VRAM for each GPU.
 
-Os dados vêm de `/proc` e `/sys`, lidos fora da interface. Aplicativos são os processos agrupados pelo `.desktop` instalado cujo programa os iniciou, somando os processos filhos (as abas do Firefox entram no Firefox). O uso de GPU e VRAM por processo vem do `fdinfo` dos clientes DRM, disponível em AMD e Intel; o disco por processo vem do `/proc/<pid>/io`, legível apenas para os processos do próprio usuário. A rede não é medida por processo.
+Data comes from `/proc` and `/sys`, read outside the UI. Applications are processes grouped by the installed `.desktop` file whose program launched them, including child processes in the totals (Firefox tabs count toward Firefox). Per-process GPU and VRAM usage comes from DRM clients' `fdinfo`, available on AMD and Intel; per-process disk activity comes from `/proc/<pid>/io`, readable only for the user's own processes. Network activity is not measured per process.
 
-| Tecla | Ação |
+| Key | Action |
 |---|---|
-| `1` a `8` | Painel, Aplicativos, Processos, CPU, Memória, Disco, Rede e GPU |
-| `Tab` | Troca entre as tabelas de aplicativos e processos no painel |
-| `j`/`k` ou `↓`/`↑`, `Home`/`End` | Escolhe o aplicativo ou processo (a roda do mouse também) |
-| `c` `m` `g` `v` `d` `n` | Ordena por CPU, memória, GPU, VRAM, disco ou nome; repetir inverte |
-| `Delete` / `SHIFT + Delete` | Encerra (SIGTERM) ou força o fim (SIGKILL) do escolhido, depois de confirmar com `Enter` |
-| `Esc` ou `Backspace` | Cancela a confirmação ou volta ao painel |
-| `q` | Fecha |
+| `1` through `8` | Dashboard, Applications, Processes, CPU, Memory, Disk, Network, and GPU |
+| `Tab` | Switch between the application and process tables on the dashboard |
+| `j`/`k` or `↓`/`↑`, `Home`/`End` | Select the application or process (also available through the mouse wheel) |
+| `c` `m` `g` `v` `d` `n` | Sort by CPU, memory, GPU, VRAM, disk, or name; repeat to reverse |
+| `Delete` / `SHIFT + Delete` | Terminate (SIGTERM) or force-kill (SIGKILL) the selected entry, after confirming with `Enter` |
+| `Esc` or `Backspace` | Cancel confirmation or return to the dashboard |
+| `q` | Close |
 
-Encerrar um aplicativo envia o sinal a todos os seus processos. Cada processo é identificado pelo PID e pelo horário de início e fica travado por `pidfd` quando a confirmação aparece; se ele terminar antes do `Enter`, nenhum outro processo que reaproveite o PID recebe o sinal. Processos de outros usuários só podem ser encerrados com permissão; a recusa aparece na barra de status.
+Terminating an application sends the signal to all its processes. Each process is identified by its PID and start time and is pinned by `pidfd` when the confirmation appears; if it exits before `Enter`, no other process reusing the PID receives the signal. Other users' processes can only be terminated with permission; a refusal appears in the status bar.
 
-## Configurações
+## Settings
 
-O `sparky-settings` abre pelo `SUPER + ALT + ESPAÇO`. As mudanças de configuração do sparky são gravadas no `~/.config/sparky/sparky.toml` na hora, só na chave mexida (os comentários do arquivo ficam), e o sparky recarrega pelo IPC. Se o sparky não estiver rodando, a mudança vale quando ele iniciar. As seções de sistema executam as ferramentas correspondentes e mostram o resultado ou o erro, sem gravar no TOML.
+`sparky-settings` opens with `SUPER + ALT + SPACE`. Changes to sparky settings are written immediately to `~/.config/sparky/sparky.toml`, changing only the affected key (file comments are preserved), and sparky reloads through IPC. If sparky is not running, the change takes effect when it starts. System sections run the corresponding tools and show the result or error without writing to TOML.
 
-| Seção | O que muda |
+| Section | What it changes |
 |---|---|
-| Aparência | Folgas, espessura da borda, tamanho das janelas flutuantes, os atalhos padrão e o papel de parede |
-| Aplicativos | Terminal, lançador, arquivos, configurações, capturador e bloqueio de tela que os atalhos abrem |
-| Inicialização | Comandos rodados quando a sessão começa |
-| Atalhos | Lista dos atalhos em uso, com o que cada um faz |
-| Monitores | Desenho da posição dos monitores e, para cada um, resolução, escala, giro, taxa variável e se a tela fica ligada, gravados no `[[output]]` e HDR, que só aparece nas telas que o suportam |
-| Energia | Perfil de energia (`powerprofilesctl`), brilho da tela (`brightnessctl`), bateria (`upower`) e o tempo parado até bloquear a tela (`[lock] idle_minutes`) |
-| Data e hora | Fuso horário, hora local, sincronização pela rede e relógio do hardware (`timedatectl`) |
-| Região e idioma | Idioma, teclado do console e layout padrão do sistema (`localectl`), e a repetição das teclas da sessão (`[input]` do `sparky.toml`, vale na hora) |
-| Usuários | Consulta de contas, identificadores, grupos e sessões (`getent` e `loginctl`) |
-| Mídia | Volumes externos, montagem e desmontagem (`lsblk` e `udisksctl`) |
-| Temas | Tema atual e papel de parede do tema, escolhidos em listas |
-| Rede | Conexão ativa, DHCP ou IPv4 manual e DNS (`nmcli`) |
-| Sobre | Versão do sparky, sistema, kernel, computador, processador, GPUs e RAM total |
+| Appearance | Gaps, border thickness, floating window size, default shortcuts, and wallpaper |
+| Applications | Terminal, launcher, files, settings, screenshot tool, and screen locker opened by shortcuts |
+| Startup | Commands run when the session starts |
+| Shortcuts | List of shortcuts in use, with what each one does |
+| Monitors | Monitor position layout and, for each monitor, resolution, scale, rotation, variable refresh rate, and whether the display stays on, saved in `[[output]]`, plus HDR, shown only on displays that support it |
+| Power | Power profile (`powerprofilesctl`), screen brightness (`brightnessctl`), battery (`upower`), and idle time before locking the screen (`[lock] idle_minutes`) |
+| Date and time | Time zone, local time, network synchronization, and hardware clock (`timedatectl`) |
+| Region and language | Language, console keyboard, and system default layout (`localectl`), plus session key repeat (`[input]` in `sparky.toml`, applied immediately) |
+| Users | Account, identifier, group, and session queries (`getent` and `loginctl`) |
+| Media | External volumes, mounting, and unmounting (`lsblk` and `udisksctl`) |
+| Themes | Current theme and theme wallpaper, selected from lists |
+| Network | Active connection, DHCP or manual IPv4, and DNS (`nmcli`) |
+| About | sparky version, system, kernel, computer, processor, GPUs, and total RAM |
 
-A janela tem cabeçalho, barra lateral com o ícone de cada seção e itens agrupados por legendas. `Tab` e `SHIFT + Tab` (ou `1` a `9`) trocam de seção, `j`/`k` escolhem o item, `h`/`l` ajustam números, ligam e desligam ou passam para a opção vizinha de uma lista, `Enter` edita um texto ou um número e permite digitar o valor de uma lista, `d` remove um comando da inicialização, `Esc` desiste da edição e `q` fecha; o rodapé mostra as teclas de cada seção. O mouse também funciona: controles deslizantes (o valor é gravado ao soltar), interruptores, listas suspensas que filtram pela digitação, opções marcadas com ✓, botões como Montar/Desmontar e clique duplo na inicialização.
+The window has a header, a sidebar with an icon for each section, and items grouped under labels. `Tab` and `SHIFT + Tab` (or `1` through `9`) switch sections, `j`/`k` select an item, `h`/`l` adjust numbers, toggle switches, or move to the neighboring list option, `Enter` edits text or a number and allows typing a list value, `d` removes a startup command, `Esc` cancels editing, and `q` closes; the footer shows the keys for each section. The mouse also works: sliders (the value is saved on release), switches, dropdown lists that filter as you type, options marked with ✓, buttons such as Mount/Unmount, and double-clicking in Startup.
 
-Em Data e hora, `Enter` ou um clique no fuso abre a edição; o nome precisa existir na lista de `timedatectl list-timezones`. A hora local é somente leitura. `Enter` ou `h`/`l` alternam a hora pela rede e o uso de hora local no relógio do hardware; sem serviço NTP disponível, a linha da rede é somente leitura. `F5` atualiza os dados. Alterações dependem das permissões do sistema, e recusas aparecem no aviso do painel.
+In Date and time, `Enter` or clicking the time zone opens editing; the name must exist in the output of `timedatectl list-timezones`. Local time is read-only. `Enter` or `h`/`l` toggle network time and the use of local time for the hardware clock; without an available NTP service, the network row is read-only. `F5` refreshes the data. Changes depend on system permissions, and refusals appear in the panel's warning area.
 
-Em Região e idioma, `h`/`l` percorrem as opções instaladas e `Enter` ou um clique permite digitar um valor da lista do `localectl`. Sem opções disponíveis, a linha é somente leitura. Esses valores são padrões do sistema; o teclado da sessão Sparky continua sendo configurado na seção Teclado. Mudanças de idioma podem exigir uma nova sessão para os aplicativos adotarem o valor.
+In Region and language, `h`/`l` cycle through installed options, and `Enter` or a click allows typing a value from the `localectl` list. Without available options, the row is read-only. These values are system defaults; the Sparky session keyboard is still configured in the Keyboard section. Language changes may require a new session for applications to adopt the value.
 
-Usuários mostra uma conta por vez, navegável por `j`/`k` ou pelos botões laterais: nome, UID, tipo, sessão, pasta pessoal, interpretador e grupos. Reconhece administradores nos grupos `wheel` e `sudo`; se uma consulta falhar, o dado aparece como indisponível. Assim como no painel de exemplo, esta seção é somente leitura: não cria contas nem altera senhas ou grupos. `F5` atualiza a consulta. Seções após a nona continuam acessíveis por `Tab`, `SHIFT + Tab` e clique na lateral.
+Users shows one account at a time, navigable with `j`/`k` or the side buttons: name, UID, type, session, home folder, shell, and groups. It recognizes administrators in the `wheel` and `sudo` groups; if a query fails, the data appears as unavailable. As in the example panel, this section is read-only: it does not create accounts or change passwords or groups. `F5` refreshes the query. Sections after the ninth remain accessible through `Tab`, `SHIFT + Tab`, and sidebar clicks.
 
-Mídia lista sistemas de arquivos de discos externos/removíveis e volumes em `/run/media` ou `/media`, com rótulo, tamanho e ponto de montagem. `Enter` ou clique alterna a montagem; `l` monta, `h` desmonta e `F5` relê a lista. A montagem usa `udisksctl` (pacote `udisks2`) e as permissões do sistema. Swap, partições sem sistema de arquivos e montagens do sistema não são oferecidas.
+Media lists filesystems on external/removable disks and volumes under `/run/media` or `/media`, with their label, size, and mount point. `Enter` or a click toggles mounting; `l` mounts, `h` unmounts, and `F5` rereads the list. Mounting uses `udisksctl` (the `udisks2` package) and system permissions. Swap, partitions without a filesystem, and system mounts are not offered.
 
-## Tema
+## Theme
 
-As cores saem do primeiro arquivo que existir:
+Colors come from the first file that exists:
 
 1. `~/.config/sparky/colors.toml`
-2. `$SPARKY_PATH/themes/tokyo-night/colors.toml` (`SPARKY_PATH` é `/usr/share/sparky` quando instalado)
+2. `$SPARKY_PATH/themes/tokyo-night/colors.toml` (`SPARKY_PATH` is `/usr/share/sparky` when installed)
 
-Sem nenhum dos dois, vale o Tokyo Night embutido.
+If neither exists, the built-in Tokyo Night theme is used.
 
-A seção Temas lista paletas em `$XDG_DATA_HOME/sparky/themes/<nome>/colors.toml` (por padrão `~/.local/share/sparky/themes`) e em `$SPARKY_PATH/themes` (por padrão `/usr/share/sparky/themes`). O usuário tem prioridade sobre nomes iguais do sistema; Tokyo Night permanece disponível. Arquivos sem cores reconhecidas ou com cores inválidas são ignorados.
+The Themes section lists palettes under `$XDG_DATA_HOME/sparky/themes/<name>/colors.toml` (defaulting to `~/.local/share/sparky/themes`) and `$SPARKY_PATH/themes` (defaulting to `/usr/share/sparky/themes`). User themes take priority over system themes with the same name; Tokyo Night remains available. Files without recognized colors or with invalid colors are ignored.
 
-O sparky traz 22 temas: catppuccin, catppuccin-latte, ethereal, everforest, flexoki-light, gruvbox, hackerman, kanagawa, last-horizon, lumon, lupine, matte-black, miasma, nord, osaka-jade, retro-82, ristretto, rose-pine, solitude, tokyo-night, vantablack e white. Além do `colors.toml`, cada tema pode ter um `icons.theme` com o nome do tema de ícones que combina com ele (os temas do sparky usam as cores do Yaru, como `Yaru-blue` e `Yaru-sage`).
+sparky includes 22 themes: catppuccin, catppuccin-latte, ethereal, everforest, flexoki-light, gruvbox, hackerman, kanagawa, last-horizon, lumon, lupine, matte-black, miasma, nord, osaka-jade, retro-82, ristretto, rose-pine, solitude, tokyo-night, vantablack, and white. In addition to `colors.toml`, each theme can have an `icons.theme` containing the name of a matching icon theme (sparky themes use Yaru colors, such as `Yaru-blue` and `Yaru-sage`).
 
-`j`/`k` escolhem a paleta; `Enter` ou clique aplica. As cores são gravadas por substituição atômica em `~/.config/sparky/colors.toml` (respeitando `XDG_CONFIG_HOME`). Se o tema tiver `icons.theme`, o painel também troca o tema de ícones: grava `gtk-icon-theme-name` no `settings.ini` do GTK 3 e do GTK 4 (as outras chaves ficam) e roda `gsettings set org.gnome.desktop.interface icon-theme`. Esse ajuste é do GTK, então vale também fora do sparky. O painel atualiza imediatamente; compositor, barra, lançador, arquivos e capturador verificam as cores a cada segundo, preservando janelas, seleção e edições abertas. A seção não depende de Hyprland ou hypr-theme e não gerencia temas de aplicativos externos.
+`j`/`k` select the palette; `Enter` or a click applies it. Colors are written by atomic replacement to `~/.config/sparky/colors.toml` (respecting `XDG_CONFIG_HOME`). If the theme has an `icons.theme`, the panel also changes the icon theme: it writes `gtk-icon-theme-name` to the GTK 3 and GTK 4 `settings.ini` files (preserving other keys) and runs `gsettings set org.gnome.desktop.interface icon-theme`. This is a GTK setting, so it also applies outside sparky. The panel updates immediately; the compositor, bar, launcher, files, and screenshot tool check colors every second, preserving windows, selection, and ongoing edits. The section does not depend on Hyprland or hypr-theme and does not manage external application themes.
 
-### Papel de parede
+### Wallpaper
 
-O compositor desenha o papel de parede atrás de tudo em cada monitor, recortado para cobrir a tela sem distorcer, no tamanho em pixels do monitor (a escala conta). A imagem (JPEG, PNG ou WebP) é carregada fora do laço do compositor; até ficar pronta, vale a cor de fundo do tema. Uma mudança no `sparky.toml` troca o papel de parede na hora.
+The compositor draws the wallpaper behind everything on each monitor, cropped to cover the screen without distortion, at the monitor's pixel size (accounting for scale). The image (JPEG, PNG, or WebP) loads outside the compositor loop; until it is ready, the theme's background color is used. A change in `sparky.toml` switches the wallpaper immediately.
 
-Os papéis de parede de cada tema ficam em `$XDG_DATA_HOME/sparky/wallpapers/<tema>/` (os do usuário vêm primeiro) e em `$SPARKY_PATH/wallpapers/<tema>/`, onde o pacote `sparky-wallpapers` instala 67 imagens dos 22 temas, em ordem de nome. Aplicar um tema no painel escolhe o primeiro papel de parede dele. A linha **Papel de parede**, no topo da seção Temas, mostra qual está em uso (`2 de 3 · 2-b.webp`) e `h`/`l` ou `Enter` passam para o anterior ou o próximo; a escolha vai para `wallpaper` no `sparky.toml`. Em Aparência dá para digitar qualquer caminho. Logo abaixo, a linha **Papel de parede** do grupo **Tela de login** escolhe, entre os mesmos papéis de parede do tema, o da tela de login, do mesmo jeito; a escolha vai para `wallpaper` em `[login]`. Aplicar um tema leva os dois para o primeiro papel de parede dele.
+Each theme's wallpapers are stored in `$XDG_DATA_HOME/sparky/wallpapers/<theme>/` (user wallpapers come first) and `$SPARKY_PATH/wallpapers/<theme>/`, where the `sparky-wallpapers` package installs 67 images for the 22 themes, ordered by name. Applying a theme in the panel selects its first wallpaper. The **Wallpaper** row at the top of the Themes section shows the one in use (`2 of 3 · 2-b.webp`), and `h`/`l` or `Enter` move to the previous or next one; the choice is saved to `wallpaper` in `sparky.toml`. In Appearance, any path can be entered. Just below, the **Wallpaper** row in the **Login screen** group selects the login screen wallpaper from the same theme wallpapers, in the same way; the choice is saved to `wallpaper` under `[login]`. Applying a theme sets both to its first wallpaper.
 
-### Fontes
+### Fonts
 
-A barra, as abas dos grupos e os aplicativos do sparky usam a JetBrainsMono Nerd Font; sem ela instalada, o texto cai numa fonte do sistema. As fontes padrão do resto do sistema não mudam. Os pacotes recomendam as fontes que acompanham os temas: JetBrainsMono Nerd Font, Liberation, Noto (com emoji e CJK) e Font Awesome. No Debian e no Fedora não há pacote da variante Nerd; o recomendado é a JetBrains Mono comum, e a Nerd pode ser instalada à parte.
+The bar, group tabs, and sparky applications use JetBrainsMono Nerd Font; without it installed, text falls back to a system font. Default fonts for the rest of the system are unchanged. The packages recommend the fonts accompanying the themes: JetBrainsMono Nerd Font, Liberation, Noto (with emoji and CJK), and Font Awesome. Debian and Fedora have no package for the Nerd variant; regular JetBrains Mono is recommended, and the Nerd variant can be installed separately.
 
-## Pacotes
+## Packages
 
-O `packaging/build.sh` gera os três formatos em `packaging/out/`:
+`packaging/build.sh` generates all three formats in `packaging/out/`:
 
 ```bash
-packaging/build.sh           # .deb, .rpm e pacman
-packaging/build.sh deb       # só um deles: deb, rpm ou pacman
+packaging/build.sh           # .deb, .rpm, and pacman
+packaging/build.sh deb       # just one: deb, rpm, or pacman
 ```
 
-- `.deb` e `.rpm` são compilados com `cargo zigbuild` contra a glibc 2.36, para rodar no Debian 12+, Ubuntu 24.04+ e Fedora 40+; o script para se algum binário pedir uma glibc mais nova. Precisam de `zig`, `cargo-zigbuild`, `cargo-deb` e `cargo-generate-rpm`.
-- O pacote do pacman sai do `packaging/arch/PKGBUILD`, que compila o que está commitado no repositório com `makepkg`.
-- Os papéis de parede saem num pacote à parte, `sparky-wallpapers` (variante `wallpapers` do `cargo-deb` e do `cargo-generate-rpm`, e pacote dividido no PKGBUILD), para o `sparky` continuar leve.
+- `.deb` and `.rpm` are built with `cargo zigbuild` against glibc 2.36 to run on Debian 12+, Ubuntu 24.04+, and Fedora 40+; the script stops if any binary requires a newer glibc. They require `zig`, `cargo-zigbuild`, `cargo-deb`, and `cargo-generate-rpm`.
+- The pacman package comes from `packaging/arch/PKGBUILD`, which builds the committed repository contents with `makepkg`.
+- Wallpapers are provided in a separate package, `sparky-wallpapers` (the `wallpapers` variant for `cargo-deb` and `cargo-generate-rpm`, and a split package in the PKGBUILD), to keep `sparky` lightweight.
 
-Os três instalam os binários em `/usr/bin`, a sessão em `/usr/share/wayland-sessions` (aparece no SDDM e no GDM), os temas e o `sparky.toml` de exemplo em `/usr/share/sparky`, as entradas dos aplicativos e o `sparky-mimeapps.list`, que faz as pastas abrirem no `sparky-files` e as imagens no `sparky-image` dentro da sessão. Escolhas feitas pelo usuário no `~/.config/mimeapps.list` continuam valendo; para voltar a abrir imagens no visualizador nativo, use `xdg-mime default sparky-image.desktop image/png image/jpeg image/webp image/gif image/bmp image/tiff`.
+All three install binaries in `/usr/bin`, the session in `/usr/share/wayland-sessions` (shown in SDDM and GDM), themes and the sample `sparky.toml` in `/usr/share/sparky`, application entries, and `sparky-mimeapps.list`, which makes folders open in `sparky-files` and images in `sparky-image` within the session. User choices in `~/.config/mimeapps.list` still apply; to open images in the native viewer again, use `xdg-mime default sparky-image.desktop image/png image/jpeg image/webp image/gif image/bmp image/tiff`.
 
-O [workflow de Releases](ci/RELEASE.md) gera os pacotes pelo GitHub Actions ao
-enviar uma tag `vMAJOR.MINOR.PATCH`, como `v0.22.0`. A tag precisa corresponder
-à versão dos manifests e apontar para um commit integrado na main. Depois do
-Quality Gate e dos builds, os pacotes DEB, RPM e Arch, incluindo wallpapers,
-são publicados na Release com hashes SHA-256 e o commit de origem.
+The [Release workflow](ci/RELEASE.md) builds packages through GitHub Actions when
+a `vMAJOR.MINOR.PATCH` tag, such as `v0.22.0`, is pushed. The tag must match
+the manifest versions and point to a commit integrated into main. After the
+Quality Gate and builds, the DEB, RPM, and Arch packages, including wallpapers,
+are published in the Release with SHA-256 hashes and the source commit.
 
-`python3 packaging/test_build.py -v` testa o script de empacotamento com ferramentas simuladas, incluindo a localização do manifesto do RPM e a interrupção quando a compilação ou a checagem da glibc falha.
+`python3 packaging/test_build.py -v` tests the packaging script with simulated tools, including RPM manifest discovery and stopping when the build or glibc check fails.
 
-## Desenvolvimento
+## Development
 
-### Idiomas
+### Languages
 
-Os aplicativos nativos usam o `sparky-i18n` e os catálogos Fluent em
-`data/i18n/pt-BR/` e `data/i18n/en/`. O idioma é escolhido por `LC_ALL`,
-`LC_MESSAGES` e `LANG`, nessa ordem. Qualquer variante regional de português
-usa o catálogo `pt-BR`; os demais idiomas, inclusive `C` e `POSIX`, usam o
-catálogo `en`. Arquivos instalados em `/usr/share/sparky/i18n/<idioma>/` podem
-complementar os catálogos embutidos. Mensagens ausentes ou inválidas recorrem
-ao texto embutido em inglês. A tela de login recebe as variáveis de idioma do
-serviço `sparky-login`, que o systemd preenche a partir de `/etc/locale.conf`.
+Native applications use `sparky-i18n` and the Fluent catalogs in
+`data/i18n/pt-BR/` and `data/i18n/en/`. The language is selected through `LC_ALL`,
+`LC_MESSAGES`, and `LANG`, in that order. Any regional Portuguese variant
+uses the `pt-BR` catalog; all other languages, including `C` and `POSIX`, use the
+`en` catalog. Files installed in `/usr/share/sparky/i18n/<language>/` can
+supplement the built-in catalogs. Missing or invalid messages fall back
+to the built-in English text. The login screen receives language variables from
+the `sparky-login` service, populated by systemd from `/etc/locale.conf`.
 
-Os pacotes DEB, RPM e Arch instalam os dois idiomas. As entradas `.desktop`
-também oferecem nome, descrição e palavras-chave em inglês. Para acrescentar
-uma mensagem, use a mesma chave e os mesmos parâmetros nos dois arquivos do
-domínio; `python3 packaging/test_i18n.py` confere essa paridade e os dados
-instalados. A troca de idioma vale para os aplicativos iniciados depois da
-mudança de ambiente; aplicativos já abertos não são reiniciados.
+The DEB, RPM, and Arch packages install both languages. The `.desktop` entries
+also provide an English name, description, and keywords. To add
+a message, use the same key and parameters in both domain
+files; `python3 packaging/test_i18n.py` checks this parity and the installed
+data. Language changes apply to applications started after the
+environment change; applications already open are not restarted.
 
-O compositor mantém logs rotativos e amostras de memória e do agendamento de
-quadros em `~/.local/state/sparky/logs/`, respeitando `XDG_STATE_HOME`.
-Veja o [diagnóstico do compositor](docs/DIAGNOSTICS.md) para interpretar os
-contadores, a retenção e os limites da investigação de travamentos e vazamentos.
+The compositor keeps rotating logs and samples of memory and frame
+scheduling in `~/.local/state/sparky/logs/`, respecting `XDG_STATE_HOME`.
+See [compositor diagnostics](docs/DIAGNOSTICS.md) to interpret the
+counters, retention, and limits of freeze and leak investigations.
 
 ```bash
 cargo test
 cargo clippy --all-targets
 ```
 
-Os PRs são validados pelo [Quality Gate](ci/README.md): convenções, checklist de
-revisão, build e testes em debug/release, Clippy, documentação e regras dos três
-formatos de pacote. O CI usa runners isolados e não inicia uma sessão gráfica.
-Consulte o documento para reproduzir as verificações localmente e configurar o
-check obrigatório na main.
+PRs are validated by the [Quality Gate](ci/README.md): conventions, review
+checklist, debug/release builds and tests, Clippy, documentation, and rules for all three
+package formats. CI uses isolated runners and does not start a graphical session.
+Consult the document to reproduce the checks locally and configure the
+required check on main.
 
-## Créditos
+## Credits
 
-Os temas de `data/themes` (paletas e nomes dos temas de ícones), os papéis de parede de `data/wallpapers` e o layout vêm do Omarchy, © David Heinemeier Hansson, licença MIT; a licença acompanha cada tema. O repositório do Omarchy não informa a autoria das imagens.
+The themes in `data/themes` (palettes and icon theme names), wallpapers in `data/wallpapers`, and layout come from Omarchy, © David Heinemeier Hansson, under the MIT license; the license accompanies each theme. The Omarchy repository does not identify the image authors.
 
-## Licença
+## License
 
-GPL-3.0-or-later. O texto está em `LICENSE`.
+GPL-3.0-or-later. The text is in `LICENSE`.
 
-### Calendário e central de notificações
+### Calendar and notification center
 
-O clique esquerdo no relógio abre a central, abaixo do centro da barra: histórico à esquerda, calendário à direita e Não perturbe fixo no rodapé esquerdo. O clique direito continua alternando data/hora; Esc, × ou outro clique no relógio fecham. O calendário navega entre meses, destaca o dia atual e tem um botão Hoje. O painel e os pop-ups usam Skin, fonte, cores e cantos retos do Sparky, acompanhando alterações da paleta.
+Left-clicking the clock opens the center below the middle of the bar: history on the left, calendar on the right, and Do not disturb fixed in the bottom-left footer. Right-click still toggles date/time; Esc, ×, or another click on the clock closes it. The calendar navigates between months, highlights the current day, and has a Today button. The panel and pop-ups use Sparky's Skin, font, colors, and square corners, following palette changes.
 
-O processo `sparky-notifications` implementa `org.freedesktop.Notifications` e oferece a API privada `org.sparky.Notifications` para a barra. Guarda até 100 registros durante a sessão, sem salvar mensagens em disco; notificações transitórias não entram no histórico. Há limites de 128 notificações ativas, três pop-ups visíveis, texto e imagens. Ações só ficam disponíveis enquanto a notificação e o aplicativo remetente continuam ativos. O Não perturbe oculta todos os pop-ups, inclusive críticos, mantendo o histórico elegível; desativá-lo não reproduz avisos antigos. Com a central aberta, os avisos registrados chegam ao histórico sem pop-ups duplicados. Os transitórios continuam sendo apresentados como pop-ups, respeitando Não perturbe, e não são arquivados. Os pop-ups não capturam foco do teclado e notificações críticas não expiram automaticamente.
+The `sparky-notifications` process implements `org.freedesktop.Notifications` and provides the private `org.sparky.Notifications` API for the bar. It keeps up to 100 records during the session without saving messages to disk; transient notifications are not included in history. Limits apply to active notifications (128), visible pop-ups (three), text, and images. Actions remain available only while the notification and the sending application are still active. Do not disturb hides all pop-ups, including critical ones, while keeping eligible history entries; disabling it does not replay old notifications. With the center open, recorded notifications arrive in history without duplicate pop-ups. Transient notifications continue to appear as pop-ups, respecting Do not disturb, and are not archived. Pop-ups do not capture keyboard focus, and critical notifications do not expire automatically.
 
-A preparação de imagens permite até dois trabalhos simultâneos. Se ambos estiverem ocupados, os novos avisos são aceitos com o texto e sem imagem ou ícone, respeitando o limite de notificações ativas. Avisos posteriores voltam a preparar suas imagens quando houver capacidade disponível.
+Image preparation allows up to two concurrent jobs. If both are busy, new notifications are accepted with text and without an image or icon, respecting the active notification limit. Later notifications resume image preparation when capacity is available.
 
-A sessão inicia o serviço nativo antes dos aplicativos e aguarda sua prontidão por até cinco segundos fora do loop do compositor. Não inicia Mako por padrão nem o exige nos pacotes. Um serviço que já possua o nome de notificações não é substituído à força; nesse caso a central informa indisponibilidade. Configurações pessoais de autostart permanecem sob controle do usuário. Não há agenda, sincronização em nuvem, histórico entre sessões, sons ou suporte a marcação HTML nesta entrega.
+The session starts the native service before applications and waits up to five seconds for readiness outside the compositor loop. It does not start Mako by default or require it in the packages. A service that already owns the notification name is not forcibly replaced; in that case, the center reports unavailability. Personal autostart settings remain under the user's control. This release does not include a calendar agenda, cloud synchronization, history across sessions, sounds, or HTML markup support.
