@@ -53,6 +53,7 @@ pub struct Panels {
     pub agent_loading: bool,
     pub agent_sequence: u64,
     pub agent_last_refresh: Option<std::time::Instant>,
+    pub agent_launch_error: Option<String>,
     pub input_focus: InputFocus,
     pub open: Option<OpenPanel>,
     pub audio: Audio,

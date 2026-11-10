@@ -80,3 +80,34 @@ fn abrir_agente_libera_teclado_do_painel() {
     let _ = update(&mut bar, Message::AgentsLaunch(AgentId::Codex));
     assert!(bar.panels.open.is_none());
 }
+
+#[test]
+fn falha_ao_abrir_agente_reabre_painel_e_preserva_erro() {
+    let mut bar = setup();
+    let _ = update(&mut bar, Message::Panel(PanelKind::Agents));
+    let _ = update(&mut bar, Message::AgentsLaunch(AgentId::Codex));
+    assert!(bar.panels.open.is_none());
+
+    let _ = update(
+        &mut bar,
+        Message::AgentsLaunched(Err("terminal indisponível".into())),
+    );
+    assert_eq!(
+        bar.panels.open.map(|open| open.kind),
+        Some(PanelKind::Agents)
+    );
+    assert_eq!(
+        bar.panels.agent_launch_error.as_deref(),
+        Some("terminal indisponível")
+    );
+
+    let sequence = bar.panels.agent_sequence;
+    let _ = update(
+        &mut bar,
+        Message::AgentsSnapshot(sequence, Ok(Snapshot::default())),
+    );
+    assert_eq!(
+        bar.panels.agent_launch_error.as_deref(),
+        Some("terminal indisponível")
+    );
+}

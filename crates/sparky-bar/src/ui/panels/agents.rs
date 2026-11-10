@@ -54,6 +54,9 @@ pub fn view<'a>(skin: &Skin, panels: &'a Panels) -> Element<'a, Message> {
                 .color(skin.urgent),
         );
     }
+    if let Some(error) = &panels.agent_launch_error {
+        content = content.push(text(error).size(11).color(skin.urgent));
+    }
     content = content.push(action(
         skin,
         i18n::text("agents-refresh"),

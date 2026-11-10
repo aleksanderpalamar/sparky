@@ -25,7 +25,7 @@ pub fn update(bar: &mut Bar, message: Message) -> Task<Message> {
         Message::AgentsRefresh => return super::panel_agents::refresh(bar),
         Message::AgentsSelector => bar.panels.agent_selector = !bar.panels.agent_selector,
         Message::AgentsLaunch(agent) => return super::panel_agents::launch(bar, agent),
-        Message::AgentsLaunched(result) => super::panel_agents::launched(bar, result),
+        Message::AgentsLaunched(result) => return super::panel_agents::launched(bar, result),
         Message::AgentsStop(model) => return super::panel_agents::stop(bar, model),
         Message::AgentsStopped(result) => return super::panel_agents::stopped(bar, result),
         Message::FocusWorkspace(id) => report(bar.focus(id)),

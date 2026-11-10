@@ -69,6 +69,7 @@ pub fn launch(bar: &mut Bar, agent: AgentId) -> Task<Message> {
     let Some(client) = bar.panels.agent_client.clone() else {
         return Task::none();
     };
+    bar.panels.agent_launch_error = None;
     let close = panel_actions::close(bar);
     let launch = Task::perform(
         async move {
@@ -81,10 +82,21 @@ pub fn launch(bar: &mut Bar, agent: AgentId) -> Task<Message> {
     Task::batch([close, launch])
 }
 
-pub fn launched(bar: &mut Bar, result: Result<(), String>) {
-    if let Err(error) = result {
-        bar.panels.errors.insert(PanelKind::Agents, error);
-    }
+pub fn launched(bar: &mut Bar, result: Result<(), String>) -> Task<Message> {
+    let Err(error) = result else {
+        return Task::none();
+    };
+    let reopen = if bar
+        .panels
+        .open
+        .is_some_and(|open| open.kind == PanelKind::Agents)
+    {
+        Task::none()
+    } else {
+        panel_actions::open(bar, PanelKind::Agents)
+    };
+    bar.panels.agent_launch_error = Some(error);
+    reopen
 }
 
 pub fn stop(bar: &mut Bar, model: String) -> Task<Message> {
