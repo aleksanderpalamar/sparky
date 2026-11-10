@@ -69,6 +69,7 @@ fn paineis_e_formularios_renderizam_sem_servidor_grafico_nos_temas_claro_e_escur
             PanelKind::Audio,
             PanelKind::Network,
             PanelKind::Bluetooth,
+            PanelKind::Agents,
         ] {
             let pixels = render(skin, &ready(), kind);
             assert!(pixels.chunks_exact(4).all(|pixel| pixel[3] == 255));

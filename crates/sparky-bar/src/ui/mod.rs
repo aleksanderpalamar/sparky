@@ -1,3 +1,4 @@
+pub mod agents_icon;
 pub mod clock;
 pub mod drawer;
 #[cfg(test)]

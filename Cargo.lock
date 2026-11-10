@@ -4854,6 +4854,7 @@ dependencies = [
  "iced_layershell",
  "iced_runtime",
  "libpulse-binding",
+ "serde_json",
  "socket2",
  "sparky-i18n",
  "sparky-ipc",
@@ -4864,6 +4865,7 @@ dependencies = [
  "system-tray",
  "tempfile",
  "tokio",
+ "walkdir",
  "zbus",
  "zeroize",
 ]

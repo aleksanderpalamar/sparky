@@ -7,6 +7,7 @@ pkgdesc='Ambiente de desktop Wayland em Rust, com compositor próprio em mosaico
 arch=('x86_64')
 license=('GPL-3.0-or-later')
 depends=(
+  'curl'
   'gcc-libs'
   'glibc'
   'glib2'

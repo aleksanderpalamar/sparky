@@ -4,6 +4,7 @@ use std::sync::Arc;
 use iced::window;
 
 use crate::domain::{
+    agents::Snapshot,
     audio::Audio,
     bluetooth::Bluetooth,
     network::{Network, NetworkRequest, WifiNetwork},
@@ -12,6 +13,9 @@ use crate::domain::{
     secret::Secret,
 };
 use crate::ports::{audio::AudioControl, network::NetworkControl, prompts::Prompts};
+
+#[derive(Debug, Clone)]
+pub struct AgentClient(pub Arc<dyn crate::ports::agents::AgentControl>);
 
 #[derive(Debug, Clone)]
 pub struct AudioClient(pub Arc<dyn AudioControl>);
@@ -43,6 +47,12 @@ pub struct Pending {
 
 #[derive(Debug, Default)]
 pub struct Panels {
+    pub agents: Snapshot,
+    pub agent_client: Option<AgentClient>,
+    pub agent_selector: bool,
+    pub agent_loading: bool,
+    pub agent_sequence: u64,
+    pub agent_last_refresh: Option<std::time::Instant>,
     pub input_focus: InputFocus,
     pub open: Option<OpenPanel>,
     pub audio: Audio,

@@ -1,3 +1,4 @@
+mod agents;
 mod audio;
 mod bluetooth;
 mod calendar;
@@ -27,6 +28,7 @@ pub fn view<'a>(
         PanelKind::Audio => audio::view(skin, panels),
         PanelKind::Network => network::view(skin, panels),
         PanelKind::Bluetooth => bluetooth::view(skin, panels),
+        PanelKind::Agents => agents::view(skin, panels),
     };
     let body = forms::prompt(skin, panels).unwrap_or(normal);
     let body = match kind {

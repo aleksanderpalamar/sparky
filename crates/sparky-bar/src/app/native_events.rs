@@ -19,6 +19,9 @@ pub fn events() -> impl Stream<Item = Message> {
         let network = Arc::new(NetworkManager::new(prompts.clone()));
         let bluetooth = Arc::new(BluezControl::new(prompts.clone()));
         let ready = [
+            Message::AgentsReady(super::panel_state::AgentClient(Arc::new(
+                crate::adapters::agents::SystemAgents::default(),
+            ))),
             Message::PromptReady(PromptClient(prompts)),
             Message::NetworkReady(NetworkClient(network.clone())),
             Message::BluetoothReady(BluetoothClient(bluetooth)),
