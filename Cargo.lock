@@ -5216,6 +5216,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "sparky-store"
+version = "0.30.1"
+dependencies = [
+ "fluent-bundle",
+ "iced",
+ "serde",
+ "serde_json",
+ "sparky-i18n",
+ "sparky-theme",
+ "sparky-ui",
+ "tokio",
+]
+
+[[package]]
 name = "sparky-terminal"
 version = "0.30.1"
 dependencies = [

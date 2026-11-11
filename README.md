@@ -32,6 +32,7 @@ Only the themes, such as color palettes and wallpapers, come from [Omarchy](http
 | `crates/sparky-hardware` | CPU, memory, and GPU information shared by sparky-settings and sparky-fetch |
 | `crates/sparky-shot` | Screenshot tool (`sparky-shot`): mode picker, keyboard or mouse region selection, saved and copied PNG |
 | `crates/sparky-files` | File manager (`sparky-files`): grid and list views with icons and thumbnails, context menus, devices, places, filtering, copy, cut, paste, rename, creation, compression, and trash |
+| `crates/sparky-store` | Application store (`sparky-store`): Flathub first, with native repository fallback on pacman, APT, and DNF distributions |
 | `crates/sparky-image` | Image viewer (`sparky-image`): opens PNG, JPEG, WebP, GIF, BMP, and TIFF, navigates folders, and supports keyboard zoom, panning, and rotation |
 | `crates/sparky-monitor` | System monitor (`sparky-monitor`): application and process CPU, memory, GPU, VRAM, and disk use; resource graphs; and keyboard-driven process termination |
 | `crates/sparky-storage` | Block volumes through udisksctl and MTP smartphones through udev/GIO/GVfs; disk parser shared with the panel |
@@ -409,6 +410,12 @@ Right-click opens a context menu in the theme colors. On a file or folder, it of
 - **Properties** shows the name, type, path, size, modification date, and permissions.
 
 When copying a single PNG, JPEG, or WebP image, `sparky-files` also publishes its bytes to the system clipboard. This allows `CTRL + V` in another application to paste the image; file copying within the file manager remains available.
+
+## Store
+
+`sparky-store` opens the Flathub catalog for browsing and searches Flathub first using Flatpak's AppStream catalog. If Flathub has no match or is unavailable, it searches the native repositories of the detected distribution: pacman on Arch derivatives, APT on Debian derivatives, or DNF on Fedora/RHEL derivatives. The source selector can request native packages directly. If Flatpak is installed but Flathub is absent, the store offers to add the Flathub remote to the current user. The Installed view lists Flathub apps and explicitly installed native packages. Searches, refreshes, and package operations run in the background; the window follows Sparky's theme colors while open.
+
+Select an item to install, update, or remove it. Each operation asks for confirmation. Flatpak uses the matching user or system installation; native operations use `pkexec`, so polkit-sparky can request authentication. On Arch, the Update action uses a full `pacman -Syu`, because updating one package alone could leave a partially upgraded system; the confirmation panel states this scope. Flatpak is an optional package dependency so the store can still use the native repositories when it is not installed. The store does not add a native repository or perform package changes merely by browsing.
 
 ## Images
 
