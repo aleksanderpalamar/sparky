@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::{collections::HashMap, path::PathBuf};
 
 use sparky_theme::Skin;
 
@@ -10,6 +11,7 @@ pub enum Page {
     Browse,
     Search,
     Installed,
+    Updates,
 }
 
 #[derive(Debug)]
@@ -20,9 +22,11 @@ pub struct Store {
     pub source: SearchSource,
     pub page: Page,
     pub apps: Vec<Application>,
+    pub icons: HashMap<String, PathBuf>,
     pub selected: Option<usize>,
     pub pending: Option<(Application, Action)>,
     pub visible_count: usize,
+    pub feature_index: usize,
     pub busy: bool,
     pub error: Option<String>,
     pub notice: Option<String>,
@@ -38,9 +42,11 @@ impl Store {
             source: SearchSource::Preferred,
             page: Page::Browse,
             apps: Vec::new(),
+            icons: HashMap::new(),
             selected: None,
             pending: None,
             visible_count: 80,
+            feature_index: 0,
             busy: false,
             error: None,
             notice: None,

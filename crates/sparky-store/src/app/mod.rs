@@ -1,4 +1,5 @@
 mod browse;
+mod installed;
 mod message;
 mod state;
 mod update;

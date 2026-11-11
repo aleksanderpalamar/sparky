@@ -119,3 +119,54 @@ fn sucesso_permanece_visivel_durante_recarga() {
     );
     assert!(state.notice.is_some());
 }
+
+#[test]
+fn detalhe_volta_para_a_lista_sem_perder_resultados() {
+    let mut state = store();
+    state.apps = vec![app()];
+    let _ = update(&mut state, Message::Select(0));
+    let _ = update(&mut state, Message::Ask(Action::Install));
+    let _ = update(&mut state, Message::Back);
+    assert!(state.selected.is_none());
+    assert!(state.pending.is_none());
+    assert_eq!(state.apps.len(), 1);
+}
+
+#[test]
+fn destaque_percorre_somente_aplicativos_reais() {
+    let mut state = store();
+    let _ = update(&mut state, Message::FeatureNext);
+    assert_eq!(state.feature_index, 0);
+    state.apps = vec![app(), app()];
+    let _ = update(&mut state, Message::FeatureNext);
+    assert_eq!(state.feature_index, 1);
+    let _ = update(&mut state, Message::FeatureNext);
+    assert_eq!(state.feature_index, 0);
+}
+
+#[test]
+fn atualizacoes_nao_reutilizam_lista_de_instalados() {
+    let mut state = store();
+    state.apps = vec![app()];
+    let _ = update(&mut state, Message::ShowUpdates);
+    assert_eq!(state.page, super::state::Page::Updates);
+    assert!(state.selected.is_none());
+}
+
+#[test]
+fn remocao_da_lista_seleciona_o_aplicativo_correto() {
+    let mut state = store();
+    let mut second = app();
+    second.id = "org.example.Second".into();
+    second.name = "Second".into();
+    state.apps = vec![app(), second];
+    let _ = update(&mut state, Message::AskFor(1, Action::Remove));
+    assert_eq!(
+        state.selected_app().map(|app| app.id.as_str()),
+        Some("org.example.Second")
+    );
+    assert_eq!(
+        state.pending.as_ref().map(|(_, action)| *action),
+        Some(Action::Remove)
+    );
+}

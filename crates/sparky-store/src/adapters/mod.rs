@@ -1,5 +1,6 @@
 pub mod command;
 mod flatpak;
+pub mod icons;
 mod native;
 mod native_detect;
 mod native_parse;

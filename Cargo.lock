@@ -5224,6 +5224,7 @@ dependencies = [
  "sparky-i18n",
  "sparky-theme",
  "sparky-ui",
+ "sparky-xdg",
  "tokio",
 ]
 

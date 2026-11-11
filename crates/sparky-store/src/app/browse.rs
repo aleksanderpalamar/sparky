@@ -30,6 +30,8 @@ pub fn browsed(store: &mut Store, result: Result<SearchResult, String>) {
             store.apps = result.apps;
             store.selected = None;
             store.visible_count = 80;
+            store.icons = crate::adapters::icons::resolve(&store.apps, store.visible_count);
+            store.feature_index = 0;
             store.flathub_missing = result.flathub_missing;
             store.error = result.warning;
         }

@@ -1,6 +1,7 @@
 use iced::Task;
 
 use super::browse::{browse, browsed};
+use super::installed::{installed, loaded};
 use super::message::Message;
 use super::state::{Page, Store};
 use crate::domain::{Action, SearchSource};
@@ -18,16 +19,42 @@ pub fn update(store: &mut Store, message: Message) -> Task<Message> {
         }
         Message::Browse => return browse(store),
         Message::Browsed(result) => browsed(store, result),
-        Message::LoadMore => store.visible_count += 80,
+        Message::LoadMore => {
+            store.visible_count += 80;
+            store.icons = crate::adapters::icons::resolve(&store.apps, store.visible_count);
+        }
         Message::Search => return search(store),
         Message::Searched(result) => searched(store, result),
         Message::ShowInstalled => return installed(store),
+        Message::ShowUpdates => {
+            store.page = Page::Updates;
+            store.selected = None;
+            store.pending = None;
+            store.error = None;
+        }
         Message::Installed(result) => loaded(store, result),
         Message::Select(index) => {
             store.selected = store.apps.get(index).map(|_| index);
             store.pending = None;
         }
+        Message::Back => {
+            store.selected = None;
+            store.pending = None;
+        }
+        Message::FeatureNext => advance_feature(store, 1),
+        Message::FeaturePrevious => advance_feature(store, 4),
+        Message::Topic(query) => {
+            store.query = query;
+            return search(store);
+        }
         Message::Ask(action) => ask(store, action),
+        Message::AskFor(index, action) => {
+            if store.busy {
+                return Task::none();
+            }
+            store.selected = store.apps.get(index).map(|_| index);
+            ask(store, action);
+        }
         Message::Cancel => store.pending = None,
         Message::Confirm => return perform(store),
         Message::Performed(result) => return performed(store, result),
@@ -35,6 +62,14 @@ pub fn update(store: &mut Store, message: Message) -> Task<Message> {
         Message::FlathubEnabled(result) => return flathub_enabled(store, result),
     }
     Task::none()
+}
+
+fn advance_feature(store: &mut Store, step: usize) {
+    let count = store.apps.len().min(5);
+    if count == 0 {
+        return;
+    }
+    store.feature_index = (store.feature_index + step) % count;
 }
 
 fn search(store: &mut Store) -> Task<Message> {
@@ -65,39 +100,10 @@ fn searched(store: &mut Store, result: Result<crate::domain::SearchResult, Strin
             store.apps = result.apps;
             store.selected = None;
             store.visible_count = 80;
+            store.icons = crate::adapters::icons::resolve(&store.apps, store.visible_count);
+            store.feature_index = 0;
             store.flathub_missing = result.flathub_missing;
             store.error = result.warning;
-        }
-        Err(error) => store.error = Some(error),
-    }
-}
-
-fn installed(store: &mut Store) -> Task<Message> {
-    if store.busy {
-        return Task::none();
-    }
-    store.busy = true;
-    store.error = None;
-    store.pending = None;
-    let backend = store.backend.clone();
-    Task::perform(
-        async move {
-            tokio::task::spawn_blocking(move || backend.installed())
-                .await
-                .map_err(|error| error.to_string())?
-        },
-        Message::Installed,
-    )
-}
-
-fn loaded(store: &mut Store, result: Result<Vec<crate::domain::Application>, String>) {
-    store.busy = false;
-    match result {
-        Ok(apps) => {
-            store.page = Page::Installed;
-            store.apps = apps;
-            store.selected = None;
-            store.visible_count = 80;
         }
         Err(error) => store.error = Some(error),
     }
@@ -139,6 +145,7 @@ fn performed(store: &mut Store, result: Result<(), String>) -> Task<Message> {
                 Page::Installed => installed(store),
                 Page::Search => search(store),
                 Page::Browse => browse(store),
+                Page::Updates => Task::none(),
             }
         }
         Err(error) => {

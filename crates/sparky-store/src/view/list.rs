@@ -1,48 +1,73 @@
-use iced::widget::{button, column, container, scrollable, text};
-use iced::{Element, Length};
+use iced::widget::{button, column, container, row, scrollable, text};
+use iced::{Alignment, Element, Length};
 
-use crate::app::{Message, Page, Store};
+use crate::app::{Message, Store};
+use crate::domain::Action;
 use crate::i18n;
 
-pub fn view(store: &Store) -> Element<'_, Message> {
+use super::{icon, navigation, styles};
+
+pub fn search(store: &Store) -> Element<'_, Message> {
+    listing(store, "search-results", "no-results", false)
+}
+
+pub fn installed(store: &Store) -> Element<'_, Message> {
+    listing(store, "installed", "empty-installed", true)
+}
+
+fn listing<'a>(
+    store: &'a Store,
+    title: &'static str,
+    empty: &'static str,
+    can_remove: bool,
+) -> Element<'a, Message> {
     let skin = store.skin;
-    let mut entries = column![].spacing(4).width(Length::Fill);
+    let mut content = column![text(i18n::text(title)).size(20)]
+        .spacing(12)
+        .padding(24);
+    if store.apps.is_empty() && !store.busy {
+        content = content.push(text(i18n::text(empty)).color(skin.dark_foreground));
+    }
     for (index, app) in store.apps.iter().take(store.visible_count).enumerate() {
-        let label = column![
-            text(&app.name).size(14),
-            text(format!("{} · {}", app.id, app.summary))
-                .size(11)
-                .color(skin.dark_foreground),
-        ]
-        .spacing(3);
-        let selected = sparky_ui::style::Highlight::when(store.selected == Some(index));
-        entries = entries.push(
-            button(label)
-                .on_press(Message::Select(index))
-                .padding(8)
+        let name = button(
+            row![
+                icon::view(store, app, 56.0),
+                column![
+                    text(&app.name).size(15),
+                    text(&app.id).size(11).color(skin.dark_foreground),
+                    text(&app.summary).size(11).color(skin.dark_foreground),
+                ]
+                .spacing(3)
+                .width(Length::Fill),
+            ]
+            .spacing(14)
+            .align_y(Alignment::Center),
+        )
+        .width(Length::Fill)
+        .padding(12)
+        .on_press(Message::Select(index))
+        .style(move |_, status| styles::tile(skin, status));
+        let mut entry = row![name].spacing(8).align_y(Alignment::Center);
+        if can_remove {
+            entry = entry.push(
+                button(text(i18n::text("remove")).size(12))
+                    .padding(12)
+                    .on_press(Message::AskFor(index, Action::Remove))
+                    .style(move |_, status| styles::tile(skin, status)),
+            );
+        }
+        content = content.push(
+            container(entry)
                 .width(Length::Fill)
-                .style(move |_, status| sparky_ui::style::entry(skin, selected, status)),
+                .style(move |_| styles::surface(skin)),
         );
     }
-    if store.apps.is_empty() && !store.busy {
-        let key = match store.page {
-            Page::Browse => "browse-empty",
-            Page::Installed => "empty-installed",
-            Page::Search => "no-results",
-        };
-        entries = entries.push(text(i18n::text(key)).color(skin.dark_foreground));
-    }
     if store.apps.len() > store.visible_count {
-        entries = entries.push(super::control(
-            i18n::text("load-more"),
+        content = content.push(navigation::control(
+            store,
+            &i18n::text("load-more"),
             Message::LoadMore,
-            store.busy,
         ));
     }
-    container(scrollable(entries).height(Length::Fill))
-        .width(Length::FillPortion(2))
-        .height(Length::Fill)
-        .padding(12)
-        .style(move |_| sparky_ui::style::panel(skin))
-        .into()
+    scrollable(content).height(Length::Fill).into()
 }
