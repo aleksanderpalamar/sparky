@@ -21,7 +21,12 @@ impl Runner for Stub {
             ("apt-cache", Some("search")) => Ok("gimp - Image editor\n".into()),
             ("dpkg-query", _) => Ok("gimp\tinstall ok installed\n".into()),
             ("apt-mark", _) => Ok("gimp\n".into()),
-            ("dnf", Some("repoquery")) if args.contains(&"--userinstalled") => Ok("gimp\n".into()),
+            ("dnf", Some("repoquery")) if args.contains(&"--userinstalled") => {
+                Ok("gimp\ninkscape\n".into())
+            }
+            ("dnf", Some("repoquery")) if args.contains(&"*image*") => {
+                Ok("gimp\tImage editor\t3.0\ninkscape\tVector editor\t1.4\n".into())
+            }
             ("dnf", Some("repoquery")) => Ok("gimp\tImage editor\t3.0\n".into()),
             ("rpm", Some("-qa")) => Ok("gimp\n".into()),
             ("pkexec", _) => Ok(String::new()),
@@ -68,6 +73,28 @@ fn busca_e_lista_pacotes_instalados_no_pacman() {
     assert_eq!(found.len(), 1);
     assert!(found[0].installed);
     assert_eq!(native.installed().unwrap()[0].id, "gimp");
+}
+
+#[test]
+fn dnf5_separa_resultados_de_busca_e_pacotes_instalados() {
+    let runner = Arc::new(Stub::default());
+    let native = Native::from_release(runner.clone(), "ID=fedora\n");
+    let found = native.search("image").unwrap();
+    assert_eq!(found.len(), 2);
+    assert_eq!(found[1].id, "inkscape");
+    let installed = native.installed().unwrap();
+    assert_eq!(installed.len(), 2);
+    assert_eq!(installed[1].id, "inkscape");
+    let calls = runner.calls.lock().unwrap();
+    assert!(calls.iter().any(|call| {
+        call.iter()
+            .any(|arg| arg == "%{name}\t%{summary}\t%{version}\\n")
+    }));
+    assert!(
+        calls
+            .iter()
+            .any(|call| call.iter().any(|arg| arg == "%{name}\\n"))
+    );
 }
 
 #[test]

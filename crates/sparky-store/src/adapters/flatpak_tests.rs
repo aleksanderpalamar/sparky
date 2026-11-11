@@ -12,17 +12,24 @@ struct Stub {
 impl Runner for Stub {
     fn run(&self, program: &str, args: &[&str]) -> Result<String, String> {
         assert_eq!(program, "flatpak");
+        assert!(!args.contains(&"-j"));
+        if matches!(
+            args.get(1).copied(),
+            Some("remotes" | "remote-ls" | "search" | "list")
+        ) {
+            assert!(args.iter().any(|arg| arg.starts_with("--columns=")));
+        }
         self.calls
             .lock()
             .unwrap()
             .push(args.iter().map(|arg| (*arg).to_owned()).collect());
         match (args.first().copied(), args.get(1).copied()) {
-            (Some("--system"), Some("remotes")) => Ok("[{\"name\":\"flathub\"}]".into()),
+            (Some("--system"), Some("remotes")) => Ok("flathub\n".into()),
             (Some("--user"), Some("remotes")) => Ok(String::new()),
-            (Some("--system"), Some("list")) => Ok("[{\"name\":\"GIMP\",\"application_id\":\"org.gimp.GIMP\",\"origin\":\"flathub\",\"version\":\"3.0\"}]".into()),
+            (Some("--system"), Some("list")) => Ok("GIMP\tImage editor\torg.gimp.GIMP\t3.0\tflathub\nOther\tElsewhere\torg.other.App\t1.0\tother\n".into()),
             (Some("--user"), Some("list")) => Ok(String::new()),
-            (Some("--system"), Some("search")) => Ok("[{\"name\":\"GIMP\",\"description\":\"Image editor\",\"application_id\":\"org.gimp.GIMP\",\"version\":\"3.0\",\"remotes\":\"flathub\"},{\"name\":\"Elsewhere\",\"application_id\":\"org.other.App\",\"remotes\":\"other\"}]".into()),
-            (Some("--system"), Some("remote-ls")) => Ok("[{\"name\":\"GIMP\",\"description\":\"Image editor\",\"application_id\":\"org.gimp.GIMP\",\"version\":\"3.0\",\"branch\":\"stable\"}]".into()),
+            (Some("--system"), Some("search")) => Ok("org.gimp.GIMP\tGIMP\tImage editor\t3.0\tflathub\tstable\norg.other.App\tElsewhere\t\t1.0\tother\tstable\n".into()),
+            (Some("--system"), Some("remote-ls")) => Ok("org.gimp.GIMP\tGIMP\tImage editor\t3.0\tstable\n".into()),
             _ => Ok(String::new()),
         }
     }

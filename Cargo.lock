@@ -5221,8 +5221,6 @@ version = "0.30.1"
 dependencies = [
  "fluent-bundle",
  "iced",
- "serde",
- "serde_json",
  "sparky-i18n",
  "sparky-theme",
  "sparky-ui",

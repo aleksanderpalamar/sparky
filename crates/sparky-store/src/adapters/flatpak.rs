@@ -1,8 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
-use serde::Deserialize;
-
 use super::command::Runner;
 use crate::domain::{Action, Application, Installation, Source, valid_id};
 
@@ -11,20 +9,6 @@ mod catalog;
 #[derive(Debug)]
 pub struct Flatpak {
     runner: Arc<dyn Runner>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Remote {
-    name: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct InstalledRow {
-    name: String,
-    description: Option<String>,
-    application_id: String,
-    version: Option<String>,
-    origin: String,
 }
 
 impl Flatpak {
@@ -40,11 +24,13 @@ impl Flatpak {
     }
 
     fn has_flathub(&self, scope: Installation) -> bool {
-        let Ok(output) = self.runner.run("flatpak", &[scope.flag(), "remotes", "-j"]) else {
+        let Ok(output) = self
+            .runner
+            .run("flatpak", &[scope.flag(), "remotes", "--columns=name"])
+        else {
             return false;
         };
-        serde_json::from_str::<Vec<Remote>>(&output)
-            .is_ok_and(|remotes| remotes.iter().any(|remote| remote.name == "flathub"))
+        output.lines().any(|name| name == "flathub")
     }
 
     pub fn browse(&self, scope: Installation) -> Result<Vec<Application>, String> {
@@ -54,8 +40,7 @@ impl Flatpak {
                 scope.flag(),
                 "remote-ls",
                 "--app",
-                "--columns=application,name,description,version,branch",
-                "-j",
+                "--columns=application:full,name:full,description:full,version:full,branch:full",
                 "flathub",
             ],
         )?;
@@ -78,7 +63,15 @@ impl Flatpak {
         for scope in scopes {
             let output = self
                 .runner
-                .run("flatpak", &[scope.flag(), "search", "-j", query])?;
+                .run(
+                    "flatpak",
+                    &[
+                        scope.flag(),
+                        "search",
+                        "--columns=application:full,name:full,description:full,version:full,remotes:full,branch:full",
+                        query,
+                    ],
+                )?;
             let rows = catalog::parse_search(&output)?;
             for row in rows {
                 if !row
@@ -111,26 +104,16 @@ impl Flatpak {
     pub fn installed(&self) -> Result<Vec<Application>, String> {
         let mut apps = Vec::new();
         for scope in [Installation::System, Installation::User] {
-            let output = self
-                .runner
-                .run("flatpak", &[scope.flag(), "list", "--app", "-j"])?;
-            let rows: Vec<InstalledRow> = if output.trim().is_empty() {
-                Vec::new()
-            } else {
-                serde_json::from_str(&output).map_err(|error| error.to_string())?
-            };
-            apps.extend(
-                rows.into_iter()
-                    .filter(|row| row.origin == "flathub")
-                    .map(|row| Application {
-                        id: row.application_id,
-                        name: row.name,
-                        summary: row.description.unwrap_or_default(),
-                        version: row.version,
-                        source: Source::Flathub(scope),
-                        installed: true,
-                    }),
-            );
+            let output = self.runner.run(
+                "flatpak",
+                &[
+                    scope.flag(),
+                    "list",
+                    "--app",
+                    "--columns=name:full,description:full,application:full,version:full,origin:full",
+                ],
+            )?;
+            apps.extend(catalog::parse_installed(&output, scope)?);
         }
         Ok(apps)
     }

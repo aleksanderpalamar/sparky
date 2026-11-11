@@ -16,8 +16,6 @@ path = "src/lib.rs"
 [dependencies]
 fluent-bundle = "0.16"
 iced = { version = "0.14", features = ["tokio"] }
-serde.workspace = true
-serde_json.workspace = true
 sparky-i18n.workspace = true
 sparky-theme.workspace = true
 sparky-ui.workspace = true

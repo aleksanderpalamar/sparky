@@ -34,6 +34,10 @@ class AuthenticationDependenciesTest(unittest.TestCase):
         self.assertNotIn("polkit-gnome", metadata["requires"])
         self.assertIn("target/release/polkit-sparky", [asset["source"] for asset in metadata["assets"]])
 
+    def test_deb_store_exige_pkexec_para_operacoes_nativas(self):
+        dependencies = self.metadata["deb"]["depends"].split(", ")
+        self.assertIn("pkexec", dependencies)
+
     def test_build_portavel_confere_glibc_do_agente_proprio(self):
         source = (ROOT / "packaging/build.sh").read_text()
         self.assertRegex(source, r"binaries=\([^\n]*\bpolkit-sparky\)")

@@ -46,7 +46,7 @@ impl Native {
                 &[
                     "repoquery",
                     "--qf",
-                    "%{name}\t%{summary}\t%{version}",
+                    "%{name}\t%{summary}\t%{version}\\n",
                     &format!("*{query}*"),
                 ],
             )?,
@@ -89,9 +89,10 @@ impl Native {
         let output = match manager {
             Manager::Pacman => self.runner.run("pacman", &["-Qqe"])?,
             Manager::Apt => self.runner.run("apt-mark", &["showmanual"])?,
-            Manager::Dnf => self
-                .runner
-                .run("dnf", &["repoquery", "--userinstalled", "--qf", "%{name}"])?,
+            Manager::Dnf => self.runner.run(
+                "dnf",
+                &["repoquery", "--userinstalled", "--qf", "%{name}\\n"],
+            )?,
         };
         Ok(output
             .lines()
