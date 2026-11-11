@@ -6,6 +6,14 @@ use crate::domain::tray::TrayChange;
 #[to_layer_message(multi)]
 #[derive(Debug, Clone)]
 pub enum Message {
+    AgentsReady(super::panel_state::AgentClient),
+    AgentsSnapshot(u64, Result<crate::domain::agents::Snapshot, String>),
+    AgentsRefresh,
+    AgentsSelector,
+    AgentsLaunch(crate::domain::agents::AgentId),
+    AgentsLaunched(Result<(), String>),
+    AgentsStop(String),
+    AgentsStopped(Result<(), String>),
     Palette(sparky_theme::Palette),
     WorkspacesChanged,
     Tick,

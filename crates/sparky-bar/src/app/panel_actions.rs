@@ -72,11 +72,17 @@ pub fn open(bar: &mut Bar, kind: PanelKind) -> Task<Message> {
     } else {
         Task::none()
     };
+    let agents = if kind == PanelKind::Agents {
+        super::panel_agents::refresh(bar)
+    } else {
+        Task::none()
+    };
     Task::batch([
         previous,
         center,
         discovery,
         telemetry,
+        agents,
         menu,
         surface::create(settings, window),
     ])
@@ -121,6 +127,7 @@ pub fn close(bar: &mut Bar) -> Task<Message> {
     }
     bar.panels.clear_input();
     bar.panels.sampling = false;
+    bar.panels.agent_selector = false;
     bar.panels.metrics = None;
     let cleanup = match (open.kind, bar.panels.bluetooth_client.clone()) {
         (PanelKind::Bluetooth, Some(client)) => Task::perform(

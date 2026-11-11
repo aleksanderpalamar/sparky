@@ -3,11 +3,12 @@ use iced::{Alignment, Element, Length, window};
 use sparky_theme::Skin;
 
 use crate::app::message::Message;
+use crate::domain::panel::PanelKind;
 use crate::domain::reveal::Expansion;
 use crate::domain::tray::TrayItem;
 use crate::domain::tray_layout::groups;
 use crate::ui::drawer::drawer;
-use crate::ui::style::{HOVER_ALPHA, PADDING_X, SLOT_WIDTH, TEXT_SIZE};
+use crate::ui::style::{FONT, HOVER_ALPHA, PADDING_X, SLOT_WIDTH, TEXT_SIZE};
 use crate::ui::tray_icon::icon;
 
 pub fn tray<'a>(
@@ -46,7 +47,38 @@ pub fn tray<'a>(
                 .on_exit(Message::TrayHover(window, Expansion::Closed)),
         );
     }
-    content.push(pinned).padding([0.0, PADDING_X]).into()
+    content
+        .push(agents_button(skin))
+        .push(pinned)
+        .padding([0.0, PADDING_X])
+        .into()
+}
+
+fn agents_button<'a>(skin: &Skin) -> Element<'a, Message> {
+    let skin = *skin;
+    let icon = container(
+        text(crate::ui::agents_icon::GLYPH)
+            .font(FONT)
+            .size(18)
+            .color(skin.foreground),
+    )
+    .width(Length::Fill)
+    .height(Length::Fill)
+    .center(Length::Fill);
+    button(icon)
+        .width(SLOT_WIDTH)
+        .height(Length::Fill)
+        .padding(0)
+        .on_press(Message::Panel(PanelKind::Agents))
+        .style(move |_, status| {
+            let hovered = matches!(status, button::Status::Hovered | button::Status::Pressed);
+            button::Style {
+                background: hovered.then(|| skin.fill(HOVER_ALPHA).into()),
+                text_color: skin.foreground,
+                ..button::Style::default()
+            }
+        })
+        .into()
 }
 
 fn icon_button<'a>(skin: &Skin, item: &'a TrayItem) -> Element<'a, Message> {

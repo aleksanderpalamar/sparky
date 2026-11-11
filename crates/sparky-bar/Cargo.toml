@@ -20,6 +20,7 @@ chrono = { version = "0.4", default-features = false, features = ["clock"] }
 iced = { version = "0.14", features = ["advanced", "image", "svg", "tokio"] }
 iced_layershell = "0.19.1"
 libpulse-binding = "2.30.1"
+serde_json.workspace = true
 socket2 = "0.6"
 sparky-ipc.workspace = true
 sparky-notifications.workspace = true
@@ -30,6 +31,7 @@ system-tray = "0.8"
 tokio = { version = "1", features = ["sync", "time"] }
 zbus = { version = "5", default-features = false, features = ["tokio"] }
 zeroize = "1.9"
+walkdir = "2"
 
 [dev-dependencies]
 iced_runtime = "0.14"

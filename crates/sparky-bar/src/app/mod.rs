@@ -10,6 +10,7 @@ pub mod native_events;
 pub mod network;
 pub mod notifications;
 pub mod panel_actions;
+mod panel_agents;
 mod panel_audio;
 mod panel_network;
 pub mod panel_state;
@@ -89,6 +90,9 @@ pub(crate) mod panel_flow_tests;
 
 #[cfg(test)]
 mod network_sampling_tests;
+
+#[cfg(test)]
+mod panel_agents_tests;
 
 #[cfg(test)]
 mod panel_keyboard_tests;

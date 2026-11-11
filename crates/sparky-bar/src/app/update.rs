@@ -10,8 +10,24 @@ pub fn update(bar: &mut Bar, message: Message) -> Task<Message> {
         Message::WorkspacesChanged => bar.refresh_workspaces(),
         Message::Tick => {
             bar.tick(chrono::Local::now().naive_local());
-            return super::panel_network::sample(bar);
+            return match bar.panels.open.map(|open| open.kind) {
+                Some(crate::domain::panel::PanelKind::Agents) => {
+                    super::panel_agents::refresh_if_due(bar)
+                }
+                _ => super::panel_network::sample(bar),
+            };
         }
+        Message::AgentsReady(client) => {
+            bar.panels.agent_client = Some(client);
+            return super::panel_agents::refresh_if_due(bar);
+        }
+        Message::AgentsSnapshot(id, result) => super::panel_agents::received(bar, id, result),
+        Message::AgentsRefresh => return super::panel_agents::refresh(bar),
+        Message::AgentsSelector => bar.panels.agent_selector = !bar.panels.agent_selector,
+        Message::AgentsLaunch(agent) => return super::panel_agents::launch(bar, agent),
+        Message::AgentsLaunched(result) => return super::panel_agents::launched(bar, result),
+        Message::AgentsStop(model) => return super::panel_agents::stop(bar, model),
+        Message::AgentsStopped(result) => return super::panel_agents::stopped(bar, result),
         Message::FocusWorkspace(id) => report(bar.focus(id)),
         Message::ToggleClock => bar.toggle_clock(),
         Message::Notifications(event) => return super::notifications::event(bar, event),

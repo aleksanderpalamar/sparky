@@ -4,6 +4,7 @@ pub enum PanelKind {
     Audio,
     Network,
     Bluetooth,
+    Agents,
 }
 
 impl PanelKind {
@@ -13,6 +14,7 @@ impl PanelKind {
             Self::Audio => (420, 500),
             Self::Network => (420, 450),
             Self::Bluetooth => (420, 380),
+            Self::Agents => (420, 460),
         }
     }
 }

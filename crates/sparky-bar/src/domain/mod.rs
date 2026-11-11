@@ -1,3 +1,4 @@
+pub mod agents;
 pub mod audio;
 pub mod bluetooth;
 pub mod calendar;

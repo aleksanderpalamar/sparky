@@ -1,3 +1,4 @@
+pub mod agents;
 pub mod bluetooth;
 pub mod bluez_control;
 pub mod bluez_objects;
