@@ -27,7 +27,10 @@ fn esconde_os_ocultos_e_mostra_quando_pedido_mantendo_a_selecao() {
     assert_eq!(nomes(&listing), ["Fotos", "arquivo.pdf", "notas.txt"]);
     listing.move_by(1);
     listing.toggle_hidden();
-    assert_eq!(nomes(&listing), [".config", "Fotos", "arquivo.pdf", "notas.txt"]);
+    assert_eq!(
+        nomes(&listing),
+        [".config", "Fotos", "arquivo.pdf", "notas.txt"]
+    );
     assert_eq!(selecionado(&listing), Some("arquivo.pdf"));
 }
 
@@ -89,7 +92,10 @@ fn recarregar_mantem_a_selecao_e_descarta_marcas_que_sumiram() {
     let mut listing = pasta();
     listing.toggle_mark();
     listing.move_by(1);
-    listing.replace(vec![entry("arquivo.pdf", Kind::File), entry("novo.txt", Kind::File)]);
+    listing.replace(vec![
+        entry("arquivo.pdf", Kind::File),
+        entry("novo.txt", Kind::File),
+    ]);
     assert_eq!(selecionado(&listing), Some("arquivo.pdf"));
     assert_eq!(listing.marked_count(), 0);
 }
@@ -103,4 +109,26 @@ fn selecionar_pelo_nome_e_pelo_indice() {
     assert_eq!(listing.cursor(), 2);
     listing.select(1);
     assert_eq!(selecionado(&listing), Some("arquivo.pdf"));
+}
+
+#[test]
+fn pendentes_seguem_a_ordem_visivel_e_aprender_preenche() {
+    let pendente = |nome: &str| crate::domain::entry::Entry {
+        meta: crate::domain::entry::Meta::Pending,
+        ..entry(nome, Kind::File)
+    };
+    let mut listing = Listing::new(
+        vec![pendente("b"), pendente("a"), pendente("c")],
+        Hidden::Concealed,
+    );
+    let faltando = listing.pending(0..2);
+    let nomes_faltando: Vec<&str> = faltando.iter().map(|(_, nome)| nome.as_str()).collect();
+    assert_eq!(nomes_faltando, ["a", "b"]);
+    let conhecido = crate::domain::entry::Meta::Known {
+        size: 7,
+        modified: None,
+    };
+    listing.learn(faltando[0].0, conhecido);
+    assert_eq!(listing.get(0).and_then(|entry| entry.size()), Some(7));
+    assert_eq!(listing.pending(0..3).len(), 2);
 }

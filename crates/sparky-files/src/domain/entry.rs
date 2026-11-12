@@ -8,15 +8,37 @@ pub enum Kind {
     File,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Meta {
+    Pending,
+    Known {
+        size: u64,
+        modified: Option<SystemTime>,
+    },
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Entry {
     pub name: String,
     pub kind: Kind,
-    pub size: u64,
-    pub modified: Option<SystemTime>,
+    pub meta: Meta,
 }
 
 impl Entry {
+    pub fn size(&self) -> Option<u64> {
+        match self.meta {
+            Meta::Known { size, .. } => Some(size),
+            Meta::Pending => None,
+        }
+    }
+
+    pub fn modified(&self) -> Option<SystemTime> {
+        match self.meta {
+            Meta::Known { modified, .. } => modified,
+            Meta::Pending => None,
+        }
+    }
+
     pub fn hidden(&self) -> bool {
         self.name.starts_with('.')
     }
@@ -35,8 +57,10 @@ pub fn entry(name: &str, kind: Kind) -> Entry {
     Entry {
         name: name.to_owned(),
         kind,
-        size: 0,
-        modified: None,
+        meta: Meta::Known {
+            size: 0,
+            modified: None,
+        },
     }
 }
 

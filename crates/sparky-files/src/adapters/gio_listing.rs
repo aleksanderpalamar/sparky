@@ -4,7 +4,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use gio::prelude::*;
 
-use crate::domain::entry::{Entry, Kind};
+use crate::domain::entry::{Entry, Kind, Meta};
 
 const ATTRIBUTES: &str =
     "standard::name,standard::type,standard::size,time::modified,time::modified-usec";
@@ -40,8 +40,10 @@ fn entry_of(info: &gio::FileInfo) -> Entry {
             gio::FileType::Directory => Kind::Directory,
             _ => Kind::File,
         },
-        size: u64::try_from(info.size()).unwrap_or(0),
-        modified: moment_of(info),
+        meta: Meta::Known {
+            size: u64::try_from(info.size()).unwrap_or(0),
+            modified: moment_of(info),
+        },
     }
 }
 

@@ -13,7 +13,7 @@ use super::test_tasks::concluir;
 use super::update::update;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::local_disk::LocalDisk;
-use crate::domain::entry::Entry;
+use crate::domain::entry::{Entry, Meta};
 use crate::domain::properties::Properties;
 use crate::domain::thumbnail::Thumbnail;
 use crate::domain::undo::TrashEntry;
@@ -25,6 +25,10 @@ struct ConsultasContadas {
 }
 
 impl Disk for ConsultasContadas {
+    fn detail(&self, path: &Path) -> Meta {
+        self.disco.detail(path)
+    }
+
     fn list(&self, dir: &Path) -> io::Result<Vec<Entry>> {
         self.disco.list(dir)
     }

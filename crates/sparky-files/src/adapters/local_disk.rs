@@ -9,7 +9,7 @@ use crate::adapters::gio_listing;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::staged;
 use crate::adapters::tree::remove_tree;
-use crate::domain::entry::{Entry, Kind};
+use crate::domain::entry::{Entry, Kind, Meta};
 use crate::domain::properties::Properties;
 use crate::domain::undo::TrashEntry;
 use crate::ports::{Disk, TrashStore};
@@ -47,6 +47,10 @@ impl Disk for LocalDisk {
             .filter_map(Result::ok)
             .map(|item| entry_of(&item))
             .collect())
+    }
+
+    fn detail(&self, path: &Path) -> Meta {
+        meta_of(path)
     }
 
     fn canonicalize(&self, path: &Path) -> io::Result<PathBuf> {
@@ -114,18 +118,30 @@ impl Disk for LocalDisk {
 }
 
 fn entry_of(item: &fs::DirEntry) -> Entry {
-    let path = item.path();
-    let metadata = fs::metadata(&path)
-        .or_else(|_| fs::symlink_metadata(&path))
-        .ok();
-    let kind = match metadata.as_ref().map(fs::Metadata::is_dir) {
-        Some(true) => Kind::Directory,
-        _ => Kind::File,
+    let directory = match item.file_type() {
+        Ok(kind) if kind.is_symlink() => fs::metadata(item.path()).is_ok_and(|meta| meta.is_dir()),
+        Ok(kind) => kind.is_dir(),
+        Err(_) => false,
     };
     Entry {
         name: item.file_name().to_string_lossy().into_owned(),
-        kind,
-        size: metadata.as_ref().map_or(0, fs::Metadata::len),
-        modified: metadata.and_then(|metadata| metadata.modified().ok()),
+        kind: match directory {
+            true => Kind::Directory,
+            false => Kind::File,
+        },
+        meta: Meta::Pending,
+    }
+}
+
+fn meta_of(path: &Path) -> Meta {
+    let Ok(metadata) = fs::metadata(path).or_else(|_| fs::symlink_metadata(path)) else {
+        return Meta::Known {
+            size: 0,
+            modified: None,
+        };
+    };
+    Meta::Known {
+        size: metadata.len(),
+        modified: metadata.modified().ok(),
     }
 }

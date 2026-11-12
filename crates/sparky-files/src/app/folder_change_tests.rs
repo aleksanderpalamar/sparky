@@ -10,7 +10,11 @@ fn aviso_de_mudanca_atualiza_itens_novos_e_alterados_no_lugar() {
     fs::write(scene.work().join("a.txt"), "conteudo maior").unwrap();
     scene.mandar(Message::FolderChanged);
     let novo = scene.files.listing.find("novo.txt");
-    let alterado = scene.files.listing.find("a.txt").map(|entry| entry.size);
+    let alterado = scene
+        .files
+        .listing
+        .find("a.txt")
+        .and_then(|entry| entry.size());
     assert!(novo.is_some());
     assert_eq!(alterado, Some(14));
 }

@@ -21,12 +21,9 @@ fn resumo(mut entries: Vec<Entry>) -> Vec<(String, bool, u64, Option<u128>)> {
         .into_iter()
         .map(|entry| {
             let pasta = entry.is_directory();
-            (
-                entry.name,
-                pasta,
-                entry.size,
-                em_microssegundos(entry.modified),
-            )
+            let tamanho = entry.size().unwrap_or_default();
+            let data = em_microssegundos(entry.modified());
+            (entry.name, pasta, tamanho, data)
         })
         .collect()
 }
@@ -45,7 +42,11 @@ fn listagem_pelo_gio_traz_o_mesmo_que_a_do_disco_numa_so_passagem() {
         .set_modified(antigo)
         .unwrap();
     let disco = LocalDisk::new(HomeTrash::new(dir.path().join("Trash")));
-    let esperado = resumo(disco.list(dir.path()).unwrap());
+    let mut locais = disco.list(dir.path()).unwrap();
+    for entrada in &mut locais {
+        entrada.meta = disco.detail(&dir.path().join(&entrada.name));
+    }
+    let esperado = resumo(locais);
     assert_eq!(resumo(list(dir.path()).unwrap()), esperado);
 }
 

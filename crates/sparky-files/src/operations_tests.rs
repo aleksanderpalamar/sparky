@@ -5,7 +5,7 @@ use std::path::{Component, Path, PathBuf};
 use std::time::SystemTime;
 
 use crate::domain::clip::Clip;
-use crate::domain::entry::Entry;
+use crate::domain::entry::{Entry, Meta};
 use crate::domain::undo::TrashEntry;
 use crate::operations::{Failure, create, rename, trash};
 use crate::ports::Disk;
@@ -45,6 +45,10 @@ impl FakeDisk {
 }
 
 impl Disk for FakeDisk {
+    fn detail(&self, _path: &Path) -> Meta {
+        Meta::Pending
+    }
+
     fn list(&self, _dir: &Path) -> io::Result<Vec<Entry>> {
         Ok(Vec::new())
     }

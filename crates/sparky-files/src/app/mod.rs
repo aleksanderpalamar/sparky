@@ -3,6 +3,7 @@ pub mod boot;
 pub mod clipboard;
 mod commands;
 pub mod context;
+mod details;
 pub mod editing;
 mod empty_trash;
 pub mod events;
@@ -28,6 +29,8 @@ mod clipboard_files_tests;
 mod clipboard_tests;
 #[cfg(test)]
 mod context_tests;
+#[cfg(test)]
+mod details_tests;
 #[cfg(test)]
 mod disk_trash_tests;
 #[cfg(test)]

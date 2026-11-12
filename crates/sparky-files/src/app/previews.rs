@@ -67,15 +67,12 @@ impl Files {
         if self.sidebar_page.is_some() {
             return Task::none();
         }
-        let range = match self.view_mode {
-            ViewMode::Grid => self.layout.range(self.viewport.top(), self.listing.len()),
-            ViewMode::List => self.viewport.range(self.listing.len()),
-        };
+        let range = self.visible_range();
         self.previews.visible = range.len();
         let candidates: Vec<(PathBuf, Option<SystemTime>)> = range
             .filter_map(|index| self.listing.get(index))
             .filter(|entry| entry.kind == Kind::File)
-            .map(|entry| (self.location.join(&entry.name), entry.modified))
+            .map(|entry| (self.location.join(&entry.name), entry.modified()))
             .filter(|(path, _)| supported(path))
             .collect();
         let mut tasks = Vec::new();
@@ -102,6 +99,13 @@ impl Files {
         Task::batch(tasks)
     }
 
+    pub fn visible_range(&self) -> std::ops::Range<usize> {
+        match self.view_mode {
+            ViewMode::Grid => self.layout.range(self.viewport.top(), self.listing.len()),
+            ViewMode::List => self.viewport.range(self.listing.len()),
+        }
+    }
+
     pub fn preview_ready(
         &mut self,
         path: PathBuf,
@@ -123,7 +127,7 @@ impl Files {
             return None;
         }
         let name = path.file_name()?.to_str()?;
-        self.listing.find(name).map(|entry| entry.modified)
+        self.listing.find(name).map(|entry| entry.modified())
     }
 }
 

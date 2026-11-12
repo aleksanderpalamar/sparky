@@ -7,7 +7,7 @@ use tempfile::TempDir;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::local_disk::LocalDisk;
 use crate::adapters::transfer::LocalTransfer;
-use crate::domain::entry::Kind;
+use crate::domain::entry::{Kind, Meta};
 use crate::domain::transfer::{Action, Step};
 use crate::ports::{Disk, Transfer};
 
@@ -33,15 +33,29 @@ fn lista_pastas_arquivos_e_links_quebrados() {
     assert!(symlink(dir.path().join("sumiu"), dir.path().join("quebrado")).is_ok());
     let mut entries = disk.list(dir.path()).unwrap_or_default();
     entries.sort_by(|a, b| a.name.cmp(&b.name));
-    let resumo: Vec<(&str, Kind, u64)> = entries
-        .iter()
-        .map(|e| (e.name.as_str(), e.kind, e.size))
-        .collect();
-    assert_eq!(resumo[0], ("Fotos", Kind::Directory, resumo[0].2));
-    assert_eq!(resumo[1], ("a.txt", Kind::File, 5));
-    assert_eq!(resumo[2].0, "quebrado");
+    let resumo: Vec<(&str, Kind)> = entries.iter().map(|e| (e.name.as_str(), e.kind)).collect();
+    assert_eq!(
+        resumo,
+        [
+            ("Fotos", Kind::Directory),
+            ("a.txt", Kind::File),
+            ("quebrado", Kind::File)
+        ]
+    );
+    assert!(entries.iter().all(|entry| entry.meta == Meta::Pending));
     assert!(disk.exists(&dir.path().join("quebrado")));
-    assert!(entries.iter().all(|entry| entry.modified.is_some()));
+    let detalhe = disk.detail(&dir.path().join("a.txt"));
+    assert!(matches!(
+        detalhe,
+        Meta::Known {
+            size: 5,
+            modified: Some(_)
+        }
+    ));
+    assert!(matches!(
+        disk.detail(&dir.path().join("quebrado")),
+        Meta::Known { .. }
+    ));
 }
 
 #[test]

@@ -19,6 +19,7 @@ impl Files {
                 self.network_pending = None;
                 self.sidebar_items.clear();
                 self.mode = Mode::Browse;
+                self.fill_visible();
                 true
             }
             Err(error) => {
@@ -93,6 +94,7 @@ impl Files {
             Ok(entries) => {
                 self.listing.replace(entries);
                 self.stamp = self.services.disk.stamp(&self.location);
+                self.fill_visible();
             }
             Err(error) => self.fail(format!("{}: {error}", self.shown(&self.location))),
         }

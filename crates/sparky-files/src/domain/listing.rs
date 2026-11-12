@@ -1,5 +1,7 @@
 use std::collections::BTreeSet;
 
+mod detail;
+
 use crate::domain::entry::{Entry, sort};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]

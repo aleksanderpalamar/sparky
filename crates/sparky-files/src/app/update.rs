@@ -17,6 +17,7 @@ pub fn update(files: &mut Files, message: Message) -> Task<Message> {
     if pointer {
         return task;
     }
+    files.fill_visible();
     Task::batch([task, files.request_previews()])
 }
 

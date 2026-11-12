@@ -36,13 +36,13 @@ pub fn name(entry: &Entry, tone: Tone) -> String {
 pub fn size(entry: &Entry) -> String {
     match entry.kind {
         Kind::Directory => String::new(),
-        Kind::File => human(entry.size),
+        Kind::File => entry.size().map(human).unwrap_or_default(),
     }
 }
 
 pub fn date(entry: &Entry) -> String {
     entry
-        .modified
+        .modified()
         .map(|moment| {
             DateTime::<Local>::from(moment)
                 .format("%d/%m/%Y %H:%M")
@@ -54,7 +54,7 @@ pub fn date(entry: &Entry) -> String {
 #[cfg(test)]
 mod tests {
     use super::{Tone, date, name, size, tone};
-    use crate::domain::entry::{Entry, Kind, entry};
+    use crate::domain::entry::{Entry, Kind, Meta, entry};
     use crate::domain::listing::{Hidden, Listing};
     use chrono::{Local, NaiveDate, TimeZone};
     use std::time::SystemTime;
@@ -87,7 +87,10 @@ mod tests {
     #[test]
     fn pasta_nao_mostra_tamanho_e_arquivo_mostra() {
         let arquivo = Entry {
-            size: 1536,
+            meta: Meta::Known {
+                size: 1536,
+                modified: None,
+            },
             ..entry("a.txt", Kind::File)
         };
         assert_eq!(size(&arquivo), "1,5 kB");
@@ -102,7 +105,7 @@ mod tests {
             .map(SystemTime::from);
         assert_eq!(
             date(&Entry {
-                modified,
+                meta: Meta::Known { size: 0, modified },
                 ..entry("a", Kind::File)
             }),
             "20/10/2026 16:04"

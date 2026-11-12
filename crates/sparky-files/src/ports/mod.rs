@@ -6,7 +6,7 @@ use std::time::SystemTime;
 
 use crate::domain::application::Application;
 use crate::domain::clip::{ClipOffer, Pasted};
-use crate::domain::entry::Entry;
+use crate::domain::entry::{Entry, Meta};
 use crate::domain::icons::Icons;
 use crate::domain::properties::Properties;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
@@ -41,6 +41,8 @@ pub trait FileClipboard {
 
 pub trait Disk {
     fn list(&self, dir: &Path) -> io::Result<Vec<Entry>>;
+
+    fn detail(&self, path: &Path) -> Meta;
 
     fn canonicalize(&self, path: &Path) -> io::Result<PathBuf>;
 
