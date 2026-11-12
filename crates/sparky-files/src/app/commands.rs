@@ -29,7 +29,6 @@ pub(super) fn act(files: &mut Files, command: Command) {
         }
         Command::Copy => files.copy(),
         Command::Cut => files.cut(),
-        Command::Paste => files.paste(),
         Command::Trash => files.ask_trash(),
         Command::SelectAll => files.listing.select_all(),
         Command::Properties => {
@@ -44,6 +43,7 @@ pub(super) fn act(files: &mut Files, command: Command) {
         | Command::View(_)
         | Command::Volume(_)
         | Command::UnmountCurrent
+        | Command::Paste
         | Command::Refresh => {}
     }
 }

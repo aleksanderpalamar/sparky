@@ -387,7 +387,7 @@ Periodic device queries do not display a refresh indicator. The sidebar shows pr
 | `/` | Filter by name while typing; `Enter` keeps the filter, `Esc` clears it |
 | `.` or `CTRL + H` | Show or hide hidden items |
 | `Space` | Mark the item and advance; actions apply to marked items or, if none are marked, to the selected item |
-| `y` / `x` / `p` (or `CTRL + C` / `X` / `V`) | Copy, cut, and paste; pasting in the same folder creates `name (copy).ext` |
+| `y` / `x` / `p` (or `CTRL + C` / `X` / `V`) | Copy, cut, and paste; pasting in the same folder creates `name (copy).ext`, and a name already taken at the destination asks what to do |
 | `r` or `F2` | Rename, with the name excluding its extension already selected |
 | `a` | Create: `name/` becomes a folder; without the slash, it becomes an empty file |
 | `d` or `Delete` | Move to the trash (`~/.local/share/Trash`, with `.trashinfo`), after confirming with `Enter` |
@@ -408,7 +408,7 @@ Right-click opens a context menu in the theme colors. On a file or folder, it of
 - **Email** opens the default email client through `xdg-email`, with the files attached; folders must be compressed first.
 - **Properties** shows the name, type, path, size, modification date, and permissions.
 
-Copies are assembled in a hidden `.sparky-files-*` folder next to the destination and only take their final name when complete, so a copy that fails midway leaves nothing under that name. Copying, moving, and renaming never overwrite an item that appears at the destination in the meantime; on phones and network shares, copies are written directly.
+Pasting, **Move to…**, and **Copy to…** run in the background: the window stays responsive, the status bar shows items and percentage, and `Esc` cancels, keeping what was already finished. One operation runs at a time. When names already exist at the destination, the status bar asks once for all of them: `Enter` or `m` keeps both (the new one gets `(copy)`), `s` replaces (the old item goes to the trash), and `p` skips. Copies are assembled in a hidden `.sparky-files-*` folder next to the destination and only take their final name when complete, so a copy that fails midway leaves nothing under that name. Copying, moving, and renaming never overwrite an item that appears at the destination in the meantime; on phones and network shares, copies are written directly.
 
 When copying a single PNG, JPEG, or WebP image, `sparky-files` also publishes its bytes to the system clipboard. This allows `CTRL + V` in another application to paste the image; file copying within the file manager remains available.
 

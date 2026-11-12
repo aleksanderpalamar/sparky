@@ -379,7 +379,7 @@ As consultas periódicas de dispositivos não exibem indicador de atualização.
 | `/` | Filtra pelo nome enquanto digita; `Enter` fixa, `Esc` limpa |
 | `.` ou `CTRL + H` | Mostra ou esconde os ocultos |
 | `Espaço` | Marca o item e avança; as ações valem para os marcados ou, sem marcas, para o selecionado |
-| `y` / `x` / `p` (ou `CTRL + C` / `X` / `V`) | Copia, recorta e cola; colar na mesma pasta cria `nome (cópia).ext` |
+| `y` / `x` / `p` (ou `CTRL + C` / `X` / `V`) | Copia, recorta e cola; colar na mesma pasta cria `nome (cópia).ext`, e um nome já ocupado no destino pergunta o que fazer |
 | `r` ou `F2` | Renomeia, já com o nome sem a extensão selecionado |
 | `a` | Cria: `nome/` vira pasta, sem a barra vira arquivo vazio |
 | `d` ou `Delete` | Manda para a lixeira (`~/.local/share/Trash`, com o `.trashinfo`), depois de confirmar com `Enter` |
@@ -400,7 +400,7 @@ O clique direito abre um menu de contexto nas cores do tema. Sobre um arquivo ou
 - **E-mail** abre o cliente de e-mail padrão pelo `xdg-email`, com os arquivos anexados; pastas precisam ser comprimidas antes.
 - **Propriedades** mostra nome, tipo, caminho, tamanho, data de modificação e permissões.
 
-As cópias são montadas numa pasta oculta `.sparky-files-*` ao lado do destino e só recebem o nome final quando terminam; uma cópia que falha no meio não deixa nada com esse nome. Copiar, mover e renomear nunca sobrescrevem um item que apareça no destino nesse meio-tempo; em celulares e compartilhamentos de rede, as cópias são gravadas diretamente.
+Colar, **Mover para…** e **Copiar para…** rodam em segundo plano: a janela continua respondendo, a barra de status mostra itens e porcentagem, e `Esc` cancela, mantendo o que já terminou. Uma operação roda por vez. Quando há nomes já existentes no destino, a barra de status pergunta uma vez para todos: `Enter` ou `m` mantém os dois (o novo ganha `(cópia)`), `s` substitui (o item antigo vai para a lixeira) e `p` pula. As cópias são montadas numa pasta oculta `.sparky-files-*` ao lado do destino e só recebem o nome final quando terminam; uma cópia que falha no meio não deixa nada com esse nome. Copiar, mover e renomear nunca sobrescrevem um item que apareça no destino nesse meio-tempo; em celulares e compartilhamentos de rede, as cópias são gravadas diretamente.
 
 Ao copiar uma única imagem PNG, JPEG ou WebP, o `sparky-files` também publica seus bytes na área de transferência do sistema. Assim, `CTRL + V` em outro aplicativo pode colar a imagem; a cópia de arquivos dentro do gerenciador continua disponível.
 

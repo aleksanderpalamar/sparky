@@ -85,13 +85,6 @@ impl Disk for FakeDisk {
         )
     }
 
-    fn copy(&self, from: &Path, to: &Path) -> io::Result<()> {
-        self.record(
-            format!("copiar {} {}", from.display(), to.display()),
-            Some(to),
-        )
-    }
-
     fn trash(&self, path: &Path) -> io::Result<()> {
         self.record(format!("lixeira {}", path.display()), None)
     }

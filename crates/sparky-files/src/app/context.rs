@@ -118,7 +118,7 @@ fn run(files: &mut Files, action: Action, path: PathBuf) -> Task<Message> {
         Action::Email => email(files),
         Action::Trash => files.ask_trash(),
         Action::Properties => properties(files, &path),
-        Action::Paste => files.paste(),
+        Action::Paste => return files.paste(),
         Action::SelectAll => files.listing.select_all(),
         Action::Restore => files.restore_selected(),
         Action::RestoreAll => files.restore_all(),

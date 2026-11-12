@@ -15,6 +15,7 @@ use crate::adapters::local_disk::LocalDisk;
 use crate::adapters::sidebar_source::DesktopSidebar;
 use crate::adapters::thumbnail::FileThumbnail;
 use crate::adapters::thumbnail_cache::SharedThumbnails;
+use crate::adapters::transfer::LocalTransfer;
 use crate::adapters::xdg_open::XdgOpen;
 use crate::app::message::Message;
 use crate::app::state::{Files, Services, Setup};
@@ -43,9 +44,13 @@ pub fn boot() -> (Files, Task<Message>) {
         volumes: Arc::new(sparky_storage::desktop::system()),
         archiver: Arc::new(TarArchive),
         thumbnails: Arc::new(SharedThumbnails::from_env(FileThumbnail)),
-        trash: Arc::new(trash),
+        trash: Arc::new(trash.clone()),
         image_clipboard: Box::new(WlImageClipboard),
         sidebar: std::sync::Arc::new(DesktopSidebar::from_env()),
+        transfer: Arc::new(LocalTransfer::new(
+            trash.clone(),
+            gio_listing::remote_root(),
+        )),
     };
     let mut files = Files::new(setup, services);
     files.resize(Size::new(WINDOW_WIDTH, WINDOW_HEIGHT));

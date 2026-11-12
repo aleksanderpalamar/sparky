@@ -15,6 +15,7 @@ pub mod sidebar_location;
 pub mod size;
 pub mod thumbnail;
 pub mod thumbnail_key;
+pub mod transfer;
 pub mod trash_info;
 
 #[cfg(test)]

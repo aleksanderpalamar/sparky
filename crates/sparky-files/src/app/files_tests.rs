@@ -65,7 +65,7 @@ fn copiar_e_colar_na_mesma_pasta_duplica() {
     let mut cena = Cena::nova();
     cena.tecla("G");
     cena.tecla("y");
-    cena.tecla("p");
+    cena.tecla_concluida("p");
     assert!(cena.work().join("a (cópia).txt").exists());
     assert_eq!(cena.selecionado().as_deref(), Some("a (cópia).txt"));
 }

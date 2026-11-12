@@ -1,4 +1,5 @@
 use crate::domain::grid::ViewMode;
+use crate::domain::transfer::Conflict;
 use iced::keyboard::key::Named;
 use iced::keyboard::{Key, Modifiers};
 
@@ -66,6 +67,15 @@ pub fn confirm(key: &Key) -> Option<Answer> {
         Key::Named(Named::Enter) => Some(Answer::Yes),
         Key::Character("s" | "S" | "y" | "Y") => Some(Answer::Yes),
         Key::Character("n" | "N") => Some(Answer::No),
+        _ => None,
+    }
+}
+
+pub fn conflict(key: &Key) -> Option<Conflict> {
+    match key.as_ref() {
+        Key::Named(Named::Enter) | Key::Character("m" | "M") => Some(Conflict::KeepBoth),
+        Key::Character("s" | "S") => Some(Conflict::Replace),
+        Key::Character("p" | "P") => Some(Conflict::Skip),
         _ => None,
     }
 }

@@ -1,3 +1,4 @@
+use crate::app::jobs::JobEvent;
 use crate::domain::context::Action;
 use crate::domain::grid::ViewMode;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
@@ -38,6 +39,7 @@ pub enum Message {
     TrashEmptied(Result<EmptyReport, String>),
     Tick,
     FolderChanged,
+    Job(JobEvent),
     View(ViewMode),
     OpenVolume(String),
     UnmountVolume(String),

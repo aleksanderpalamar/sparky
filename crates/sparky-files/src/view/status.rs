@@ -3,12 +3,16 @@ use iced::widget::{container, row, text, text_input};
 use iced::{Element, Length};
 use sparky_theme::Skin;
 
+use crate::app::jobs::{Job, Pending};
 use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
 use crate::domain::clip::Clip;
 use crate::domain::entry::Kind;
+use crate::domain::transfer::Action;
 use crate::domain::wording::summary;
 use crate::i18n;
+use fluent_bundle::FluentArgs;
+use sparky_ui::notice::Notice;
 use sparky_ui::prompt::PROMPT;
 use sparky_ui::style::{self, PADDING, SMALL_TEXT, SPACING, STATUS_HEIGHT, TEXT_SIZE};
 
@@ -28,6 +32,10 @@ pub fn status(files: &Files) -> Element<'_, Message> {
         Mode::Destination(clip) => prompt(files, destination(clip), i18n::text("destination-hint")),
         Mode::Compress(_) => prompt(files, i18n::text("compress"), i18n::text("create-keys")),
         Mode::ConfirmTrash(names) => text(question(names))
+            .size(TEXT_SIZE)
+            .color(skin.urgent)
+            .into(),
+        Mode::Conflict(pending) => text(conflict(pending))
             .size(TEXT_SIZE)
             .color(skin.urgent)
             .into(),
@@ -56,6 +64,25 @@ fn destination(clip: &Clip) -> String {
     }
 }
 
+pub fn conflict(pending: &Pending) -> String {
+    let mut args = FluentArgs::new();
+    args.set("count", pending.names.len());
+    args.set("name", pending.names.first().cloned().unwrap_or_default());
+    i18n::message("conflict-question", Some(&args))
+}
+
+pub fn progress(job: &Job) -> String {
+    let key = match job.action {
+        Action::Copy => "job-copying",
+        Action::Move => "job-moving",
+    };
+    let mut args = FluentArgs::new();
+    args.set("done", job.progress.items_done);
+    args.set("total", job.progress.items_total);
+    args.set("percent", job.progress.percent());
+    i18n::message(key, Some(&args))
+}
+
 pub fn question(names: &[String]) -> String {
     match names {
         [name] => i18n::with("confirm-trash-one", "name", name.clone()),
@@ -65,14 +92,9 @@ pub fn question(names: &[String]) -> String {
 
 fn browsing(files: &Files) -> Element<'_, Message> {
     let skin = files.skin;
-    let left = match &files.notice {
-        Some(notice) => text(notice.text().to_owned()).color(notice.color(skin)),
-        None => text(summary(
-            files.listing.len(),
-            files.listing.marked_count(),
-            files.clip.as_ref(),
-        ))
-        .color(skin.foreground),
+    let left = match (&files.job, &files.notice) {
+        (Some(job), _) => text(progress(job)).color(skin.accent),
+        (None, notice) => browsing_text(files, notice.as_ref()),
     };
     let hints = match files.size.width < 720.0 {
         true => "short-hints",
@@ -85,6 +107,19 @@ fn browsing(files: &Files) -> Element<'_, Message> {
     .spacing(SPACING)
     .align_y(Vertical::Center)
     .into()
+}
+
+fn browsing_text<'a>(files: &Files, notice: Option<&Notice>) -> iced::widget::Text<'a> {
+    let skin = files.skin;
+    match notice {
+        Some(notice) => text(notice.text().to_owned()).color(notice.color(skin)),
+        None => text(summary(
+            files.listing.len(),
+            files.listing.marked_count(),
+            files.clip.as_ref(),
+        ))
+        .color(skin.foreground),
+    }
 }
 
 fn prompt<'a>(files: &'a Files, label: String, keys: String) -> Element<'a, Message> {

@@ -9,7 +9,7 @@ use crate::adapters::tree::copy_tree;
 
 const STAGING: &str = ".sparky-files-";
 
-pub fn copy(from: &Path, to: &Path) -> io::Result<()> {
+pub fn copy(from: &Path, to: &Path, advance: &mut dyn FnMut(u64) -> bool) -> io::Result<()> {
     let parent = to
         .parent()
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "destino sem pasta"))?;
@@ -17,7 +17,7 @@ pub fn copy(from: &Path, to: &Path) -> io::Result<()> {
         .prefix(STAGING)
         .tempdir_in(parent)?;
     let staged = staging.path().join("item");
-    copy_tree(from, &staged)?;
+    copy_tree(from, &staged, advance)?;
     rename_noreplace(&staged, to)
 }
 

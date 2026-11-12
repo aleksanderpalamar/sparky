@@ -30,6 +30,12 @@ pub fn message(key: &str, args: Option<&FluentArgs<'_>>) -> String {
         .unwrap_or_else(|| key.to_owned())
 }
 
+pub fn counted(key: &str, count: usize) -> String {
+    let mut args = FluentArgs::new();
+    args.set("count", count);
+    message(key, Some(&args))
+}
+
 pub fn with(key: &str, name: &str, value: String) -> String {
     let mut args = FluentArgs::new();
     args.set(name, value);

@@ -6,6 +6,7 @@ use iced::futures::StreamExt;
 use iced_runtime::Action;
 
 use super::test_scene::Cena;
+use super::test_tasks::concluir;
 use super::update::update;
 use crate::app::message::Message;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation, SidebarTarget};
@@ -49,7 +50,8 @@ fn mover_favorito_mantem_referencia_no_destino() {
     cena.files.listing.select_name("a.txt");
     cena.files.cut();
     assert!(cena.files.go(destination.clone()));
-    cena.files.paste();
+    let task = cena.files.paste();
+    concluir(&mut cena.files, task, 1000);
     assert!(fs::metadata(destination.join("a.txt")).is_ok());
     assert!(
         cena.files

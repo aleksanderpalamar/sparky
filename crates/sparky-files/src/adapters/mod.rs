@@ -19,6 +19,9 @@ pub mod thumbnail_cache;
 #[cfg(test)]
 mod thumbnail_cache_tests;
 pub mod thumbnail_png;
+pub mod transfer;
+#[cfg(test)]
+mod transfer_tests;
 pub mod tree;
 pub mod watch;
 #[cfg(test)]

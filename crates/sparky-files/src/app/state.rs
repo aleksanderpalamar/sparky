@@ -9,6 +9,7 @@ use sparky_theme::Skin;
 use sparky_ui::notice::Notice;
 use sparky_ui::viewport::Viewport;
 
+use crate::app::jobs::{Job, Pending};
 use crate::app::previews::Previews;
 use crate::domain::application::Application;
 use crate::domain::clip::Clip;
@@ -21,7 +22,8 @@ use crate::domain::places::Place;
 use crate::domain::properties::Properties;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::ports::{
-    Archiver, Disk, IconSource, ImageClipboard, Opener, SidebarSource, ThumbnailSource, TrashStore,
+    Archiver, Disk, IconSource, ImageClipboard, Opener, SidebarSource, ThumbnailSource, Transfer,
+    TrashStore,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -35,6 +37,7 @@ pub enum Mode {
     Compress(Vec<PathBuf>),
     ConfirmTrash(Vec<String>),
     ConfirmEmptyTrash(usize),
+    Conflict(Pending),
 }
 
 pub struct Services {
@@ -47,6 +50,7 @@ pub struct Services {
     pub trash: Arc<dyn TrashStore>,
     pub image_clipboard: Box<dyn ImageClipboard>,
     pub sidebar: Arc<dyn SidebarSource>,
+    pub transfer: Arc<dyn Transfer>,
 }
 
 pub struct Setup {
@@ -99,6 +103,7 @@ pub struct Files {
     pub open_with: Option<OpenWith>,
     pub archive_work: Option<PathBuf>,
     pub emptying: bool,
+    pub job: Option<Job>,
     pub previews: Previews,
     pub notice: Option<Notice>,
     pub skin: Skin,
@@ -141,6 +146,7 @@ impl Files {
             open_with: None,
             archive_work: None,
             emptying: false,
+            job: None,
             previews: Previews::default(),
             notice: None,
             skin: setup.skin,

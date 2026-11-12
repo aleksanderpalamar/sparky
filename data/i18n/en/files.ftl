@@ -132,3 +132,30 @@ item-exists = an item named { $name } already exists
 into-itself = cannot paste { $name } into itself
 no-visible-items = No visible items
 empty-folder = Empty folder
+conflict-question = { $count ->
+    [one] { $name } already exists at the destination
+   *[other] { $count } items already exist at the destination
+  } · Enter or m keeps both · s replaces · p skips · Esc cancels
+job-copying = Copying { $done } of { $total } · { $percent }% · Esc cancels
+job-moving = Moving { $done } of { $total } · { $percent }% · Esc cancels
+job-busy = Wait for the current operation to finish
+job-cancelling = Cancelling…
+job-cancelled = { $count ->
+    [0] Cancelled before the first item
+    [one] Cancelled after 1 item
+   *[other] Cancelled after { $count } items
+  }
+job-copied = { $count ->
+    [0] No items copied
+    [one] 1 item copied
+   *[other] { $count } items copied
+  }
+job-moved = { $count ->
+    [0] No items moved
+    [one] 1 item moved
+   *[other] { $count } items moved
+  }
+job-skipped = { $count ->
+    [one] 1 skipped
+   *[other] { $count } skipped
+  }

@@ -3,6 +3,9 @@ use std::fs;
 use iced::futures::StreamExt;
 use iced_runtime::Action as TaskAction;
 
+use iced::keyboard::key::Named;
+use iced::keyboard::{Key, Modifiers};
+
 use super::message::Message;
 use super::state::Mode;
 use super::test_scene::Cena;
@@ -17,7 +20,7 @@ fn copiar_e_mover_para_outra_pasta_nao_alteram_clipboard() {
     scene.mandar(Message::ContextEntry(1));
     scene.mandar(Message::ContextAction(Action::CopyTo));
     scene.mandar(Message::Typed(destination.display().to_string()));
-    scene.mandar(Message::Submit);
+    scene.concluir(Message::Submit);
     assert!(destination.join("a.txt").exists());
     assert!(scene.work().join("a.txt").exists());
     assert!(scene.files.clip.is_none());
@@ -25,6 +28,8 @@ fn copiar_e_mover_para_outra_pasta_nao_alteram_clipboard() {
     scene.mandar(Message::ContextAction(Action::MoveTo));
     scene.mandar(Message::Typed(destination.display().to_string()));
     scene.mandar(Message::Submit);
+    assert!(matches!(scene.files.mode, Mode::Conflict(_)));
+    scene.concluir(Message::Key(Key::Named(Named::Enter), Modifiers::empty()));
     assert!(!scene.work().join("a.txt").exists());
     assert!(destination.join("a (cópia).txt").exists());
     assert!(scene.files.clip.is_none());

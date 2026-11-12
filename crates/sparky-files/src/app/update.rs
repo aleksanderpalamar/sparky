@@ -59,6 +59,7 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
             volumes::completed(files, operation, result)
         }
         Message::FolderChanged => files.refresh(),
+        Message::Job(event) => files.job_event(event),
         Message::Tick => {
             files.refresh_if_changed();
             files.icons = files.services.icons.load();
@@ -104,6 +105,10 @@ fn key_pressed(files: &mut Files, key: &Key, modifiers: Modifiers) -> Task<Messa
         Mode::Browse => keys::browse(key, modifiers),
         Mode::Filter => keys::filtering(key),
         Mode::ConfirmTrash(_) | Mode::ConfirmEmptyTrash(_) => return files.confirm(key),
+        Mode::Conflict(_) => {
+            return keys::conflict(key)
+                .map_or_else(Task::none, |choice| files.resolve_conflict(choice));
+        }
         Mode::Rename(_)
         | Mode::Create
         | Mode::New(_)
@@ -142,6 +147,7 @@ fn run(files: &mut Files, command: Command) -> Task<Message> {
             device.map_or_else(Task::none, |device| volumes::open(files, &device))
         }
         Command::UnmountCurrent => volumes::unmount_current(files),
+        Command::Paste => files.paste(),
         Command::Refresh => {
             files.refresh();
             volumes::refresh(files)

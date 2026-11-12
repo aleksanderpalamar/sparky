@@ -55,10 +55,6 @@ impl Disk for ConsultasContadas {
         self.disco.relocate(from, to)
     }
 
-    fn copy(&self, from: &Path, to: &Path) -> io::Result<()> {
-        self.disco.copy(from, to)
-    }
-
     fn trash(&self, path: &Path) -> io::Result<()> {
         self.disco.trash(path)
     }

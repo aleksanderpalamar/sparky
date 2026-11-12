@@ -24,7 +24,7 @@ fn copia_de_pasta_aparece_completa_e_sem_sobras() {
     fs::create_dir_all(origem.join("2026")).unwrap();
     fs::write(origem.join("2026/praia.png"), "png").unwrap();
     fs::write(origem.join("lista.txt"), "a").unwrap();
-    copy(&origem, &dir.path().join("Fotos (cópia)")).unwrap();
+    copy(&origem, &dir.path().join("Fotos (cópia)"), &mut |_| true).unwrap();
     let copiada = fs::read_to_string(dir.path().join("Fotos (cópia)/2026/praia.png")).unwrap();
     assert_eq!(copiada, "png");
     assert!(sobras(dir.path()).is_empty());
@@ -46,7 +46,7 @@ fn copia_que_falha_no_meio_nao_deixa_nada_com_o_nome_final() {
         return;
     }
     let destino = dir.path().join("Documentos (cópia)");
-    assert!(copy(&origem, &destino).is_err());
+    assert!(copy(&origem, &destino, &mut |_| true).is_err());
     assert!(!destino.exists());
     assert!(sobras(dir.path()).is_empty());
 }
@@ -59,6 +59,7 @@ fn copia_nao_sobrescreve_item_que_apareceu_no_destino() {
     let erro = copy(
         &dir.path().join("origem.txt"),
         &dir.path().join("destino.txt"),
+        &mut |_| true,
     )
     .unwrap_err();
     assert_eq!(erro.kind(), io::ErrorKind::AlreadyExists);

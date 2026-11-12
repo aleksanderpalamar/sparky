@@ -11,6 +11,7 @@ use crate::domain::image::ImageMime;
 use crate::domain::properties::Properties;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::domain::thumbnail::Thumbnail;
+use crate::domain::transfer::Step;
 
 pub trait IconSource {
     fn load(&mut self) -> Icons;
@@ -48,8 +49,6 @@ pub trait Disk {
 
     fn relocate(&self, from: &Path, to: &Path) -> io::Result<()>;
 
-    fn copy(&self, from: &Path, to: &Path) -> io::Result<()>;
-
     fn trash(&self, path: &Path) -> io::Result<()>;
 
     fn properties(&self, path: &Path) -> io::Result<Properties>;
@@ -67,6 +66,12 @@ pub trait Opener {
 
 pub trait Archiver: Send + Sync {
     fn create(&self, paths: &[PathBuf], target: &Path) -> io::Result<()>;
+}
+
+pub trait Transfer: Send + Sync {
+    fn size(&self, path: &Path) -> u64;
+
+    fn run(&self, step: &Step, advance: &mut dyn FnMut(u64) -> bool) -> io::Result<()>;
 }
 
 pub trait ThumbnailSource: Send + Sync {

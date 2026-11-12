@@ -15,6 +15,7 @@ use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::local_disk::LocalDisk;
 use crate::adapters::sidebar_source::DesktopSidebar;
 use crate::adapters::thumbnail::FileThumbnail;
+use crate::adapters::transfer::LocalTransfer;
 use crate::app::message::Message;
 use crate::app::state::{Files, Services, Setup};
 use crate::app::update::update;
@@ -81,9 +82,10 @@ impl Cena {
             volumes: Arc::new(NoVolumes),
             archiver: Arc::new(ArquivosComprimidos),
             thumbnails: Arc::new(FileThumbnail),
-            trash: Arc::new(trash),
+            trash: Arc::new(trash.clone()),
             image_clipboard: Box::new(imagens.clone()),
             sidebar: Arc::new(DesktopSidebar::new(dir.path().join("data"))),
+            transfer: Arc::new(LocalTransfer::new(trash.clone(), None)),
         };
         let setup = Setup {
             start: work.clone(),
@@ -116,6 +118,18 @@ impl Cena {
 
     pub fn mandar(&mut self, message: Message) {
         let _ = update(&mut self.files, message);
+    }
+
+    pub fn concluir(&mut self, message: Message) {
+        let task = update(&mut self.files, message);
+        super::test_tasks::concluir(&mut self.files, task, 1000);
+    }
+
+    pub fn tecla_concluida(&mut self, texto: &str) {
+        self.concluir(Message::Key(
+            Key::Character(texto.into()),
+            Modifiers::empty(),
+        ));
     }
 
     pub fn work(&self) -> PathBuf {

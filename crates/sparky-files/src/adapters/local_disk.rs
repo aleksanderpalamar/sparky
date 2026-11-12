@@ -7,7 +7,7 @@ use std::time::SystemTime;
 use crate::adapters::gio_listing;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::staged;
-use crate::adapters::tree::{copy_tree, remove_tree};
+use crate::adapters::tree::remove_tree;
 use crate::domain::entry::{Entry, Kind};
 use crate::domain::properties::Properties;
 use crate::ports::Disk;
@@ -76,17 +76,10 @@ impl Disk for LocalDisk {
     fn relocate(&self, from: &Path, to: &Path) -> io::Result<()> {
         match staged::rename_noreplace(from, to) {
             Err(error) if error.kind() == io::ErrorKind::CrossesDevices => {
-                self.copy(from, to)?;
+                staged::copy(from, to, &mut |_| true)?;
                 remove_tree(from)
             }
             other => other,
-        }
-    }
-
-    fn copy(&self, from: &Path, to: &Path) -> io::Result<()> {
-        match self.is_remote(to) {
-            true => copy_tree(from, to),
-            false => staged::copy(from, to),
         }
     }
 

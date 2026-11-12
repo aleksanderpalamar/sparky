@@ -6,6 +6,8 @@ pub mod context;
 pub mod editing;
 mod empty_trash;
 pub mod events;
+mod job_report;
+pub mod jobs;
 pub mod keys;
 pub mod message;
 pub mod navigation;
@@ -29,6 +31,8 @@ mod empty_trash_tests;
 mod files_tests;
 #[cfg(test)]
 mod folder_change_tests;
+#[cfg(test)]
+mod jobs_tests;
 #[cfg(test)]
 mod keys_tests;
 #[cfg(test)]

@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::fmt;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -5,6 +6,7 @@ use std::path::{Path, PathBuf};
 use crate::domain::clip::Clip;
 use crate::domain::entry::Kind;
 use crate::domain::naming::{Creation, creation, free_name, valid};
+use crate::domain::transfer::{Action, Conflict, Step};
 use crate::i18n;
 use crate::ports::Disk;
 
@@ -39,12 +41,70 @@ impl fmt::Display for Failure {
     }
 }
 
-pub fn paste(clip: &Clip, into: &Path, disk: &dyn Disk) -> Result<Vec<String>, Failure> {
-    let resolved_into = disk.canonicalize(into).map_err(failed("destino"))?;
+pub struct Planned {
+    pub steps: Vec<Step>,
+    pub skipped: usize,
+}
+
+pub fn conflicts(clip: &Clip, into: &Path, disk: &dyn Disk) -> Vec<String> {
+    let Ok(resolved_into) = disk.canonicalize(into) else {
+        return Vec::new();
+    };
     clip.paths()
         .iter()
-        .map(|source| paste_one(clip, source, into, &resolved_into, disk))
+        .filter(|source| !same_folder(source, &resolved_into, disk))
+        .map(|source| file_name(source))
+        .filter(|name| disk.exists(&into.join(name)))
         .collect()
+}
+
+pub fn plan(
+    clip: &Clip,
+    into: &Path,
+    disk: &dyn Disk,
+    conflict: Conflict,
+) -> Result<Planned, Failure> {
+    let resolved_into = disk.canonicalize(into).map_err(failed("destino"))?;
+    let mut planned = Planned {
+        steps: Vec::new(),
+        skipped: 0,
+    };
+    let mut chosen = HashSet::new();
+    for source in clip.paths() {
+        let name = file_name(source);
+        let resolved_source = source_path(source, disk).map_err(failed(&name))?;
+        if resolved_into.starts_with(&resolved_source) {
+            return Err(Failure::IntoItself(name));
+        }
+        let same = resolved_source.parent() == Some(resolved_into.as_path());
+        let action = match clip {
+            Clip::Copy(_) => Action::Copy,
+            Clip::Cut(_) if same => continue,
+            Clip::Cut(_) => Action::Move,
+        };
+        let taken =
+            |candidate: &str| chosen.contains(candidate) || disk.exists(&into.join(candidate));
+        let (target, replace) = match (taken(&name), same, conflict) {
+            (false, _, _) => (name.clone(), false),
+            (true, true, _) | (true, _, Conflict::KeepBoth) => (free_name(&name, taken), false),
+            (true, false, Conflict::Skip) => {
+                planned.skipped += 1;
+                continue;
+            }
+            (true, false, Conflict::Replace) => (name.clone(), true),
+        };
+        if replace && resolved_source.starts_with(resolved_into.join(&target)) {
+            return Err(Failure::IntoItself(name));
+        }
+        chosen.insert(target.clone());
+        planned.steps.push(Step {
+            source: source.clone(),
+            target: into.join(target),
+            action,
+            replace,
+        });
+    }
+    Ok(planned)
 }
 
 pub fn rename(dir: &Path, old: &str, new: &str, disk: &dyn Disk) -> Result<(), Failure> {
@@ -92,30 +152,15 @@ pub fn trash(dir: &Path, names: &[String], disk: &dyn Disk) -> Result<usize, Fai
     Ok(names.len())
 }
 
-fn paste_one(
-    clip: &Clip,
-    source: &Path,
-    into: &Path,
-    resolved_into: &Path,
-    disk: &dyn Disk,
-) -> Result<String, Failure> {
-    let name = source
+fn same_folder(source: &Path, resolved_into: &Path, disk: &dyn Disk) -> bool {
+    source_path(source, disk).is_ok_and(|resolved| resolved.parent() == Some(resolved_into))
+}
+
+fn file_name(source: &Path) -> String {
+    source
         .file_name()
         .map(|name| name.to_string_lossy().into_owned())
-        .unwrap_or_default();
-    let resolved_source = source_path(source, disk).map_err(failed(&name))?;
-    if resolved_into.starts_with(&resolved_source) {
-        return Err(Failure::IntoItself(name));
-    }
-    if matches!(clip, Clip::Cut(_)) && resolved_source.parent() == Some(resolved_into) {
-        return Ok(name);
-    }
-    let target = free_name(&name, |candidate| disk.exists(&into.join(candidate)));
-    let result = match clip {
-        Clip::Copy(_) => disk.copy(source, &into.join(&target)),
-        Clip::Cut(_) => disk.relocate(source, &into.join(&target)),
-    };
-    result.map(|()| target).map_err(failed(&name))
+        .unwrap_or_default()
 }
 
 fn source_path(source: &Path, disk: &dyn Disk) -> io::Result<PathBuf> {

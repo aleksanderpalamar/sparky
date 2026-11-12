@@ -36,7 +36,7 @@ fn ctrl_c_em_png_publica_imagem_e_preserva_copia_interna() {
         cena.files.clip.as_ref().map(|clip| clip.paths().len()),
         Some(1)
     );
-    cena.mandar(Message::Key(Key::Character("v".into()), Modifiers::CTRL));
+    cena.concluir(Message::Key(Key::Character("v".into()), Modifiers::CTRL));
     assert!(cena.work().join("foto (cópia).png").exists());
 }
 

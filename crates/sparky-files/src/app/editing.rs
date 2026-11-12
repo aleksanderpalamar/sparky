@@ -23,35 +23,6 @@ impl Files {
         self.hold(Clip::Cut);
     }
 
-    pub fn paste(&mut self) {
-        let Some(clip) = self.clip.clone() else {
-            self.inform(i18n::text("nothing-to-paste"));
-            return;
-        };
-        let result = operations::paste(&clip, &self.location, self.services.disk.as_ref());
-        self.refresh();
-        match result {
-            Ok(names) => {
-                if let Err(error) = self.sync_favorite_moves(&clip, &names, &self.location) {
-                    self.fail(error);
-                    return;
-                }
-                if let Some(last) = names.last() {
-                    self.listing.select_name(last);
-                }
-                if matches!(clip, Clip::Cut(_)) {
-                    self.clip = None;
-                }
-                self.inform(format!(
-                    "{} {}",
-                    items(names.len()),
-                    agreed("colado", names.len())
-                ));
-            }
-            Err(failure) => self.fail(failure),
-        }
-    }
-
     pub fn ask_trash(&mut self) {
         let names = self.listing.chosen();
         if !names.is_empty() {
@@ -123,10 +94,11 @@ impl Files {
                 let result = operations::create_as(&self.location, &input, kind, disk);
                 self.created(result);
             }
-            Mode::Destination(clip) => self.finish_destination(&clip, &input),
+            Mode::Destination(clip) => return self.finish_destination(clip, &input),
             Mode::Compress(paths) => return self.start_archive(paths, &input),
             Mode::ConfirmTrash(names) => self.mode = Mode::ConfirmTrash(names),
             Mode::ConfirmEmptyTrash(count) => self.mode = Mode::ConfirmEmptyTrash(count),
+            Mode::Conflict(pending) => self.mode = Mode::Conflict(pending),
             Mode::Browse | Mode::Filter => {}
         }
         Task::none()
@@ -142,6 +114,9 @@ impl Files {
         if self.context.take().is_some() {
             return;
         }
+        if self.mode == Mode::Browse && self.cancel_job() {
+            return;
+        }
         match mem::replace(&mut self.mode, Mode::Browse) {
             Mode::Browse if !self.listing.filter().is_empty() => self.listing.set_filter(""),
             Mode::Browse => self.listing.clear_marks(),
@@ -152,7 +127,8 @@ impl Files {
             | Mode::Destination(_)
             | Mode::Compress(_)
             | Mode::ConfirmTrash(_)
-            | Mode::ConfirmEmptyTrash(_) => {}
+            | Mode::ConfirmEmptyTrash(_)
+            | Mode::Conflict(_) => {}
         }
         self.input.clear();
     }
