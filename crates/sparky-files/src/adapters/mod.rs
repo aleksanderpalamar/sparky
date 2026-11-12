@@ -10,6 +10,9 @@ mod disk_trash_tests;
 pub mod extract;
 #[cfg(test)]
 mod extract_tests;
+pub mod file_manager1;
+#[cfg(test)]
+mod file_manager1_tests;
 pub mod finder;
 #[cfg(test)]
 mod finder_tests;

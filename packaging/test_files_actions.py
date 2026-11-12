@@ -24,6 +24,16 @@ class FilesActionsDependenciesTest(unittest.TestCase):
         self.assertIn("bsdtar", metadata["generate-rpm"]["requires"])
         self.assertIn("'libarchive'", arch)
 
+    def test_todos_formatos_sobem_o_file_manager1_so_na_sessao_sparky(self):
+        entrada = (ROOT / "data/autostart/sparky-files-manager.desktop").read_text()
+        self.assertIn("Exec=sparky-files --file-manager1", entrada)
+        self.assertIn("OnlyShowIn=sparky;", entrada)
+        cargo = (ROOT / "crates/sparky-compositor/Cargo.toml").read_text()
+        pkgbuild = (ROOT / "packaging/arch/PKGBUILD").read_text()
+        self.assertIn('"etc/xdg/autostart/"', cargo)
+        self.assertIn('dest = "/etc/xdg/autostart/sparky-files-manager.desktop"', cargo)
+        self.assertIn('data/autostart/sparky-files-manager.desktop -t "$pkgdir/etc/xdg/autostart"', pkgbuild)
+
 
 if __name__ == "__main__":
     unittest.main()

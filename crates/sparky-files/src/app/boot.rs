@@ -21,6 +21,7 @@ use crate::adapters::transfer::LocalTransfer;
 use crate::adapters::xdg_open::XdgOpen;
 use crate::app::message::Message;
 use crate::app::state::{Files, Services, Setup};
+use crate::domain::launch::{self, Start};
 use crate::domain::places::places;
 use crate::view::style::{WINDOW_HEIGHT, WINDOW_WIDTH, rows_for};
 
@@ -31,8 +32,9 @@ pub fn boot() -> (Files, Task<Message>) {
     let home = dirs.home();
     let trash =
         HomeTrash::from_env().unwrap_or_else(|| HomeTrash::new(home.join(".local/share/Trash")));
+    let start = launch::parse(&env::args().skip(1).collect::<Vec<_>>());
     let setup = Setup {
-        start: start_dir(env::args().nth(1), &home),
+        start: start_dir(folder_of(&start), &home),
         places: places(&dirs)
             .into_iter()
             .filter(|place| place.path.is_dir())
@@ -59,6 +61,11 @@ pub fn boot() -> (Files, Task<Message>) {
         )),
     };
     let mut files = Files::new(setup, services);
+    match start {
+        Start::Select(items) => files.reveal(&items),
+        Start::Properties(item) => files.reveal_properties(&item),
+        Start::Folder(_) => {}
+    }
     files.refresh_trashes();
     files.resize(Size::new(WINDOW_WIDTH, WINDOW_HEIGHT));
     let task = Task::batch([
@@ -68,7 +75,18 @@ pub fn boot() -> (Files, Task<Message>) {
     (files, task)
 }
 
-pub fn start_dir(argument: Option<String>, home: &Path) -> PathBuf {
+fn folder_of(start: &Start) -> Option<PathBuf> {
+    match start {
+        Start::Folder(folder) => folder.clone(),
+        Start::Select(items) => items
+            .first()
+            .and_then(|item| item.parent())
+            .map(Path::to_path_buf),
+        Start::Properties(item) => item.parent().map(Path::to_path_buf),
+    }
+}
+
+pub fn start_dir(argument: Option<PathBuf>, home: &Path) -> PathBuf {
     argument
         .and_then(|path| std::path::absolute(path).ok())
         .filter(|path| path.is_dir())

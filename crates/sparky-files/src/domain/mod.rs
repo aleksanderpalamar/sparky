@@ -14,6 +14,7 @@ pub mod entry;
 pub mod grid;
 pub mod icons;
 pub mod image;
+pub mod launch;
 pub mod listing;
 pub mod naming;
 pub mod order;

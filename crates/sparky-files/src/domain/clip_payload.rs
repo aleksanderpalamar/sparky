@@ -64,7 +64,7 @@ pub fn parse_uri_list(text: &str, cut: bool) -> Option<Clip> {
     })
 }
 
-fn path_of(uri: &str) -> Option<PathBuf> {
+pub fn path_of(uri: &str) -> Option<PathBuf> {
     let rest = uri.strip_prefix("file://")?;
     let rest = rest.strip_prefix("localhost").unwrap_or(rest);
     if !rest.starts_with('/') {
