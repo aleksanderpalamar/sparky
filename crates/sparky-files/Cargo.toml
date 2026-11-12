@@ -31,6 +31,8 @@ sparky-theme.workspace = true
 sparky-ui.workspace = true
 sparky-xdg.workspace = true
 tempfile = "3"
+wayland-client = "0.31"
+wayland-protocols-wlr = { version = "0.3", features = ["client"] }
 
 [dev-dependencies]
 iced_runtime = "0.14"

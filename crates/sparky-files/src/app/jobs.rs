@@ -45,7 +45,7 @@ pub enum JobEvent {
 
 impl Files {
     pub fn paste(&mut self) -> Task<Message> {
-        let Some(clip) = self.clip.clone() else {
+        let Some(clip) = self.clipboard_clip() else {
             self.inform(i18n::text("nothing-to-paste"));
             return Task::none();
         };

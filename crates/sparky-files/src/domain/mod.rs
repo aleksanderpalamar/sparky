@@ -1,5 +1,8 @@
 pub mod application;
 pub mod clip;
+pub mod clip_payload;
+#[cfg(test)]
+mod clip_payload_tests;
 pub mod context;
 pub mod debounce;
 pub mod destination;

@@ -5,9 +5,9 @@ use std::path::PathBuf;
 use std::time::SystemTime;
 
 use crate::domain::application::Application;
+use crate::domain::clip::{ClipOffer, Pasted};
 use crate::domain::entry::Entry;
 use crate::domain::icons::Icons;
-use crate::domain::image::ImageMime;
 use crate::domain::properties::Properties;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::domain::thumbnail::Thumbnail;
@@ -31,8 +31,12 @@ pub trait SidebarSource: Send + Sync {
     fn relocated(&self, from: &Path, to: &Path) -> Result<(), String>;
 }
 
-pub trait ImageClipboard {
-    fn publish(&self, path: &Path, mime: ImageMime) -> io::Result<()>;
+pub trait FileClipboard {
+    fn publish(&self, offer: &ClipOffer) -> io::Result<()>;
+
+    fn clear(&self) -> io::Result<()>;
+
+    fn read(&self) -> Pasted;
 }
 
 pub trait Disk {

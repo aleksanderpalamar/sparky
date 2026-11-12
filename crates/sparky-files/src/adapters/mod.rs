@@ -1,5 +1,9 @@
 pub mod archive;
 pub mod clipboard;
+pub mod clipboard_request;
+pub mod clipboard_server;
+#[cfg(test)]
+mod clipboard_tests;
 pub mod disk_trash;
 #[cfg(test)]
 mod disk_trash_tests;

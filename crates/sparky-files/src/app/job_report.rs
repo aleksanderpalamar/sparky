@@ -22,6 +22,7 @@ impl Files {
             && outcome.ending == Ending::Finished
         {
             self.clip = None;
+            let _ = self.services.clipboard.clear();
         }
         if job.origin == Origin::User && !outcome.completed.is_empty() {
             self.journal.push(Record::Transferred {

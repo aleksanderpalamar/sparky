@@ -4956,6 +4956,8 @@ dependencies = [
  "sparky-xdg",
  "tempfile",
  "tokio",
+ "wayland-client",
+ "wayland-protocols-wlr",
 ]
 
 [[package]]

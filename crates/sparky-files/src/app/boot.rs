@@ -7,7 +7,7 @@ use sparky_theme::Skin;
 use sparky_xdg::UserDirs;
 
 use crate::adapters::archive::TarArchive;
-use crate::adapters::clipboard::WlImageClipboard;
+use crate::adapters::clipboard::WaylandClipboard;
 use crate::adapters::disk_trash::DiskTrashes;
 use crate::adapters::gio_listing;
 use crate::adapters::home_trash::HomeTrash;
@@ -47,7 +47,7 @@ pub fn boot() -> (Files, Task<Message>) {
         thumbnails: Arc::new(SharedThumbnails::from_env(FileThumbnail)),
         trash: Arc::new(trash.clone()),
         trash_disks: Arc::new(DiskTrashes::new(trash.clone())),
-        image_clipboard: Box::new(WlImageClipboard),
+        clipboard: Box::new(WaylandClipboard),
         sidebar: std::sync::Arc::new(DesktopSidebar::from_env()),
         transfer: Arc::new(LocalTransfer::new(
             trash.clone(),

@@ -23,7 +23,7 @@ use crate::domain::properties::Properties;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::domain::undo::Journal;
 use crate::ports::{
-    Archiver, Disk, IconSource, ImageClipboard, Opener, SidebarSource, ThumbnailSource, Transfer,
+    Archiver, Disk, FileClipboard, IconSource, Opener, SidebarSource, ThumbnailSource, Transfer,
     TrashDisks, TrashStore,
 };
 
@@ -49,7 +49,7 @@ pub struct Services {
     pub archiver: Arc<dyn Archiver>,
     pub thumbnails: Arc<dyn ThumbnailSource>,
     pub trash: Arc<dyn TrashStore>,
-    pub image_clipboard: Box<dyn ImageClipboard>,
+    pub clipboard: Box<dyn FileClipboard>,
     pub sidebar: Arc<dyn SidebarSource>,
     pub transfer: Arc<dyn Transfer>,
     pub trash_disks: Arc<dyn TrashDisks>,

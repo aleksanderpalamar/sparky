@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+use crate::domain::image::ImageMime;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Clip {
     Copy(Vec<PathBuf>),
@@ -19,4 +21,17 @@ impl Clip {
             Clip::Cut(_) => "recortado",
         }
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ClipOffer {
+    pub clip: Clip,
+    pub image: Option<(PathBuf, ImageMime)>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Pasted {
+    Files(Clip),
+    Other,
+    Unavailable,
 }

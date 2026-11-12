@@ -10,7 +10,7 @@ use iced::keyboard::{Key, Modifiers};
 use sparky_theme::Skin;
 use tempfile::TempDir;
 
-use super::test_sources::{CopiedImages, NoDiskTrashes, NoIcons, NoVolumes};
+use super::test_sources::{AreaFalsa, NoDiskTrashes, NoIcons, NoVolumes};
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::local_disk::LocalDisk;
 use crate::adapters::sidebar_source::DesktopSidebar;
@@ -59,7 +59,7 @@ impl Archiver for ArquivosComprimidos {
 pub struct Cena {
     pub dir: TempDir,
     pub files: Files,
-    pub imagens: CopiedImages,
+    pub area: AreaFalsa,
     abertos: Abertos,
 }
 
@@ -73,7 +73,7 @@ impl Cena {
             .and_then(|()| fs::write(work.join("a.txt"), "oi"));
         assert!(preparado.is_ok());
         let abertos = Abertos::default();
-        let imagens = CopiedImages::default();
+        let area = AreaFalsa::default();
         let trash = HomeTrash::new(dir.path().join("Trash"));
         let services = Services {
             disk: Box::new(LocalDisk::new(trash.clone())),
@@ -84,7 +84,7 @@ impl Cena {
             thumbnails: Arc::new(FileThumbnail),
             trash: Arc::new(trash.clone()),
             trash_disks: Arc::new(NoDiskTrashes),
-            image_clipboard: Box::new(imagens.clone()),
+            clipboard: Box::new(area.clone()),
             sidebar: Arc::new(DesktopSidebar::new(dir.path().join("data"))),
             transfer: Arc::new(LocalTransfer::new(trash.clone(), None)),
         };
@@ -98,7 +98,7 @@ impl Cena {
         Self {
             files: Files::new(setup, services),
             dir,
-            imagens,
+            area,
             abertos,
         }
     }

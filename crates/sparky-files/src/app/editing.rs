@@ -15,13 +15,13 @@ use crate::operations::{self, Failure};
 
 impl Files {
     pub fn copy(&mut self) {
-        let paths = self.chosen_paths();
         self.hold(Clip::Copy);
-        self.publish_image(&paths);
+        self.publish_clip();
     }
 
     pub fn cut(&mut self) {
         self.hold(Clip::Cut);
+        self.publish_clip();
     }
 
     pub fn ask_trash(&mut self) {

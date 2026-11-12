@@ -23,6 +23,8 @@ mod virtual_commands;
 pub mod volumes;
 
 #[cfg(test)]
+mod clipboard_files_tests;
+#[cfg(test)]
 mod clipboard_tests;
 #[cfg(test)]
 mod context_tests;
