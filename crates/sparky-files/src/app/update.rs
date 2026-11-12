@@ -58,6 +58,7 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::VolumesCompleted(operation, result) => {
             volumes::completed(files, operation, result)
         }
+        Message::FolderChanged => files.refresh(),
         Message::Tick => {
             files.refresh_if_changed();
             files.icons = files.services.icons.load();

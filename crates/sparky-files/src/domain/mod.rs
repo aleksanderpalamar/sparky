@@ -1,6 +1,7 @@
 pub mod application;
 pub mod clip;
 pub mod context;
+pub mod debounce;
 pub mod destination;
 pub mod entry;
 pub mod grid;

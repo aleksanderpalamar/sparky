@@ -23,7 +23,7 @@ serde_json = "1"
 md-5 = "0.10"
 png = "0.18"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
-rustix = { version = "1", features = ["fs"] }
+rustix = { version = "1", features = ["event", "fs"] }
 iced = { version = "0.14", features = ["tokio", "image", "svg"] }
 tokio = { version = "1", features = ["rt"] }
 sparky-storage.workspace = true

@@ -37,6 +37,7 @@ pub enum Message {
     Trash(TrashEvent),
     TrashEmptied(Result<EmptyReport, String>),
     Tick,
+    FolderChanged,
     View(ViewMode),
     OpenVolume(String),
     UnmountVolume(String),

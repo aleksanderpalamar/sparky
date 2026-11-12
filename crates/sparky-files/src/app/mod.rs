@@ -28,6 +28,8 @@ mod empty_trash_tests;
 #[cfg(test)]
 mod files_tests;
 #[cfg(test)]
+mod folder_change_tests;
+#[cfg(test)]
 mod keys_tests;
 #[cfg(test)]
 mod menu_actions_tests;

@@ -14,6 +14,9 @@ pub mod thumbnail_cache;
 mod thumbnail_cache_tests;
 pub mod thumbnail_png;
 pub mod tree;
+pub mod watch;
+#[cfg(test)]
+mod watch_tests;
 pub mod xdg_open;
 
 #[cfg(test)]
