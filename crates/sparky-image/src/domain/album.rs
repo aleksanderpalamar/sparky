@@ -1,5 +1,7 @@
 use std::path::{Path, PathBuf};
 
+use sparky_ui::natural::NaturalKey;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Step {
     Next,
@@ -53,10 +55,10 @@ impl Album {
     }
 }
 
-fn order(path: &Path) -> (String, String) {
+fn order(path: &Path) -> NaturalKey {
     let name = path
         .file_name()
         .map(|name| name.to_string_lossy().into_owned())
         .unwrap_or_default();
-    (name.to_lowercase(), name)
+    NaturalKey::new(&name)
 }

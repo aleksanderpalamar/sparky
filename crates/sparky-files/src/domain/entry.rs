@@ -1,5 +1,7 @@
 use chrono::NaiveDateTime;
 
+use sparky_ui::natural::NaturalKey;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Kind {
     Directory,
@@ -25,7 +27,7 @@ impl Entry {
 }
 
 pub fn sort(entries: &mut [Entry]) {
-    entries.sort_by_cached_key(|entry| (!entry.is_directory(), entry.name.to_lowercase(), entry.name.clone()));
+    entries.sort_by_cached_key(|entry| (!entry.is_directory(), NaturalKey::new(&entry.name)));
 }
 
 #[cfg(test)]
@@ -53,6 +55,22 @@ mod tests {
         sort(&mut entries);
         let names: Vec<&str> = entries.iter().map(|entry| entry.name.as_str()).collect();
         assert_eq!(names, ["alfa", "Beta", "alfa.txt", "zeta.txt"]);
+    }
+
+    #[test]
+    fn numeros_nos_nomes_seguem_a_ordem_natural_com_pastas_antes() {
+        let mut entries = vec![
+            entry("faixa 10.mp3", Kind::File),
+            entry("faixa 2.mp3", Kind::File),
+            entry("Disco 10", Kind::Directory),
+            entry("disco 9", Kind::Directory),
+        ];
+        sort(&mut entries);
+        let names: Vec<&str> = entries.iter().map(|entry| entry.name.as_str()).collect();
+        assert_eq!(
+            names,
+            ["disco 9", "Disco 10", "faixa 2.mp3", "faixa 10.mp3"]
+        );
     }
 
     #[test]

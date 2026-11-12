@@ -358,7 +358,7 @@ The session also locks automatically after a period without keyboard or mouse in
 
 ## Files
 
-`sparky-files` opens with `SUPER + SHIFT + F` (or `sparky-files <folder>`). It opens in a grid, with icons and names for folders and files, and can switch to a list with size and date using the Grid/List buttons or `CTRL + 1`/`CTRL + 2`. The grid adapts to the window width; folders come first, and the view updates when the folder changes. Switching views preserves the filter, selection, and marked items.
+`sparky-files` opens with `SUPER + SHIFT + F` (or `sparky-files <folder>`). It opens in a grid, with icons and names for folders and files, and can switch to a list with size and date using the Grid/List buttons or `CTRL + 1`/`CTRL + 2`. The grid adapts to the window width; folders come first, and names follow natural order, ignoring case and accents (`foto2` before `foto10`, `Élan` between `alfa` and `Zeta`), and the view updates when the folder changes. Switching views preserves the filter, selection, and marked items.
 
 Icons follow the theme configured by the settings panel in GTK, including its inheritance (`index.theme`). The file manager prefers the theme sizes closest to 96 px, including double-scale folders (`48x48@2x`), to keep icons from looking blurry. Special folders and common file types have their own icons; without an installed icon, sparky draws a fallback icon. Changing the theme updates the icons without closing the file manager.
 
