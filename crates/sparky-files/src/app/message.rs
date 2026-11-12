@@ -28,6 +28,7 @@ pub enum Message {
     Hover(DropTarget),
     Unhover(DropTarget),
     Modifiers(Modifiers),
+    DragRefused(String),
     ContextEntry(usize),
     ContextBackground,
     ContextAction(Action),

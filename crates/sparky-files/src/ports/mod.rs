@@ -94,6 +94,10 @@ pub trait Archiver: Send + Sync {
     ) -> io::Result<Extraction>;
 }
 
+pub trait Dragger: Send + Sync {
+    fn start(&self, uris: Vec<String>) -> Result<(), String>;
+}
+
 pub trait Finder: Send + Sync {
     fn find(
         &self,

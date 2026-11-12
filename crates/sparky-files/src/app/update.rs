@@ -30,11 +30,12 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::Scrolled(lines) => files
             .viewport
             .scroll(lines, files.layout.row_count(files.listing.len())),
-        Message::Pointer(point) => files.pointer_moved(point),
+        Message::Pointer(point) => return files.pointer_moved(point),
         Message::Released => return files.released(),
         Message::Hover(target) => files.hover(target),
         Message::Unhover(target) => files.unhover(target),
         Message::Modifiers(modifiers) => files.hold_keys(modifiers),
+        Message::DragRefused(reason) => files.drag_refused(&reason),
         Message::ContextEntry(index) => context::entry(files, index),
         Message::ContextBackground => context::background(files),
         Message::ContextDismiss => {

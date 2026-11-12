@@ -228,3 +228,5 @@ open-with-recommended = Recommended Apps
 open-with-others = Other Apps
 open-with-always = Always use for this file type
 open-with-none = No app found
+drag-refused = Could not drag: { $reason }
+drag-outside-sparky = dragging only works in the Sparky session

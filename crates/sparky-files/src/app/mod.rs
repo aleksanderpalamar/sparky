@@ -10,6 +10,7 @@ pub mod editing;
 mod empty_trash;
 pub mod events;
 pub mod extraction;
+mod handoff;
 mod job_report;
 pub mod jobs;
 pub mod keys;
@@ -55,6 +56,8 @@ mod extract_tests;
 mod files_tests;
 #[cfg(test)]
 mod folder_change_tests;
+#[cfg(test)]
+mod handoff_tests;
 #[cfg(test)]
 mod jobs_tests;
 #[cfg(test)]

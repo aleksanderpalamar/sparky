@@ -228,3 +228,5 @@ open-with-recommended = Aplicativos recomendados
 open-with-others = Outros aplicativos
 open-with-always = Usar sempre para este tipo de arquivo
 open-with-none = Nenhum aplicativo encontrado
+drag-refused = Não foi possível arrastar: { $reason }
+drag-outside-sparky = arrastar só funciona na sessão Sparky

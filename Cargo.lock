@@ -4950,6 +4950,7 @@ dependencies = [
  "rustix 1.1.5",
  "serde_json",
  "sparky-i18n",
+ "sparky-ipc",
  "sparky-storage",
  "sparky-theme",
  "sparky-ui",

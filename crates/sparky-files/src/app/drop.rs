@@ -40,8 +40,13 @@ impl Files {
         };
     }
 
-    pub fn pointer_moved(&mut self, point: Point) {
+    pub fn pointer_moved(&mut self, point: Point) -> Task<Message> {
         self.pointer = point;
+        self.start_drag(point);
+        self.leave_window(point)
+    }
+
+    fn start_drag(&mut self, point: Point) {
         let Gesture::Pressed { index, at } = self.gesture else {
             return;
         };

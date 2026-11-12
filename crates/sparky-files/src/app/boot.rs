@@ -8,6 +8,7 @@ use sparky_xdg::UserDirs;
 
 use crate::adapters::archive::TarArchive;
 use crate::adapters::clipboard::WaylandClipboard;
+use crate::adapters::compositor_drag::CompositorDrag;
 use crate::adapters::disk_trash::DiskTrashes;
 use crate::adapters::finder::TreeFinder;
 use crate::adapters::gio_listing;
@@ -53,6 +54,7 @@ pub fn boot() -> (Files, Task<Message>) {
         trash: Arc::new(trash.clone()),
         trash_disks: Arc::new(DiskTrashes::new(trash.clone())),
         finder: Arc::new(TreeFinder::new(SEARCH_LIMIT)),
+        dragger: Arc::new(CompositorDrag),
         clipboard: Box::new(WaylandClipboard),
         sidebar: std::sync::Arc::new(DesktopSidebar::from_env()),
         transfer: Arc::new(LocalTransfer::new(

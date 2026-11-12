@@ -84,3 +84,27 @@ impl TrashDisks for NoDiskTrashes {
         Vec::new()
     }
 }
+
+#[derive(Clone, Default)]
+pub struct ArrastoFalso {
+    pedidos: std::sync::Arc<std::sync::Mutex<Vec<Vec<String>>>>,
+    pub recusa: Option<String>,
+}
+
+impl ArrastoFalso {
+    pub fn pedidos(&self) -> Vec<Vec<String>> {
+        self.pedidos
+            .lock()
+            .map(|lista| lista.clone())
+            .unwrap_or_default()
+    }
+}
+
+impl crate::ports::Dragger for ArrastoFalso {
+    fn start(&self, uris: Vec<String>) -> Result<(), String> {
+        if let Ok(mut lista) = self.pedidos.lock() {
+            lista.push(uris);
+        }
+        self.recusa.clone().map_or(Ok(()), Err)
+    }
+}

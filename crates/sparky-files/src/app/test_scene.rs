@@ -10,7 +10,7 @@ use iced::keyboard::{Key, Modifiers};
 use sparky_theme::Skin;
 use tempfile::TempDir;
 
-use super::test_sources::{AreaFalsa, NoDiskTrashes, NoIcons, NoVolumes};
+use super::test_sources::{AreaFalsa, ArrastoFalso, NoDiskTrashes, NoIcons, NoVolumes};
 use crate::adapters::finder::TreeFinder;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::local_disk::LocalDisk;
@@ -99,6 +99,7 @@ pub struct Cena {
     pub dir: TempDir,
     pub files: Files,
     pub area: AreaFalsa,
+    pub arrastos: ArrastoFalso,
     abertos: Abertos,
 }
 
@@ -113,6 +114,7 @@ impl Cena {
         assert!(preparado.is_ok());
         let abertos = Abertos::default();
         let area = AreaFalsa::default();
+        let arrastos = ArrastoFalso::default();
         let trash = HomeTrash::new(dir.path().join("Trash"));
         let services = Services {
             disk: Box::new(LocalDisk::new(trash.clone())),
@@ -124,6 +126,7 @@ impl Cena {
             trash: Arc::new(trash.clone()),
             trash_disks: Arc::new(NoDiskTrashes),
             finder: Arc::new(TreeFinder::new(100)),
+            dragger: Arc::new(arrastos.clone()),
             clipboard: Box::new(area.clone()),
             sidebar: Arc::new(DesktopSidebar::new(dir.path().join("data"))),
             transfer: Arc::new(LocalTransfer::new(trash.clone(), None)),
@@ -139,6 +142,7 @@ impl Cena {
             files: Files::new(setup, services),
             dir,
             area,
+            arrastos,
             abertos,
         }
     }

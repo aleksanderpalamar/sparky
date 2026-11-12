@@ -28,8 +28,8 @@ use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::domain::tabs::Tabs;
 use crate::domain::undo::Journal;
 use crate::ports::{
-    Archiver, Disk, FileClipboard, Finder, IconSource, Opener, SidebarSource, ThumbnailSource,
-    Transfer, TrashDisks, TrashStore,
+    Archiver, Disk, Dragger, FileClipboard, Finder, IconSource, Opener, SidebarSource,
+    ThumbnailSource, Transfer, TrashDisks, TrashStore,
 };
 
 pub struct Services {
@@ -45,6 +45,7 @@ pub struct Services {
     pub transfer: Arc<dyn Transfer>,
     pub trash_disks: Arc<dyn TrashDisks>,
     pub finder: Arc<dyn Finder>,
+    pub dragger: Arc<dyn Dragger>,
 }
 
 pub struct Setup {

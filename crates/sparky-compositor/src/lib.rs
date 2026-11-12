@@ -9,6 +9,7 @@ pub mod config;
 pub mod cursor;
 mod diagnostics;
 pub mod drag;
+pub mod file_drag;
 pub mod focus;
 pub mod handlers;
 pub mod idle;

@@ -28,6 +28,7 @@ impl Sparky {
                 }
             }
             Request::Session { action } => self.session_request(action),
+            Request::Drag { uris } => self.start_file_drag(uris),
             Request::Info => Reply::Info {
                 info: self.session_info(),
             },
