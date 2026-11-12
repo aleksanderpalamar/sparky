@@ -9,6 +9,7 @@ use sparky_theme::Skin;
 use sparky_ui::notice::Notice;
 use sparky_ui::viewport::Viewport;
 
+use crate::app::drop::Gesture;
 use crate::app::jobs::Job;
 pub use crate::app::mode::Mode;
 use crate::app::previews::Previews;
@@ -17,6 +18,7 @@ use crate::app::tabs::Tab;
 use crate::domain::application::Application;
 use crate::domain::clip::Clip;
 use crate::domain::context::Target;
+use crate::domain::drop::Override;
 use crate::domain::grid::{Layout, ViewMode};
 use crate::domain::icons::Icons;
 use crate::domain::listing::Listing;
@@ -98,6 +100,8 @@ pub struct Files {
     pub job: Option<Job>,
     pub search: Option<Search>,
     pub tabs: Tabs<Tab>,
+    pub gesture: Gesture,
+    pub held: Override,
     pub journal: Journal,
     pub other_trashes: Vec<Arc<dyn TrashStore>>,
     pub previews: Previews,
@@ -145,6 +149,8 @@ impl Files {
             job: None,
             search: None,
             tabs: Tabs::default(),
+            gesture: Gesture::Idle,
+            held: Override::None,
             journal: Journal::default(),
             other_trashes: Vec::new(),
             previews: Previews::default(),

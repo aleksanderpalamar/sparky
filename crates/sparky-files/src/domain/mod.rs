@@ -10,6 +10,7 @@ mod clip_payload_tests;
 pub mod context;
 pub mod debounce;
 pub mod destination;
+pub mod drop;
 pub mod entry;
 pub mod grid;
 pub mod icons;

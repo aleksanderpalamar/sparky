@@ -405,7 +405,7 @@ Periodic device queries do not display a refresh indicator. The sidebar shows pr
 | `CTRL + A` | Mark all visible items |
 | `ALT + Enter` | Show properties for the selected item or, without a selection, for the open folder |
 
-With the mouse, one click selects, a double-click opens, and the wheel scrolls the list.
+With the mouse, one click selects, a double-click opens, and the wheel scrolls the list. Pressing on an item and dragging carries it (or every marked item, if it is marked) to a folder in the list, a sidebar place, another tab, or the **Trash**; the target is highlighted and the status bar shows the options. On the same disk the item is moved, and across disks it is copied; holding `CTRL` forces a copy and `SHIFT` forces a move. Dropping uses the same background transfer as pasting (with progress, the conflict question, and `CTRL + Z`) but leaves the clipboard alone; dropping on the Trash asks for confirmation, and `Esc` cancels the drag.
 
 Right-click opens a context menu in the theme colors. On a file or folder, it offers open, open with another application, cut, copy, move to, copy to, rename, compress, email, move to trash, delete permanently, and properties. In an empty area, it offers new folder, new document, open the folder with another application, paste, select all, and properties. If the item is already marked, the menu acts on all marked items. While a menu or dialog is open, keys do not act on the list; `Esc` or a click outside closes it.
 

@@ -1,10 +1,11 @@
 use iced::alignment::Vertical;
-use iced::widget::{Column, button as widget_button, row, text};
+use iced::widget::{Column, button as widget_button, mouse_area, row, text};
 use iced::{Element, Length};
 use sparky_ui::style::{self, Highlight};
 
 use crate::app::message::{Message, TrashEvent};
 use crate::app::state::Files;
+use crate::domain::drop::DropTarget;
 use crate::domain::icons::IconKind;
 use crate::i18n;
 use crate::view::icon::sidebar_icon;
@@ -40,9 +41,17 @@ fn row_for(files: &Files, title: String, event: TrashEvent, active: bool) -> Ele
     ]
     .spacing(6)
     .align_y(Vertical::Center);
-    widget_button(label)
+    let home = matches!(event, TrashEvent::Open);
+    let dropping = home && files.is_drop_target(DropTarget::Trash);
+    let control = widget_button(label)
         .width(Length::Fill)
         .on_press(Message::Trash(event))
-        .style(move |_, status| style::entry(skin, Highlight::when(active), status))
-        .into()
+        .style(move |_, status| style::entry(skin, Highlight::when(active || dropping), status));
+    match home {
+        true => mouse_area(control)
+            .on_enter(Message::Hover(DropTarget::Trash))
+            .on_exit(Message::Unhover(DropTarget::Trash))
+            .into(),
+        false => control.into(),
+    }
 }

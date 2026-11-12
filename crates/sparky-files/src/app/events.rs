@@ -5,8 +5,8 @@ use std::time::Duration;
 use iced::event::{self, Event, Status};
 use iced::futures::channel::mpsc;
 use iced::futures::{SinkExt, Stream, StreamExt};
-use iced::mouse;
 use iced::{Subscription, time, window};
+use iced::{keyboard, mouse};
 use sparky_ui::press::{Press, press};
 
 use crate::adapters::watch::watch;
@@ -58,8 +58,17 @@ fn forward(dir: &Path, mut sender: mpsc::Sender<()>) {
 }
 
 fn keyboard_message(event: Event, status: Status, _window: window::Id) -> Option<Message> {
-    if let Event::Mouse(mouse::Event::CursorMoved { position }) = event {
-        return Some(Message::Pointer(position));
+    match event {
+        Event::Mouse(mouse::Event::CursorMoved { position }) => {
+            return Some(Message::Pointer(position));
+        }
+        Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) => {
+            return Some(Message::Released);
+        }
+        Event::Keyboard(keyboard::Event::ModifiersChanged(modifiers)) => {
+            return Some(Message::Modifiers(modifiers));
+        }
+        _ => {}
     }
     press(event, status).map(|press| match press {
         Press::Escape => Message::Escape,

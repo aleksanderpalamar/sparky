@@ -1,5 +1,6 @@
 use crate::app::jobs::JobEvent;
 use crate::domain::context::Action;
+use crate::domain::drop::DropTarget;
 use crate::domain::grid::ViewMode;
 use crate::domain::order::SortKey;
 use crate::domain::search::SearchEvent;
@@ -23,6 +24,10 @@ pub enum Message {
     Activated(usize),
     Scrolled(isize),
     Pointer(Point),
+    Released,
+    Hover(DropTarget),
+    Unhover(DropTarget),
+    Modifiers(Modifiers),
     ContextEntry(usize),
     ContextBackground,
     ContextAction(Action),

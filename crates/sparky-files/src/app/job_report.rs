@@ -21,7 +21,7 @@ impl Files {
             self.clip = None;
             let _ = self.services.clipboard.clear();
         }
-        if origin == Origin::User && !outcome.completed.is_empty() {
+        if origin != Origin::Undo && !outcome.completed.is_empty() {
             self.journal.push(Record::Transferred {
                 action,
                 steps: outcome.completed.clone(),
@@ -34,7 +34,7 @@ impl Files {
             self.listing.select_name(name);
         }
         match origin {
-            Origin::User => self.report(action, &outcome),
+            Origin::User | Origin::Dropped => self.report(action, &outcome),
             Origin::Undo => self.report_undo(&outcome),
         }
     }

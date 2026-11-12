@@ -6,6 +6,7 @@ use sparky_theme::Skin;
 use crate::app::message::Message;
 use crate::app::sorting::arrow;
 use crate::app::state::Files;
+use crate::domain::drop::DropTarget;
 use crate::domain::entry::Entry;
 use crate::domain::order::SortKey;
 use crate::i18n;
@@ -19,7 +20,9 @@ pub fn list(files: &Files) -> Element<'_, Message> {
     let range = files.viewport.range(files.listing.len());
     let rows = range.filter_map(|index| {
         let entry = files.listing.get(index)?;
-        let highlight = Highlight::when(index == files.listing.cursor());
+        let highlight = Highlight::when(
+            index == files.listing.cursor() || files.is_drop_target(DropTarget::Entry(index)),
+        );
         Some(entry_row(files, entry, index, highlight))
     });
     let body: Element<'_, Message> = match files.listing.is_empty() {
@@ -73,6 +76,8 @@ fn entry_row<'a>(
         .align_y(Vertical::Center)
         .style(move |_| style::row(skin, highlight));
     mouse_area(cell)
+        .on_enter(Message::Hover(DropTarget::Entry(row_index)))
+        .on_exit(Message::Unhover(DropTarget::Entry(row_index)))
         .on_press(Message::Clicked(row_index))
         .on_right_press(Message::ContextEntry(row_index))
         .on_double_click(Message::Activated(row_index))

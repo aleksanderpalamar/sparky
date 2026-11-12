@@ -1,13 +1,14 @@
 use std::path::Path;
 
 use iced::alignment::Vertical;
-use iced::widget::{Row, button, container, row, text};
+use iced::widget::{Row, button, container, mouse_area, row, text};
 use iced::{Element, Length};
 use sparky_ui::style::{self, Highlight, PADDING, SMALL_TEXT};
 
 use crate::app::message::Message;
 use crate::app::search::Search;
 use crate::app::state::Files;
+use crate::domain::drop::DropTarget;
 use crate::domain::sidebar_location::SidebarLocation;
 use crate::i18n;
 use crate::view::virtual_page::page_label;
@@ -33,12 +34,17 @@ pub fn bar(files: &Files) -> Option<Element<'_, Message>> {
     let skin = files.skin;
     let active = files.tabs.active();
     let tabs = titles(files).into_iter().enumerate().map(|(index, title)| {
-        let highlight = Highlight::when(index == active);
-        let name = button(text(title).size(SMALL_TEXT))
-            .padding([6, 8])
-            .width(Length::Fill)
-            .on_press(Message::Tab(index))
-            .style(move |_, status| style::entry(skin, highlight, status));
+        let target = DropTarget::Tab(index);
+        let highlight = Highlight::when(index == active || files.is_drop_target(target));
+        let name = mouse_area(
+            button(text(title).size(SMALL_TEXT))
+                .padding([6, 8])
+                .width(Length::Fill)
+                .on_press(Message::Tab(index))
+                .style(move |_, status| style::entry(skin, highlight, status)),
+        )
+        .on_enter(Message::Hover(target))
+        .on_exit(Message::Unhover(target));
         let close = button(text("×").size(SMALL_TEXT))
             .padding([6, 8])
             .on_press(Message::CloseTab(index))

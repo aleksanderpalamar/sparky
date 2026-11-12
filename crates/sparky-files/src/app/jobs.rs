@@ -34,6 +34,7 @@ pub enum Work {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Origin {
     User,
+    Dropped,
     Undo,
 }
 
@@ -42,6 +43,7 @@ pub struct Pending {
     pub clip: Clip,
     pub into: PathBuf,
     pub names: Vec<String>,
+    pub origin: Origin,
 }
 
 #[derive(Debug, Clone)]
@@ -61,23 +63,32 @@ impl Files {
     }
 
     pub fn transfer(&mut self, clip: Clip, into: PathBuf) -> Task<Message> {
+        self.transfer_from(clip, into, Origin::User)
+    }
+
+    pub fn transfer_from(&mut self, clip: Clip, into: PathBuf, origin: Origin) -> Task<Message> {
         if self.job.is_some() {
             self.fail(i18n::text("job-busy"));
             return Task::none();
         }
         let names = operations::conflicts(&clip, &into, self.services.disk.as_ref());
         if !names.is_empty() {
-            self.mode = Mode::Conflict(Pending { clip, into, names });
+            self.mode = Mode::Conflict(Pending {
+                clip,
+                into,
+                names,
+                origin,
+            });
             return Task::none();
         }
-        self.start_transfer(clip, into, Conflict::KeepBoth)
+        self.start_transfer(clip, into, Conflict::KeepBoth, origin)
     }
 
     pub fn resolve_conflict(&mut self, choice: Conflict) -> Task<Message> {
         let Mode::Conflict(pending) = std::mem::replace(&mut self.mode, Mode::Browse) else {
             return Task::none();
         };
-        self.start_transfer(pending.clip, pending.into, choice)
+        self.start_transfer(pending.clip, pending.into, choice, pending.origin)
     }
 
     pub fn cancel_job(&mut self) -> bool {
@@ -114,7 +125,13 @@ impl Files {
         }
     }
 
-    fn start_transfer(&mut self, clip: Clip, into: PathBuf, conflict: Conflict) -> Task<Message> {
+    fn start_transfer(
+        &mut self,
+        clip: Clip,
+        into: PathBuf,
+        conflict: Conflict,
+        origin: Origin,
+    ) -> Task<Message> {
         let planned = match operations::plan(&clip, &into, self.services.disk.as_ref(), conflict) {
             Ok(planned) => planned,
             Err(failure) => {
@@ -126,7 +143,7 @@ impl Files {
             Clip::Copy(_) => Action::Copy,
             Clip::Cut(_) => Action::Move,
         };
-        self.run_job(planned, action, Origin::User)
+        self.run_job(planned, action, origin)
     }
 
     pub(super) fn run_job(

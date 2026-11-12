@@ -216,3 +216,8 @@ search-limited = { $count ->
    *[other] Mostrando os primeiros { $count } resultados · Esc volta
   }
 tab-search = Busca: { $query }
+drag-hint = { $count ->
+    [0] Arrastando
+    [one] Arrastando 1 item · solte numa pasta, na lateral, numa aba ou na lixeira · Ctrl copia · Shift move · Esc cancela
+   *[other] Arrastando { $count } itens · solte numa pasta, na lateral, numa aba ou na lixeira · Ctrl copia · Shift move · Esc cancela
+  }

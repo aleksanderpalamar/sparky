@@ -106,9 +106,10 @@ pub fn question(removal: Removal, names: &[String]) -> String {
 
 fn browsing(files: &Files) -> Element<'_, Message> {
     let skin = files.skin;
-    let left = match (&files.job, &files.notice) {
-        (Some(job), _) => text(progress(job)).color(skin.accent),
-        (None, notice) => browsing_text(files, notice.as_ref()),
+    let left = match (files.drag_status(), &files.job, &files.notice) {
+        (Some(hint), _, _) => text(hint).color(skin.accent),
+        (None, Some(job), _) => text(progress(job)).color(skin.accent),
+        (None, None, notice) => browsing_text(files, notice.as_ref()),
     };
     let hints = match files.size.width < 720.0 {
         true => "short-hints",

@@ -12,7 +12,10 @@ use crate::domain::entry::Kind;
 use sparky_ui::prompt;
 
 pub fn update(files: &mut Files, message: Message) -> Task<Message> {
-    let pointer = matches!(message, Message::Pointer(_));
+    let pointer = matches!(
+        message,
+        Message::Pointer(_) | Message::Hover(_) | Message::Unhover(_) | Message::Modifiers(_)
+    );
     let task = dispatch(files, message);
     if pointer {
         return task;
@@ -27,7 +30,11 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::Scrolled(lines) => files
             .viewport
             .scroll(lines, files.layout.row_count(files.listing.len())),
-        Message::Pointer(point) => files.pointer = point,
+        Message::Pointer(point) => files.pointer_moved(point),
+        Message::Released => return files.released(),
+        Message::Hover(target) => files.hover(target),
+        Message::Unhover(target) => files.unhover(target),
+        Message::Modifiers(modifiers) => files.hold_keys(modifiers),
         Message::ContextEntry(index) => context::entry(files, index),
         Message::ContextBackground => context::background(files),
         Message::ContextDismiss => {
@@ -92,7 +99,10 @@ fn apply(files: &mut Files, message: Message) {
     match message {
         Message::Escape => files.escape(),
         Message::Typed(text) => files.type_text(text),
-        Message::Clicked(index) => files.listing.select(index),
+        Message::Clicked(index) => {
+            files.listing.select(index);
+            files.pressed(index);
+        }
         Message::Activated(index) if files.listing.get(index).is_some() => {
             files.listing.select(index);
             files.open_selected();

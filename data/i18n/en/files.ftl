@@ -216,3 +216,8 @@ search-limited = { $count ->
    *[other] Showing the first { $count } results · Esc goes back
   }
 tab-search = Search: { $query }
+drag-hint = { $count ->
+    [0] Dragging
+    [one] Dragging 1 item · drop on a folder, the sidebar, a tab, or the trash · Ctrl copies · Shift moves · Esc cancels
+   *[other] Dragging { $count } items · drop on a folder, the sidebar, a tab, or the trash · Ctrl copies · Shift moves · Esc cancels
+  }

@@ -108,6 +108,10 @@ impl Disk for FakeDisk {
         true
     }
 
+    fn device(&self, _path: &Path) -> Option<u64> {
+        None
+    }
+
     fn untrash(&self, entry: &TrashEntry) -> io::Result<PathBuf> {
         self.record(format!("restaurar {}", entry.name.to_string_lossy()), None)?;
         Ok(PathBuf::from("/restaurado"))

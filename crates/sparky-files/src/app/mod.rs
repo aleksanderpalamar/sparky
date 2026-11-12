@@ -5,6 +5,7 @@ pub mod clipboard;
 mod commands;
 pub mod context;
 mod details;
+pub mod drop;
 pub mod editing;
 mod empty_trash;
 pub mod events;
@@ -43,6 +44,8 @@ mod context_tests;
 mod details_tests;
 #[cfg(test)]
 mod disk_trash_tests;
+#[cfg(test)]
+mod drop_tests;
 #[cfg(test)]
 mod empty_trash_tests;
 #[cfg(test)]

@@ -107,6 +107,12 @@ impl Disk for LocalDisk {
         !self.is_remote(dir)
     }
 
+    fn device(&self, path: &Path) -> Option<u64> {
+        fs::metadata(path)
+            .ok()
+            .map(|meta| std::os::unix::fs::MetadataExt::dev(&meta))
+    }
+
     fn untrash(&self, entry: &TrashEntry) -> io::Result<PathBuf> {
         let trash = match &entry.topdir {
             Some(topdir) => HomeTrash::on_disk(entry.root.clone(), topdir.clone()),

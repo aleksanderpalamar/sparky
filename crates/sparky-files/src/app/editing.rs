@@ -86,6 +86,9 @@ impl Files {
     }
 
     pub fn escape(&mut self) {
+        if self.cancel_drag() {
+            return;
+        }
         if self.open_with.take().is_some() {
             return;
         }

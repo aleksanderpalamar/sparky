@@ -72,6 +72,10 @@ impl Disk for ConsultasContadas {
         self.disco.has_trash(dir)
     }
 
+    fn device(&self, path: &Path) -> Option<u64> {
+        self.disco.device(path)
+    }
+
     fn untrash(&self, entry: &TrashEntry) -> io::Result<PathBuf> {
         self.disco.untrash(entry)
     }

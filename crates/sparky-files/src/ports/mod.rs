@@ -66,6 +66,8 @@ pub trait Disk {
 
     fn has_trash(&self, dir: &Path) -> bool;
 
+    fn device(&self, path: &Path) -> Option<u64>;
+
     fn untrash(&self, entry: &TrashEntry) -> io::Result<PathBuf>;
 
     fn properties(&self, path: &Path) -> io::Result<Properties>;

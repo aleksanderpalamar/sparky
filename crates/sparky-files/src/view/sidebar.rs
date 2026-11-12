@@ -1,11 +1,12 @@
 use iced::alignment::Vertical;
-use iced::widget::{Column, button, column, container, row, rule, scrollable, text};
+use iced::widget::{Column, button, column, container, mouse_area, row, rule, scrollable, text};
 use iced::{Element, Length};
 use sparky_ui::style::{self, Highlight, PADDING, SIDEBAR_WIDTH, SMALL_TEXT, SPACING};
 
 use super::sidebar_device::{device, work_label};
 use crate::app::message::Message;
 use crate::app::state::Files;
+use crate::domain::drop::DropTarget;
 use crate::domain::icons::IconKind;
 use crate::domain::sidebar_location::SidebarLocation;
 use crate::i18n;
@@ -116,11 +117,16 @@ fn place_button<'a>(
     ]
     .spacing(6)
     .align_y(Vertical::Center);
-    let highlight = Highlight::when(files.sidebar_page.is_none() && place.path == files.location);
-    button(label)
+    let target = DropTarget::Place(index);
+    let current = files.sidebar_page.is_none() && place.path == files.location;
+    let highlight = Highlight::when(current || files.is_drop_target(target));
+    let control = button(label)
         .width(Length::Fill)
         .on_press(Message::Place(index))
-        .style(move |_, status| style::entry(skin, highlight, status))
+        .style(move |_, status| style::entry(skin, highlight, status));
+    mouse_area(control)
+        .on_enter(Message::Hover(target))
+        .on_exit(Message::Unhover(target))
         .into()
 }
 

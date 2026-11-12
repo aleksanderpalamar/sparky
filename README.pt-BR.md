@@ -397,7 +397,7 @@ As consultas periódicas de dispositivos não exibem indicador de atualização.
 | `CTRL + A` | Marca todos os itens visíveis |
 | `ALT + Enter` | Mostra as propriedades do item selecionado ou, sem seleção, da pasta aberta |
 
-Com o mouse, um clique seleciona, dois cliques abrem e a roda rola a lista.
+Com o mouse, um clique seleciona, dois cliques abrem e a roda rola a lista. Pressionar sobre um item e arrastar leva o item (ou todos os marcados, se ele estiver marcado) até uma pasta da lista, um lugar da lateral, outra aba ou a **Lixeira**; o alvo fica destacado e a barra de status mostra as opções. No mesmo disco o item é movido e entre discos é copiado; segurar `CTRL` força a cópia e `SHIFT` força mover. Soltar usa a mesma transferência em segundo plano de colar (com progresso, pergunta de conflito e `CTRL + Z`), mas não mexe na área de transferência; soltar na Lixeira pede confirmação, e `Esc` cancela o arraste.
 
 O clique direito abre um menu de contexto nas cores do tema. Sobre um arquivo ou pasta, oferece abrir, abrir com outro aplicativo, recortar, copiar, mover para, copiar para, renomear, comprimir, e-mail, mover para a lixeira, excluir permanentemente e propriedades. Na área vazia, oferece nova pasta, novo documento, abrir a pasta com outro aplicativo, colar, selecionar tudo e propriedades. Se o item já estiver marcado, o menu age sobre todos os marcados. Enquanto um menu ou diálogo está aberto, as teclas não agem sobre a lista; `Esc` ou um clique fora fecha.
 
