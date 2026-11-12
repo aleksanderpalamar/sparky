@@ -16,6 +16,7 @@ pub mod presentation;
 pub mod previews;
 mod removal;
 mod sidebar_navigation;
+pub mod sorting;
 pub mod state;
 pub mod transfer;
 pub mod trash;
@@ -58,6 +59,8 @@ mod previews_tests;
 mod removal_tests;
 #[cfg(test)]
 mod sidebar_tests;
+#[cfg(test)]
+mod sort_tests;
 #[cfg(test)]
 mod test_scene;
 #[cfg(test)]

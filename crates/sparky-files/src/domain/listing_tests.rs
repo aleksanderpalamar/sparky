@@ -132,3 +132,17 @@ fn pendentes_seguem_a_ordem_visivel_e_aprender_preenche() {
     assert_eq!(listing.get(0).and_then(|entry| entry.size()), Some(7));
     assert_eq!(listing.pending(0..3).len(), 2);
 }
+
+#[test]
+fn mudar_a_ordem_reordena_e_mantem_o_selecionado() {
+    use crate::domain::order::{Order, SortDirection, SortKey};
+    let mut listing = pasta();
+    listing.select_name("notas.txt");
+    let decrescente = Order::new(SortKey::Name, SortDirection::Descending);
+    listing.set_order(decrescente);
+    assert_eq!(nomes(&listing), ["Fotos", "notas.txt", "arquivo.pdf"]);
+    assert_eq!(selecionado(&listing), Some("notas.txt"));
+    assert_eq!(listing.order(), decrescente);
+    listing.replace(vec![entry("a", Kind::File), entry("b", Kind::File)]);
+    assert_eq!(nomes(&listing), ["b", "a"]);
+}

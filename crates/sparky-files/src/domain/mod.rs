@@ -12,6 +12,7 @@ pub mod icons;
 pub mod image;
 pub mod listing;
 pub mod naming;
+pub mod order;
 pub mod places;
 pub mod properties;
 pub mod removal;
@@ -36,3 +37,5 @@ mod grid_tests;
 mod icons_tests;
 #[cfg(test)]
 mod listing_tests;
+#[cfg(test)]
+mod order_tests;

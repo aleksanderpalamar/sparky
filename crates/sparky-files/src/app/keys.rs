@@ -30,6 +30,8 @@ pub enum Command {
     Properties,
     Trash,
     Delete,
+    SortNext,
+    SortReverse,
     Undo,
     Refresh,
     Quit,
@@ -152,6 +154,8 @@ fn letter_command(text: &str) -> Option<Command> {
         "r" => Some(Command::Rename),
         "a" => Some(Command::Create),
         "d" => Some(Command::Trash),
+        "s" => Some(Command::SortNext),
+        "S" => Some(Command::SortReverse),
         "q" => Some(Command::Quit),
         digit => place(digit),
     }

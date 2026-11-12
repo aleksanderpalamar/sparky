@@ -1,7 +1,5 @@
 use std::time::SystemTime;
 
-use sparky_ui::natural::NaturalKey;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Kind {
     Directory,
@@ -48,10 +46,6 @@ impl Entry {
     }
 }
 
-pub fn sort(entries: &mut [Entry]) {
-    entries.sort_by_cached_key(|entry| (!entry.is_directory(), NaturalKey::new(&entry.name)));
-}
-
 #[cfg(test)]
 pub fn entry(name: &str, kind: Kind) -> Entry {
     Entry {
@@ -66,7 +60,8 @@ pub fn entry(name: &str, kind: Kind) -> Entry {
 
 #[cfg(test)]
 mod tests {
-    use super::{Kind, entry, sort};
+    use super::{Kind, entry};
+    use crate::domain::order::{Order, sort};
 
     #[test]
     fn pastas_vem_antes_e_o_resto_em_ordem_alfabetica_sem_caixa() {
@@ -76,7 +71,7 @@ mod tests {
             entry("alfa.txt", Kind::File),
             entry("alfa", Kind::Directory),
         ];
-        sort(&mut entries);
+        sort(&mut entries, Order::default());
         let names: Vec<&str> = entries.iter().map(|entry| entry.name.as_str()).collect();
         assert_eq!(names, ["alfa", "Beta", "alfa.txt", "zeta.txt"]);
     }
@@ -89,7 +84,7 @@ mod tests {
             entry("Disco 10", Kind::Directory),
             entry("disco 9", Kind::Directory),
         ];
-        sort(&mut entries);
+        sort(&mut entries, Order::default());
         let names: Vec<&str> = entries.iter().map(|entry| entry.name.as_str()).collect();
         assert_eq!(
             names,

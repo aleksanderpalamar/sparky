@@ -1,6 +1,7 @@
 use crate::app::jobs::JobEvent;
 use crate::domain::context::Action;
 use crate::domain::grid::ViewMode;
+use crate::domain::order::SortKey;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::domain::thumbnail::Thumbnail;
 use crate::ports::EmptyReport;
@@ -41,6 +42,7 @@ pub enum Message {
     FolderChanged,
     Job(JobEvent),
     View(ViewMode),
+    Sort(SortKey),
     OpenVolume(String),
     UnmountVolume(String),
     EjectVolume(String),

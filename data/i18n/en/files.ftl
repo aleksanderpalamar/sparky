@@ -172,3 +172,8 @@ deleted-items = { $count ->
     [one] 1 item deleted
    *[other] { $count } items deleted
 }
+sort-name = name
+sort-size = size
+sort-modified = modification date
+sort-type = type
+sorted-by = Sorted by { $key } { $arrow }

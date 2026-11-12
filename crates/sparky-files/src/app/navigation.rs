@@ -8,9 +8,10 @@ use crate::domain::listing::Listing;
 
 impl Files {
     pub fn go(&mut self, path: PathBuf) -> bool {
-        match self.services.disk.list(&path) {
+        match self.listed(&path) {
             Ok(entries) => {
-                self.listing = Listing::new(entries, self.listing.hidden());
+                let hidden = self.listing.hidden();
+                self.listing = Listing::arranged(entries, hidden, self.listing.order());
                 self.viewport = Viewport::new(self.viewport.rows());
                 self.stamp = self.services.disk.stamp(&path);
                 self.location = path;
@@ -90,7 +91,7 @@ impl Files {
             self.open_sidebar(page);
             return;
         }
-        match self.services.disk.list(&self.location) {
+        match self.listed(&self.location) {
             Ok(entries) => {
                 self.listing.replace(entries);
                 self.stamp = self.services.disk.stamp(&self.location);

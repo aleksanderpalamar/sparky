@@ -1,8 +1,10 @@
 use std::collections::BTreeSet;
 
+mod arrangement;
 mod detail;
 
-use crate::domain::entry::{Entry, sort};
+use crate::domain::entry::Entry;
+use crate::domain::order::{Order, sort};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Hidden {
@@ -32,14 +34,20 @@ pub struct Listing {
     filter: String,
     marked: BTreeSet<String>,
     cursor: usize,
+    order: Order,
 }
 
 impl Listing {
-    pub fn new(mut entries: Vec<Entry>, hidden: Hidden) -> Self {
-        sort(&mut entries);
+    pub fn new(entries: Vec<Entry>, hidden: Hidden) -> Self {
+        Self::arranged(entries, hidden, Order::default())
+    }
+
+    pub fn arranged(mut entries: Vec<Entry>, hidden: Hidden, order: Order) -> Self {
+        sort(&mut entries, order);
         let mut listing = Self {
             entries,
             hidden,
+            order,
             ..Self::default()
         };
         listing.refresh();
@@ -48,7 +56,7 @@ impl Listing {
 
     pub fn replace(&mut self, mut entries: Vec<Entry>) {
         let selected = self.selected_name();
-        sort(&mut entries);
+        sort(&mut entries, self.order);
         self.marked
             .retain(|name| entries.iter().any(|entry| &entry.name == name));
         self.entries = entries;
@@ -118,29 +126,6 @@ impl Listing {
         if let Some(index) = found {
             self.cursor = index;
         }
-    }
-
-    pub fn hidden(&self) -> Hidden {
-        self.hidden
-    }
-
-    pub fn toggle_hidden(&mut self) {
-        let selected = self.selected_name();
-        self.hidden = self.hidden.toggled();
-        self.refresh();
-        if let Some(name) = selected {
-            self.select_name(&name);
-        }
-    }
-
-    pub fn filter(&self) -> &str {
-        &self.filter
-    }
-
-    pub fn set_filter(&mut self, filter: &str) {
-        self.filter = filter.to_owned();
-        self.cursor = 0;
-        self.refresh();
     }
 
     pub fn toggle_mark(&mut self) {

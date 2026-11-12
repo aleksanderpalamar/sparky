@@ -392,6 +392,7 @@ Periodic device queries do not display a refresh indicator. The sidebar shows pr
 | `a` | Create: `name/` becomes a folder; without the slash, it becomes an empty file |
 | `d` or `Delete` | Move to the trash (`~/.local/share/Trash`, with `.trashinfo`), after confirming with `Enter` |
 | `SHIFT + Delete` | Delete permanently, skipping the trash and `CTRL + Z`, after confirming with `Enter` |
+| `s` / `S` | Cycle the sort key (name, size, modification date, type) / reverse the order; folders always stay on top, and in the list clicking a column title sorts by it (again, reverses) |
 | `F5` or `CTRL + R` | Reread the folder |
 | `CTRL + Z` | Undo the last rename, creation, move to trash, copy, or move (up to 50 steps; copies and created items go to the trash) |
 | `q` or `CTRL + Q` | Close |

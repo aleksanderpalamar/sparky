@@ -16,6 +16,15 @@ impl Listing {
             .collect()
     }
 
+    pub fn unknown(&self) -> Vec<(usize, String)> {
+        self.entries
+            .iter()
+            .enumerate()
+            .filter(|(_, entry)| entry.meta == Meta::Pending)
+            .map(|(at, entry)| (at, entry.name.clone()))
+            .collect()
+    }
+
     pub fn learn(&mut self, at: usize, meta: Meta) {
         if let Some(entry) = self.entries.get_mut(at) {
             entry.meta = meta;

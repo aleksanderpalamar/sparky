@@ -4,8 +4,10 @@ use iced::{Color, Element, Length};
 use sparky_theme::Skin;
 
 use crate::app::message::Message;
+use crate::app::sorting::arrow;
 use crate::app::state::Files;
 use crate::domain::entry::Entry;
+use crate::domain::order::SortKey;
 use crate::i18n;
 use crate::view::icon::entry_icon;
 use crate::view::labels::{self, Tone};
@@ -27,7 +29,7 @@ pub fn list(files: &Files) -> Element<'_, Message> {
     let area = mouse_area(container(body).width(Length::Fill).height(Length::Fill))
         .on_scroll(|delta| Message::Scrolled(wheel::rows(delta, ROW_HEIGHT)))
         .on_right_press(Message::ContextBackground);
-    column![titles(files.skin), area]
+    column![titles(files), area]
         .width(Length::Fill)
         .height(Length::Fill)
         .into()
@@ -77,16 +79,35 @@ fn entry_row<'a>(
         .into()
 }
 
-fn titles(skin: Skin) -> Element<'static, Message> {
-    let title = |label: &'static str| text(label).size(SMALL_TEXT).color(skin.dark_foreground);
+fn titles(files: &Files) -> Element<'static, Message> {
+    let order = files.listing.order();
+    let skin = files.skin;
+    let title = |label: &'static str, key: SortKey, width: Length, align: Horizontal| {
+        let mark = match order.key == key {
+            true => format!(" {}", arrow(order.direction)),
+            false => String::new(),
+        };
+        let label = text(format!("{label}{mark}"))
+            .size(SMALL_TEXT)
+            .color(skin.dark_foreground)
+            .width(width)
+            .align_x(align);
+        mouse_area(label).on_press(Message::Sort(key))
+    };
     let line = row![
-        title("Nome").width(Length::Fill),
-        title("Tamanho")
-            .width(SIZE_WIDTH)
-            .align_x(Horizontal::Right),
-        title("Modificado")
-            .width(DATE_WIDTH)
-            .align_x(Horizontal::Right),
+        title("Nome", SortKey::Name, Length::Fill, Horizontal::Left),
+        title(
+            "Tamanho",
+            SortKey::Size,
+            SIZE_WIDTH.into(),
+            Horizontal::Right
+        ),
+        title(
+            "Modificado",
+            SortKey::Modified,
+            DATE_WIDTH.into(),
+            Horizontal::Right
+        ),
     ]
     .spacing(SPACING)
     .align_y(Vertical::Center);

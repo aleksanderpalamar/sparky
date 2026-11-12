@@ -32,6 +32,8 @@ pub(super) fn act(files: &mut Files, command: Command) {
         Command::Cut => files.cut(),
         Command::Trash => files.ask_trash(),
         Command::Delete => files.ask_removal(Removal::Delete),
+        Command::SortNext => files.arrange(files.listing.order().next_key()),
+        Command::SortReverse => files.arrange(files.listing.order().reversed()),
         Command::SelectAll => files.listing.select_all(),
         Command::Properties => {
             let path = selected_path(files);
