@@ -61,7 +61,7 @@ impl Transfer for LocalTransfer {
 
     fn run(&self, step: &Step, advance: &mut dyn FnMut(u64) -> bool) -> io::Result<()> {
         if step.replace {
-            self.trash.put(&step.target)?;
+            self.trash.put(&step.target).map(drop)?;
         }
         match step.action {
             Action::Copy => self.copy(&step.source, &step.target, advance),

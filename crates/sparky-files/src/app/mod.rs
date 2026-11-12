@@ -17,6 +17,7 @@ mod sidebar_navigation;
 pub mod state;
 pub mod transfer;
 pub mod trash;
+mod undo;
 pub mod update;
 mod virtual_commands;
 pub mod volumes;
@@ -57,6 +58,8 @@ mod test_tasks;
 mod trash_sidebar_tests;
 #[cfg(test)]
 mod trash_tests;
+#[cfg(test)]
+mod undo_tests;
 #[cfg(test)]
 mod volume_pending_tests;
 #[cfg(test)]

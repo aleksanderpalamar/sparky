@@ -44,6 +44,7 @@ pub(super) fn act(files: &mut Files, command: Command) {
         | Command::Volume(_)
         | Command::UnmountCurrent
         | Command::Paste
+        | Command::Undo
         | Command::Refresh => {}
     }
 }

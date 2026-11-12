@@ -29,6 +29,7 @@ pub(super) fn virtual_command(files: &mut Files, command: Command) -> Task<Messa
             files.refresh();
         }
         Command::Quit => return iced::exit(),
+        Command::Undo => return files.undo(),
         _ => {}
     }
     Task::none()

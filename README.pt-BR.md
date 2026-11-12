@@ -384,6 +384,7 @@ As consultas periódicas de dispositivos não exibem indicador de atualização.
 | `a` | Cria: `nome/` vira pasta, sem a barra vira arquivo vazio |
 | `d` ou `Delete` | Manda para a lixeira (`~/.local/share/Trash`, com o `.trashinfo`), depois de confirmar com `Enter` |
 | `F5` ou `CTRL + R` | Relê a pasta |
+| `CTRL + Z` | Desfaz a última renomeação, criação, ida para a lixeira, cópia ou movimentação (até 50 passos; cópias e itens criados vão para a lixeira) |
 | `q` ou `CTRL + Q` | Fecha |
 
 | `CTRL + SHIFT + N` | Cria uma pasta, com o nome sugerido selecionado |

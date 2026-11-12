@@ -8,6 +8,7 @@ use crate::app::state::{Files, Mode};
 use crate::domain::clip::Clip;
 use crate::domain::entry::Kind;
 use crate::domain::naming::stem_length;
+use crate::domain::undo::Record;
 use crate::domain::wording::{agreed, items};
 use crate::i18n;
 use crate::operations::{self, Failure};
@@ -37,11 +38,16 @@ impl Files {
         if answer == Answer::No {
             return;
         }
-        let result = operations::trash(&self.location, &names, self.services.disk.as_ref());
+        let (entries, result) =
+            operations::trash(&self.location, &names, self.services.disk.as_ref());
         self.listing.clear_marks();
         self.refresh();
+        let count = entries.len();
+        if !entries.is_empty() {
+            self.journal.push(Record::Trashed(entries));
+        }
         match result {
-            Ok(count) => self.inform(format!("{} na lixeira", items(count))),
+            Ok(()) => self.inform(format!("{} na lixeira", items(count))),
             Err(failure) => self.fail(failure),
         }
     }
@@ -156,6 +162,9 @@ impl Files {
                     self.fail(error);
                     return;
                 }
+                if from != to {
+                    self.journal.push(Record::Renamed { from, to });
+                }
                 self.listing.select_name(new);
                 self.inform(i18n::with("renamed-to", "name", new.to_owned()));
             }
@@ -167,6 +176,8 @@ impl Files {
         self.refresh();
         match result {
             Ok(name) => {
+                self.journal
+                    .push(Record::Created(self.location.join(&name)));
                 self.listing.select_name(&name);
                 self.inform(format!("Criado {name}"));
             }

@@ -159,3 +159,6 @@ job-skipped = { $count ->
     [one] 1 skipped
    *[other] { $count } skipped
   }
+undone = Action undone
+nothing-to-undo = Nothing to undo
+undo-failed = Could not undo: { $error }

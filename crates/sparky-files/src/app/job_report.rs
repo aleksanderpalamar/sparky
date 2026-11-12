@@ -1,6 +1,7 @@
-use crate::app::jobs::Job;
+use crate::app::jobs::{Job, Origin};
 use crate::app::state::Files;
 use crate::domain::transfer::{Action, Ending, Outcome};
+use crate::domain::undo::Record;
 use crate::i18n;
 
 impl Files {
@@ -16,8 +17,17 @@ impl Files {
                 return;
             }
         }
-        if job.action == Action::Move && outcome.ending == Ending::Finished {
+        if job.origin == Origin::User
+            && job.action == Action::Move
+            && outcome.ending == Ending::Finished
+        {
             self.clip = None;
+        }
+        if job.origin == Origin::User && !outcome.completed.is_empty() {
+            self.journal.push(Record::Transferred {
+                action: job.action,
+                steps: outcome.completed.clone(),
+            });
         }
         let last = outcome.completed.last().map(|step| step.target.clone());
         if let Some(last) = last.filter(|last| last.parent() == Some(self.location.as_path()))
@@ -25,7 +35,10 @@ impl Files {
         {
             self.listing.select_name(name);
         }
-        self.report(job.action, &outcome);
+        match job.origin {
+            Origin::User => self.report(job.action, &outcome),
+            Origin::Undo => self.report_undo(&outcome),
+        }
     }
 
     fn report(&mut self, action: Action, outcome: &Outcome) {

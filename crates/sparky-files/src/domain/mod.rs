@@ -17,6 +17,7 @@ pub mod thumbnail;
 pub mod thumbnail_key;
 pub mod transfer;
 pub mod trash_info;
+pub mod undo;
 
 #[cfg(test)]
 mod thumbnail_tests;

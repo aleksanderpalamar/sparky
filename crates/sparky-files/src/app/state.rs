@@ -21,6 +21,7 @@ use crate::domain::listing::Listing;
 use crate::domain::places::Place;
 use crate::domain::properties::Properties;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
+use crate::domain::undo::Journal;
 use crate::ports::{
     Archiver, Disk, IconSource, ImageClipboard, Opener, SidebarSource, ThumbnailSource, Transfer,
     TrashStore,
@@ -104,6 +105,7 @@ pub struct Files {
     pub archive_work: Option<PathBuf>,
     pub emptying: bool,
     pub job: Option<Job>,
+    pub journal: Journal,
     pub previews: Previews,
     pub notice: Option<Notice>,
     pub skin: Skin,
@@ -147,6 +149,7 @@ impl Files {
             archive_work: None,
             emptying: false,
             job: None,
+            journal: Journal::default(),
             previews: Previews::default(),
             notice: None,
             skin: setup.skin,

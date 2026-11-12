@@ -16,6 +16,7 @@ use crate::adapters::local_disk::LocalDisk;
 use crate::domain::entry::Entry;
 use crate::domain::properties::Properties;
 use crate::domain::thumbnail::Thumbnail;
+use crate::domain::undo::TrashEntry;
 use crate::ports::{Disk, ThumbnailSource};
 
 struct ConsultasContadas {
@@ -55,8 +56,12 @@ impl Disk for ConsultasContadas {
         self.disco.relocate(from, to)
     }
 
-    fn trash(&self, path: &Path) -> io::Result<()> {
+    fn trash(&self, path: &Path) -> io::Result<TrashEntry> {
         self.disco.trash(path)
+    }
+
+    fn untrash(&self, entry: &TrashEntry) -> io::Result<PathBuf> {
+        self.disco.untrash(entry)
     }
 
     fn properties(&self, path: &Path) -> io::Result<Properties> {

@@ -7,6 +7,7 @@ use crate::domain::clip::Clip;
 use crate::domain::entry::Kind;
 use crate::domain::naming::{Creation, creation, free_name, valid};
 use crate::domain::transfer::{Action, Conflict, Step};
+use crate::domain::undo::TrashEntry;
 use crate::i18n;
 use crate::ports::Disk;
 
@@ -145,11 +146,19 @@ pub fn create_as(dir: &Path, input: &str, kind: Kind, disk: &dyn Disk) -> Result
     result.map(|()| name.to_owned()).map_err(failed(name))
 }
 
-pub fn trash(dir: &Path, names: &[String], disk: &dyn Disk) -> Result<usize, Failure> {
+pub fn trash(
+    dir: &Path,
+    names: &[String],
+    disk: &dyn Disk,
+) -> (Vec<TrashEntry>, Result<(), Failure>) {
+    let mut entries = Vec::new();
     for name in names {
-        disk.trash(&dir.join(name)).map_err(failed(name))?;
+        match disk.trash(&dir.join(name)) {
+            Ok(entry) => entries.push(entry),
+            Err(error) => return (entries, Err(failed(name)(error))),
+        }
     }
-    Ok(names.len())
+    (entries, Ok(()))
 }
 
 fn same_folder(source: &Path, resolved_into: &Path, disk: &dyn Disk) -> bool {

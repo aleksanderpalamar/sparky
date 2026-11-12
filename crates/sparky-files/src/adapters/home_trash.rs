@@ -8,6 +8,7 @@ use std::path::{Path, PathBuf};
 
 use crate::domain::naming::free_name;
 use crate::domain::trash_info::{info, original};
+use crate::domain::undo::TrashEntry;
 use crate::ports::{EmptyReport, TrashStore};
 
 #[derive(Clone)]
@@ -128,7 +129,7 @@ impl HomeTrash {
         Some(Self::new(Path::new(&data).join("Trash")))
     }
 
-    pub fn put(&self, path: &Path) -> io::Result<()> {
+    pub fn put(&self, path: &Path) -> io::Result<TrashEntry> {
         let files = self.root.join("files");
         let infos = self.root.join("info");
         fs::create_dir_all(&files)?;
@@ -151,6 +152,10 @@ impl HomeTrash {
         fs::rename(path, files.join(&free)).or_else(|error| {
             fs::remove_file(&info_path)?;
             Err(explained(error))
+        })?;
+        Ok(TrashEntry {
+            root: self.root.clone(),
+            name: free.into(),
         })
     }
 }

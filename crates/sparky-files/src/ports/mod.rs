@@ -12,6 +12,7 @@ use crate::domain::properties::Properties;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::domain::thumbnail::Thumbnail;
 use crate::domain::transfer::Step;
+use crate::domain::undo::TrashEntry;
 
 pub trait IconSource {
     fn load(&mut self) -> Icons;
@@ -49,7 +50,9 @@ pub trait Disk {
 
     fn relocate(&self, from: &Path, to: &Path) -> io::Result<()>;
 
-    fn trash(&self, path: &Path) -> io::Result<()>;
+    fn trash(&self, path: &Path) -> io::Result<TrashEntry>;
+
+    fn untrash(&self, entry: &TrashEntry) -> io::Result<PathBuf>;
 
     fn properties(&self, path: &Path) -> io::Result<Properties>;
 }

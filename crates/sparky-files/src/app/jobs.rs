@@ -21,8 +21,13 @@ pub struct Job {
     pub cancel: Arc<AtomicBool>,
     pub progress: Progress,
     pub action: Action,
-    pub clip: Clip,
-    pub into: PathBuf,
+    pub origin: Origin,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Origin {
+    User,
+    Undo,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -99,16 +104,25 @@ impl Files {
                 return Task::none();
             }
         };
+        let action = match clip {
+            Clip::Copy(_) => Action::Copy,
+            Clip::Cut(_) => Action::Move,
+        };
+        self.run_job(planned, action, Origin::User)
+    }
+
+    pub(super) fn run_job(
+        &mut self,
+        planned: Planned,
+        action: Action,
+        origin: Origin,
+    ) -> Task<Message> {
         let cancel = Arc::new(AtomicBool::new(false));
         self.job = Some(Job {
             cancel: cancel.clone(),
             progress: Progress::default(),
-            action: match clip {
-                Clip::Copy(_) => Action::Copy,
-                Clip::Cut(_) => Action::Move,
-            },
-            clip,
-            into,
+            action,
+            origin,
         });
         let transfer = self.services.transfer.clone();
         Task::run(run(planned, transfer, cancel), Message::Job)

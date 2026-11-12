@@ -10,7 +10,8 @@ use crate::adapters::staged;
 use crate::adapters::tree::remove_tree;
 use crate::domain::entry::{Entry, Kind};
 use crate::domain::properties::Properties;
-use crate::ports::Disk;
+use crate::domain::undo::TrashEntry;
+use crate::ports::{Disk, TrashStore};
 
 pub struct LocalDisk {
     trash: HomeTrash,
@@ -83,8 +84,12 @@ impl Disk for LocalDisk {
         }
     }
 
-    fn trash(&self, path: &Path) -> io::Result<()> {
+    fn trash(&self, path: &Path) -> io::Result<TrashEntry> {
         self.trash.put(path)
+    }
+
+    fn untrash(&self, entry: &TrashEntry) -> io::Result<PathBuf> {
+        HomeTrash::new(entry.root.clone()).restore(&entry.name)
     }
 
     fn properties(&self, path: &Path) -> io::Result<Properties> {

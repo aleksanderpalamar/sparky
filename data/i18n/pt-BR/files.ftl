@@ -159,3 +159,6 @@ job-skipped = { $count ->
     [one] 1 pulado
    *[other] { $count } pulados
   }
+undone = Ação desfeita
+nothing-to-undo = Nada para desfazer
+undo-failed = Não foi possível desfazer: { $error }

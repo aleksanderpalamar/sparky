@@ -87,7 +87,15 @@ fn a_confirmacao_aceita_enter_s_e_recusa_n() {
 fn teclas_sem_funcao_sao_ignoradas() {
     assert_eq!(letra("z"), None);
     assert_eq!(nomeada(Named::Tab), None);
-    assert_eq!(browse(&Key::Character("z".into()), Modifiers::CTRL), None);
+    assert_eq!(browse(&Key::Character("y".into()), Modifiers::CTRL), None);
+}
+
+#[test]
+fn ctrl_z_desfaz() {
+    assert_eq!(
+        browse(&Key::Character("z".into()), Modifiers::CTRL),
+        Some(Command::Undo)
+    );
 }
 
 #[test]
