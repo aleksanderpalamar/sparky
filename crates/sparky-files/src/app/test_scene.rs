@@ -11,6 +11,7 @@ use sparky_theme::Skin;
 use tempfile::TempDir;
 
 use super::test_sources::{AreaFalsa, NoDiskTrashes, NoIcons, NoVolumes};
+use crate::adapters::finder::TreeFinder;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::local_disk::LocalDisk;
 use crate::adapters::sidebar_source::DesktopSidebar;
@@ -110,6 +111,7 @@ impl Cena {
             thumbnails: Arc::new(FileThumbnail),
             trash: Arc::new(trash.clone()),
             trash_disks: Arc::new(NoDiskTrashes),
+            finder: Arc::new(TreeFinder::new(100)),
             clipboard: Box::new(area.clone()),
             sidebar: Arc::new(DesktopSidebar::new(dir.path().join("data"))),
             transfer: Arc::new(LocalTransfer::new(trash.clone(), None)),

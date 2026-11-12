@@ -36,7 +36,7 @@ pub fn compare(left: &str, right: &str) -> Ordering {
     NaturalKey::new(left).cmp(&NaturalKey::new(right))
 }
 
-fn fold(name: &str) -> String {
+pub fn fold(name: &str) -> String {
     if name.is_ascii() {
         return name.to_ascii_lowercase();
     }

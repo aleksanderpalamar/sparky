@@ -32,6 +32,7 @@ pub enum Command {
     Delete,
     SortNext,
     Extract,
+    Search,
     SortReverse,
     Undo,
     Refresh,
@@ -113,6 +114,7 @@ fn control_command(text: &str, modifiers: Modifiers) -> Option<Command> {
     match text.to_lowercase().as_str() {
         "n" if modifiers.shift() => Some(Command::NewFolder),
         "a" => Some(Command::SelectAll),
+        "f" => Some(Command::Search),
         "c" => Some(Command::Copy),
         "x" => Some(Command::Cut),
         "v" => Some(Command::Paste),

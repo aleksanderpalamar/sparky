@@ -61,7 +61,7 @@ pub fn choose(files: &mut Files, action: Action) -> Task<Message> {
     let Some(menu) = files.context.take() else {
         return Task::none();
     };
-    if !offered(files, menu.target, action) {
+    if !offered(files, menu.target, action) || files.blocks_action_in_search(action) {
         return Task::none();
     }
     let path = menu

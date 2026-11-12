@@ -1,4 +1,5 @@
 use super::{Hidden, Listing};
+use crate::domain::entry::Entry;
 use crate::domain::order::{Order, sort};
 
 impl Listing {
@@ -37,5 +38,29 @@ impl Listing {
         self.filter = filter.to_owned();
         self.cursor = 0;
         self.refresh();
+    }
+}
+
+impl Listing {
+    pub fn extend(&mut self, entries: Vec<Entry>) {
+        let selected = self.selected_name();
+        self.entries.extend(entries);
+        sort(&mut self.entries, self.order);
+        self.refresh();
+        if let Some(name) = selected {
+            self.select_name(&name);
+        }
+    }
+
+    pub fn retain(&mut self, keep: impl Fn(&Entry) -> bool) {
+        let selected = self.selected_name();
+        self.entries.retain(keep);
+        let entries = &self.entries;
+        self.marked
+            .retain(|name| entries.iter().any(|entry| &entry.name == name));
+        self.refresh();
+        if let Some(name) = selected {
+            self.select_name(&name);
+        }
     }
 }

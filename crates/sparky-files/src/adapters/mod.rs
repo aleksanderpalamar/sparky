@@ -10,6 +10,9 @@ mod disk_trash_tests;
 pub mod extract;
 #[cfg(test)]
 mod extract_tests;
+pub mod finder;
+#[cfg(test)]
+mod finder_tests;
 pub mod gio_listing;
 #[cfg(test)]
 mod gio_listing_tests;

@@ -53,6 +53,7 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         }
         Message::Resized(size) => files.resize(size),
         Message::View(mode) => files.change_view(mode),
+        Message::Search(id, event) => files.search_event(id, event),
         Message::Sort(key) => files.arrange(files.listing.order().choose(key)),
         Message::OpenVolume(device) => return volumes::open(files, &device),
         Message::UnmountVolume(device) => return volumes::unmount(files, &device),
@@ -106,6 +107,7 @@ fn key_pressed(files: &mut Files, key: &Key, modifiers: Modifiers) -> Task<Messa
     let command = match &files.mode {
         Mode::Browse => keys::browse(key, modifiers),
         Mode::Filter => keys::filtering(key),
+        Mode::Search => None,
         Mode::ConfirmRemoval(..) | Mode::ConfirmEmptyTrash(_) => return files.confirm(key),
         Mode::Conflict(_) => {
             return keys::conflict(key)
@@ -125,11 +127,12 @@ fn run(files: &mut Files, command: Command) -> Task<Message> {
     if files.sidebar_page.is_some() {
         return virtual_command(files, command);
     }
-    if files.blocks_in_trash(command) {
+    if files.blocks_in_trash(command) || files.blocks_in_search(command) {
         return Task::none();
     }
     files.notice = None;
     match command {
+        Command::Search => files.begin_search(),
         Command::Filter => {
             files.begin_filter();
             prompt::focus()

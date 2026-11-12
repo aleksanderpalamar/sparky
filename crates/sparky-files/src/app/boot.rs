@@ -9,6 +9,7 @@ use sparky_xdg::UserDirs;
 use crate::adapters::archive::TarArchive;
 use crate::adapters::clipboard::WaylandClipboard;
 use crate::adapters::disk_trash::DiskTrashes;
+use crate::adapters::finder::TreeFinder;
 use crate::adapters::gio_listing;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::icons::ThemeIcons;
@@ -22,6 +23,8 @@ use crate::app::message::Message;
 use crate::app::state::{Files, Services, Setup};
 use crate::domain::places::places;
 use crate::view::style::{WINDOW_HEIGHT, WINDOW_WIDTH, rows_for};
+
+const SEARCH_LIMIT: usize = 5000;
 
 pub fn boot() -> (Files, Task<Message>) {
     let dirs = UserDirs::from_env().unwrap_or_else(|| UserDirs::new("/", None));
@@ -47,6 +50,7 @@ pub fn boot() -> (Files, Task<Message>) {
         thumbnails: Arc::new(SharedThumbnails::from_env(FileThumbnail)),
         trash: Arc::new(trash.clone()),
         trash_disks: Arc::new(DiskTrashes::new(trash.clone())),
+        finder: Arc::new(TreeFinder::new(SEARCH_LIMIT)),
         clipboard: Box::new(WaylandClipboard),
         sidebar: std::sync::Arc::new(DesktopSidebar::from_env()),
         transfer: Arc::new(LocalTransfer::new(

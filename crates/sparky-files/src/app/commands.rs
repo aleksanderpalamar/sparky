@@ -49,6 +49,7 @@ pub(super) fn act(files: &mut Files, command: Command) {
         | Command::UnmountCurrent
         | Command::Paste
         | Command::Extract
+        | Command::Search
         | Command::Undo
         | Command::Refresh => {}
     }

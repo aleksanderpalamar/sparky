@@ -17,6 +17,7 @@ pub mod navigation;
 pub mod presentation;
 pub mod previews;
 mod removal;
+pub mod search;
 mod sidebar_navigation;
 pub mod sorting;
 pub mod state;
@@ -63,6 +64,8 @@ mod previews_stamp_tests;
 mod previews_tests;
 #[cfg(test)]
 mod removal_tests;
+#[cfg(test)]
+mod search_tests;
 #[cfg(test)]
 mod sidebar_tests;
 #[cfg(test)]

@@ -20,6 +20,7 @@ pub mod order;
 pub mod places;
 pub mod properties;
 pub mod removal;
+pub mod search;
 pub mod sidebar_location;
 pub mod size;
 pub mod thumbnail;

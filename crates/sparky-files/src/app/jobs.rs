@@ -164,9 +164,9 @@ fn run(
     })
 }
 
-pub(super) fn background(
-    work: impl FnOnce(&dyn Fn(JobEvent)) + Send + 'static,
-) -> impl Stream<Item = JobEvent> {
+pub(super) fn background<T: Send + 'static>(
+    work: impl FnOnce(&dyn Fn(T)) + Send + 'static,
+) -> impl Stream<Item = T> {
     iced::stream::channel(16, async move |mut output| {
         let (sender, mut events) = mpsc::unbounded();
         thread::spawn(move || {

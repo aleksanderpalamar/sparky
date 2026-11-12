@@ -2,6 +2,7 @@ use std::ffi::{OsStr, OsString};
 use std::io;
 use std::path::Path;
 use std::path::PathBuf;
+use std::sync::atomic::AtomicBool;
 use std::time::SystemTime;
 
 use crate::domain::application::Application;
@@ -9,7 +10,9 @@ use crate::domain::archive::Extraction;
 use crate::domain::clip::{ClipOffer, Pasted};
 use crate::domain::entry::{Entry, Meta};
 use crate::domain::icons::Icons;
+use crate::domain::listing::Hidden;
 use crate::domain::properties::Properties;
+use crate::domain::search::{Finish, Query};
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::domain::thumbnail::Thumbnail;
 use crate::domain::transfer::{Progress, Step};
@@ -87,6 +90,17 @@ pub trait Archiver: Send + Sync {
         into: &Path,
         advance: &mut dyn FnMut(Progress) -> bool,
     ) -> io::Result<Extraction>;
+}
+
+pub trait Finder: Send + Sync {
+    fn find(
+        &self,
+        root: &Path,
+        query: &Query,
+        hidden: Hidden,
+        cancel: &AtomicBool,
+        found: &mut dyn FnMut(Vec<Entry>),
+    ) -> Finish;
 }
 
 pub trait Transfer: Send + Sync {

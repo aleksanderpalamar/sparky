@@ -197,3 +197,21 @@ batch-renamed = { $count ->
     [one] 1 item renomeado
    *[other] { $count } itens renomeados
   }
+search = Buscar nas subpastas
+search-keys = Enter busca · Esc cancela
+search-title = Busca por “{ $query }” em { $place }
+search-running = { $count ->
+    [0] Buscando… · Esc volta
+    [one] Buscando… 1 encontrado · Esc volta
+   *[other] Buscando… { $count } encontrados · Esc volta
+  }
+search-complete = { $count ->
+    [0] Nenhum resultado · Esc volta
+    [one] 1 resultado · Esc volta
+   *[other] { $count } resultados · Esc volta
+  }
+search-limited = { $count ->
+    [0] Nenhum resultado · Esc volta
+    [one] Mostrando o primeiro resultado · Esc volta
+   *[other] Mostrando os primeiros { $count } resultados · Esc volta
+  }

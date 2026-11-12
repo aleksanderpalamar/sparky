@@ -73,6 +73,7 @@ impl Files {
                 self.created(result);
             }
             Mode::Destination(clip) => return self.finish_destination(clip, &input),
+            Mode::Search => return self.start_search(&input),
             Mode::Compress(paths) => return self.start_archive(paths, &input),
             Mode::ConfirmRemoval(removal, names) => {
                 self.mode = Mode::ConfirmRemoval(removal, names)
@@ -99,8 +100,12 @@ impl Files {
         }
         match mem::replace(&mut self.mode, Mode::Browse) {
             Mode::Browse if !self.listing.filter().is_empty() => self.listing.set_filter(""),
+            Mode::Browse if self.listing.marked_count() == 0 && self.search.is_some() => {
+                self.end_search()
+            }
             Mode::Browse => self.listing.clear_marks(),
             Mode::Filter => self.listing.set_filter(""),
+            Mode::Search => {}
             Mode::Rename(_)
             | Mode::BatchRename(_)
             | Mode::Create

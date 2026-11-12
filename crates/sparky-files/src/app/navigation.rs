@@ -10,6 +10,7 @@ impl Files {
     pub fn go(&mut self, path: PathBuf) -> bool {
         match self.listed(&path) {
             Ok(entries) => {
+                self.stop_search();
                 let hidden = self.listing.hidden();
                 self.listing = Listing::arranged(entries, hidden, self.listing.order());
                 self.viewport = Viewport::new(self.viewport.rows());
@@ -51,6 +52,10 @@ impl Files {
     }
 
     pub fn parent(&mut self) {
+        if self.search.is_some() {
+            self.end_search();
+            return;
+        }
         if self.sidebar_page.is_some() {
             self.home();
             return;
@@ -91,6 +96,10 @@ impl Files {
             self.open_sidebar(page);
             return;
         }
+        if self.search.is_some() {
+            self.prune_search();
+            return;
+        }
         match self.listed(&self.location) {
             Ok(entries) => {
                 self.listing.replace(entries);
@@ -103,7 +112,7 @@ impl Files {
     }
 
     pub fn refresh_if_changed(&mut self) {
-        if self.sidebar_page.is_some() {
+        if self.sidebar_page.is_some() || self.search.is_some() {
             return;
         }
         if self.services.disk.stamp(&self.location) != self.stamp {

@@ -197,3 +197,21 @@ batch-renamed = { $count ->
     [one] 1 item renamed
    *[other] { $count } items renamed
   }
+search = Search subfolders
+search-keys = Enter searches · Esc cancels
+search-title = Search for “{ $query }” in { $place }
+search-running = { $count ->
+    [0] Searching… · Esc goes back
+    [one] Searching… 1 found · Esc goes back
+   *[other] Searching… { $count } found · Esc goes back
+  }
+search-complete = { $count ->
+    [0] No results · Esc goes back
+    [one] 1 result · Esc goes back
+   *[other] { $count } results · Esc goes back
+  }
+search-limited = { $count ->
+    [0] No results · Esc goes back
+    [one] Showing the first result · Esc goes back
+   *[other] Showing the first { $count } results · Esc goes back
+  }

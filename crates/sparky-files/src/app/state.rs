@@ -11,6 +11,7 @@ use sparky_ui::viewport::Viewport;
 
 use crate::app::jobs::{Job, Pending};
 use crate::app::previews::Previews;
+use crate::app::search::Search;
 use crate::domain::application::Application;
 use crate::domain::clip::Clip;
 use crate::domain::context::Target;
@@ -24,14 +25,15 @@ use crate::domain::removal::Removal;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::domain::undo::Journal;
 use crate::ports::{
-    Archiver, Disk, FileClipboard, IconSource, Opener, SidebarSource, ThumbnailSource, Transfer,
-    TrashDisks, TrashStore,
+    Archiver, Disk, FileClipboard, Finder, IconSource, Opener, SidebarSource, ThumbnailSource,
+    Transfer, TrashDisks, TrashStore,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Mode {
     Browse,
     Filter,
+    Search,
     Rename(String),
     BatchRename(Vec<String>),
     Create,
@@ -55,6 +57,7 @@ pub struct Services {
     pub sidebar: Arc<dyn SidebarSource>,
     pub transfer: Arc<dyn Transfer>,
     pub trash_disks: Arc<dyn TrashDisks>,
+    pub finder: Arc<dyn Finder>,
 }
 
 pub struct Setup {
@@ -108,6 +111,7 @@ pub struct Files {
     pub archive_work: Option<PathBuf>,
     pub emptying: bool,
     pub job: Option<Job>,
+    pub search: Option<Search>,
     pub journal: Journal,
     pub other_trashes: Vec<Arc<dyn TrashStore>>,
     pub previews: Previews,
@@ -153,6 +157,7 @@ impl Files {
             archive_work: None,
             emptying: false,
             job: None,
+            search: None,
             journal: Journal::default(),
             other_trashes: Vec::new(),
             previews: Previews::default(),
