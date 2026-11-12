@@ -44,6 +44,10 @@ fn atalhos_de_arquivo_por_letra_e_por_ctrl() {
     assert_eq!(letra("p"), Some(Command::Paste));
     assert_eq!(nomeada(Named::F2), Some(Command::Rename));
     assert_eq!(nomeada(Named::Delete), Some(Command::Trash));
+    assert_eq!(
+        browse(&Key::Named(Named::Delete), Modifiers::SHIFT),
+        Some(Command::Delete)
+    );
     assert_eq!(letra("a"), Some(Command::Create));
 }
 

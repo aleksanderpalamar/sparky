@@ -8,6 +8,7 @@ use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
 use crate::domain::clip::Clip;
 use crate::domain::entry::Kind;
+use crate::domain::removal::Removal;
 use crate::domain::transfer::Action;
 use crate::domain::wording::summary;
 use crate::i18n;
@@ -31,7 +32,7 @@ pub fn status(files: &Files) -> Element<'_, Message> {
         Mode::New(Kind::File) => prompt(files, i18n::text("new-file"), i18n::text("create-keys")),
         Mode::Destination(clip) => prompt(files, destination(clip), i18n::text("destination-hint")),
         Mode::Compress(_) => prompt(files, i18n::text("compress"), i18n::text("create-keys")),
-        Mode::ConfirmTrash(names) => text(question(names))
+        Mode::ConfirmRemoval(removal, names) => text(question(*removal, names))
             .size(TEXT_SIZE)
             .color(skin.urgent)
             .into(),
@@ -83,10 +84,14 @@ pub fn progress(job: &Job) -> String {
     i18n::message(key, Some(&args))
 }
 
-pub fn question(names: &[String]) -> String {
+pub fn question(removal: Removal, names: &[String]) -> String {
+    let (one, many) = match removal {
+        Removal::Trash => ("confirm-trash-one", "confirm-trash-many"),
+        Removal::Delete => ("confirm-delete-one", "confirm-delete-many"),
+    };
     match names {
-        [name] => i18n::with("confirm-trash-one", "name", name.clone()),
-        many => i18n::with("confirm-trash-many", "count", many.len().to_string()),
+        [name] => i18n::with(one, "name", name.clone()),
+        names => i18n::with(many, "count", names.len().to_string()),
     }
 }
 
@@ -151,16 +156,21 @@ fn hint(skin: Skin, keys: String) -> Element<'static, Message> {
 #[cfg(test)]
 mod tests {
     use super::question;
+    use crate::domain::removal::Removal;
 
     #[test]
     fn a_pergunta_cita_o_nome_de_um_item_ou_a_contagem() {
         assert_eq!(
-            question(&["a.txt".to_owned()]),
+            question(Removal::Trash, &["a.txt".to_owned()]),
             "Mover a.txt para a lixeira? Enter confirma · Esc cancela"
         );
         assert_eq!(
-            question(&["a".to_owned(), "b".to_owned()]),
+            question(Removal::Trash, &["a".to_owned(), "b".to_owned()]),
             "Mover 2 itens para a lixeira? Enter confirma · Esc cancela"
+        );
+        assert_eq!(
+            question(Removal::Delete, &["a.txt".to_owned()]),
+            "Excluir a.txt permanentemente? Não pode ser desfeito. Enter confirma · Esc cancela"
         );
     }
 }

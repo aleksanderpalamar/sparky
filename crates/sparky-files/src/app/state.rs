@@ -20,6 +20,7 @@ use crate::domain::icons::Icons;
 use crate::domain::listing::Listing;
 use crate::domain::places::Place;
 use crate::domain::properties::Properties;
+use crate::domain::removal::Removal;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::domain::undo::Journal;
 use crate::ports::{
@@ -36,7 +37,7 @@ pub enum Mode {
     New(Kind),
     Destination(Clip),
     Compress(Vec<PathBuf>),
-    ConfirmTrash(Vec<String>),
+    ConfirmRemoval(Removal, Vec<String>),
     ConfirmEmptyTrash(usize),
     Conflict(Pending),
 }

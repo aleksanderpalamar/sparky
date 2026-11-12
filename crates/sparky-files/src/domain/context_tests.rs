@@ -18,6 +18,7 @@ fn arquivo_e_pasta_expoem_operacoes_reais_e_propriedades() {
             Action::Compress,
             Action::Email,
             Action::Trash,
+            Action::Delete,
             Action::Properties,
         ] {
             assert!(actions.contains(&expected), "{target:?}: {expected:?}");

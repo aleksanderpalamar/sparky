@@ -14,6 +14,7 @@ pub mod listing;
 pub mod naming;
 pub mod places;
 pub mod properties;
+pub mod removal;
 pub mod sidebar_location;
 pub mod size;
 pub mod thumbnail;

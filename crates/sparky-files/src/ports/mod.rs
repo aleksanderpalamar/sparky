@@ -58,6 +58,10 @@ pub trait Disk {
 
     fn trash(&self, path: &Path) -> io::Result<TrashEntry>;
 
+    fn delete(&self, path: &Path) -> io::Result<()>;
+
+    fn has_trash(&self, dir: &Path) -> bool;
+
     fn untrash(&self, entry: &TrashEntry) -> io::Result<PathBuf>;
 
     fn properties(&self, path: &Path) -> io::Result<Properties>;

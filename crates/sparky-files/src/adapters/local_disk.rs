@@ -99,6 +99,14 @@ impl Disk for LocalDisk {
         self.trash.for_item(path)?.put(path)
     }
 
+    fn delete(&self, path: &Path) -> io::Result<()> {
+        remove_tree(path)
+    }
+
+    fn has_trash(&self, dir: &Path) -> bool {
+        !self.is_remote(dir)
+    }
+
     fn untrash(&self, entry: &TrashEntry) -> io::Result<PathBuf> {
         let trash = match &entry.topdir {
             Some(topdir) => HomeTrash::on_disk(entry.root.clone(), topdir.clone()),

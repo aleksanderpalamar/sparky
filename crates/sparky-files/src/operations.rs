@@ -161,6 +161,15 @@ pub fn trash(
     (entries, Ok(()))
 }
 
+pub fn delete(dir: &Path, names: &[String], disk: &dyn Disk) -> (usize, Result<(), Failure>) {
+    for (done, name) in names.iter().enumerate() {
+        if let Err(error) = disk.delete(&dir.join(name)) {
+            return (done, Err(failed(name)(error)));
+        }
+    }
+    (names.len(), Ok(()))
+}
+
 fn same_folder(source: &Path, resolved_into: &Path, disk: &dyn Disk) -> bool {
     source_path(source, disk).is_ok_and(|resolved| resolved.parent() == Some(resolved_into))
 }

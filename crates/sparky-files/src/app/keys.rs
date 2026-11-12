@@ -29,6 +29,7 @@ pub enum Command {
     SelectAll,
     Properties,
     Trash,
+    Delete,
     Undo,
     Refresh,
     Quit,
@@ -99,6 +100,7 @@ fn named_command(named: Named, modifiers: Modifiers) -> Option<Command> {
         Named::Space => Some(Command::Mark),
         Named::F2 => Some(Command::Rename),
         Named::F5 => Some(Command::Refresh),
+        Named::Delete if modifiers.shift() => Some(Command::Delete),
         Named::Delete => Some(Command::Trash),
         _ => None,
     }

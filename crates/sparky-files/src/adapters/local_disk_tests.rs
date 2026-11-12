@@ -154,3 +154,31 @@ fn local_remoto_nao_tem_lixeira_e_mantem_o_arquivo() {
     assert!(pasta.join("foto.jpg").exists());
     assert!(!dir.path().join("Trash").exists());
 }
+
+#[test]
+fn excluir_de_vez_apaga_pasta_inteira_e_link_sem_seguir_o_alvo() {
+    let Some((dir, disk)) = ambiente() else {
+        panic!("sem pasta temporária")
+    };
+    let pasta = dir.path().join("Fotos");
+    assert!(fs::create_dir_all(pasta.join("2024")).is_ok());
+    escrever(&pasta.join("2024/a.jpg"), "x");
+    escrever(&dir.path().join("alvo.txt"), "fica");
+    assert!(symlink(dir.path().join("alvo.txt"), dir.path().join("atalho")).is_ok());
+    assert!(disk.delete(&pasta).is_ok());
+    assert!(disk.delete(&dir.path().join("atalho")).is_ok());
+    assert!(!pasta.exists());
+    assert!(dir.path().join("alvo.txt").exists());
+    assert!(!dir.path().join("Trash").exists());
+}
+
+#[test]
+fn so_locais_fora_do_gvfs_tem_lixeira() {
+    let Some((dir, disk)) = ambiente() else {
+        panic!("sem pasta temporária")
+    };
+    let remoto = dir.path().join("gvfs");
+    let disk = disk.with_remote(Some(remoto.clone()));
+    assert!(disk.has_trash(dir.path()));
+    assert!(!disk.has_trash(&remoto.join("mtp:host=Celular")));
+}

@@ -8,6 +8,7 @@ menu-rename = Rename...
 menu-compress = Compress...
 menu-email = Email...
 menu-trash = Move to Trash
+menu-delete = Delete Permanently
 menu-properties = Properties
 menu-new-folder = New folder...
 menu-new-file = New document...
@@ -82,6 +83,8 @@ move-to = Move to
 copy-to = Copy to
 confirm-trash-one = Move { $name } to Trash? Enter confirms · Esc cancels
 confirm-trash-many = Move { $count } items to Trash? Enter confirms · Esc cancels
+confirm-delete-one = Delete { $name } permanently? This cannot be undone. Enter confirms · Esc cancels
+confirm-delete-many = Delete { $count } items permanently? This cannot be undone. Enter confirms · Esc cancels
 short-hints = Ctrl+1 grid · Ctrl+2 list
 browse-hints = Enter opens · h goes back · / filters · Ctrl+1 grid · Ctrl+2 list
 one-item = 1 item
@@ -164,3 +167,8 @@ nothing-to-undo = Nothing to undo
 undo-failed = Could not undo: { $error }
 trash-of = Trash · { $disk }
 clipboard-not-published = Copied in Sparky Files, but the system clipboard was not updated: { $error }
+deleted-items = { $count ->
+    [0] No items deleted
+    [one] 1 item deleted
+   *[other] { $count } items deleted
+}

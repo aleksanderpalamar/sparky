@@ -10,6 +10,7 @@ use crate::domain::undo::TrashEntry;
 use crate::operations::{Failure, create, rename, trash};
 use crate::ports::Disk;
 
+mod delete_tests;
 mod paste_tests;
 
 #[derive(Default)]
@@ -97,6 +98,14 @@ impl Disk for FakeDisk {
             topdir: None,
             name: path.file_name().unwrap_or_default().to_os_string(),
         })
+    }
+
+    fn delete(&self, path: &Path) -> io::Result<()> {
+        self.record(format!("excluir {}", path.display()), None)
+    }
+
+    fn has_trash(&self, _dir: &Path) -> bool {
+        true
     }
 
     fn untrash(&self, entry: &TrashEntry) -> io::Result<PathBuf> {

@@ -8,6 +8,7 @@ menu-rename = Renomear...
 menu-compress = Comprimir...
 menu-email = E-mail...
 menu-trash = Mover para a lixeira
+menu-delete = Excluir permanentemente
 menu-properties = Propriedades
 menu-new-folder = Nova pasta...
 menu-new-file = Novo documento...
@@ -82,6 +83,8 @@ move-to = Mover para
 copy-to = Copiar para
 confirm-trash-one = Mover { $name } para a lixeira? Enter confirma · Esc cancela
 confirm-trash-many = Mover { $count } itens para a lixeira? Enter confirma · Esc cancela
+confirm-delete-one = Excluir { $name } permanentemente? Não pode ser desfeito. Enter confirma · Esc cancela
+confirm-delete-many = Excluir { $count } itens permanentemente? Não pode ser desfeito. Enter confirma · Esc cancela
 short-hints = Ctrl+1 grade · Ctrl+2 lista
 browse-hints = Enter abrir · h voltar · / filtrar · Ctrl+1 grade · Ctrl+2 lista
 one-item = 1 item
@@ -164,3 +167,8 @@ nothing-to-undo = Nada para desfazer
 undo-failed = Não foi possível desfazer: { $error }
 trash-of = Lixeira · { $disk }
 clipboard-not-published = Copiado no Sparky Files, mas a área de transferência do sistema não foi atualizada: { $error }
+deleted-items = { $count ->
+    [0] Nenhum item excluído
+    [one] 1 item excluído
+   *[other] { $count } itens excluídos
+}

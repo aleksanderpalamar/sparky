@@ -64,6 +64,14 @@ impl Disk for ConsultasContadas {
         self.disco.trash(path)
     }
 
+    fn delete(&self, path: &Path) -> io::Result<()> {
+        self.disco.delete(path)
+    }
+
+    fn has_trash(&self, dir: &Path) -> bool {
+        self.disco.has_trash(dir)
+    }
+
     fn untrash(&self, entry: &TrashEntry) -> io::Result<PathBuf> {
         self.disco.untrash(entry)
     }

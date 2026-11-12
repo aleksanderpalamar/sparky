@@ -27,7 +27,7 @@ impl Files {
             return Task::none();
         };
         match self.mode {
-            Mode::ConfirmTrash(_) => self.answer_trash(answer),
+            Mode::ConfirmRemoval(..) => self.answer_removal(answer),
             Mode::ConfirmEmptyTrash(_) => return self.answer_empty_trash(answer),
             _ => {}
         }

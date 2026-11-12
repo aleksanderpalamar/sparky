@@ -2,7 +2,6 @@ use std::{mem, path::PathBuf};
 
 use iced::Task;
 
-use crate::app::keys::Answer;
 use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
 use crate::domain::clip::Clip;
@@ -22,35 +21,6 @@ impl Files {
     pub fn cut(&mut self) {
         self.hold(Clip::Cut);
         self.publish_clip();
-    }
-
-    pub fn ask_trash(&mut self) {
-        let names = self.listing.chosen();
-        if !names.is_empty() {
-            self.mode = Mode::ConfirmTrash(names);
-        }
-    }
-
-    pub fn answer_trash(&mut self, answer: Answer) {
-        let Mode::ConfirmTrash(names) = mem::replace(&mut self.mode, Mode::Browse) else {
-            return;
-        };
-        if answer == Answer::No {
-            return;
-        }
-        let (entries, result) =
-            operations::trash(&self.location, &names, self.services.disk.as_ref());
-        self.listing.clear_marks();
-        self.refresh();
-        let count = entries.len();
-        self.refresh_trashes();
-        if !entries.is_empty() {
-            self.journal.push(Record::Trashed(entries));
-        }
-        match result {
-            Ok(()) => self.inform(format!("{} na lixeira", items(count))),
-            Err(failure) => self.fail(failure),
-        }
     }
 
     pub fn begin_rename(&mut self) -> Option<usize> {
@@ -103,7 +73,9 @@ impl Files {
             }
             Mode::Destination(clip) => return self.finish_destination(clip, &input),
             Mode::Compress(paths) => return self.start_archive(paths, &input),
-            Mode::ConfirmTrash(names) => self.mode = Mode::ConfirmTrash(names),
+            Mode::ConfirmRemoval(removal, names) => {
+                self.mode = Mode::ConfirmRemoval(removal, names)
+            }
             Mode::ConfirmEmptyTrash(count) => self.mode = Mode::ConfirmEmptyTrash(count),
             Mode::Conflict(pending) => self.mode = Mode::Conflict(pending),
             Mode::Browse | Mode::Filter => {}
@@ -133,7 +105,7 @@ impl Files {
             | Mode::New(_)
             | Mode::Destination(_)
             | Mode::Compress(_)
-            | Mode::ConfirmTrash(_)
+            | Mode::ConfirmRemoval(..)
             | Mode::ConfirmEmptyTrash(_)
             | Mode::Conflict(_) => {}
         }

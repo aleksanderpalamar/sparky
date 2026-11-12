@@ -105,7 +105,7 @@ fn key_pressed(files: &mut Files, key: &Key, modifiers: Modifiers) -> Task<Messa
     let command = match &files.mode {
         Mode::Browse => keys::browse(key, modifiers),
         Mode::Filter => keys::filtering(key),
-        Mode::ConfirmTrash(_) | Mode::ConfirmEmptyTrash(_) => return files.confirm(key),
+        Mode::ConfirmRemoval(..) | Mode::ConfirmEmptyTrash(_) => return files.confirm(key),
         Mode::Conflict(_) => {
             return keys::conflict(key)
                 .map_or_else(Task::none, |choice| files.resolve_conflict(choice));

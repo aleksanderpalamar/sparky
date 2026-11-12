@@ -8,6 +8,7 @@ use crate::app::state::{ContextMenu, Files, Mode, OpenWith};
 use crate::domain::clip::Clip;
 use crate::domain::context::{self, Action, Row, Target};
 use crate::domain::entry::Kind;
+use crate::domain::removal::Removal;
 use crate::i18n;
 
 pub fn entry(files: &mut Files, index: usize) {
@@ -117,6 +118,7 @@ fn run(files: &mut Files, action: Action, path: PathBuf) -> Task<Message> {
         Action::Copy => files.copy(),
         Action::Email => email(files),
         Action::Trash => files.ask_trash(),
+        Action::Delete => files.ask_removal(Removal::Delete),
         Action::Properties => properties(files, &path),
         Action::Paste => return files.paste(),
         Action::SelectAll => files.listing.select_all(),

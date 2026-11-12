@@ -19,6 +19,7 @@ pub enum Action {
     Compress,
     Email,
     Trash,
+    Delete,
     Properties,
     NewFolder,
     NewFile,
@@ -74,7 +75,7 @@ pub fn entries(target: Target, has_clip: bool, has_entries: bool) -> Vec<Row> {
     rows.push(Row::Separator);
     rows.extend([Action::Rename, Action::Compress].map(|action| item(action, true)));
     rows.push(item(Action::Email, target == Target::File));
-    rows.push(item(Action::Trash, true));
+    rows.extend([Action::Trash, Action::Delete].map(|action| item(action, true)));
     rows.extend([Row::Separator, item(Action::Properties, true)]);
     rows
 }
@@ -104,6 +105,7 @@ fn item(action: Action, enabled: bool) -> Row {
         Action::Compress => ("menu-compress", ""),
         Action::Email => ("menu-email", ""),
         Action::Trash => ("menu-trash", "Delete"),
+        Action::Delete => ("menu-delete", "Shift+Delete"),
         Action::Properties => ("menu-properties", "Alt+Enter"),
         Action::NewFolder => ("menu-new-folder", "Ctrl+Shift+N"),
         Action::NewFile => ("menu-new-file", ""),

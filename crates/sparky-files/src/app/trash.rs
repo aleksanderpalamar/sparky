@@ -30,6 +30,7 @@ impl Files {
                     | Command::NewFolder
                     | Command::Rename
                     | Command::Trash
+                    | Command::Delete
             )
     }
 

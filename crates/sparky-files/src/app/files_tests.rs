@@ -5,6 +5,7 @@ use sparky_ui::notice::Notice;
 use super::test_scene::Cena;
 use crate::app::message::Message;
 use crate::app::state::Mode;
+use crate::domain::removal::Removal;
 
 #[test]
 fn evento_de_paleta_preserva_uma_renomeacao_em_andamento() {
@@ -77,7 +78,7 @@ fn a_lixeira_so_age_depois_da_confirmacao() {
     cena.tecla("d");
     assert_eq!(
         cena.files.mode,
-        Mode::ConfirmTrash(vec!["a.txt".to_owned()])
+        Mode::ConfirmRemoval(Removal::Trash, vec!["a.txt".to_owned()])
     );
     cena.tecla("n");
     assert!(cena.work().join("a.txt").exists());
