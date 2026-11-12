@@ -19,6 +19,7 @@ depends=(
   'libxkbcommon'
   'mesa'
   'pam'
+  'pacman-contrib'
   'polkit'
   'pipewire'
   'seatd'

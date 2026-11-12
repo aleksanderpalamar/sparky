@@ -3,9 +3,12 @@ mod installed;
 mod message;
 mod state;
 mod update;
+mod updates;
 
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod updates_tests;
 
 use std::sync::Arc;
 

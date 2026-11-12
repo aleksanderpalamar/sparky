@@ -4,14 +4,22 @@ pub mod icons;
 mod native;
 mod native_detect;
 mod native_parse;
+mod native_updates_parse;
 
 #[cfg(test)]
 mod flatpak_tests;
 #[cfg(test)]
+mod flatpak_updates_tests;
+#[cfg(test)]
 mod native_tests;
+#[cfg(test)]
+mod native_updates_tests;
+#[cfg(test)]
+mod updates_tests;
 
 use std::sync::Arc;
 
+use crate::domain::updates::{UpdateGroup, UpdateReport, UpdateSource, UpdateTarget};
 use crate::domain::{Action, Application, SearchResult, SearchSource};
 use crate::ports::StoreBackend;
 
@@ -105,5 +113,59 @@ impl StoreBackend for SystemStore {
 
     fn enable_flathub(&self) -> Result<(), String> {
         self.flatpak.enable()
+    }
+
+    fn check_updates(&self, refresh: bool) -> UpdateReport {
+        let mut groups = Vec::new();
+        for scope in [
+            crate::domain::Installation::User,
+            crate::domain::Installation::System,
+        ] {
+            let result = self.flatpak.updates(scope);
+            groups.push(update_group(UpdateSource::Flatpak(scope), result));
+        }
+        if let Some(manager) = self.native.manager() {
+            groups.push(update_group(
+                UpdateSource::Native(manager),
+                self.native.updates(refresh),
+            ));
+        }
+        UpdateReport {
+            groups,
+            warning: self
+                .native
+                .manager()
+                .is_none()
+                .then(|| crate::i18n::text("native-unavailable")),
+        }
+    }
+
+    fn apply_update(&self, target: &UpdateTarget) -> Result<(), String> {
+        match target {
+            UpdateTarget::Flatpak { scope, reference } => {
+                self.flatpak.apply_update(*scope, reference.as_deref())
+            }
+            UpdateTarget::Native { manager, package } => {
+                self.native.apply_update(*manager, package.as_deref())
+            }
+        }
+    }
+}
+
+fn update_group(
+    source: UpdateSource,
+    result: Result<Vec<crate::domain::updates::UpdateItem>, String>,
+) -> UpdateGroup {
+    match result {
+        Ok(items) => UpdateGroup {
+            source,
+            items,
+            error: None,
+        },
+        Err(error) => UpdateGroup {
+            source,
+            items: Vec::new(),
+            error: Some(error),
+        },
     }
 }

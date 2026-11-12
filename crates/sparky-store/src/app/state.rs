@@ -1,8 +1,12 @@
 use std::sync::Arc;
-use std::{collections::HashMap, path::PathBuf};
+use std::{
+    collections::{HashMap, VecDeque},
+    path::PathBuf,
+};
 
 use sparky_theme::Skin;
 
+use crate::domain::updates::{UpdateReport, UpdateTarget};
 use crate::domain::{Action, Application, SearchSource};
 use crate::ports::StoreBackend;
 
@@ -31,6 +35,11 @@ pub struct Store {
     pub error: Option<String>,
     pub notice: Option<String>,
     pub flathub_missing: bool,
+    pub updates: Option<UpdateReport>,
+    pub update_pending: Option<Vec<UpdateTarget>>,
+    pub update_queue: VecDeque<UpdateTarget>,
+    pub updating: Option<UpdateTarget>,
+    pub update_failures: Vec<String>,
 }
 
 impl Store {
@@ -51,6 +60,11 @@ impl Store {
             error: None,
             notice: None,
             flathub_missing: false,
+            updates: None,
+            update_pending: None,
+            update_queue: VecDeque::new(),
+            updating: None,
+            update_failures: Vec::new(),
         }
     }
 

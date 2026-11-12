@@ -39,6 +39,7 @@ pub fn with(key: &str, name: &str, value: String) -> String {
 #[cfg(test)]
 mod tests {
     use super::{ENGLISH, PORTUGUESE};
+    use fluent_bundle::FluentArgs;
     use sparky_i18n::{Catalog, Locale};
 
     #[test]
@@ -52,9 +53,19 @@ mod tests {
                 "remove",
                 "confirm",
                 "flathub-unavailable",
+                "update-all",
+                "up-to-date",
+                "flatpak-runtime",
             ] {
                 assert!(catalog.text(key).is_some(), "{locale}: {key}");
             }
+            let mut args = FluentArgs::new();
+            args.set("count", 2);
+            assert!(
+                catalog
+                    .message("confirm-all-updates", Some(&args))
+                    .is_some()
+            );
         }
     }
 }

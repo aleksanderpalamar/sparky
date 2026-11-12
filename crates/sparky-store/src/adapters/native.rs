@@ -7,6 +7,8 @@ use super::native_detect::detect;
 use super::native_parse::{parse_apt, parse_dnf, parse_pacman};
 use crate::domain::{Action, Application, Manager, valid_id};
 
+mod updates;
+
 #[derive(Debug)]
 pub struct Native {
     runner: Arc<dyn Runner>,

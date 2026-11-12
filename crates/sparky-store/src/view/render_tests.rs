@@ -7,6 +7,9 @@ use iced::futures::executor::block_on;
 use iced::{Pixels, Rectangle, Renderer, Size, mouse};
 
 use crate::app::{Page, Store};
+use crate::domain::updates::{
+    UpdateGroup, UpdateItem, UpdateKind, UpdateReport, UpdateSource, UpdateTarget,
+};
 use crate::domain::{Action, Application, Installation, SearchResult, SearchSource, Source};
 use crate::ports::StoreBackend;
 
@@ -36,6 +39,14 @@ impl StoreBackend for Fake {
     }
 
     fn enable_flathub(&self) -> Result<(), String> {
+        Ok(())
+    }
+
+    fn check_updates(&self, _: bool) -> UpdateReport {
+        UpdateReport::default()
+    }
+
+    fn apply_update(&self, _: &UpdateTarget) -> Result<(), String> {
         Ok(())
     }
 }
@@ -124,11 +135,51 @@ fn instalados_e_atualizacoes_nao_inventam_pacotes_pendentes() {
     let texts = render(&state, Size::new(1050.0, 680.0), "instalados");
     assert!(texts.contains(&"Paint".to_owned()));
     state.page = Page::Updates;
+    state.updates = Some(UpdateReport::default());
     let texts = render(&state, Size::new(1050.0, 680.0), "atualizacoes");
-    assert!(
-        texts
-            .iter()
-            .any(|value| value.starts_with("A consulta de atualizações"))
-    );
+    assert!(texts.contains(&"Tudo atualizado".to_owned()));
     assert!(!texts.contains(&"Paint".to_owned()));
+}
+
+#[test]
+fn atualizacoes_reais_renderizam_origem_versao_e_acao() {
+    let mut state = store();
+    state.page = Page::Updates;
+    state.updates = Some(UpdateReport {
+        groups: vec![UpdateGroup {
+            source: UpdateSource::Flatpak(Installation::User),
+            items: vec![UpdateItem {
+                id: "app/org.gimp.GIMP/x86_64/stable".into(),
+                name: "GIMP".into(),
+                installed: Some("3.0".into()),
+                available: Some("3.1".into()),
+                source: UpdateSource::Flatpak(Installation::User),
+                kind: UpdateKind::Application,
+            }],
+            error: None,
+        }],
+        warning: None,
+    });
+    let texts = render(&state, Size::new(1050.0, 680.0), "atualizacoes-reais");
+    assert!(texts.contains(&"GIMP".to_owned()));
+    assert!(texts.contains(&"3.0 → 3.1".to_owned()));
+    assert!(texts.contains(&"Atualizar tudo".to_owned()));
+    assert!(!texts.contains(&"Paint".to_owned()));
+}
+
+#[test]
+fn falha_de_uma_fonte_nao_mostra_tudo_atualizado() {
+    let mut state = store();
+    state.page = Page::Updates;
+    state.updates = Some(UpdateReport {
+        groups: vec![UpdateGroup {
+            source: UpdateSource::Flatpak(Installation::System),
+            items: Vec::new(),
+            error: Some("offline".into()),
+        }],
+        warning: None,
+    });
+    let texts = render(&state, Size::new(650.0, 600.0), "atualizacoes-falha");
+    assert!(texts.contains(&"offline".to_owned()));
+    assert!(!texts.contains(&"Tudo atualizado".to_owned()));
 }

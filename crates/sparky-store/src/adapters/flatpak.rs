@@ -5,6 +5,7 @@ use super::command::Runner;
 use crate::domain::{Action, Application, Installation, Source, valid_id};
 
 mod catalog;
+mod updates;
 
 #[derive(Debug)]
 pub struct Flatpak {

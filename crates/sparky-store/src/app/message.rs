@@ -1,3 +1,4 @@
+use crate::domain::updates::{UpdateReport, UpdateTarget};
 use crate::domain::{Action, Application, SearchResult, SearchSource};
 
 #[derive(Debug, Clone)]
@@ -12,6 +13,12 @@ pub enum Message {
     Searched(Result<SearchResult, String>),
     ShowInstalled,
     ShowUpdates,
+    RefreshUpdates,
+    UpdatesChecked(Result<UpdateReport, String>),
+    AskUpdate(UpdateTarget),
+    AskUpdateAll,
+    ConfirmUpdate,
+    UpdateFinished(Result<(), String>),
     Installed(Result<Vec<Application>, String>),
     Select(usize),
     Back,

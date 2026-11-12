@@ -3,6 +3,7 @@ use std::sync::Arc;
 use super::message::Message;
 use super::state::Store;
 use super::update::update;
+use crate::domain::updates::{UpdateReport, UpdateTarget};
 use crate::domain::{Action, Application, Installation, SearchResult, SearchSource, Source};
 use crate::ports::StoreBackend;
 
@@ -39,13 +40,21 @@ impl StoreBackend for Fake {
     fn enable_flathub(&self) -> Result<(), String> {
         Ok(())
     }
+
+    fn check_updates(&self, _: bool) -> UpdateReport {
+        UpdateReport::default()
+    }
+
+    fn apply_update(&self, _: &UpdateTarget) -> Result<(), String> {
+        Ok(())
+    }
 }
 
-fn store() -> Store {
+pub(super) fn store() -> Store {
     Store::new(Arc::new(Fake), sparky_theme::Skin::default())
 }
 
-fn app() -> Application {
+pub(super) fn app() -> Application {
     Application {
         id: "org.gimp.GIMP".into(),
         name: "GIMP".into(),
@@ -142,15 +151,6 @@ fn destaque_percorre_somente_aplicativos_reais() {
     assert_eq!(state.feature_index, 1);
     let _ = update(&mut state, Message::FeatureNext);
     assert_eq!(state.feature_index, 0);
-}
-
-#[test]
-fn atualizacoes_nao_reutilizam_lista_de_instalados() {
-    let mut state = store();
-    state.apps = vec![app()];
-    let _ = update(&mut state, Message::ShowUpdates);
-    assert_eq!(state.page, super::state::Page::Updates);
-    assert!(state.selected.is_none());
 }
 
 #[test]

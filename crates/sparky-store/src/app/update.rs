@@ -4,6 +4,7 @@ use super::browse::{browse, browsed};
 use super::installed::{installed, loaded};
 use super::message::Message;
 use super::state::{Page, Store};
+use super::updates;
 use crate::domain::{Action, SearchSource};
 
 pub fn update(store: &mut Store, message: Message) -> Task<Message> {
@@ -26,12 +27,13 @@ pub fn update(store: &mut Store, message: Message) -> Task<Message> {
         Message::Search => return search(store),
         Message::Searched(result) => searched(store, result),
         Message::ShowInstalled => return installed(store),
-        Message::ShowUpdates => {
-            store.page = Page::Updates;
-            store.selected = None;
-            store.pending = None;
-            store.error = None;
-        }
+        Message::ShowUpdates => return updates::show(store),
+        Message::RefreshUpdates => return updates::refresh(store),
+        Message::UpdatesChecked(result) => updates::checked(store, result),
+        Message::AskUpdate(target) => updates::ask(store, vec![target]),
+        Message::AskUpdateAll => updates::ask_all(store),
+        Message::ConfirmUpdate => return updates::confirm(store),
+        Message::UpdateFinished(result) => return updates::finished(store, result),
         Message::Installed(result) => loaded(store, result),
         Message::Select(index) => {
             store.selected = store.apps.get(index).map(|_| index);
@@ -55,7 +57,10 @@ pub fn update(store: &mut Store, message: Message) -> Task<Message> {
             store.selected = store.apps.get(index).map(|_| index);
             ask(store, action);
         }
-        Message::Cancel => store.pending = None,
+        Message::Cancel => {
+            store.pending = None;
+            store.update_pending = None;
+        }
         Message::Confirm => return perform(store),
         Message::Performed(result) => return performed(store, result),
         Message::EnableFlathub => return enable_flathub(store),
@@ -145,7 +150,7 @@ fn performed(store: &mut Store, result: Result<(), String>) -> Task<Message> {
                 Page::Installed => installed(store),
                 Page::Search => search(store),
                 Page::Browse => browse(store),
-                Page::Updates => Task::none(),
+                Page::Updates => updates::check(store, false),
             }
         }
         Err(error) => {
