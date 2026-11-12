@@ -408,6 +408,8 @@ Right-click opens a context menu in the theme colors. On a file or folder, it of
 - **Email** opens the default email client through `xdg-email`, with the files attached; folders must be compressed first.
 - **Properties** shows the name, type, path, size, modification date, and permissions.
 
+Copies are assembled in a hidden `.sparky-files-*` folder next to the destination and only take their final name when complete, so a copy that fails midway leaves nothing under that name. Copying, moving, and renaming never overwrite an item that appears at the destination in the meantime; on phones and network shares, copies are written directly.
+
 When copying a single PNG, JPEG, or WebP image, `sparky-files` also publishes its bytes to the system clipboard. This allows `CTRL + V` in another application to paste the image; file copying within the file manager remains available.
 
 ## Images

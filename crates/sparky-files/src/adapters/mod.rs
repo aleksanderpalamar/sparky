@@ -11,6 +11,9 @@ mod sidebar_recent;
 pub mod sidebar_source;
 #[cfg(test)]
 mod sidebar_source_tests;
+pub mod staged;
+#[cfg(test)]
+mod staged_tests;
 pub mod thumbnail;
 pub mod thumbnail_cache;
 #[cfg(test)]

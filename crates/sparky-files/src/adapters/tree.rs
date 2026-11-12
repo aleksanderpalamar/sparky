@@ -19,17 +19,7 @@ pub fn copy_tree(from: &Path, to: &Path) -> io::Result<()> {
     Ok(())
 }
 
-pub fn relocate(from: &Path, to: &Path) -> io::Result<()> {
-    match fs::rename(from, to) {
-        Err(error) if error.kind() == io::ErrorKind::CrossesDevices => {
-            copy_tree(from, to)?;
-            remove_tree(from)
-        }
-        other => other,
-    }
-}
-
-fn remove_tree(path: &Path) -> io::Result<()> {
+pub fn remove_tree(path: &Path) -> io::Result<()> {
     match fs::symlink_metadata(path)?.is_dir() {
         true => fs::remove_dir_all(path),
         false => fs::remove_file(path),

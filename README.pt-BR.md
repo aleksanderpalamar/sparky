@@ -400,6 +400,8 @@ O clique direito abre um menu de contexto nas cores do tema. Sobre um arquivo ou
 - **E-mail** abre o cliente de e-mail padrão pelo `xdg-email`, com os arquivos anexados; pastas precisam ser comprimidas antes.
 - **Propriedades** mostra nome, tipo, caminho, tamanho, data de modificação e permissões.
 
+As cópias são montadas numa pasta oculta `.sparky-files-*` ao lado do destino e só recebem o nome final quando terminam; uma cópia que falha no meio não deixa nada com esse nome. Copiar, mover e renomear nunca sobrescrevem um item que apareça no destino nesse meio-tempo; em celulares e compartilhamentos de rede, as cópias são gravadas diretamente.
+
 Ao copiar uma única imagem PNG, JPEG ou WebP, o `sparky-files` também publica seus bytes na área de transferência do sistema. Assim, `CTRL + V` em outro aplicativo pode colar a imagem; a cópia de arquivos dentro do gerenciador continua disponível.
 
 ## Imagens
