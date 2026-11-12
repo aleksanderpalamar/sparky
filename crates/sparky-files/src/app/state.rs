@@ -9,41 +9,26 @@ use sparky_theme::Skin;
 use sparky_ui::notice::Notice;
 use sparky_ui::viewport::Viewport;
 
-use crate::app::jobs::{Job, Pending};
+use crate::app::jobs::Job;
+pub use crate::app::mode::Mode;
 use crate::app::previews::Previews;
 use crate::app::search::Search;
+use crate::app::tabs::Tab;
 use crate::domain::application::Application;
 use crate::domain::clip::Clip;
 use crate::domain::context::Target;
-use crate::domain::entry::Kind;
 use crate::domain::grid::{Layout, ViewMode};
 use crate::domain::icons::Icons;
 use crate::domain::listing::Listing;
 use crate::domain::places::Place;
 use crate::domain::properties::Properties;
-use crate::domain::removal::Removal;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
+use crate::domain::tabs::Tabs;
 use crate::domain::undo::Journal;
 use crate::ports::{
     Archiver, Disk, FileClipboard, Finder, IconSource, Opener, SidebarSource, ThumbnailSource,
     Transfer, TrashDisks, TrashStore,
 };
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Mode {
-    Browse,
-    Filter,
-    Search,
-    Rename(String),
-    BatchRename(Vec<String>),
-    Create,
-    New(Kind),
-    Destination(Clip),
-    Compress(Vec<PathBuf>),
-    ConfirmRemoval(Removal, Vec<String>),
-    ConfirmEmptyTrash(usize),
-    Conflict(Pending),
-}
 
 pub struct Services {
     pub disk: Box<dyn Disk>,
@@ -112,6 +97,7 @@ pub struct Files {
     pub emptying: bool,
     pub job: Option<Job>,
     pub search: Option<Search>,
+    pub tabs: Tabs<Tab>,
     pub journal: Journal,
     pub other_trashes: Vec<Arc<dyn TrashStore>>,
     pub previews: Previews,
@@ -158,6 +144,7 @@ impl Files {
             emptying: false,
             job: None,
             search: None,
+            tabs: Tabs::default(),
             journal: Journal::default(),
             other_trashes: Vec::new(),
             previews: Previews::default(),

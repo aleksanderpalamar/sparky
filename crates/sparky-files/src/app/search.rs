@@ -68,6 +68,7 @@ impl Files {
 
     pub fn search_event(&mut self, id: u64, event: SearchEvent) {
         let Some(search) = self.search.as_mut().filter(|search| search.id == id) else {
+            self.stored_search_event(id, event);
             return;
         };
         match event {

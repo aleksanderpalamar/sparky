@@ -24,6 +24,9 @@ pub mod removal;
 pub mod search;
 pub mod sidebar_location;
 pub mod size;
+pub mod tabs;
+#[cfg(test)]
+mod tabs_tests;
 pub mod thumbnail;
 pub mod thumbnail_key;
 pub mod transfer;

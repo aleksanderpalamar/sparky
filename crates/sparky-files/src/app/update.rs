@@ -54,6 +54,8 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::Resized(size) => files.resize(size),
         Message::View(mode) => files.change_view(mode),
         Message::Search(id, event) => files.search_event(id, event),
+        Message::Tab(index) => files.switch_tab(index),
+        Message::CloseTab(index) => files.close_tab(index),
         Message::Sort(key) => files.arrange(files.listing.order().choose(key)),
         Message::OpenVolume(device) => return volumes::open(files, &device),
         Message::UnmountVolume(device) => return volumes::unmount(files, &device),

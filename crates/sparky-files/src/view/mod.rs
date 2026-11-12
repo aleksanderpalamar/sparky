@@ -14,6 +14,7 @@ mod sidebar_device;
 mod sidebar_tests;
 pub mod status;
 pub mod style;
+pub mod tabs;
 pub mod trash_sidebar;
 pub mod virtual_page;
 
@@ -32,9 +33,12 @@ pub fn view(files: &Files) -> Element<'_, Message> {
         (None, ViewMode::Grid) => grid::grid(files),
         (None, ViewMode::List) => list::list(files),
     };
-    let main = column![header::header(files), content]
-        .width(Length::Fill)
-        .height(Length::Fill);
+    let main = match tabs::bar(files) {
+        Some(bar) => column![bar, header::header(files), content],
+        None => column![header::header(files), content],
+    }
+    .width(Length::Fill)
+    .height(Length::Fill);
     let body = row![sidebar::sidebar(files), main].height(Length::Fill);
     let base = container(column![body, status::status(files)])
         .width(Length::Fill)

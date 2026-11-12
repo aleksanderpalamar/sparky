@@ -215,3 +215,4 @@ search-limited = { $count ->
     [one] Showing the first result · Esc goes back
    *[other] Showing the first { $count } results · Esc goes back
   }
+tab-search = Search: { $query }

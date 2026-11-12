@@ -30,6 +30,10 @@ pub(super) fn virtual_command(files: &mut Files, command: Command) -> Task<Messa
         }
         Command::Quit => return iced::exit(),
         Command::Undo => return files.undo(),
+        Command::NewTab => files.open_tab(),
+        Command::CloseTab => files.close_tab(files.tabs.active()),
+        Command::NextTab => files.step_tab(true),
+        Command::PreviousTab => files.step_tab(false),
         _ => {}
     }
     Task::none()

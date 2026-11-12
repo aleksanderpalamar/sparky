@@ -13,6 +13,7 @@ mod job_report;
 pub mod jobs;
 pub mod keys;
 pub mod message;
+pub mod mode;
 pub mod navigation;
 pub mod presentation;
 pub mod previews;
@@ -22,6 +23,7 @@ pub mod search;
 mod sidebar_navigation;
 pub mod sorting;
 pub mod state;
+pub mod tabs;
 pub mod transfer;
 pub mod trash;
 mod undo;
@@ -73,6 +75,8 @@ mod search_tests;
 mod sidebar_tests;
 #[cfg(test)]
 mod sort_tests;
+#[cfg(test)]
+mod tabs_tests;
 #[cfg(test)]
 mod test_scene;
 #[cfg(test)]

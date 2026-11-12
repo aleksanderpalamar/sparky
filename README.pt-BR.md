@@ -384,6 +384,8 @@ As consultas periódicas de dispositivos não exibem indicador de atualização.
 | `a` | Cria: `nome/` vira pasta, sem a barra vira arquivo vazio |
 | `d` ou `Delete` | Manda para a lixeira (`~/.local/share/Trash`, com o `.trashinfo`), depois de confirmar com `Enter` |
 | `SHIFT + Delete` | Exclui permanentemente, sem passar pela lixeira e sem `CTRL + Z`, depois de confirmar com `Enter` |
+| `CTRL + T` / `CTRL + W` | Abre uma aba na pasta atual / fecha a aba atual (a última fica aberta). Com duas ou mais, a barra de abas aparece no topo: clicar troca de aba e `×` fecha. Cada aba guarda sua pasta, seleção, ordenação e busca, e é relida ao voltar para ela |
+| `CTRL + Tab` / `CTRL + SHIFT + Tab` (ou `CTRL + PageDown` / `PageUp`) | Próxima / aba anterior |
 | `CTRL + F` | Busca nas subpastas da pasta aberta: todas as palavras precisam aparecer no nome, sem diferenciar maiúsculas nem acentos. Os resultados chegam aos poucos, com o caminho relativo, e podem ser abertos, copiados, movidos ou mandados para a lixeira; ocultos só entram quando estão visíveis, links não são seguidos e a busca para nos primeiros 5000 itens. `Esc` volta à pasta |
 | `e` | Extrai os compactados escolhidos (`.zip`, `.7z`, `.rar` e `.tar.*`) na mesma pasta, em segundo plano |
 | `s` / `S` | Troca o critério de ordenação (nome, tamanho, data de modificação, tipo) / inverte a ordem; as pastas ficam sempre no topo, e na lista clicar no título de uma coluna ordena por ela (de novo, inverte) |

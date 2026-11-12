@@ -392,6 +392,8 @@ Periodic device queries do not display a refresh indicator. The sidebar shows pr
 | `a` | Create: `name/` becomes a folder; without the slash, it becomes an empty file |
 | `d` or `Delete` | Move to the trash (`~/.local/share/Trash`, with `.trashinfo`), after confirming with `Enter` |
 | `SHIFT + Delete` | Delete permanently, skipping the trash and `CTRL + Z`, after confirming with `Enter` |
+| `CTRL + T` / `CTRL + W` | Open a tab in the current folder / close the current tab (the last one stays open). With two or more, the tab bar appears at the top: clicking switches tabs and `×` closes. Each tab keeps its folder, selection, sorting, and search, and is reread when you return to it |
+| `CTRL + Tab` / `CTRL + SHIFT + Tab` (or `CTRL + PageDown` / `PageUp`) | Next / previous tab |
 | `CTRL + F` | Search the subfolders of the open folder: every word must appear in the name, ignoring case and accents. Results arrive gradually with their relative path and can be opened, copied, moved, or trashed; hidden items are included only when shown, links are not followed, and the search stops at the first 5000 items. `Esc` returns to the folder |
 | `e` | Extract the chosen archives (`.zip`, `.7z`, `.rar`, and `.tar.*`) into the same folder, in the background |
 | `s` / `S` | Cycle the sort key (name, size, modification date, type) / reverse the order; folders always stay on top, and in the list clicking a column title sorts by it (again, reverses) |

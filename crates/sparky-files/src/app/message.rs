@@ -45,6 +45,8 @@ pub enum Message {
     View(ViewMode),
     Sort(SortKey),
     Search(u64, SearchEvent),
+    Tab(usize),
+    CloseTab(usize),
     OpenVolume(String),
     UnmountVolume(String),
     EjectVolume(String),

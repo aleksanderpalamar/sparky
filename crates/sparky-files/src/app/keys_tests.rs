@@ -142,3 +142,24 @@ fn atalhos_exibidos_nos_menus_de_contexto_existem() {
         Some(Command::Properties)
     );
 }
+
+#[test]
+fn atalhos_de_abas_usam_ctrl() {
+    let ctrl = |text: &str| browse(&Key::Character(text.into()), Modifiers::CTRL);
+    assert_eq!(ctrl("t"), Some(Command::NewTab));
+    assert_eq!(ctrl("w"), Some(Command::CloseTab));
+    assert_eq!(ctrl("f"), Some(Command::Search));
+    let tab = |modifiers| browse(&Key::Named(Named::Tab), modifiers);
+    assert_eq!(tab(Modifiers::CTRL), Some(Command::NextTab));
+    assert_eq!(
+        tab(Modifiers::CTRL | Modifiers::SHIFT),
+        Some(Command::PreviousTab)
+    );
+    assert_eq!(
+        browse(&Key::Named(Named::PageUp), Modifiers::CTRL),
+        Some(Command::PreviousTab)
+    );
+    assert_eq!(letra("e"), Some(Command::Extract));
+    assert_eq!(letra("s"), Some(Command::SortNext));
+    assert_eq!(letra("S"), Some(Command::SortReverse));
+}
