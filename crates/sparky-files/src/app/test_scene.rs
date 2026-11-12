@@ -10,7 +10,7 @@ use iced::keyboard::{Key, Modifiers};
 use sparky_theme::Skin;
 use tempfile::TempDir;
 
-use super::test_sources::{CopiedImages, NoIcons, NoVolumes};
+use super::test_sources::{CopiedImages, NoDiskTrashes, NoIcons, NoVolumes};
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::local_disk::LocalDisk;
 use crate::adapters::sidebar_source::DesktopSidebar;
@@ -83,6 +83,7 @@ impl Cena {
             archiver: Arc::new(ArquivosComprimidos),
             thumbnails: Arc::new(FileThumbnail),
             trash: Arc::new(trash.clone()),
+            trash_disks: Arc::new(NoDiskTrashes),
             image_clipboard: Box::new(imagens.clone()),
             sidebar: Arc::new(DesktopSidebar::new(dir.path().join("data"))),
             transfer: Arc::new(LocalTransfer::new(trash.clone(), None)),

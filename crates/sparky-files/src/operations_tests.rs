@@ -90,6 +90,7 @@ impl Disk for FakeDisk {
         self.record(format!("lixeira {}", path.display()), None)?;
         Ok(TrashEntry {
             root: PathBuf::from("/lixeira"),
+            topdir: None,
             name: path.file_name().unwrap_or_default().to_os_string(),
         })
     }

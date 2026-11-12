@@ -162,3 +162,4 @@ job-skipped = { $count ->
 undone = Ação desfeita
 nothing-to-undo = Nada para desfazer
 undo-failed = Não foi possível desfazer: { $error }
+trash-of = Lixeira · { $disk }

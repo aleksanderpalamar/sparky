@@ -9,6 +9,7 @@ const DEPTH: usize = 50;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TrashEntry {
     pub root: PathBuf,
+    pub topdir: Option<PathBuf>,
     pub name: OsString,
 }
 

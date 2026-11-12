@@ -87,10 +87,18 @@ pub struct EmptyReport {
     pub errors: Vec<String>,
 }
 
+pub trait TrashDisks: Send + Sync {
+    fn others(&self) -> Vec<std::sync::Arc<dyn TrashStore>>;
+}
+
 pub trait TrashStore: Send + Sync {
     fn open(&self) -> io::Result<PathBuf>;
 
     fn directory(&self) -> PathBuf;
+
+    fn label(&self) -> Option<String> {
+        None
+    }
 
     fn names(&self) -> io::Result<Vec<OsString>>;
 

@@ -9,10 +9,13 @@ use crate::ports::EmptyReport;
 
 impl Files {
     pub fn ask_empty_trash(&mut self) {
-        if !self.in_trash() || self.emptying {
+        if self.emptying {
             return;
         }
-        match self.services.trash.names() {
+        let Some(trash) = self.trash_here() else {
+            return;
+        };
+        match trash.names() {
             Ok(names) if names.is_empty() => self.inform(i18n::text("empty-trash-state")),
             Ok(names) => self.mode = Mode::ConfirmEmptyTrash(names.len()),
             Err(error) => self.fail(error),
@@ -33,12 +36,14 @@ impl Files {
 
     fn answer_empty_trash(&mut self, answer: Answer) -> Task<Message> {
         self.mode = Mode::Browse;
-        if answer == Answer::No || !self.in_trash() || self.emptying {
+        if answer == Answer::No || self.emptying {
             return Task::none();
         }
+        let Some(trash) = self.trash_here() else {
+            return Task::none();
+        };
         self.emptying = true;
         self.inform(i18n::text("emptying-trash"));
-        let trash = self.services.trash.clone();
         Task::perform(
             async move {
                 tokio::task::spawn_blocking(move || trash.empty())

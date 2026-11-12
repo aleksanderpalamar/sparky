@@ -27,6 +27,8 @@ mod clipboard_tests;
 #[cfg(test)]
 mod context_tests;
 #[cfg(test)]
+mod disk_trash_tests;
+#[cfg(test)]
 mod empty_trash_tests;
 #[cfg(test)]
 mod files_tests;

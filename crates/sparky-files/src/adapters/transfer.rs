@@ -1,6 +1,7 @@
 use std::io;
 use std::path::{Path, PathBuf};
 
+use crate::adapters::disk_trash::DiskTrashes;
 use crate::adapters::gio_listing;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::staged;
@@ -9,13 +10,16 @@ use crate::domain::transfer::{Action, Step};
 use crate::ports::Transfer;
 
 pub struct LocalTransfer {
-    trash: HomeTrash,
+    trash: DiskTrashes,
     remote: Option<PathBuf>,
 }
 
 impl LocalTransfer {
     pub fn new(trash: HomeTrash, remote: Option<PathBuf>) -> Self {
-        Self { trash, remote }
+        Self {
+            trash: DiskTrashes::new(trash),
+            remote,
+        }
     }
 
     fn copy(&self, from: &Path, to: &Path, advance: &mut dyn FnMut(u64) -> bool) -> io::Result<()> {
@@ -61,7 +65,10 @@ impl Transfer for LocalTransfer {
 
     fn run(&self, step: &Step, advance: &mut dyn FnMut(u64) -> bool) -> io::Result<()> {
         if step.replace {
-            self.trash.put(&step.target).map(drop)?;
+            self.trash
+                .for_item(&step.target)?
+                .put(&step.target)
+                .map(drop)?;
         }
         match step.action {
             Action::Copy => self.copy(&step.source, &step.target, advance),

@@ -7,7 +7,7 @@ use sparky_storage::{Operation, Volume, VolumeSource};
 
 use crate::domain::icons::Icons;
 use crate::domain::image::ImageMime;
-use crate::ports::{IconSource, ImageClipboard};
+use crate::ports::{IconSource, ImageClipboard, TrashDisks, TrashStore};
 
 #[derive(Clone, Default)]
 pub struct CopiedImages(pub Rc<RefCell<Vec<(PathBuf, ImageMime)>>>);
@@ -32,5 +32,13 @@ pub struct NoVolumes;
 impl VolumeSource for NoVolumes {
     fn run(&self, _operation: Operation) -> Result<Vec<Volume>, String> {
         Ok(Vec::new())
+    }
+}
+
+pub struct NoDiskTrashes;
+
+impl TrashDisks for NoDiskTrashes {
+    fn others(&self) -> Vec<std::sync::Arc<dyn TrashStore>> {
+        Vec::new()
     }
 }

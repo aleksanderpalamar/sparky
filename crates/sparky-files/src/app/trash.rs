@@ -1,5 +1,6 @@
 use std::ffi::OsString;
 use std::io;
+use std::sync::Arc;
 
 use crate::app::keys::Command;
 use crate::app::message::TrashEvent;
@@ -11,6 +12,7 @@ impl Files {
     pub fn handle_trash(&mut self, action: TrashEvent) {
         match action {
             TrashEvent::Open => self.open_trash(),
+            TrashEvent::OpenOther(index) => self.open_other_trash(index),
             TrashEvent::RestoreSelected => self.restore_selected(),
             TrashEvent::RestoreAll => self.restore_all(),
             TrashEvent::Empty => self.ask_empty_trash(),
@@ -32,10 +34,31 @@ impl Files {
     }
 
     pub fn in_trash(&self) -> bool {
-        self.sidebar_page.is_none() && self.location == self.services.trash.directory()
+        self.trash_here().is_some()
+    }
+
+    pub fn trash_here(&self) -> Option<Arc<dyn TrashStore>> {
+        if self.sidebar_page.is_some() {
+            return None;
+        }
+        std::iter::once(&self.services.trash)
+            .chain(&self.other_trashes)
+            .find(|trash| trash.directory() == self.location)
+            .cloned()
+    }
+
+    pub fn refresh_trashes(&mut self) {
+        self.other_trashes = self.services.trash_disks.others();
+    }
+
+    pub fn open_other_trash(&mut self, index: usize) {
+        if let Some(directory) = self.other_trashes.get(index).map(|trash| trash.directory()) {
+            self.go(directory);
+        }
     }
 
     pub fn open_trash(&mut self) {
+        self.refresh_trashes();
         match self.services.trash.open() {
             Ok(path) => {
                 self.go(path);
@@ -51,11 +74,14 @@ impl Files {
         let Some(shown) = self.listing.selected().map(|entry| entry.name.clone()) else {
             return;
         };
-        let name = match raw_name(self.services.trash.as_ref(), &shown) {
+        let Some(trash) = self.trash_here() else {
+            return;
+        };
+        let name = match raw_name(trash.as_ref(), &shown) {
             Ok(name) => name,
             Err(error) => return self.fail(format!("{shown}: {error}")),
         };
-        match self.services.trash.restore(&name) {
+        match trash.restore(&name) {
             Ok(path) => {
                 self.refresh();
                 self.inform(i18n::with(
@@ -72,11 +98,14 @@ impl Files {
         if !self.in_trash() || self.emptying {
             return;
         }
-        let names = match self.services.trash.names() {
+        let Some(trash) = self.trash_here() else {
+            return;
+        };
+        let names = match trash.names() {
             Ok(names) => names,
             Err(error) => return self.fail(error),
         };
-        let (restored, failures) = restore_items(self.services.trash.as_ref(), names);
+        let (restored, failures) = restore_items(trash.as_ref(), names);
         self.refresh();
         if let Some((name, error)) = failures.first() {
             self.fail(format!(

@@ -162,3 +162,4 @@ job-skipped = { $count ->
 undone = Action undone
 nothing-to-undo = Nothing to undo
 undo-failed = Could not undo: { $error }
+trash-of = Trash · { $disk }

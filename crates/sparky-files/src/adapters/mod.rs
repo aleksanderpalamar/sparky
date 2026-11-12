@@ -1,5 +1,8 @@
 pub mod archive;
 pub mod clipboard;
+pub mod disk_trash;
+#[cfg(test)]
+mod disk_trash_tests;
 pub mod gio_listing;
 #[cfg(test)]
 mod gio_listing_tests;

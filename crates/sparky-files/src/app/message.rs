@@ -50,6 +50,7 @@ pub enum Message {
 #[derive(Debug, Clone, Copy)]
 pub enum TrashEvent {
     Open,
+    OpenOther(usize),
     RestoreSelected,
     RestoreAll,
     Empty,

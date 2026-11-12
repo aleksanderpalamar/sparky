@@ -49,6 +49,7 @@ impl Files {
                 .try_for_each(|entry| disk.untrash(entry).map(drop)),
             Record::Created(path) => disk.trash(&path).map(drop),
         };
+        self.refresh_trashes();
         self.refresh();
         match result {
             Ok(()) => self.inform(i18n::text("undone")),

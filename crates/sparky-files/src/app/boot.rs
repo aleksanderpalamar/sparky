@@ -8,6 +8,7 @@ use sparky_xdg::UserDirs;
 
 use crate::adapters::archive::TarArchive;
 use crate::adapters::clipboard::WlImageClipboard;
+use crate::adapters::disk_trash::DiskTrashes;
 use crate::adapters::gio_listing;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::icons::ThemeIcons;
@@ -45,6 +46,7 @@ pub fn boot() -> (Files, Task<Message>) {
         archiver: Arc::new(TarArchive),
         thumbnails: Arc::new(SharedThumbnails::from_env(FileThumbnail)),
         trash: Arc::new(trash.clone()),
+        trash_disks: Arc::new(DiskTrashes::new(trash.clone())),
         image_clipboard: Box::new(WlImageClipboard),
         sidebar: std::sync::Arc::new(DesktopSidebar::from_env()),
         transfer: Arc::new(LocalTransfer::new(
@@ -53,6 +55,7 @@ pub fn boot() -> (Files, Task<Message>) {
         )),
     };
     let mut files = Files::new(setup, services);
+    files.refresh_trashes();
     files.resize(Size::new(WINDOW_WIDTH, WINDOW_HEIGHT));
     let task = Task::batch([
         crate::app::volumes::refresh(&mut files),

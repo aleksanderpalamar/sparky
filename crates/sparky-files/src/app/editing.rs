@@ -43,6 +43,7 @@ impl Files {
         self.listing.clear_marks();
         self.refresh();
         let count = entries.len();
+        self.refresh_trashes();
         if !entries.is_empty() {
             self.journal.push(Record::Trashed(entries));
         }

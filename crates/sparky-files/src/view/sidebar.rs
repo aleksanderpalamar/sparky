@@ -46,7 +46,7 @@ pub fn sidebar(files: &Files) -> Element<'_, Message> {
             IconKind::Network,
             "place-network"
         ),
-        crate::view::trash_sidebar::button(files),
+        crate::view::trash_sidebar::buttons(files),
         rule::horizontal(1),
         Column::with_children(folders).spacing(3),
         rule::horizontal(1),

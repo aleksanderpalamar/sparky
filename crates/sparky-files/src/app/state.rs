@@ -24,7 +24,7 @@ use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::domain::undo::Journal;
 use crate::ports::{
     Archiver, Disk, IconSource, ImageClipboard, Opener, SidebarSource, ThumbnailSource, Transfer,
-    TrashStore,
+    TrashDisks, TrashStore,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -52,6 +52,7 @@ pub struct Services {
     pub image_clipboard: Box<dyn ImageClipboard>,
     pub sidebar: Arc<dyn SidebarSource>,
     pub transfer: Arc<dyn Transfer>,
+    pub trash_disks: Arc<dyn TrashDisks>,
 }
 
 pub struct Setup {
@@ -106,6 +107,7 @@ pub struct Files {
     pub emptying: bool,
     pub job: Option<Job>,
     pub journal: Journal,
+    pub other_trashes: Vec<Arc<dyn TrashStore>>,
     pub previews: Previews,
     pub notice: Option<Notice>,
     pub skin: Skin,
@@ -150,6 +152,7 @@ impl Files {
             emptying: false,
             job: None,
             journal: Journal::default(),
+            other_trashes: Vec::new(),
             previews: Previews::default(),
             notice: None,
             skin: setup.skin,

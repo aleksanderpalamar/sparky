@@ -4,6 +4,7 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
+use crate::adapters::disk_trash::DiskTrashes;
 use crate::adapters::gio_listing;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::staged;
@@ -14,14 +15,14 @@ use crate::domain::undo::TrashEntry;
 use crate::ports::{Disk, TrashStore};
 
 pub struct LocalDisk {
-    trash: HomeTrash,
+    trash: DiskTrashes,
     remote: Option<PathBuf>,
 }
 
 impl LocalDisk {
     pub fn new(trash: HomeTrash) -> Self {
         Self {
-            trash,
+            trash: DiskTrashes::new(trash),
             remote: None,
         }
     }
@@ -85,11 +86,15 @@ impl Disk for LocalDisk {
     }
 
     fn trash(&self, path: &Path) -> io::Result<TrashEntry> {
-        self.trash.put(path)
+        self.trash.for_item(path)?.put(path)
     }
 
     fn untrash(&self, entry: &TrashEntry) -> io::Result<PathBuf> {
-        HomeTrash::new(entry.root.clone()).restore(&entry.name)
+        let trash = match &entry.topdir {
+            Some(topdir) => HomeTrash::on_disk(entry.root.clone(), topdir.clone()),
+            None => HomeTrash::new(entry.root.clone()),
+        };
+        trash.restore(&entry.name)
     }
 
     fn properties(&self, path: &Path) -> io::Result<Properties> {
