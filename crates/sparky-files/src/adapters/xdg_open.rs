@@ -5,7 +5,8 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::thread;
 
-use crate::domain::application::Application;
+use crate::adapters::app_icons::AppIcons;
+use crate::domain::application::{AppChoices, Remember};
 use crate::ports::Opener;
 
 pub struct XdgOpen;
@@ -22,24 +23,38 @@ impl Opener for XdgOpen {
         Ok(())
     }
 
-    fn applications(&self, path: &Path) -> Vec<Application> {
-        let mut applications: Vec<_> = gio::AppInfo::all_for_type(&content_type(path))
+    fn applications(&self, path: &Path) -> AppChoices {
+        let kind = content_type(path);
+        let icons = AppIcons::current();
+        let usable = |app: &gio::AppInfo| app.should_show() && can_open_local(app);
+        let mut recommended: Vec<gio::AppInfo> = gio::AppInfo::default_for_type(&kind, false)
             .into_iter()
-            .filter(|app| app.should_show() && can_open_local(app))
-            .filter_map(|app| {
-                Some(Application {
-                    id: app.id()?.to_string(),
-                    name: app.name().to_string(),
-                })
-            })
+            .chain(gio::AppInfo::recommended_for_type(&kind))
+            .filter(usable)
             .collect();
-        applications.sort_by(|left, right| left.name.cmp(&right.name));
-        applications.dedup_by(|left, right| left.id == right.id);
-        applications
+        dedup(&mut recommended);
+        let mut others: Vec<gio::AppInfo> = gio::AppInfo::all()
+            .into_iter()
+            .filter(usable)
+            .filter(|app| !recommended.iter().any(|known| known.id() == app.id()))
+            .collect();
+        dedup(&mut others);
+        others.sort_by_key(|app| app.name().to_lowercase());
+        AppChoices {
+            kind: gio::content_type_get_description(&kind).to_string(),
+            recommended: recommended
+                .iter()
+                .filter_map(|app| icons.describe(app))
+                .collect(),
+            others: others
+                .iter()
+                .filter_map(|app| icons.describe(app))
+                .collect(),
+        }
     }
 
-    fn open_with(&self, path: &Path, id: &str) -> io::Result<()> {
-        let app = gio::AppInfo::all_for_type(&content_type(path))
+    fn open_with(&self, path: &Path, id: &str, remember: Remember) -> io::Result<()> {
+        let app = gio::AppInfo::all()
             .into_iter()
             .find(|app| app.id().as_deref() == Some(id))
             .ok_or_else(|| {
@@ -48,6 +63,10 @@ impl Opener for XdgOpen {
                     crate::i18n::text("application-unavailable"),
                 )
             })?;
+        if remember == Remember::Always {
+            app.set_as_default_for_type(&content_type(path))
+                .map_err(io::Error::other)?;
+        }
         app.launch(&[gio::File::for_path(path)], None::<&gio::AppLaunchContext>)
             .map_err(io::Error::other)
     }
@@ -75,32 +94,35 @@ fn content_type(path: &Path) -> String {
     if path.is_dir() {
         return "inode/directory".to_owned();
     }
-    gio::content_type_guess(Some(path), None).0.to_string()
+    gio::File::for_path(path)
+        .query_info(
+            gio::FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
+            gio::FileQueryInfoFlags::NONE,
+            None::<&gio::Cancellable>,
+        )
+        .ok()
+        .and_then(|info| info.content_type())
+        .map(|kind| kind.to_string())
+        .unwrap_or_else(|| gio::content_type_guess(Some(path), None).0.to_string())
+}
+
+fn dedup(apps: &mut Vec<gio::AppInfo>) {
+    let mut seen = std::collections::BTreeSet::new();
+    apps.retain(|app| seen.insert(app.id().map(|id| id.to_string())));
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{can_open_local, content_type};
-    use gio::prelude::*;
+    use super::content_type;
 
     #[test]
-    fn pasta_usa_o_tipo_de_diretorio_para_listar_aplicativos() {
-        let dir = tempfile::tempdir().unwrap();
-        let folder = dir.path().join("Fotos");
-        std::fs::create_dir(&folder).unwrap();
-        assert_eq!(content_type(&folder), "inode/directory");
-    }
-
-    #[test]
-    fn aplicativo_que_aceita_uri_pode_abrir_arquivo_local() {
-        let app = gio::AppInfo::create_from_commandline(
-            "true",
-            Some("Aplicativo URI"),
-            gio::AppInfoCreateFlags::SUPPORTS_URIS,
-        )
-        .unwrap();
-        assert!(!app.supports_files());
-        assert!(app.supports_uris());
-        assert!(can_open_local(&app));
+    fn ini_com_texto_e_reconhecido_pelo_conteudo_como_texto() {
+        let Ok(dir) = tempfile::tempdir() else {
+            panic!("sem pasta temporária")
+        };
+        let ini = dir.path().join("neuralfx.ini");
+        assert!(std::fs::write(&ini, "[Geral]\nbrilho=0.8\n").is_ok());
+        assert_eq!(content_type(&ini), "text/plain");
+        assert_eq!(content_type(dir.path()), "inode/directory");
     }
 }

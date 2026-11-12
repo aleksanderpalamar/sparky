@@ -15,7 +15,7 @@ pub use crate::app::mode::Mode;
 use crate::app::previews::Previews;
 use crate::app::search::Search;
 use crate::app::tabs::Tab;
-use crate::domain::application::Application;
+use crate::domain::application::{AppChoices, Remember};
 use crate::domain::clip::Clip;
 use crate::domain::context::Target;
 use crate::domain::drop::Override;
@@ -65,7 +65,10 @@ pub struct ContextMenu {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OpenWith {
     pub path: PathBuf,
-    pub apps: Vec<Application>,
+    pub choices: AppChoices,
+    pub query: String,
+    pub selected: Option<String>,
+    pub remember: Remember,
 }
 
 pub struct Files {

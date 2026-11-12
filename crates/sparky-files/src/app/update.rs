@@ -42,7 +42,11 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
             files.details = None;
             files.open_with = None;
         }
-        Message::OpenWithChoice(id) => context::open_with(files, &id),
+        Message::OpenWithChoice(id) => files.open_with_choice(&id),
+        Message::OpenWithSelect(id) => files.open_with_select(id),
+        Message::OpenWithQuery(query) => files.open_with_query(query),
+        Message::OpenWithRemember(always) => files.open_with_remember(always),
+        Message::OpenWithConfirm => files.open_with_confirm(),
         Message::ArchiveCompleted(path, result) => files.archive_completed(path, result),
         Message::PreviewReady(path, stamp, image) => files.preview_ready(path, stamp, image),
         Message::Trash(action) => files.handle_trash(action),
@@ -113,6 +117,10 @@ fn apply(files: &mut Files, message: Message) {
 }
 
 fn key_pressed(files: &mut Files, key: &Key, modifiers: Modifiers) -> Task<Message> {
+    if files.open_with.is_some() {
+        files.open_with_key(key);
+        return Task::none();
+    }
     if context::is_open(files) {
         return Task::none();
     }

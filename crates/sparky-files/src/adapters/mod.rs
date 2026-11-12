@@ -1,3 +1,4 @@
+pub mod app_icons;
 pub mod archive;
 pub mod clipboard;
 pub mod clipboard_request;

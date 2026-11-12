@@ -20,13 +20,23 @@ use crate::adapters::transfer::LocalTransfer;
 use crate::app::message::Message;
 use crate::app::state::{Files, Services, Setup};
 use crate::app::update::update;
-use crate::domain::application::Application;
+use crate::domain::application::{AppChoices, Application, Remember};
 use crate::domain::archive::{Extraction, extractable};
 use crate::domain::transfer::Progress;
 use crate::ports::{Archiver, Opener};
 
+type Escolhas = Rc<RefCell<Vec<(String, Remember)>>>;
+
 #[derive(Clone, Default)]
-struct Abertos(Rc<RefCell<Vec<PathBuf>>>);
+struct Abertos(Rc<RefCell<Vec<PathBuf>>>, Escolhas);
+
+fn aplicativo(id: &str, name: &str) -> Application {
+    Application {
+        id: id.to_owned(),
+        name: name.to_owned(),
+        icon: None,
+    }
+}
 
 impl Opener for Abertos {
     fn open(&self, path: &Path) -> io::Result<()> {
@@ -34,14 +44,16 @@ impl Opener for Abertos {
         Ok(())
     }
 
-    fn applications(&self, _path: &Path) -> Vec<Application> {
-        vec![Application {
-            id: "teste.desktop".to_owned(),
-            name: "Teste".to_owned(),
-        }]
+    fn applications(&self, _path: &Path) -> AppChoices {
+        AppChoices {
+            kind: "Texto".to_owned(),
+            recommended: vec![aplicativo("teste.desktop", "Teste")],
+            others: vec![aplicativo("outro.desktop", "Outro Editor")],
+        }
     }
 
-    fn open_with(&self, path: &Path, _id: &str) -> io::Result<()> {
+    fn open_with(&self, path: &Path, id: &str, remember: Remember) -> io::Result<()> {
+        self.1.borrow_mut().push((id.to_owned(), remember));
         self.open(path)
     }
 
@@ -170,6 +182,10 @@ impl Cena {
             .listing
             .selected()
             .map(|entry| entry.name.clone())
+    }
+
+    pub fn escolhas(&self) -> Vec<(String, Remember)> {
+        self.abertos.1.borrow().clone()
     }
 
     pub fn abertos(&self) -> Vec<PathBuf> {

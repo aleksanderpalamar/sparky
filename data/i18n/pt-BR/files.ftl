@@ -67,7 +67,7 @@ path = Caminho
 size = Tamanho
 modified = Modificado
 permissions = Permissões
-open-file-with = Abrir { $file } com...
+open-file-with = Escolha um aplicativo para abrir { $file }
 cancel = Cancelar
 filter = Filtrar
 filter-hint = Enter fixa · Esc limpa
@@ -221,3 +221,10 @@ drag-hint = { $count ->
     [one] Arrastando 1 item · solte numa pasta, na lateral, numa aba ou na lixeira · Ctrl copia · Shift move · Esc cancela
    *[other] Arrastando { $count } itens · solte numa pasta, na lateral, numa aba ou na lixeira · Ctrl copia · Shift move · Esc cancela
   }
+open = Abrir
+open-file = Abrir arquivo
+open-with-search = Buscar aplicativos
+open-with-recommended = Aplicativos recomendados
+open-with-others = Outros aplicativos
+open-with-always = Usar sempre para este tipo de arquivo
+open-with-none = Nenhum aplicativo encontrado

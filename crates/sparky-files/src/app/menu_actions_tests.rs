@@ -54,7 +54,7 @@ fn abrir_com_lista_aplicativos_e_abre_somente_uma_escolha_valida() {
     scene.mandar(Message::ContextEntry(1));
     scene.mandar(Message::ContextAction(Action::OpenWith));
     assert_eq!(
-        scene.files.open_with.as_ref().unwrap().apps[0].id,
+        scene.files.open_with.as_ref().unwrap().choices.recommended[0].id,
         "teste.desktop"
     );
     scene.mandar(Message::OpenWithChoice("inexistente.desktop".to_owned()));

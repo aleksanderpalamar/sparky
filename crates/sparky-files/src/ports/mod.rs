@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::sync::atomic::AtomicBool;
 use std::time::SystemTime;
 
-use crate::domain::application::Application;
+use crate::domain::application::{AppChoices, Remember};
 use crate::domain::archive::Extraction;
 use crate::domain::clip::{ClipOffer, Pasted};
 use crate::domain::entry::{Entry, Meta};
@@ -76,9 +76,9 @@ pub trait Disk {
 pub trait Opener {
     fn open(&self, path: &Path) -> io::Result<()>;
 
-    fn applications(&self, path: &Path) -> Vec<Application>;
+    fn applications(&self, path: &Path) -> AppChoices;
 
-    fn open_with(&self, path: &Path, id: &str) -> io::Result<()>;
+    fn open_with(&self, path: &Path, id: &str, remember: Remember) -> io::Result<()>;
 
     fn email(&self, paths: &[PathBuf]) -> io::Result<()>;
 }

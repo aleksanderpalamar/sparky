@@ -16,6 +16,7 @@ pub mod keys;
 pub mod message;
 pub mod mode;
 pub mod navigation;
+pub mod open_with;
 pub mod presentation;
 pub mod previews;
 mod removal;
@@ -62,6 +63,8 @@ mod keys_tests;
 mod menu_actions_tests;
 #[cfg(test)]
 mod mtp_tests;
+#[cfg(test)]
+mod open_with_tests;
 #[cfg(test)]
 mod presentation_tests;
 #[cfg(test)]

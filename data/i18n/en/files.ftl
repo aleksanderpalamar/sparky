@@ -67,7 +67,7 @@ path = Path
 size = Size
 modified = Modified
 permissions = Permissions
-open-file-with = Open { $file } with...
+open-file-with = Choose an app to open { $file }
 cancel = Cancel
 filter = Filter
 filter-hint = Enter applies · Esc clears
@@ -221,3 +221,10 @@ drag-hint = { $count ->
     [one] Dragging 1 item · drop on a folder, the sidebar, a tab, or the trash · Ctrl copies · Shift moves · Esc cancels
    *[other] Dragging { $count } items · drop on a folder, the sidebar, a tab, or the trash · Ctrl copies · Shift moves · Esc cancels
   }
+open = Open
+open-file = Open File
+open-with-search = Search apps
+open-with-recommended = Recommended Apps
+open-with-others = Other Apps
+open-with-always = Always use for this file type
+open-with-none = No app found

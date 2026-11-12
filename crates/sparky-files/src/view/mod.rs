@@ -6,6 +6,7 @@ pub mod icon;
 pub mod labels;
 pub mod list;
 pub mod open_with;
+mod open_with_list;
 pub mod properties;
 pub mod search_status;
 pub mod sidebar;

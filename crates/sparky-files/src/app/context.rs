@@ -4,7 +4,7 @@ use iced::Task;
 use sparky_ui::prompt;
 
 use crate::app::message::Message;
-use crate::app::state::{ContextMenu, Files, Mode, OpenWith};
+use crate::app::state::{ContextMenu, Files, Mode};
 use crate::domain::archive::extractable;
 use crate::domain::clip::Clip;
 use crate::domain::context::{self, Action, Row, Target};
@@ -77,20 +77,6 @@ pub fn properties(files: &mut Files, path: &Path) {
     }
 }
 
-pub fn open_with(files: &mut Files, id: &str) {
-    let Some(choice) = files.open_with.as_ref() else {
-        return;
-    };
-    if !choice.apps.iter().any(|app| app.id == id) {
-        return;
-    }
-    let path = choice.path.clone();
-    files.open_with = None;
-    if let Err(error) = files.services.opener.open_with(&path, id) {
-        files.fail(error);
-    }
-}
-
 fn offered(files: &Files, target: Target, action: Action) -> bool {
     let has_entries = if target == Target::TrashBackground {
         files.listing.total_len() > 0
@@ -117,7 +103,7 @@ fn run(files: &mut Files, action: Action, path: PathBuf) -> Task<Message> {
         }
         Action::Extract => return files.extract(),
         Action::Open => files.open_selected(),
-        Action::OpenWith => applications(files, path),
+        Action::OpenWith => return files.begin_open_with(path),
         Action::Cut => files.cut(),
         Action::Copy => files.copy(),
         Action::Email => email(files),
@@ -135,15 +121,6 @@ fn run(files: &mut Files, action: Action, path: PathBuf) -> Task<Message> {
 fn destination(files: &mut Files, clip: fn(Vec<PathBuf>) -> Clip) -> Task<Message> {
     files.begin_destination(clip(files.chosen_paths()));
     prompt::focus()
-}
-
-fn applications(files: &mut Files, path: PathBuf) {
-    let apps = files.services.opener.applications(&path);
-    if apps.is_empty() {
-        files.fail(i18n::text("no-app"));
-        return;
-    }
-    files.open_with = Some(OpenWith { path, apps });
 }
 
 fn email(files: &mut Files) {
