@@ -32,6 +32,7 @@ Somente os temas vem do [Omarchy](https://github.com/basecamp/omarchy): como pal
 | `crates/sparky-hardware` | Leitura de processador, memória e placas de vídeo, usada pelo sparky-settings e pelo sparky-fetch |
 | `crates/sparky-shot` | O capturador de tela (`sparky-shot`): seletor de modo, seleção de região pelo teclado ou mouse, PNG salvo e copiado |
 | `crates/sparky-files` | O gerenciador de arquivos (`sparky-files`): grade e lista com ícones e miniaturas, menus de contexto, dispositivos, lugares, filtro, copiar, recortar, colar, renomear, criar, compactar e lixeira |
+| `crates/sparky-store` | Loja de aplicativos (`sparky-store`): Flathub primeiro, com fallback para os repositórios nativos de distribuições com pacman, APT e DNF |
 | `crates/sparky-image` | O visualizador de imagens (`sparky-image`): abre PNG, JPEG, WebP, GIF, BMP e TIFF, navega pela pasta, zoom, deslocamento e rotação pelo teclado |
 | `crates/sparky-monitor` | O monitor do sistema (`sparky-monitor`): aplicativos e processos com CPU, memória, GPU, VRAM e disco, gráficos de CPU, memória, disco, rede e GPU, e encerramento de processos pelo teclado |
 | `crates/sparky-storage` | Volumes de bloco pelo udisksctl e smartphones MTP pelo udev/GIO/GVfs; parser de discos compartilhado com o painel |
@@ -401,6 +402,12 @@ O clique direito abre um menu de contexto nas cores do tema. Sobre um arquivo ou
 - **Propriedades** mostra nome, tipo, caminho, tamanho, data de modificação e permissões.
 
 Ao copiar uma única imagem PNG, JPEG ou WebP, o `sparky-files` também publica seus bytes na área de transferência do sistema. Assim, `CTRL + V` em outro aplicativo pode colar a imagem; a cópia de arquivos dentro do gerenciador continua disponível.
+
+## Loja
+
+O `sparky-store` abre o catálogo do Flathub para navegação e pesquisa primeiro no Flathub pelo catálogo AppStream do Flatpak. Quando não há resultado ou o Flathub está indisponível, pesquisa os repositórios nativos da distribuição detectada: pacman em derivados do Arch, APT em derivados do Debian ou DNF em derivados do Fedora/RHEL. O seletor de origem permite pedir diretamente os pacotes nativos. Se o Flatpak estiver instalado mas o Flathub não estiver configurado, a loja oferece adicionar o remoto Flathub para o usuário atual. A seção Instalados lista os aplicativos Flathub e os pacotes nativos instalados explicitamente. Buscas, atualizações de lista e operações de pacote rodam em segundo plano; a janela acompanha as cores do tema Sparky enquanto está aberta.
+
+Selecione um item para instalar, atualizar ou remover. Cada operação pede confirmação. O Flatpak usa a instalação correspondente do usuário ou do sistema; as operações nativas usam `pkexec`, para o polkit-sparky pedir autenticação. No Arch, Atualizar executa um `pacman -Syu` completo, pois atualizar um pacote isolado poderia deixar o sistema parcialmente atualizado; o painel de confirmação informa esse alcance. Flatpak é uma dependência opcional, de modo que a loja ainda pode usar repositórios nativos quando ele não está instalado. Apenas navegar não adiciona repositórios nativos nem altera pacotes.
 
 ## Imagens
 

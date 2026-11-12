@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=Loja Sparky
+Name[en]=Sparky Store
+GenericName=Loja de aplicativos
+GenericName[en]=Application store
+Comment=Encontre e gerencie aplicativos do Flathub e dos repositórios do sistema
+Comment[en]=Find and manage applications from Flathub and system repositories
+Exec=sparky-store
+Icon=system-software-install
+Terminal=false
+Categories=System;PackageManager;
+Keywords=aplicativos;loja;flatpak;pacotes;
+Keywords[en]=applications;store;flatpak;packages;

@@ -19,6 +19,7 @@ depends=(
   'libxkbcommon'
   'mesa'
   'pam'
+  'pacman-contrib'
   'polkit'
   'pipewire'
   'seatd'
@@ -46,6 +47,7 @@ optdepends=(
   'udisks2: montar e desmontar volumes no painel e no gerenciador de arquivos'
   'gvfs-mtp: acessar smartphones Android por MTP no gerenciador de arquivos'
   'foot: terminal'
+  'flatpak: fonte principal de aplicativos da Loja Sparky (Flathub)'
   'kitty: terminal'
   'vulkan-icd-loader: renderização por Vulkan nos aplicativos'
   'ttf-jetbrains-mono-nerd: fonte da barra, das abas e dos aplicativos'
@@ -83,7 +85,7 @@ check() {
 package_sparky() {
   cd "$pkgbase"
   local binary
-  for binary in sparky sparky-bar sparky-msg sparky-fetch sparky-shot sparky-files sparky-image sparky-monitor sparky-settings sparky-launcher sparky-keyring sparky-keyring-prompt sparky-lock sparky-lockd sparky-login sparky-login-greeter sparky-terminal sparky-notifications polkit-sparky; do
+  for binary in sparky sparky-bar sparky-msg sparky-fetch sparky-shot sparky-files sparky-image sparky-monitor sparky-settings sparky-store sparky-launcher sparky-keyring sparky-keyring-prompt sparky-lock sparky-lockd sparky-login sparky-login-greeter sparky-terminal sparky-notifications polkit-sparky; do
     install -Dm755 "target/release/$binary" -t "$pkgdir/usr/bin"
   done
   install -Dm644 data/session/sparky.desktop -t "$pkgdir/usr/share/wayland-sessions"
