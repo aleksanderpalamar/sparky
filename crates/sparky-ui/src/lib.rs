@@ -6,6 +6,7 @@ pub mod prompt;
 pub mod sidebar;
 pub mod style;
 pub mod surface;
+pub mod switch;
 pub mod viewport;
 pub mod wheel;
 pub mod window;

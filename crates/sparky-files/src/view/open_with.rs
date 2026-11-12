@@ -92,7 +92,9 @@ fn remember(skin: Skin, choice: &OpenWith) -> Element<'static, Message> {
             .color(skin.dark_foreground)
     ]
     .width(Length::Fill);
-    let switch = toggler(always).on_toggle(Message::OpenWithRemember);
+    let switch = toggler(always)
+        .on_toggle(Message::OpenWithRemember)
+        .style(sparky_ui::switch::switch(skin));
     row![labels, switch].align_y(Vertical::Center).into()
 }
 
