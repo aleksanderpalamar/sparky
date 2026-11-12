@@ -20,6 +20,8 @@ use crate::app::message::Message;
 use crate::app::state::{Files, Services, Setup};
 use crate::app::update::update;
 use crate::domain::application::Application;
+use crate::domain::archive::{Extraction, extractable};
+use crate::domain::transfer::Progress;
 use crate::ports::{Archiver, Opener};
 
 #[derive(Clone, Default)]
@@ -53,6 +55,30 @@ struct ArquivosComprimidos;
 impl Archiver for ArquivosComprimidos {
     fn create(&self, _paths: &[PathBuf], target: &Path) -> io::Result<()> {
         fs::write(target, "arquivo de teste")
+    }
+
+    fn extract(
+        &self,
+        archive: &Path,
+        into: &Path,
+        advance: &mut dyn FnMut(Progress) -> bool,
+    ) -> io::Result<Extraction> {
+        let name = archive
+            .file_name()
+            .map(|name| name.to_string_lossy().into_owned());
+        let stem = name.as_deref().and_then(extractable).unwrap_or("saida");
+        let target = into.join(stem);
+        let progress = Progress {
+            items_done: 1,
+            items_total: 1,
+            ..Progress::default()
+        };
+        if !advance(progress) {
+            return Ok(Extraction::Cancelled);
+        }
+        fs::create_dir(&target)?;
+        fs::write(target.join("conteudo.txt"), "extraído")?;
+        Ok(Extraction::Done(target))
     }
 }
 

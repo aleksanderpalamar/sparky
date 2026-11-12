@@ -6,6 +6,7 @@ menu-move-to = Mover para...
 menu-copy-to = Copiar para...
 menu-rename = Renomear...
 menu-compress = Comprimir...
+menu-extract = Extrair aqui
 menu-email = E-mail...
 menu-trash = Mover para a lixeira
 menu-delete = Excluir permanentemente
@@ -177,3 +178,11 @@ sort-size = tamanho
 sort-modified = data de modificação
 sort-type = tipo
 sorted-by = Ordenado por { $key } { $arrow }
+extract-failed = não foi possível extrair o arquivo
+job-extracting = Extraindo { $done } de { $total } · { $percent }% · Esc cancela
+extracted-into = Extraído em { $name }
+extracted-many = { $count ->
+    [0] Nenhum arquivo extraído
+    [one] 1 arquivo extraído
+   *[other] { $count } arquivos extraídos
+  }

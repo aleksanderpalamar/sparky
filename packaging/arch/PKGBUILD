@@ -24,6 +24,7 @@ depends=(
   'seatd'
   'systemd-libs'
   'tar'
+  'libarchive'
   'util-linux'
   'wayland'
   'wl-clipboard'

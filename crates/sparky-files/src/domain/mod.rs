@@ -1,4 +1,5 @@
 pub mod application;
+pub mod archive;
 pub mod clip;
 pub mod clip_payload;
 #[cfg(test)]

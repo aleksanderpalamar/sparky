@@ -150,6 +150,7 @@ fn run(files: &mut Files, command: Command) -> Task<Message> {
         }
         Command::UnmountCurrent => volumes::unmount_current(files),
         Command::Paste => files.paste(),
+        Command::Extract => files.extract(),
         Command::Undo => files.undo(),
         Command::Refresh => {
             files.refresh();

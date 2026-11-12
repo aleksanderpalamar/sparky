@@ -5,7 +5,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use iced::keyboard::key::Named;
 
-use super::jobs::{Job, Origin};
+use super::jobs::{Job, Origin, Work};
 use super::message::Message;
 use super::state::Mode;
 use super::test_scene::Cena;
@@ -50,7 +50,7 @@ fn esc_pede_o_cancelamento_da_operacao() {
     cena.files.job = Some(Job {
         cancel: cancel.clone(),
         progress: Progress::default(),
-        action: Action::Copy,
+        work: Work::Transfer(Action::Copy),
         origin: Origin::User,
     });
     cena.nomeada(Named::Escape);
@@ -108,7 +108,7 @@ fn barra_de_status_mostra_o_andamento() {
             bytes_done: 30,
             bytes_total: 60,
         },
-        action: Action::Move,
+        work: Work::Transfer(Action::Move),
         origin: Origin::User,
     };
     assert_eq!(progress(&job), "Movendo 1 de 2 · 50% · Esc cancela");

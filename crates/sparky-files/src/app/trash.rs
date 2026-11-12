@@ -31,6 +31,7 @@ impl Files {
                     | Command::Rename
                     | Command::Trash
                     | Command::Delete
+                    | Command::Extract
             )
     }
 

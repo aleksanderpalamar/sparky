@@ -5,13 +5,14 @@ use std::path::PathBuf;
 use std::time::SystemTime;
 
 use crate::domain::application::Application;
+use crate::domain::archive::Extraction;
 use crate::domain::clip::{ClipOffer, Pasted};
 use crate::domain::entry::{Entry, Meta};
 use crate::domain::icons::Icons;
 use crate::domain::properties::Properties;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::domain::thumbnail::Thumbnail;
-use crate::domain::transfer::Step;
+use crate::domain::transfer::{Progress, Step};
 use crate::domain::undo::TrashEntry;
 
 pub trait IconSource {
@@ -79,6 +80,13 @@ pub trait Opener {
 
 pub trait Archiver: Send + Sync {
     fn create(&self, paths: &[PathBuf], target: &Path) -> io::Result<()>;
+
+    fn extract(
+        &self,
+        archive: &Path,
+        into: &Path,
+        advance: &mut dyn FnMut(Progress) -> bool,
+    ) -> io::Result<Extraction>;
 }
 
 pub trait Transfer: Send + Sync {

@@ -7,6 +7,7 @@ mod details;
 pub mod editing;
 mod empty_trash;
 pub mod events;
+pub mod extraction;
 mod job_report;
 pub mod jobs;
 pub mod keys;
@@ -37,6 +38,8 @@ mod details_tests;
 mod disk_trash_tests;
 #[cfg(test)]
 mod empty_trash_tests;
+#[cfg(test)]
+mod extract_tests;
 #[cfg(test)]
 mod files_tests;
 #[cfg(test)]

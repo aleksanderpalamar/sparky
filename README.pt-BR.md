@@ -384,6 +384,7 @@ As consultas periódicas de dispositivos não exibem indicador de atualização.
 | `a` | Cria: `nome/` vira pasta, sem a barra vira arquivo vazio |
 | `d` ou `Delete` | Manda para a lixeira (`~/.local/share/Trash`, com o `.trashinfo`), depois de confirmar com `Enter` |
 | `SHIFT + Delete` | Exclui permanentemente, sem passar pela lixeira e sem `CTRL + Z`, depois de confirmar com `Enter` |
+| `e` | Extrai os compactados escolhidos (`.zip`, `.7z`, `.rar` e `.tar.*`) na mesma pasta, em segundo plano |
 | `s` / `S` | Troca o critério de ordenação (nome, tamanho, data de modificação, tipo) / inverte a ordem; as pastas ficam sempre no topo, e na lista clicar no título de uma coluna ordena por ela (de novo, inverte) |
 | `F5` ou `CTRL + R` | Relê a pasta |
 | `CTRL + Z` | Desfaz a última renomeação, criação, ida para a lixeira, cópia ou movimentação (até 50 passos; cópias e itens criados vão para a lixeira) |
@@ -400,6 +401,7 @@ O clique direito abre um menu de contexto nas cores do tema. Sobre um arquivo ou
 - **Abrir com** lista os aplicativos registrados para o tipo do arquivo, pelo GIO.
 - **Mover para** e **Copiar para** pedem o caminho da pasta de destino na barra inferior (aceitam `~` e caminhos relativos) e não alteram a área de transferência.
 - **Comprimir** cria um `.tar.gz` na pasta aberta pelo `tar`, sem travar a janela. O arquivo é escrito num temporário e nunca substitui um item existente.
+- **Extrair aqui** aparece sobre arquivos compactados e usa o `bsdtar` (libarchive). Um compactado com um único item no topo é extraído direto; com vários, eles vão para uma pasta com o nome do arquivo. A extração é montada numa pasta oculta `.sparky-files-*`, mostra o progresso na barra de status, `Esc` cancela sem deixar nada para trás, nomes ocupados ganham `(cópia)`, caminhos que tentam sair da pasta são recusados e `CTRL + Z` manda o resultado para a lixeira.
 - **E-mail** abre o cliente de e-mail padrão pelo `xdg-email`, com os arquivos anexados; pastas precisam ser comprimidas antes.
 - **Propriedades** mostra nome, tipo, caminho, tamanho, data de modificação e permissões.
 

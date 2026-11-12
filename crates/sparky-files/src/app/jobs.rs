@@ -7,6 +7,7 @@ use iced::Task;
 use iced::futures::channel::mpsc;
 use iced::futures::{SinkExt, Stream, StreamExt};
 
+use crate::app::extraction::ExtractReport;
 use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
 use crate::domain::clip::Clip;
@@ -20,8 +21,14 @@ use crate::transfer_job::execute;
 pub struct Job {
     pub cancel: Arc<AtomicBool>,
     pub progress: Progress,
-    pub action: Action,
+    pub work: Work,
     pub origin: Origin,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Work {
+    Transfer(Action),
+    Extract,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -41,6 +48,7 @@ pub struct Pending {
 pub enum JobEvent {
     Progress(Progress),
     Done(Outcome),
+    Extracted(ExtractReport),
 }
 
 impl Files {
@@ -89,8 +97,18 @@ impl Files {
                 }
             }
             JobEvent::Done(outcome) => {
-                if let Some(job) = self.job.take() {
-                    self.transferred(&job, outcome);
+                if let Some(Job {
+                    work: Work::Transfer(action),
+                    origin,
+                    ..
+                }) = self.job.take()
+                {
+                    self.transferred(action, origin, outcome);
+                }
+            }
+            JobEvent::Extracted(report) => {
+                if self.job.take().is_some() {
+                    self.extracted(report);
                 }
             }
         }
@@ -121,7 +139,7 @@ impl Files {
         self.job = Some(Job {
             cancel: cancel.clone(),
             progress: Progress::default(),
-            action,
+            work: Work::Transfer(action),
             origin,
         });
         let transfer = self.services.transfer.clone();
@@ -134,20 +152,27 @@ fn run(
     transfer: Arc<dyn Transfer>,
     cancel: Arc<AtomicBool>,
 ) -> impl Stream<Item = JobEvent> {
+    background(move |send| {
+        let outcome = execute(
+            planned.steps,
+            planned.skipped,
+            transfer.as_ref(),
+            &cancel,
+            &mut |step| send(JobEvent::Progress(step)),
+        );
+        send(JobEvent::Done(outcome));
+    })
+}
+
+pub(super) fn background(
+    work: impl FnOnce(&dyn Fn(JobEvent)) + Send + 'static,
+) -> impl Stream<Item = JobEvent> {
     iced::stream::channel(16, async move |mut output| {
         let (sender, mut events) = mpsc::unbounded();
         thread::spawn(move || {
-            let progress = sender.clone();
-            let outcome = execute(
-                planned.steps,
-                planned.skipped,
-                transfer.as_ref(),
-                &cancel,
-                &mut |step| {
-                    let _ = progress.unbounded_send(JobEvent::Progress(step));
-                },
-            );
-            let _ = sender.unbounded_send(JobEvent::Done(outcome));
+            work(&|event| {
+                let _ = sender.unbounded_send(event);
+            })
         });
         while let Some(event) = events.next().await {
             if output.send(event).await.is_err() {

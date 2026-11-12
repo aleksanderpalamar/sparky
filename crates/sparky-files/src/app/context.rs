@@ -5,6 +5,7 @@ use sparky_ui::prompt;
 
 use crate::app::message::Message;
 use crate::app::state::{ContextMenu, Files, Mode, OpenWith};
+use crate::domain::archive::extractable;
 use crate::domain::clip::Clip;
 use crate::domain::context::{self, Action, Row, Target};
 use crate::domain::entry::Kind;
@@ -27,6 +28,8 @@ pub fn entry(files: &mut Files, index: usize) {
             Target::Trashed
         } else if selected.is_directory() {
             Target::Folder
+        } else if extractable(&selected.name).is_some() {
+            Target::Archive
         } else {
             Target::File
         },
@@ -112,6 +115,7 @@ fn run(files: &mut Files, action: Action, path: PathBuf) -> Task<Message> {
                 .begin_archive(paths)
                 .map_or_else(Task::none, prompt::select);
         }
+        Action::Extract => return files.extract(),
         Action::Open => files.open_selected(),
         Action::OpenWith => applications(files, path),
         Action::Cut => files.cut(),

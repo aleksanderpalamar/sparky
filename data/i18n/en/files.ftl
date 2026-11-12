@@ -6,6 +6,7 @@ menu-move-to = Move to...
 menu-copy-to = Copy to...
 menu-rename = Rename...
 menu-compress = Compress...
+menu-extract = Extract Here
 menu-email = Email...
 menu-trash = Move to Trash
 menu-delete = Delete Permanently
@@ -177,3 +178,11 @@ sort-size = size
 sort-modified = modification date
 sort-type = type
 sorted-by = Sorted by { $key } { $arrow }
+extract-failed = could not extract the archive
+job-extracting = Extracting { $done } of { $total } · { $percent }% · Esc cancels
+extracted-into = Extracted into { $name }
+extracted-many = { $count ->
+    [0] No archives extracted
+    [one] 1 archive extracted
+   *[other] { $count } archives extracted
+  }

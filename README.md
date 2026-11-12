@@ -392,6 +392,7 @@ Periodic device queries do not display a refresh indicator. The sidebar shows pr
 | `a` | Create: `name/` becomes a folder; without the slash, it becomes an empty file |
 | `d` or `Delete` | Move to the trash (`~/.local/share/Trash`, with `.trashinfo`), after confirming with `Enter` |
 | `SHIFT + Delete` | Delete permanently, skipping the trash and `CTRL + Z`, after confirming with `Enter` |
+| `e` | Extract the chosen archives (`.zip`, `.7z`, `.rar`, and `.tar.*`) into the same folder, in the background |
 | `s` / `S` | Cycle the sort key (name, size, modification date, type) / reverse the order; folders always stay on top, and in the list clicking a column title sorts by it (again, reverses) |
 | `F5` or `CTRL + R` | Reread the folder |
 | `CTRL + Z` | Undo the last rename, creation, move to trash, copy, or move (up to 50 steps; copies and created items go to the trash) |
@@ -408,6 +409,7 @@ Right-click opens a context menu in the theme colors. On a file or folder, it of
 - **Open with** lists the applications registered for the file type, through GIO.
 - **Move to** and **Copy to** ask for the destination folder path in the bottom bar (accepting `~` and relative paths) and do not change the clipboard.
 - **Compress** creates a `.tar.gz` in the open folder through `tar`, without freezing the window. The archive is written to a temporary file and never replaces an existing item.
+- **Extract Here** appears on archives and uses `bsdtar` (libarchive). An archive with a single top-level item is extracted directly; with several, they go into a folder named after the archive. Extraction is assembled in a hidden `.sparky-files-*` folder and shows progress in the status bar; `Esc` cancels without leaving anything behind, taken names get `(copy)`, paths that try to leave the folder are refused, and `CTRL + Z` sends the result to the trash.
 - **Email** opens the default email client through `xdg-email`, with the files attached; folders must be compressed first.
 - **Properties** shows the name, type, path, size, modification date, and permissions.
 

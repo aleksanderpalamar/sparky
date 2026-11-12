@@ -1,13 +1,13 @@
-use crate::app::jobs::{Job, Origin};
+use crate::app::jobs::Origin;
 use crate::app::state::Files;
 use crate::domain::transfer::{Action, Ending, Outcome};
 use crate::domain::undo::Record;
 use crate::i18n;
 
 impl Files {
-    pub(super) fn transferred(&mut self, job: &Job, outcome: Outcome) {
+    pub(super) fn transferred(&mut self, action: Action, origin: Origin, outcome: Outcome) {
         self.refresh();
-        if job.action == Action::Move {
+        if action == Action::Move {
             let moved = outcome
                 .completed
                 .iter()
@@ -17,16 +17,13 @@ impl Files {
                 return;
             }
         }
-        if job.origin == Origin::User
-            && job.action == Action::Move
-            && outcome.ending == Ending::Finished
-        {
+        if origin == Origin::User && action == Action::Move && outcome.ending == Ending::Finished {
             self.clip = None;
             let _ = self.services.clipboard.clear();
         }
-        if job.origin == Origin::User && !outcome.completed.is_empty() {
+        if origin == Origin::User && !outcome.completed.is_empty() {
             self.journal.push(Record::Transferred {
-                action: job.action,
+                action,
                 steps: outcome.completed.clone(),
             });
         }
@@ -36,8 +33,8 @@ impl Files {
         {
             self.listing.select_name(name);
         }
-        match job.origin {
-            Origin::User => self.report(job.action, &outcome),
+        match origin {
+            Origin::User => self.report(action, &outcome),
             Origin::Undo => self.report_undo(&outcome),
         }
     }

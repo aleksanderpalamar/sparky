@@ -2,11 +2,23 @@ use std::io;
 use std::path::{Component, Path, PathBuf};
 use std::process::{Command, Stdio};
 
+use crate::adapters::extract;
+use crate::domain::archive::Extraction;
+use crate::domain::transfer::Progress;
 use crate::ports::Archiver;
 
 pub struct TarArchive;
 
 impl Archiver for TarArchive {
+    fn extract(
+        &self,
+        archive: &Path,
+        into: &Path,
+        advance: &mut dyn FnMut(Progress) -> bool,
+    ) -> io::Result<Extraction> {
+        extract::extract(archive, into, advance)
+    }
+
     fn create(&self, paths: &[PathBuf], target: &Path) -> io::Result<()> {
         let source_dir = paths
             .first()

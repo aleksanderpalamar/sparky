@@ -16,6 +16,14 @@ class FilesActionsDependenciesTest(unittest.TestCase):
             self.assertIn(tool, metadata["generate-rpm"]["requires"])
             self.assertIn(f"'{tool}'", arch)
 
+    def test_todos_formatos_incluem_o_bsdtar_para_extrair(self):
+        metadata = tomllib.loads((ROOT / "crates/sparky-compositor/Cargo.toml").read_text())["package"]["metadata"]
+        pkgbuild = (ROOT / "packaging/arch/PKGBUILD").read_text()
+        arch = re.search(r"^depends=\((.*?)^\)", pkgbuild, re.M | re.S).group(1).split()
+        self.assertIn("libarchive-tools", metadata["deb"]["depends"].split(", "))
+        self.assertIn("bsdtar", metadata["generate-rpm"]["requires"])
+        self.assertIn("'libarchive'", arch)
+
 
 if __name__ == "__main__":
     unittest.main()

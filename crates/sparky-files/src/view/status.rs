@@ -3,7 +3,7 @@ use iced::widget::{container, row, text, text_input};
 use iced::{Element, Length};
 use sparky_theme::Skin;
 
-use crate::app::jobs::{Job, Pending};
+use crate::app::jobs::{Job, Pending, Work};
 use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
 use crate::domain::clip::Clip;
@@ -73,9 +73,10 @@ pub fn conflict(pending: &Pending) -> String {
 }
 
 pub fn progress(job: &Job) -> String {
-    let key = match job.action {
-        Action::Copy => "job-copying",
-        Action::Move => "job-moving",
+    let key = match job.work {
+        Work::Transfer(Action::Copy) => "job-copying",
+        Work::Transfer(Action::Move) => "job-moving",
+        Work::Extract => "job-extracting",
     };
     let mut args = FluentArgs::new();
     args.set("done", job.progress.items_done);
