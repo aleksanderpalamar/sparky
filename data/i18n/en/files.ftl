@@ -23,6 +23,7 @@ copy-number = copy { $number }
 trash-invalid-path = invalid path in trash record
 trash-invalid-name = invalid name in trash
 trash-invalid-directory = invalid trash directory
+trash-unavailable = this location has no trash
 application-unavailable = application unavailable
 item-not-found = item not found
 trash-ambiguous-name = ambiguous trash name

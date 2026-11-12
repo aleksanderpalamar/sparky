@@ -138,3 +138,19 @@ fn item_que_nao_existe_nao_deixa_registro_na_lixeira() {
             .exists()
     );
 }
+
+#[test]
+fn local_remoto_nao_tem_lixeira_e_mantem_o_arquivo() {
+    let Some((dir, disk)) = ambiente() else {
+        panic!("sem pasta temporária")
+    };
+    let remoto = dir.path().join("gvfs");
+    let pasta = remoto.join("mtp:host=Celular").join("Pictures");
+    assert!(fs::create_dir_all(&pasta).is_ok());
+    escrever(&pasta.join("foto.jpg"), "x");
+    let disk = disk.with_remote(Some(remoto));
+    let erro = disk.trash(&pasta.join("foto.jpg")).err().map(|e| e.kind());
+    assert_eq!(erro, Some(std::io::ErrorKind::Unsupported));
+    assert!(pasta.join("foto.jpg").exists());
+    assert!(!dir.path().join("Trash").exists());
+}

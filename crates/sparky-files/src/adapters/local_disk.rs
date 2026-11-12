@@ -90,6 +90,12 @@ impl Disk for LocalDisk {
     }
 
     fn trash(&self, path: &Path) -> io::Result<TrashEntry> {
+        if self.is_remote(path) {
+            return Err(io::Error::new(
+                io::ErrorKind::Unsupported,
+                crate::i18n::text("trash-unavailable"),
+            ));
+        }
         self.trash.for_item(path)?.put(path)
     }
 

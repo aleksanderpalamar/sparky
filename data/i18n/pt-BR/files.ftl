@@ -23,6 +23,7 @@ copy-number = cópia { $number }
 trash-invalid-path = caminho inválido no registro da lixeira
 trash-invalid-name = nome inválido na lixeira
 trash-invalid-directory = pasta da lixeira inválida
+trash-unavailable = este local não tem lixeira
 application-unavailable = aplicativo indisponível
 item-not-found = item não encontrado
 trash-ambiguous-name = nome ambíguo na lixeira
