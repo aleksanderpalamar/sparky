@@ -1,6 +1,4 @@
 use std::cmp::Ordering;
-use std::iter::Peekable;
-use std::str::Chars;
 
 use icu_normalizer::DecomposingNormalizerBorrowed;
 
@@ -23,7 +21,8 @@ impl NaturalKey {
 
 impl Ord for NaturalKey {
     fn cmp(&self, other: &Self) -> Ordering {
-        compare_folded(&self.folded, &other.folded).then_with(|| self.original.cmp(&other.original))
+        compare_folded(self.folded.as_bytes(), other.folded.as_bytes())
+            .then_with(|| self.original.cmp(&other.original))
     }
 }
 
@@ -38,6 +37,9 @@ pub fn compare(left: &str, right: &str) -> Ordering {
 }
 
 fn fold(name: &str) -> String {
+    if name.is_ascii() {
+        return name.to_ascii_lowercase();
+    }
     DecomposingNormalizerBorrowed::new_nfd()
         .normalize_iter(name.chars())
         .filter(|character| !COMBINING_MARKS.contains(character))
@@ -45,44 +47,50 @@ fn fold(name: &str) -> String {
         .collect()
 }
 
-fn compare_folded(left: &str, right: &str) -> Ordering {
-    let (mut left, mut right) = (left.chars().peekable(), right.chars().peekable());
+fn compare_folded(left: &[u8], right: &[u8]) -> Ordering {
+    let (mut at_left, mut at_right) = (0, 0);
     let mut tie = Ordering::Equal;
-    loop {
-        let step = match (left.peek().copied(), right.peek().copied()) {
-            (None, None) => return tie,
-            (None, Some(_)) => return Ordering::Less,
-            (Some(_), None) => return Ordering::Greater,
-            (Some(a), Some(b)) if a.is_ascii_digit() && b.is_ascii_digit() => {
-                let (order, zeros) = compare_numbers(&digits(&mut left), &digits(&mut right));
-                tie = tie.then(zeros);
-                order
+    while let (Some(&a), Some(&b)) = (left.get(at_left), right.get(at_right)) {
+        if a.is_ascii_digit() && b.is_ascii_digit() {
+            let (end_left, end_right) = (digits_end(left, at_left), digits_end(right, at_right));
+            let (order, zeros) = compare_numbers(
+                left.get(at_left..end_left).unwrap_or_default(),
+                right.get(at_right..end_right).unwrap_or_default(),
+            );
+            if order.is_ne() {
+                return order;
             }
-            (Some(a), Some(b)) => {
-                left.next();
-                right.next();
-                a.cmp(&b)
-            }
-        };
-        if step.is_ne() {
-            return step;
+            tie = tie.then(zeros);
+            (at_left, at_right) = (end_left, end_right);
+            continue;
         }
+        if a != b {
+            return a.cmp(&b);
+        }
+        (at_left, at_right) = (at_left + 1, at_right + 1);
     }
+    let rest = |bytes: &[u8], at: usize| bytes.len().saturating_sub(at);
+    rest(left, at_left).cmp(&rest(right, at_right)).then(tie)
 }
 
-fn digits(chars: &mut Peekable<Chars<'_>>) -> String {
-    let mut run = String::new();
-    while let Some(digit) = chars.next_if(char::is_ascii_digit) {
-        run.push(digit);
-    }
-    run
+fn digits_end(bytes: &[u8], start: usize) -> usize {
+    bytes
+        .iter()
+        .skip(start)
+        .position(|byte| !byte.is_ascii_digit())
+        .map_or(bytes.len(), |offset| start + offset)
 }
 
-fn compare_numbers(left: &str, right: &str) -> (Ordering, Ordering) {
-    let (left_value, right_value) = (left.trim_start_matches('0'), right.trim_start_matches('0'));
+fn compare_numbers(left: &[u8], right: &[u8]) -> (Ordering, Ordering) {
+    let (left_value, right_value) = (significant(left), significant(right));
     let order = left_value
         .len()
         .cmp(&right_value.len())
         .then_with(|| left_value.cmp(right_value));
     (order, left.len().cmp(&right.len()))
+}
+
+fn significant(run: &[u8]) -> &[u8] {
+    let zeros = run.iter().take_while(|digit| **digit == b'0').count();
+    run.get(zeros..).unwrap_or_default()
 }
