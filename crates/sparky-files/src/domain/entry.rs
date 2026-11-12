@@ -1,4 +1,4 @@
-use chrono::NaiveDateTime;
+use std::time::SystemTime;
 
 use sparky_ui::natural::NaturalKey;
 
@@ -13,7 +13,7 @@ pub struct Entry {
     pub name: String,
     pub kind: Kind,
     pub size: u64,
-    pub modified: Option<NaiveDateTime>,
+    pub modified: Option<SystemTime>,
 }
 
 impl Entry {

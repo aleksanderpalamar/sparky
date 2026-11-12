@@ -4,8 +4,6 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
-use chrono::{DateTime, Local};
-
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::tree::{copy_tree, relocate};
 use crate::domain::entry::{Entry, Kind};
@@ -97,8 +95,6 @@ fn entry_of(item: &fs::DirEntry) -> Entry {
         name: item.file_name().to_string_lossy().into_owned(),
         kind,
         size: metadata.as_ref().map_or(0, fs::Metadata::len),
-        modified: metadata
-            .and_then(|metadata| metadata.modified().ok())
-            .map(|time| DateTime::<Local>::from(time).naive_local()),
+        modified: metadata.and_then(|metadata| metadata.modified().ok()),
     }
 }

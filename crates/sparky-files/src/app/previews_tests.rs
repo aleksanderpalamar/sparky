@@ -4,13 +4,12 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, SystemTime};
 
-use iced::futures::StreamExt;
-use iced::{Size, Task};
-use iced_runtime::Action as TaskAction;
+use iced::Size;
 
 use super::message::Message;
 use super::state::Files;
 use super::test_scene::Cena;
+use super::test_tasks::concluir;
 use super::update::update;
 use crate::domain::thumbnail::Thumbnail;
 use crate::ports::ThumbnailSource;
@@ -55,36 +54,6 @@ fn imagens_visiveis(files: &Files) -> Vec<PathBuf> {
         .collect()
 }
 
-fn concluir(files: &mut Files, task: Task<Message>, limite: usize) -> usize {
-    let runtime = tokio::runtime::Builder::new_current_thread()
-        .build()
-        .unwrap();
-    let mut queue = vec![task];
-    let mut processadas = 0;
-    while let Some(task) = queue.pop() {
-        let Some(mut stream) = iced_runtime::task::into_stream(task) else {
-            continue;
-        };
-        let messages = runtime.block_on(async {
-            let mut messages = Vec::new();
-            while let Some(action) = stream.next().await {
-                if let TaskAction::Output(message) = action {
-                    messages.push(message);
-                }
-            }
-            messages
-        });
-        for message in messages {
-            processadas += 1;
-            if processadas > limite {
-                return processadas;
-            }
-            queue.push(update(files, message));
-        }
-    }
-    processadas
-}
-
 #[test]
 fn miniaturas_sao_geradas_somente_para_itens_visiveis() {
     let (mut scene, contador, paths) = cena_com_imagens(Size::new(900.0, 560.0), 5);
@@ -124,7 +93,7 @@ fn janela_grande_com_muitas_imagens_nao_redecodifica_sem_fim() {
 }
 
 #[test]
-fn conclusao_de_arquivo_modificado_e_descartada_e_refeita() {
+fn conclusao_de_arquivo_modificado_na_listagem_e_descartada_e_refeita() {
     let (mut scene, contador, paths) = cena_com_imagens(Size::new(900.0, 560.0), 0);
     let path = paths[0].clone();
     let antigo = scene.files.services.disk.stamp(&path);
@@ -136,6 +105,7 @@ fn conclusao_de_arquivo_modificado_e_descartada_e_refeita() {
         .unwrap()
         .set_modified(novo)
         .unwrap();
+    scene.files.refresh();
     let thumbnail = Thumbnail {
         width: 1,
         height: 1,

@@ -36,6 +36,8 @@ mod mtp_tests;
 #[cfg(test)]
 mod presentation_tests;
 #[cfg(test)]
+mod previews_stamp_tests;
+#[cfg(test)]
 mod previews_tests;
 #[cfg(test)]
 mod sidebar_tests;
@@ -43,6 +45,8 @@ mod sidebar_tests;
 mod test_scene;
 #[cfg(test)]
 mod test_sources;
+#[cfg(test)]
+mod test_tasks;
 #[cfg(test)]
 mod trash_sidebar_tests;
 #[cfg(test)]

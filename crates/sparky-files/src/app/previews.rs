@@ -72,18 +72,17 @@ impl Files {
             ViewMode::List => self.viewport.range(self.listing.len()),
         };
         self.previews.visible = range.len();
-        let candidates: Vec<PathBuf> = range
+        let candidates: Vec<(PathBuf, Option<SystemTime>)> = range
             .filter_map(|index| self.listing.get(index))
             .filter(|entry| entry.kind == Kind::File)
-            .map(|entry| self.location.join(&entry.name))
-            .filter(|path| supported(path))
+            .map(|entry| (self.location.join(&entry.name), entry.modified))
+            .filter(|(path, _)| supported(path))
             .collect();
         let mut tasks = Vec::new();
-        for path in candidates {
+        for (path, stamp) in candidates {
             if self.previews.pending.len() >= JOB_LIMIT {
                 break;
             }
-            let stamp = self.services.disk.stamp(&path);
             if self.previews.seen(&path, stamp) {
                 continue;
             }
@@ -109,11 +108,22 @@ impl Files {
         stamp: Option<SystemTime>,
         image: Option<Thumbnail>,
     ) {
-        if self.services.disk.stamp(&path) != stamp {
+        if self
+            .listed_stamp(&path)
+            .is_some_and(|listed| listed != stamp)
+        {
             self.previews.pending.remove(&path);
             return;
         }
         self.previews.finish(path, stamp, image);
+    }
+
+    fn listed_stamp(&self, path: &Path) -> Option<Option<SystemTime>> {
+        if path.parent() != Some(self.location.as_path()) {
+            return None;
+        }
+        let name = path.file_name()?.to_str()?;
+        self.listing.find(name).map(|entry| entry.modified)
     }
 }
 

@@ -78,6 +78,10 @@ impl Listing {
         self.entries.get(*self.shown.get(index)?)
     }
 
+    pub fn find(&self, name: &str) -> Option<&Entry> {
+        self.entries.iter().find(|entry| entry.name == name)
+    }
+
     pub fn cursor(&self) -> usize {
         self.cursor
     }
