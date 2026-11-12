@@ -388,7 +388,7 @@ Periodic device queries do not display a refresh indicator. The sidebar shows pr
 | `.` or `CTRL + H` | Show or hide hidden items |
 | `Space` | Mark the item and advance; actions apply to marked items or, if none are marked, to the selected item |
 | `y` / `x` / `p` (or `CTRL + C` / `X` / `V`) | Copy, cut, and paste; pasting in the same folder creates `name (copy).ext`, and a name already taken at the destination asks what to do |
-| `r` or `F2` | Rename, with the name excluding its extension already selected |
+| `r` or `F2` | Rename, with the name excluding its extension already selected; with two or more marked, batch rename: `Trip {n}` numbers in list order keeping the extensions (zero-padded when there are ten or more), and `old -> new` replaces a part in every name. The status bar previews the new names and refuses repeated or taken names without changing anything; `CTRL + Z` undoes the whole batch |
 | `a` | Create: `name/` becomes a folder; without the slash, it becomes an empty file |
 | `d` or `Delete` | Move to the trash (`~/.local/share/Trash`, with `.trashinfo`), after confirming with `Enter` |
 | `SHIFT + Delete` | Delete permanently, skipping the trash and `CTRL + Z`, after confirming with `Enter` |

@@ -33,6 +33,7 @@ pub enum Mode {
     Browse,
     Filter,
     Rename(String),
+    BatchRename(Vec<String>),
     Create,
     New(Kind),
     Destination(Clip),

@@ -1,4 +1,5 @@
 pub mod archive;
+pub mod batch;
 pub mod boot;
 pub mod clipboard;
 mod commands;
@@ -26,6 +27,8 @@ pub mod update;
 mod virtual_commands;
 pub mod volumes;
 
+#[cfg(test)]
+mod batch_tests;
 #[cfg(test)]
 mod clipboard_files_tests;
 #[cfg(test)]

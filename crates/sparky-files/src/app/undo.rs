@@ -3,6 +3,7 @@ use iced::Task;
 use crate::app::jobs::Origin;
 use crate::app::message::Message;
 use crate::app::state::Files;
+use crate::batch_rename::rename_all;
 use crate::domain::transfer::{Action, Ending, Outcome};
 use crate::domain::undo::{Record, reversed};
 use crate::i18n;
@@ -43,6 +44,22 @@ impl Files {
                     .relocated(&to, &from)
                     .map_err(std::io::Error::other)
             }),
+            Record::RenamedMany(pairs) => {
+                let back: Vec<_> = pairs
+                    .iter()
+                    .map(|(from, to)| (to.clone(), from.clone()))
+                    .collect();
+                rename_all(&back, disk)
+                    .map_err(|failure| std::io::Error::other(failure.to_string()))
+                    .and_then(|()| {
+                        back.iter().try_for_each(|(from, to)| {
+                            self.services
+                                .sidebar
+                                .relocated(from, to)
+                                .map_err(std::io::Error::other)
+                        })
+                    })
+            }
             Record::Trashed(entries) => entries
                 .iter()
                 .rev()

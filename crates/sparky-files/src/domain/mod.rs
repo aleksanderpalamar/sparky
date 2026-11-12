@@ -1,5 +1,8 @@
 pub mod application;
 pub mod archive;
+pub mod batch_name;
+#[cfg(test)]
+mod batch_name_tests;
 pub mod clip;
 pub mod clip_payload;
 #[cfg(test)]

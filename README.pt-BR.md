@@ -380,7 +380,7 @@ As consultas periódicas de dispositivos não exibem indicador de atualização.
 | `.` ou `CTRL + H` | Mostra ou esconde os ocultos |
 | `Espaço` | Marca o item e avança; as ações valem para os marcados ou, sem marcas, para o selecionado |
 | `y` / `x` / `p` (ou `CTRL + C` / `X` / `V`) | Copia, recorta e cola; colar na mesma pasta cria `nome (cópia).ext`, e um nome já ocupado no destino pergunta o que fazer |
-| `r` ou `F2` | Renomeia, já com o nome sem a extensão selecionado |
+| `r` ou `F2` | Renomeia, já com o nome sem a extensão selecionado; com dois ou mais marcados, renomeia em lote: `Viagem {n}` numera na ordem da lista mantendo as extensões (com zeros à esquerda quando há dez ou mais), e `antigo -> novo` troca um trecho em todos os nomes. A barra de status mostra a prévia dos novos nomes e recusa nomes repetidos ou já ocupados, sem mudar nada; `CTRL + Z` desfaz o lote inteiro |
 | `a` | Cria: `nome/` vira pasta, sem a barra vira arquivo vazio |
 | `d` ou `Delete` | Manda para a lixeira (`~/.local/share/Trash`, com o `.trashinfo`), depois de confirmar com `Enter` |
 | `SHIFT + Delete` | Exclui permanentemente, sem passar pela lixeira e sem `CTRL + Z`, depois de confirmar com `Enter` |

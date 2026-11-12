@@ -112,6 +112,7 @@ fn key_pressed(files: &mut Files, key: &Key, modifiers: Modifiers) -> Task<Messa
                 .map_or_else(Task::none, |choice| files.resolve_conflict(choice));
         }
         Mode::Rename(_)
+        | Mode::BatchRename(_)
         | Mode::Create
         | Mode::New(_)
         | Mode::Destination(_)
@@ -137,7 +138,7 @@ fn run(files: &mut Files, command: Command) -> Task<Message> {
             files.begin_create();
             prompt::focus()
         }
-        Command::Rename => files.begin_rename().map_or_else(Task::none, prompt::select),
+        Command::Rename => files.start_rename(),
         Command::NewFolder => prompt::select(files.begin_new(Kind::Directory)),
         Command::Quit => iced::exit(),
         Command::View(mode) => {

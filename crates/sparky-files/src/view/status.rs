@@ -12,6 +12,7 @@ use crate::domain::removal::Removal;
 use crate::domain::transfer::Action;
 use crate::domain::wording::summary;
 use crate::i18n;
+use crate::view::batch_preview::preview;
 use fluent_bundle::FluentArgs;
 use sparky_ui::notice::Notice;
 use sparky_ui::prompt::PROMPT;
@@ -25,6 +26,11 @@ pub fn status(files: &Files) -> Element<'_, Message> {
         Mode::Browse => browsing(files),
         Mode::Filter => prompt(files, i18n::text("filter"), i18n::text("filter-hint")),
         Mode::Rename(_) => prompt(files, i18n::text("rename"), i18n::text("confirm-hint")),
+        Mode::BatchRename(names) => prompt(
+            files,
+            i18n::with("batch-rename", "count", names.len().to_string()),
+            preview(files, names),
+        ),
         Mode::Create => prompt(files, i18n::text("create-hint"), i18n::text("create-keys")),
         Mode::New(Kind::Directory) => {
             prompt(files, i18n::text("new-folder"), i18n::text("create-keys"))

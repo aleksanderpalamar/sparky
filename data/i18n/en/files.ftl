@@ -186,3 +186,14 @@ extracted-many = { $count ->
     [one] 1 archive extracted
    *[other] { $count } archives extracted
   }
+batch-rename = Rename { $count } items
+batch-hint = {"{"}n{"}"} numbers · old -> new replaces a part
+batch-invalid = Invalid name: { $name }
+batch-repeated = More than one item would be named { $name }
+batch-taken = An item named { $name } already exists
+batch-unchanged = No name would change
+batch-renamed = { $count ->
+    [0] No items renamed
+    [one] 1 item renamed
+   *[other] { $count } items renamed
+  }

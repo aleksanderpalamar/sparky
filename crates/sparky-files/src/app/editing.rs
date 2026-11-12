@@ -61,6 +61,7 @@ impl Files {
         let input = mem::take(&mut self.input);
         match mem::replace(&mut self.mode, Mode::Browse) {
             Mode::Rename(original) => self.finish_rename(&original, input.trim()),
+            Mode::BatchRename(names) => self.finish_batch(&names, &input),
             Mode::Create => {
                 let result =
                     operations::create(&self.location, &input, self.services.disk.as_ref());
@@ -101,6 +102,7 @@ impl Files {
             Mode::Browse => self.listing.clear_marks(),
             Mode::Filter => self.listing.set_filter(""),
             Mode::Rename(_)
+            | Mode::BatchRename(_)
             | Mode::Create
             | Mode::New(_)
             | Mode::Destination(_)

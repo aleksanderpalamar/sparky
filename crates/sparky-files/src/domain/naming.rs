@@ -39,7 +39,7 @@ pub fn stem_length(name: &str) -> usize {
     split(name).0.chars().count()
 }
 
-fn split(name: &str) -> (&str, &str) {
+pub fn split(name: &str) -> (&str, &str) {
     match name.rfind('.') {
         Some(dot) if dot > 0 => name.split_at(dot),
         _ => (name, ""),

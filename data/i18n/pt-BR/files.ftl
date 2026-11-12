@@ -186,3 +186,14 @@ extracted-many = { $count ->
     [one] 1 arquivo extraído
    *[other] { $count } arquivos extraídos
   }
+batch-rename = Renomear { $count } itens
+batch-hint = {"{"}n{"}"} numera · antigo -> novo troca um trecho
+batch-invalid = Nome inválido: { $name }
+batch-repeated = Mais de um item ficaria com o nome { $name }
+batch-taken = Já existe um item chamado { $name }
+batch-unchanged = Nenhum nome mudaria
+batch-renamed = { $count ->
+    [0] Nenhum item renomeado
+    [one] 1 item renomeado
+   *[other] { $count } itens renomeados
+  }
