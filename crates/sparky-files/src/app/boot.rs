@@ -13,6 +13,7 @@ use crate::adapters::icons::ThemeIcons;
 use crate::adapters::local_disk::LocalDisk;
 use crate::adapters::sidebar_source::DesktopSidebar;
 use crate::adapters::thumbnail::FileThumbnail;
+use crate::adapters::thumbnail_cache::SharedThumbnails;
 use crate::adapters::xdg_open::XdgOpen;
 use crate::app::message::Message;
 use crate::app::state::{Files, Services, Setup};
@@ -40,7 +41,7 @@ pub fn boot() -> (Files, Task<Message>) {
         icons: Box::new(ThemeIcons::default()),
         volumes: Arc::new(sparky_storage::desktop::system()),
         archiver: Arc::new(TarArchive),
-        thumbnails: Arc::new(FileThumbnail),
+        thumbnails: Arc::new(SharedThumbnails::from_env(FileThumbnail)),
         trash: Arc::new(trash),
         image_clipboard: Box::new(WlImageClipboard),
         sidebar: std::sync::Arc::new(DesktopSidebar::from_env()),
