@@ -4,6 +4,7 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
+use crate::adapters::gio_listing;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::tree::{copy_tree, relocate};
 use crate::domain::entry::{Entry, Kind};
@@ -12,16 +13,33 @@ use crate::ports::Disk;
 
 pub struct LocalDisk {
     trash: HomeTrash,
+    remote: Option<PathBuf>,
 }
 
 impl LocalDisk {
     pub fn new(trash: HomeTrash) -> Self {
-        Self { trash }
+        Self {
+            trash,
+            remote: None,
+        }
+    }
+
+    pub fn with_remote(self, remote: Option<PathBuf>) -> Self {
+        Self { remote, ..self }
+    }
+
+    fn is_remote(&self, dir: &Path) -> bool {
+        self.remote
+            .as_deref()
+            .is_some_and(|root| gio_listing::serves(root, dir))
     }
 }
 
 impl Disk for LocalDisk {
     fn list(&self, dir: &Path) -> io::Result<Vec<Entry>> {
+        if self.is_remote(dir) {
+            return gio_listing::list(dir);
+        }
         Ok(fs::read_dir(dir)?
             .filter_map(Result::ok)
             .map(|item| entry_of(&item))

@@ -1,5 +1,8 @@
 pub mod archive;
 pub mod clipboard;
+pub mod gio_listing;
+#[cfg(test)]
+mod gio_listing_tests;
 pub mod home_trash;
 pub mod icons;
 pub mod local_disk;

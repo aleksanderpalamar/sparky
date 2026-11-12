@@ -8,6 +8,7 @@ use sparky_xdg::UserDirs;
 
 use crate::adapters::archive::TarArchive;
 use crate::adapters::clipboard::WlImageClipboard;
+use crate::adapters::gio_listing;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::icons::ThemeIcons;
 use crate::adapters::local_disk::LocalDisk;
@@ -36,7 +37,7 @@ pub fn boot() -> (Files, Task<Message>) {
         rows: rows_for(WINDOW_HEIGHT),
     };
     let services = Services {
-        disk: Box::new(LocalDisk::new(trash.clone())),
+        disk: Box::new(LocalDisk::new(trash.clone()).with_remote(gio_listing::remote_root())),
         opener: Box::new(XdgOpen),
         icons: Box::new(ThemeIcons::default()),
         volumes: Arc::new(sparky_storage::desktop::system()),
