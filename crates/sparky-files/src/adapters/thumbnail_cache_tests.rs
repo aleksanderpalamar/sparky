@@ -155,3 +155,16 @@ fn arquivos_dentro_do_proprio_cache_nao_sao_gravados_nele() {
     cena.cache.load(&interna);
     assert_eq!(fs::read_dir(cena.root.join("normal")).unwrap().count(), 1);
 }
+
+#[test]
+fn miniatura_com_o_mesmo_segundo_e_outro_tamanho_e_refeita() {
+    let cena = Cena::nova();
+    let selo = Stamp {
+        size: cena.selo().size + 1,
+        ..cena.selo()
+    };
+    let nome = cache_name(&file_uri(&cena.foto));
+    thumbnail_png::write(&cena.root.join("normal"), &nome, &selo, &quadrado(4)).unwrap();
+    assert_eq!(cena.cache.load(&cena.foto), Some(quadrado(2)));
+    assert_eq!(cena.chamadas(), 1);
+}

@@ -33,6 +33,9 @@ pub fn read(file: &Path, expected: &Stamp) -> Option<Thumbnail> {
     if text("Thumb::MTime").and_then(|mtime| mtime.parse().ok()) != Some(expected.mtime) {
         return None;
     }
+    if !text("Thumb::Size").is_none_or(|size| size.parse() == Ok(expected.size)) {
+        return None;
+    }
     decode(&bytes)
 }
 
