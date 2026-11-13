@@ -6,7 +6,7 @@ use iced::Task;
 use sparky_ui::prompt;
 use sparky_ui::viewport::Viewport;
 
-use crate::app::jobs::background;
+use crate::app::background::background;
 use crate::app::keys::Command;
 use crate::app::message::Message;
 use crate::app::state::{Files, Mode};

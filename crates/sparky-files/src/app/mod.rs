@@ -1,4 +1,5 @@
 pub mod archive;
+mod background;
 pub mod batch;
 pub mod boot;
 pub mod clipboard;

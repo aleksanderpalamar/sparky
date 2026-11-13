@@ -1,5 +1,6 @@
 use crate::app::jobs::Origin;
 use crate::app::state::Files;
+use crate::domain::clip::Clip;
 use crate::domain::transfer::{Action, Ending, Outcome};
 use crate::domain::undo::Record;
 use crate::i18n;
@@ -17,9 +18,8 @@ impl Files {
                 return;
             }
         }
-        if origin == Origin::User && action == Action::Move && outcome.ending == Ending::Finished {
-            self.clip = None;
-            let _ = self.services.clipboard.clear();
+        if outcome.ending == Ending::Finished {
+            self.release_cut(&origin);
         }
         if origin != Origin::Undo && !outcome.completed.is_empty() {
             self.journal.push(Record::Transferred {
@@ -34,9 +34,20 @@ impl Files {
             self.listing.select_name(name);
         }
         match origin {
-            Origin::User | Origin::Dropped => self.report(action, &outcome),
+            Origin::User | Origin::Pasted(_) | Origin::Dropped => self.report(action, &outcome),
             Origin::Undo => self.report_undo(&outcome),
         }
+    }
+
+    fn release_cut(&mut self, origin: &Origin) {
+        let Origin::Pasted(cut @ Clip::Cut(_)) = origin else {
+            return;
+        };
+        if self.clipboard_clip().as_ref() != Some(cut) {
+            return;
+        }
+        self.clip = None;
+        let _ = self.services.clipboard.clear();
     }
 
     fn report(&mut self, action: Action, outcome: &Outcome) {

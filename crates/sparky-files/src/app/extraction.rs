@@ -5,7 +5,8 @@ use std::time::{Duration, Instant};
 
 use iced::Task;
 
-use crate::app::jobs::{Job, JobEvent, Origin, Work, background};
+use crate::app::background::background;
+use crate::app::jobs::{Job, JobEvent, Origin, Work};
 use crate::app::message::Message;
 use crate::app::state::Files;
 use crate::domain::archive::{Extraction, extractable};

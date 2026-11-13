@@ -1,12 +1,11 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::thread;
 
 use iced::Task;
-use iced::futures::channel::mpsc;
-use iced::futures::{SinkExt, Stream, StreamExt};
+use iced::futures::Stream;
 
+use crate::app::background::background;
 use crate::app::extraction::ExtractReport;
 use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
@@ -31,9 +30,10 @@ pub enum Work {
     Extract,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Origin {
     User,
+    Pasted(Clip),
     Dropped,
     Undo,
 }
@@ -59,7 +59,8 @@ impl Files {
             self.inform(i18n::text("nothing-to-paste"));
             return Task::none();
         };
-        self.transfer(clip, self.location.clone())
+        let into = self.location.clone();
+        self.transfer_from(clip.clone(), into, Origin::Pasted(clip))
     }
 
     pub fn transfer(&mut self, clip: Clip, into: PathBuf) -> Task<Message> {
@@ -178,23 +179,5 @@ fn run(
             &mut |step| send(JobEvent::Progress(step)),
         );
         send(JobEvent::Done(outcome));
-    })
-}
-
-pub(super) fn background<T: Send + 'static>(
-    work: impl FnOnce(&dyn Fn(T)) + Send + 'static,
-) -> impl Stream<Item = T> {
-    iced::stream::channel(16, async move |mut output| {
-        let (sender, mut events) = mpsc::unbounded();
-        thread::spawn(move || {
-            work(&|event| {
-                let _ = sender.unbounded_send(event);
-            })
-        });
-        while let Some(event) = events.next().await {
-            if output.send(event).await.is_err() {
-                return;
-            }
-        }
     })
 }
