@@ -21,9 +21,11 @@ pub enum Gesture {
     Pressed {
         index: usize,
         at: Point,
+        from: PathBuf,
     },
     Dragging {
         names: Vec<String>,
+        from: PathBuf,
         over: Option<DropTarget>,
     },
 }
@@ -35,6 +37,7 @@ impl Files {
             true => Gesture::Pressed {
                 index,
                 at: self.pointer,
+                from: self.location.clone(),
             },
             false => Gesture::Idle,
         };
@@ -47,16 +50,23 @@ impl Files {
     }
 
     fn start_drag(&mut self, point: Point) {
-        let Gesture::Pressed { index, at } = self.gesture else {
+        let Gesture::Pressed { index, at, .. } = self.gesture else {
             return;
         };
         if at.distance(point) < THRESHOLD {
             return;
         }
-        let names = self.dragged(index);
+        let names = match self.live_gesture() {
+            true => self.dragged(index),
+            false => Vec::new(),
+        };
         self.gesture = match names.is_empty() {
             true => Gesture::Idle,
-            false => Gesture::Dragging { names, over: None },
+            false => Gesture::Dragging {
+                names,
+                from: self.location.clone(),
+                over: None,
+            },
         };
     }
 
@@ -85,25 +95,34 @@ impl Files {
     }
 
     pub fn is_drop_target(&self, target: DropTarget) -> bool {
-        matches!(&self.gesture, Gesture::Dragging { over: Some(over), .. } if *over == target)
+        self.live_gesture()
+            && matches!(&self.gesture, Gesture::Dragging { over: Some(over), .. } if *over == target)
     }
 
     pub fn drag_status(&self) -> Option<String> {
         let Gesture::Dragging { names, .. } = &self.gesture else {
             return None;
         };
+        if !self.live_gesture() {
+            return None;
+        }
         Some(i18n::counted("drag-hint", names.len()))
     }
 
     pub fn released(&mut self) -> Task<Message> {
+        let live = self.live_gesture();
         let gesture = mem::replace(&mut self.gesture, Gesture::Idle);
         let Gesture::Dragging {
             names,
             over: Some(target),
+            ..
         } = gesture
         else {
             return Task::none();
         };
+        if !live {
+            return Task::none();
+        }
         if target == DropTarget::Trash {
             if self.services.disk.has_trash(&self.location) {
                 self.mode = Mode::ConfirmRemoval(Removal::Trash, names);
@@ -128,6 +147,15 @@ impl Files {
             Action::Move => Clip::Cut(paths),
         };
         self.transfer_from(clip, into, Origin::Dropped)
+    }
+
+    pub(super) fn live_gesture(&self) -> bool {
+        match &self.gesture {
+            Gesture::Idle => false,
+            Gesture::Pressed { from, .. } | Gesture::Dragging { from, .. } => {
+                *from == self.location
+            }
+        }
     }
 
     fn drop_folder(&self, names: &[String], target: DropTarget) -> Option<PathBuf> {

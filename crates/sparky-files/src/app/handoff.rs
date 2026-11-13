@@ -13,6 +13,10 @@ impl Files {
         if self.inside_window(point) || !matches!(self.gesture, Gesture::Dragging { .. }) {
             return Task::none();
         }
+        if !self.live_gesture() {
+            self.gesture = Gesture::Idle;
+            return Task::none();
+        }
         let Gesture::Dragging { names, .. } = mem::replace(&mut self.gesture, Gesture::Idle) else {
             return Task::none();
         };

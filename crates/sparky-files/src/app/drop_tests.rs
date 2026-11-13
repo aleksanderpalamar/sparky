@@ -1,7 +1,7 @@
 use std::fs;
 
 use iced::Point;
-use iced::keyboard::Modifiers;
+use iced::keyboard::{Key, Modifiers};
 
 use super::message::Message;
 use super::state::Mode;
@@ -131,4 +131,23 @@ fn soltar_na_lixeira_pede_confirmacao() {
         cena.files.mode,
         Mode::ConfirmRemoval(Removal::Trash, vec!["a.txt".to_owned()])
     );
+}
+
+#[test]
+fn trocar_de_aba_durante_o_arraste_nao_solta_itens_da_outra_pasta() {
+    let mut cena = Cena::nova();
+    let criado = fs::create_dir(cena.work().join("Fotos/Praia"))
+        .and_then(|()| fs::write(cena.work().join("Fotos/a.txt"), "outro"));
+    assert!(criado.is_ok());
+    cena.mandar(Message::Key(Key::Character("t".into()), Modifiers::CTRL));
+    cena.files.go(cena.work().join("Fotos"));
+    cena.mandar(Message::Tab(0));
+    arrastar(&mut cena, "a.txt");
+    cena.mandar(Message::Tab(1));
+    assert!(cena.files.drag_status().is_none());
+    let praia = indice(&cena, "Praia");
+    soltar_em(&mut cena, DropTarget::Entry(praia));
+    assert!(cena.work().join("Fotos/a.txt").is_file());
+    assert!(cena.work().join("a.txt").is_file());
+    assert!(!cena.work().join("Fotos/Praia/a.txt").exists());
 }
