@@ -113,6 +113,7 @@ fn recorte_concluido_nao_limpa_uma_selecao_mais_nova() {
     *cena.area.leitura.borrow_mut() = Pasted::Files(nova.clone());
     cena.files.job_event(JobEvent::Done(Outcome {
         completed: Vec::new(),
+        displaced: Vec::new(),
         skipped: 0,
         ending: Ending::Finished,
     }));

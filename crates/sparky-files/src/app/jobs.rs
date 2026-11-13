@@ -11,6 +11,7 @@ use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
 use crate::domain::clip::Clip;
 use crate::domain::transfer::{Action, Conflict, Outcome, Progress};
+use crate::domain::undo::TrashEntry;
 use crate::i18n;
 use crate::operations::{self, Planned};
 use crate::ports::Transfer;
@@ -35,7 +36,7 @@ pub enum Origin {
     User,
     Pasted(Clip),
     Dropped,
-    Undo,
+    Undo(Vec<TrashEntry>),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

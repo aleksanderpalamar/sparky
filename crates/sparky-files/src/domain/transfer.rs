@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+use crate::domain::undo::TrashEntry;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Action {
     Copy,
@@ -51,6 +53,7 @@ pub enum Ending {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Outcome {
     pub completed: Vec<Step>,
+    pub displaced: Vec<TrashEntry>,
     pub skipped: usize,
     pub ending: Ending,
 }

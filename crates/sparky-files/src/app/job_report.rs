@@ -23,10 +23,11 @@ impl Files {
         if outcome.ending == Ending::Finished {
             self.release_cut(&origin);
         }
-        if origin != Origin::Undo && !outcome.completed.is_empty() {
+        if !matches!(origin, Origin::Undo(_)) && !outcome.completed.is_empty() {
             self.journal.push(Record::Transferred {
                 action,
                 steps: outcome.completed.clone(),
+                displaced: outcome.displaced.clone(),
             });
         }
         let last = outcome.completed.last().map(|step| step.target.clone());
@@ -37,7 +38,7 @@ impl Files {
         }
         match origin {
             Origin::User | Origin::Pasted(_) | Origin::Dropped => self.report(action, &outcome),
-            Origin::Undo => self.report_undo(&outcome),
+            Origin::Undo(displaced) => self.report_undo(&displaced, &outcome),
         }
     }
 

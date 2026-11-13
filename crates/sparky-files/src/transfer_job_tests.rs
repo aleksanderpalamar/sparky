@@ -4,6 +4,7 @@ use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::domain::transfer::{Action, Ending, Progress, Step};
+use crate::domain::undo::TrashEntry;
 use crate::ports::Transfer;
 use crate::transfer_job::execute;
 
@@ -30,7 +31,11 @@ impl Transfer for Simulada {
         10
     }
 
-    fn run(&self, step: &Step, advance: &mut dyn FnMut(u64) -> bool) -> io::Result<()> {
+    fn run(
+        &self,
+        step: &Step,
+        advance: &mut dyn FnMut(u64) -> bool,
+    ) -> io::Result<Option<TrashEntry>> {
         if self.falha.as_ref() == Some(&step.source) {
             return Err(io::Error::other("disco cheio"));
         }
@@ -41,7 +46,7 @@ impl Transfer for Simulada {
             return Err(io::ErrorKind::Interrupted.into());
         }
         self.feitos.lock().unwrap().push(step.source.clone());
-        Ok(())
+        Ok(None)
     }
 }
 

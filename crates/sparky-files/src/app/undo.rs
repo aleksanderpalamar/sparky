@@ -5,9 +5,10 @@ use crate::app::message::Message;
 use crate::app::state::Files;
 use crate::batch_rename::rename_all;
 use crate::domain::transfer::{Action, Ending, Outcome};
-use crate::domain::undo::{Record, reversed};
+use crate::domain::undo::{Record, TrashEntry, reversed};
 use crate::i18n;
 use crate::operations::Planned;
+use crate::ports::Disk;
 
 impl Files {
     pub fn undo(&mut self) -> Task<Message> {
@@ -24,20 +25,23 @@ impl Files {
             Record::Transferred {
                 action: Action::Move,
                 steps,
+                displaced,
             } => {
                 let planned = Planned {
                     steps: reversed(&steps),
                     skipped: 0,
                 };
-                return self.run_job(planned, Action::Move, Origin::Undo);
+                return self.run_job(planned, Action::Move, Origin::Undo(displaced));
             }
             Record::Transferred {
                 action: Action::Copy,
                 steps,
+                displaced,
             } => steps
                 .iter()
                 .rev()
-                .try_for_each(|step| disk.trash(&step.target).map(drop)),
+                .try_for_each(|step| disk.trash(&step.target).map(drop))
+                .and_then(|()| restore(disk, &displaced)),
             Record::Renamed { from, to } => disk.relocate(&to, &from).and_then(|()| {
                 self.services
                     .sidebar
@@ -73,9 +77,12 @@ impl Files {
         Task::none()
     }
 
-    pub(super) fn report_undo(&mut self, outcome: &Outcome) {
+    pub(super) fn report_undo(&mut self, displaced: &[TrashEntry], outcome: &Outcome) {
         match &outcome.ending {
-            Ending::Finished => self.inform(i18n::text("undone")),
+            Ending::Finished => match restore(self.services.disk.as_ref(), displaced) {
+                Ok(()) => self.inform(i18n::text("undone")),
+                Err(error) => self.fail(i18n::with("undo-failed", "error", error.to_string())),
+            },
             Ending::Cancelled => {
                 self.inform(i18n::counted("job-cancelled", outcome.completed.len()))
             }
@@ -86,4 +93,11 @@ impl Files {
             )),
         }
     }
+}
+
+fn restore(disk: &dyn Disk, displaced: &[TrashEntry]) -> std::io::Result<()> {
+    displaced
+        .iter()
+        .rev()
+        .try_for_each(|entry| disk.untrash(entry).map(drop))
 }

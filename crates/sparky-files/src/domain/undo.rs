@@ -15,8 +15,15 @@ pub struct TrashEntry {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Record {
-    Transferred { action: Action, steps: Vec<Step> },
-    Renamed { from: PathBuf, to: PathBuf },
+    Transferred {
+        action: Action,
+        steps: Vec<Step>,
+        displaced: Vec<TrashEntry>,
+    },
+    Renamed {
+        from: PathBuf,
+        to: PathBuf,
+    },
     RenamedMany(Vec<(PathBuf, PathBuf)>),
     Trashed(Vec<TrashEntry>),
     Created(PathBuf),

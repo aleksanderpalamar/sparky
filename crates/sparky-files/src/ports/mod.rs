@@ -112,7 +112,11 @@ pub trait Finder: Send + Sync {
 pub trait Transfer: Send + Sync {
     fn size(&self, path: &Path) -> u64;
 
-    fn run(&self, step: &Step, advance: &mut dyn FnMut(u64) -> bool) -> io::Result<()>;
+    fn run(
+        &self,
+        step: &Step,
+        advance: &mut dyn FnMut(u64) -> bool,
+    ) -> io::Result<Option<TrashEntry>>;
 }
 
 pub trait ThumbnailSource: Send + Sync {

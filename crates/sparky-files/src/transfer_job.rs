@@ -3,6 +3,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
 use crate::domain::transfer::{Ending, Outcome, Progress, Step};
+use crate::domain::undo::TrashEntry;
 use crate::ports::Transfer;
 
 const REPORT_EVERY: Duration = Duration::from_millis(100);
@@ -20,11 +21,11 @@ pub fn execute(
         ..Progress::default()
     };
     report(progress);
-    let mut completed = Vec::new();
+    let mut done = Done::default();
     let mut reported = Instant::now();
     for step in steps {
         if cancel.load(Ordering::SeqCst) {
-            return outcome(completed, skipped, Ending::Cancelled);
+            return done.outcome(skipped, Ending::Cancelled);
         }
         let result = transfer.run(&step, &mut |bytes| {
             progress.bytes_done += bytes;
@@ -34,28 +35,41 @@ pub fn execute(
             }
             !cancel.load(Ordering::SeqCst)
         });
-        if let Err(error) = result {
-            let ending = match cancel.load(Ordering::SeqCst) {
-                true => Ending::Cancelled,
-                false => Ending::Failed {
-                    name: name_of(&step.source),
-                    error: error.to_string(),
-                },
-            };
-            return outcome(completed, skipped, ending);
-        }
+        let displaced = match result {
+            Ok(displaced) => displaced,
+            Err(error) => {
+                let ending = match cancel.load(Ordering::SeqCst) {
+                    true => Ending::Cancelled,
+                    false => Ending::Failed {
+                        name: name_of(&step.source),
+                        error: error.to_string(),
+                    },
+                };
+                return done.outcome(skipped, ending);
+            }
+        };
         progress.items_done += 1;
         report(progress);
-        completed.push(step);
+        done.completed.push(step);
+        done.displaced.extend(displaced);
     }
-    outcome(completed, skipped, Ending::Finished)
+    done.outcome(skipped, Ending::Finished)
 }
 
-fn outcome(completed: Vec<Step>, skipped: usize, ending: Ending) -> Outcome {
-    Outcome {
-        completed,
-        skipped,
-        ending,
+#[derive(Default)]
+struct Done {
+    completed: Vec<Step>,
+    displaced: Vec<TrashEntry>,
+}
+
+impl Done {
+    fn outcome(self, skipped: usize, ending: Ending) -> Outcome {
+        Outcome {
+            completed: self.completed,
+            displaced: self.displaced,
+            skipped,
+            ending,
+        }
     }
 }
 

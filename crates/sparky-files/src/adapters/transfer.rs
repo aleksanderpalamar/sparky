@@ -7,6 +7,7 @@ use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::staged;
 use crate::adapters::tree::{self, copy_tree, remove_tree};
 use crate::domain::transfer::{Action, Step};
+use crate::domain::undo::TrashEntry;
 use crate::ports::Transfer;
 
 pub struct LocalTransfer {
@@ -63,16 +64,19 @@ impl Transfer for LocalTransfer {
         tree::size(path)
     }
 
-    fn run(&self, step: &Step, advance: &mut dyn FnMut(u64) -> bool) -> io::Result<()> {
-        if step.replace {
-            self.trash
-                .for_item(&step.target)?
-                .put(&step.target)
-                .map(drop)?;
-        }
+    fn run(
+        &self,
+        step: &Step,
+        advance: &mut dyn FnMut(u64) -> bool,
+    ) -> io::Result<Option<TrashEntry>> {
+        let displaced = match step.replace {
+            true => Some(self.trash.for_item(&step.target)?.put(&step.target)?),
+            false => None,
+        };
         match step.action {
-            Action::Copy => self.copy(&step.source, &step.target, advance),
-            Action::Move => self.relocate(&step.source, &step.target, advance),
+            Action::Copy => self.copy(&step.source, &step.target, advance)?,
+            Action::Move => self.relocate(&step.source, &step.target, advance)?,
         }
+        Ok(displaced)
     }
 }
