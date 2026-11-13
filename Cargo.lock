@@ -3871,7 +3871,7 @@ dependencies = [
 
 [[package]]
 name = "polkit-sparky"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "fluent-bundle",
  "futures-util",
@@ -4856,7 +4856,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-bar"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "chrono",
  "fluent-bundle",
@@ -4882,7 +4882,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-compositor"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "ab_glyph",
  "calloop 0.14.5",
@@ -4908,7 +4908,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-config"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "serde",
  "sparky-tiling",
@@ -4918,7 +4918,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-fetch"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "fluent-bundle",
  "libc",
@@ -4936,7 +4936,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-files"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "chrono",
  "fluent-bundle",
@@ -4964,11 +4964,11 @@ dependencies = [
 
 [[package]]
 name = "sparky-hardware"
-version = "0.30.1"
+version = "0.31.0"
 
 [[package]]
 name = "sparky-i18n"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "fluent-bundle",
  "tempfile",
@@ -4977,7 +4977,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-image"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "fluent-bundle",
  "iced",
@@ -4992,7 +4992,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-ipc"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -5002,7 +5002,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-keyring"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "argon2",
  "base64",
@@ -5020,7 +5020,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-keyring-prompt"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "iced",
  "iced_layershell",
@@ -5032,7 +5032,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-launcher"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "iced",
  "iced_layershell",
@@ -5045,7 +5045,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-lock"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "chrono",
  "iced",
@@ -5065,7 +5065,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-lockd"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "futures-util",
  "sparky-ipc",
@@ -5076,7 +5076,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-login"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "libc",
  "nix",
@@ -5095,7 +5095,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-login-core"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -5107,7 +5107,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-login-greeter"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "chrono",
  "fluent-bundle",
@@ -5126,7 +5126,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-login-look"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "chrono",
  "fluent-bundle",
@@ -5139,7 +5139,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-monitor"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "fluent-bundle",
  "iced",
@@ -5155,7 +5155,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-notifications"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "chrono",
  "iced",
@@ -5175,7 +5175,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-pam"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "libc",
  "libloading",
@@ -5187,7 +5187,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-settings"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "fluent-bundle",
  "iced",
@@ -5207,7 +5207,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-shot"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "chrono",
  "fluent-bundle",
@@ -5223,7 +5223,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-storage"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "gio",
  "serde",
@@ -5233,7 +5233,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-store"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "fluent-bundle",
  "iced",
@@ -5246,7 +5246,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-terminal"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "alacritty_terminal",
  "fluent-bundle",
@@ -5262,7 +5262,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-theme"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "iced_core",
  "tempfile",
@@ -5270,14 +5270,14 @@ dependencies = [
 
 [[package]]
 name = "sparky-tiling"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "sparky-ui"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "iced",
  "icu_normalizer",
@@ -5286,7 +5286,7 @@ dependencies = [
 
 [[package]]
 name = "sparky-xdg"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "tempfile",
 ]
