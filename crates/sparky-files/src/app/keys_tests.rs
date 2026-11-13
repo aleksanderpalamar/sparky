@@ -44,6 +44,10 @@ fn atalhos_de_arquivo_por_letra_e_por_ctrl() {
     assert_eq!(letra("p"), Some(Command::Paste));
     assert_eq!(nomeada(Named::F2), Some(Command::Rename));
     assert_eq!(nomeada(Named::Delete), Some(Command::Trash));
+    assert_eq!(
+        browse(&Key::Named(Named::Delete), Modifiers::SHIFT),
+        Some(Command::Delete)
+    );
     assert_eq!(letra("a"), Some(Command::Create));
 }
 
@@ -87,7 +91,15 @@ fn a_confirmacao_aceita_enter_s_e_recusa_n() {
 fn teclas_sem_funcao_sao_ignoradas() {
     assert_eq!(letra("z"), None);
     assert_eq!(nomeada(Named::Tab), None);
-    assert_eq!(browse(&Key::Character("z".into()), Modifiers::CTRL), None);
+    assert_eq!(browse(&Key::Character("y".into()), Modifiers::CTRL), None);
+}
+
+#[test]
+fn ctrl_z_desfaz() {
+    assert_eq!(
+        browse(&Key::Character("z".into()), Modifiers::CTRL),
+        Some(Command::Undo)
+    );
 }
 
 #[test]
@@ -129,4 +141,25 @@ fn atalhos_exibidos_nos_menus_de_contexto_existem() {
         browse(&Key::Named(Named::Enter), Modifiers::ALT),
         Some(Command::Properties)
     );
+}
+
+#[test]
+fn atalhos_de_abas_usam_ctrl() {
+    let ctrl = |text: &str| browse(&Key::Character(text.into()), Modifiers::CTRL);
+    assert_eq!(ctrl("t"), Some(Command::NewTab));
+    assert_eq!(ctrl("w"), Some(Command::CloseTab));
+    assert_eq!(ctrl("f"), Some(Command::Search));
+    let tab = |modifiers| browse(&Key::Named(Named::Tab), modifiers);
+    assert_eq!(tab(Modifiers::CTRL), Some(Command::NextTab));
+    assert_eq!(
+        tab(Modifiers::CTRL | Modifiers::SHIFT),
+        Some(Command::PreviousTab)
+    );
+    assert_eq!(
+        browse(&Key::Named(Named::PageUp), Modifiers::CTRL),
+        Some(Command::PreviousTab)
+    );
+    assert_eq!(letra("e"), Some(Command::Extract));
+    assert_eq!(letra("s"), Some(Command::SortNext));
+    assert_eq!(letra("S"), Some(Command::SortReverse));
 }

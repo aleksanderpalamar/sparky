@@ -1,17 +1,23 @@
+pub mod batch_preview;
 pub mod context;
+pub mod delete_dialog;
 pub mod grid;
 pub mod header;
 pub mod icon;
 pub mod labels;
 pub mod list;
 pub mod open_with;
+mod open_with_list;
 pub mod properties;
+pub mod search_status;
 pub mod sidebar;
 mod sidebar_device;
 #[cfg(test)]
 mod sidebar_tests;
 pub mod status;
 pub mod style;
+pub mod tabs;
+pub mod toast;
 pub mod trash_sidebar;
 pub mod virtual_page;
 
@@ -30,15 +36,20 @@ pub fn view(files: &Files) -> Element<'_, Message> {
         (None, ViewMode::Grid) => grid::grid(files),
         (None, ViewMode::List) => list::list(files),
     };
-    let main = column![header::header(files), content]
-        .width(Length::Fill)
-        .height(Length::Fill);
+    let main = match tabs::bar(files) {
+        Some(bar) => column![bar, header::header(files), content],
+        None => column![header::header(files), content],
+    }
+    .width(Length::Fill)
+    .height(Length::Fill);
     let body = row![sidebar::sidebar(files), main].height(Length::Fill);
     let base = container(column![body, status::status(files)])
         .width(Length::Fill)
         .height(Length::Fill)
         .style(move |_| sparky_ui::style::window(skin));
-    context::layer(files, base.into())
+    let base = toast::layer(files, base.into());
+    let base = delete_dialog::layer(files, base);
+    context::layer(files, base)
 }
 
 pub fn title(files: &Files) -> String {

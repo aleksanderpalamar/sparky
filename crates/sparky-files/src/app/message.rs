@@ -1,5 +1,9 @@
+use crate::app::jobs::JobEvent;
 use crate::domain::context::Action;
+use crate::domain::drop::DropTarget;
 use crate::domain::grid::ViewMode;
+use crate::domain::order::SortKey;
+use crate::domain::search::SearchEvent;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::domain::thumbnail::Thumbnail;
 use crate::ports::EmptyReport;
@@ -20,11 +24,25 @@ pub enum Message {
     Activated(usize),
     Scrolled(isize),
     Pointer(Point),
+    Released,
+    Hover(DropTarget),
+    Unhover(DropTarget),
+    Modifiers(Modifiers),
+    DragRefused(String),
+    ToastUndo,
+    ToastDismiss,
+    ToastOpenFolder,
+    DeleteConfirm,
+    DeleteCancel,
     ContextEntry(usize),
     ContextBackground,
     ContextAction(Action),
     ContextDismiss,
     OpenWithChoice(String),
+    OpenWithSelect(String),
+    OpenWithQuery(String),
+    OpenWithRemember(bool),
+    OpenWithConfirm,
     ArchiveCompleted(PathBuf, Result<(), String>),
     PreviewReady(PathBuf, Option<SystemTime>, Option<Thumbnail>),
     Resized(Size),
@@ -37,7 +55,13 @@ pub enum Message {
     Trash(TrashEvent),
     TrashEmptied(Result<EmptyReport, String>),
     Tick,
+    FolderChanged,
+    Job(JobEvent),
     View(ViewMode),
+    Sort(SortKey),
+    Search(u64, SearchEvent),
+    Tab(usize),
+    CloseTab(usize),
     OpenVolume(String),
     UnmountVolume(String),
     EjectVolume(String),
@@ -47,6 +71,7 @@ pub enum Message {
 #[derive(Debug, Clone, Copy)]
 pub enum TrashEvent {
     Open,
+    OpenOther(usize),
     RestoreSelected,
     RestoreAll,
     Empty,

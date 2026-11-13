@@ -22,6 +22,17 @@ fn ordena_como_o_gerenciador_de_arquivos_e_comeca_na_imagem_aberta() {
 }
 
 #[test]
+fn numeros_nos_nomes_seguem_a_ordem_natural_do_gerenciador() {
+    let mut album = Album::new(
+        caminhos(&["foto10.png", "foto2.png", "Foto1.png"]),
+        Path::new("/fotos/foto2.png"),
+    );
+    assert_eq!(album.position(), (2, 3));
+    album.step(Step::Next);
+    assert_eq!(album.current(), Path::new("/fotos/foto10.png"));
+}
+
+#[test]
 fn avancar_e_voltar_dao_a_volta_nas_pontas() {
     let mut album = Album::new(
         caminhos(&["a.png", "b.png", "c.png"]),

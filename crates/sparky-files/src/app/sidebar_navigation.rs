@@ -1,11 +1,10 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use gio::prelude::*;
 use iced::Task;
 
 use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
-use crate::domain::clip::Clip;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation, SidebarTarget};
 
 impl Files {
@@ -91,23 +90,6 @@ impl Files {
             Ok(()) => self.open_sidebar(SidebarLocation::Favorites),
             Err(error) => self.fail(error),
         }
-    }
-
-    pub fn sync_favorite_moves(
-        &self,
-        clip: &Clip,
-        names: &[String],
-        destination: &Path,
-    ) -> Result<(), String> {
-        if !matches!(clip, Clip::Cut(_)) {
-            return Ok(());
-        }
-        for (source, name) in clip.paths().iter().zip(names) {
-            self.services
-                .sidebar
-                .relocated(source, &destination.join(name))?;
-        }
-        Ok(())
     }
 
     pub(super) fn load_network(&mut self, uri: String) -> Task<Message> {

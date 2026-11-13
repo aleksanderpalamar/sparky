@@ -5,10 +5,12 @@ use std::path::{Component, Path, PathBuf};
 use std::time::SystemTime;
 
 use crate::domain::clip::Clip;
-use crate::domain::entry::Entry;
+use crate::domain::entry::{Entry, Meta};
+use crate::domain::undo::TrashEntry;
 use crate::operations::{Failure, create, rename, trash};
 use crate::ports::Disk;
 
+mod delete_tests;
 mod paste_tests;
 
 #[derive(Default)]
@@ -44,6 +46,10 @@ impl FakeDisk {
 }
 
 impl Disk for FakeDisk {
+    fn detail(&self, _path: &Path) -> Meta {
+        Meta::Pending
+    }
+
     fn list(&self, _dir: &Path) -> io::Result<Vec<Entry>> {
         Ok(Vec::new())
     }
@@ -85,15 +91,30 @@ impl Disk for FakeDisk {
         )
     }
 
-    fn copy(&self, from: &Path, to: &Path) -> io::Result<()> {
-        self.record(
-            format!("copiar {} {}", from.display(), to.display()),
-            Some(to),
-        )
+    fn trash(&self, path: &Path) -> io::Result<TrashEntry> {
+        self.record(format!("lixeira {}", path.display()), None)?;
+        Ok(TrashEntry {
+            root: PathBuf::from("/lixeira"),
+            topdir: None,
+            name: path.file_name().unwrap_or_default().to_os_string(),
+        })
     }
 
-    fn trash(&self, path: &Path) -> io::Result<()> {
-        self.record(format!("lixeira {}", path.display()), None)
+    fn delete(&self, path: &Path) -> io::Result<()> {
+        self.record(format!("excluir {}", path.display()), None)
+    }
+
+    fn has_trash(&self, _dir: &Path) -> bool {
+        true
+    }
+
+    fn device(&self, _path: &Path) -> Option<u64> {
+        None
+    }
+
+    fn untrash(&self, entry: &TrashEntry) -> io::Result<PathBuf> {
+        self.record(format!("restaurar {}", entry.name.to_string_lossy()), None)?;
+        Ok(PathBuf::from("/restaurado"))
     }
 
     fn properties(&self, _path: &Path) -> io::Result<crate::domain::properties::Properties> {
@@ -155,7 +176,7 @@ fn a_falha_do_disco_diz_qual_item_falhou() {
         broken: true,
         ..FakeDisk::default()
     };
-    let Err(failure) = trash(Path::new("/h"), &["a.txt".to_owned()], &disk) else {
+    let (_, Err(failure)) = trash(Path::new("/h"), &["a.txt".to_owned()], &disk) else {
         panic!("a lixeira deveria falhar");
     };
     assert_eq!(failure.to_string(), "a.txt: disco cheio");
@@ -165,6 +186,8 @@ fn a_falha_do_disco_diz_qual_item_falhou() {
 fn a_lixeira_recebe_cada_item_escolhido() {
     let disk = FakeDisk::default();
     let names = ["a.txt".to_owned(), "Fotos".to_owned()];
-    assert_eq!(trash(Path::new("/h"), &names, &disk).ok(), Some(2));
+    let (entries, result) = trash(Path::new("/h"), &names, &disk);
+    assert!(result.is_ok());
+    assert_eq!(entries.len(), 2);
     assert_eq!(disk.calls(), ["lixeira /h/a.txt", "lixeira /h/Fotos"]);
 }

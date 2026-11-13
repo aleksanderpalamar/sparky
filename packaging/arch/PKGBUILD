@@ -25,6 +25,7 @@ depends=(
   'seatd'
   'systemd-libs'
   'tar'
+  'libarchive'
   'util-linux'
   'wayland'
   'wl-clipboard'
@@ -97,6 +98,7 @@ package_sparky() {
   install -Dm644 packaging/pam/arch/sparky-login "$pkgdir/etc/pam.d/sparky-login"
   install -Dm644 packaging/pam/arch/sparky-lock "$pkgdir/etc/pam.d/sparky-lock"
   install -Dm644 data/portals/sparky-portals.conf -t "$pkgdir/usr/share/xdg-desktop-portal"
+  install -Dm644 data/autostart/sparky-files-manager.desktop -t "$pkgdir/etc/xdg/autostart"
   install -Dm644 data/portals/sparky-wlr.conf "$pkgdir/etc/xdg/xdg-desktop-portal-wlr/sparky"
   install -Dm644 data/portals/sparky-keyring.portal -t "$pkgdir/usr/share/xdg-desktop-portal/portals"
   install -Dm644 data/applications/* -t "$pkgdir/usr/share/applications"

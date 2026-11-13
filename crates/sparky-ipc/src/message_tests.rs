@@ -165,3 +165,16 @@ fn informacoes_sem_os_campos_novos_ainda_sao_lidas() {
         }
     );
 }
+
+#[test]
+fn arrastar_arquivos_leva_a_lista_de_uris() {
+    let request = Request::Drag {
+        uris: vec!["file:///tmp/a%20b.txt".to_owned()],
+    };
+    let json = serde_json::to_string(&request).unwrap_or_default();
+    assert_eq!(
+        json,
+        r#"{"request":"drag","uris":["file:///tmp/a%20b.txt"]}"#
+    );
+    assert_eq!(serde_json::from_str::<Request>(&json).ok(), Some(request));
+}

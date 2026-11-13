@@ -8,11 +8,14 @@ use crate::domain::sidebar_location::SidebarLocation;
 use crate::i18n;
 
 pub fn label(files: &Files) -> String {
-    match files.sidebar_page {
-        Some(SidebarLocation::Recent) => i18n::text("place-recent"),
-        Some(SidebarLocation::Favorites) => i18n::text("place-favorites"),
-        Some(SidebarLocation::Network) => i18n::text("place-network"),
-        None => String::new(),
+    files.sidebar_page.map(page_label).unwrap_or_default()
+}
+
+pub fn page_label(page: SidebarLocation) -> String {
+    match page {
+        SidebarLocation::Recent => i18n::text("place-recent"),
+        SidebarLocation::Favorites => i18n::text("place-favorites"),
+        SidebarLocation::Network => i18n::text("place-network"),
     }
 }
 

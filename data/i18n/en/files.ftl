@@ -6,8 +6,10 @@ menu-move-to = Move to...
 menu-copy-to = Copy to...
 menu-rename = Rename...
 menu-compress = Compress...
+menu-extract = Extract Here
 menu-email = Email...
 menu-trash = Move to Trash
+menu-delete = Delete Permanently
 menu-properties = Properties
 menu-new-folder = New folder...
 menu-new-file = New document...
@@ -23,6 +25,7 @@ copy-number = copy { $number }
 trash-invalid-path = invalid path in trash record
 trash-invalid-name = invalid name in trash
 trash-invalid-directory = invalid trash directory
+trash-unavailable = this location has no trash
 application-unavailable = application unavailable
 item-not-found = item not found
 trash-ambiguous-name = ambiguous trash name
@@ -64,7 +67,7 @@ path = Path
 size = Size
 modified = Modified
 permissions = Permissions
-open-file-with = Open { $file } with...
+open-file-with = Choose an app to open { $file }
 cancel = Cancel
 filter = Filter
 filter-hint = Enter applies · Esc clears
@@ -79,8 +82,6 @@ compress = Compress (.tar.gz)
 confirm-empty-trash = Permanently delete { $count } items from Trash? Enter confirms · Esc cancels
 move-to = Move to
 copy-to = Copy to
-confirm-trash-one = Move { $name } to Trash? Enter confirms · Esc cancels
-confirm-trash-many = Move { $count } items to Trash? Enter confirms · Esc cancels
 short-hints = Ctrl+1 grid · Ctrl+2 list
 browse-hints = Enter opens · h goes back · / filters · Ctrl+1 grid · Ctrl+2 list
 one-item = 1 item
@@ -110,7 +111,6 @@ place-music = Music
 place-videos = Videos
 need-destination = Choose a destination folder
 destination-not-folder = The destination is not a folder
-restored-to = Restored to { $path }
 nothing-to-paste = Nothing to paste
 new-document = New document
 renamed-to = Renamed to { $name }
@@ -121,7 +121,6 @@ already-exists = An item named { $name } already exists
 compressing = Compressing { $count }...
 archive-created = Archive created: { $path }
 image-copied = Image copied to the clipboard
-image-not-copied = File copied in Sparky Files, but the image did not reach the clipboard: { $error }
 empty-trash-state = Trash is empty
 emptying-trash = Emptying trash...
 no-app = No application available for this file type
@@ -132,3 +131,108 @@ item-exists = an item named { $name } already exists
 into-itself = cannot paste { $name } into itself
 no-visible-items = No visible items
 empty-folder = Empty folder
+conflict-question = { $count ->
+    [one] { $name } already exists at the destination
+   *[other] { $count } items already exist at the destination
+  } · Enter or m keeps both · s replaces · p skips · Esc cancels
+job-copying = Copying { $done } of { $total } · { $percent }% · Esc cancels
+job-moving = Moving { $done } of { $total } · { $percent }% · Esc cancels
+job-busy = Wait for the current operation to finish
+job-cancelling = Cancelling…
+job-cancelled = { $count ->
+    [0] Cancelled before the first item
+    [one] Cancelled after 1 item
+   *[other] Cancelled after { $count } items
+  }
+job-copied = { $count ->
+    [0] No items copied
+    [one] 1 item copied
+   *[other] { $count } items copied
+  }
+job-moved = { $count ->
+    [0] No items moved
+    [one] 1 item moved
+   *[other] { $count } items moved
+  }
+job-skipped = { $count ->
+    [one] 1 skipped
+   *[other] { $count } skipped
+  }
+undone = Action undone
+nothing-to-undo = Nothing to undo
+undo-failed = Could not undo: { $error }
+trash-of = Trash · { $disk }
+clipboard-not-published = Copied in Sparky Files, but the system clipboard was not updated: { $error }
+deleted-items = { $count ->
+    [0] No items deleted
+    [one] 1 item deleted
+   *[other] { $count } items deleted
+}
+sort-name = name
+sort-size = size
+sort-modified = modification date
+sort-type = type
+sorted-by = Sorted by { $key } { $arrow }
+extract-failed = could not extract the archive
+job-extracting = Extracting { $done } of { $total } · { $percent }% · Esc cancels
+extracted-into = Extracted into { $name }
+extracted-many = { $count ->
+    [0] No archives extracted
+    [one] 1 archive extracted
+   *[other] { $count } archives extracted
+  }
+batch-rename = Rename { $count } items
+batch-hint = {"{"}n{"}"} numbers · old -> new replaces a part
+batch-invalid = Invalid name: { $name }
+batch-repeated = More than one item would be named { $name }
+batch-taken = An item named { $name } already exists
+batch-unchanged = No name would change
+batch-renamed = { $count ->
+    [0] No items renamed
+    [one] 1 item renamed
+   *[other] { $count } items renamed
+  }
+search = Search subfolders
+search-keys = Enter searches · Esc cancels
+search-title = Search for “{ $query }” in { $place }
+search-running = { $count ->
+    [0] Searching… · Esc goes back
+    [one] Searching… 1 found · Esc goes back
+   *[other] Searching… { $count } found · Esc goes back
+  }
+search-complete = { $count ->
+    [0] No results · Esc goes back
+    [one] 1 result · Esc goes back
+   *[other] { $count } results · Esc goes back
+  }
+search-limited = { $count ->
+    [0] No results · Esc goes back
+    [one] Showing the first result · Esc goes back
+   *[other] Showing the first { $count } results · Esc goes back
+  }
+tab-search = Search: { $query }
+drag-hint = { $count ->
+    [0] Dragging
+    [one] Dragging 1 item · drop on a folder, the sidebar, a tab, or the trash · Ctrl copies · Shift moves · Esc cancels
+   *[other] Dragging { $count } items · drop on a folder, the sidebar, a tab, or the trash · Ctrl copies · Shift moves · Esc cancels
+  }
+open = Open
+open-file = Open File
+open-with-search = Search apps
+open-with-recommended = Recommended Apps
+open-with-others = Other Apps
+open-with-always = Always use for this file type
+open-with-none = No app found
+drag-refused = Could not drag: { $reason }
+drag-outside-sparky = dragging only works in the Sparky session
+delete-question-one = Permanently delete “{ $name }”?
+delete-question-many = Permanently delete { $count } selected items?
+delete-warning = Permanently deleted items can not be restored
+delete = Delete
+trashed-one = “{ $name }” moved to trash
+trashed-many = { $count } items moved to trash
+undo = Undo
+restored-one = Moved “{ $name }” to “{ $folder }”
+restored-many = Moved { $count } items to “{ $folder }”
+restored-many-places = Restored { $count } items
+open-folder = Open Folder

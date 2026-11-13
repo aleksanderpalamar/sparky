@@ -69,7 +69,7 @@ relógio e bandeja, e aplicativos nativos (arquivos, visualizador de imagens, \
 capturador de tela, terminal, monitor do sistema e configurações). Tudo tem atalho de teclado."""
 section = "x11"
 priority = "optional"
-depends = "curl, libpam0g, libpulse0, libseat1, libinput10, libxkbcommon0, libgbm1, libdrm2, libudev1, libegl1, libgles2, libwayland-client0, libwayland-server0, libwayland-egl1, xwayland, xkb-data, wl-clipboard, libnotify-bin, xdg-utils, tar, util-linux, polkitd, pkexec, libpolkit-agent-1-0, libglib2.0-0t64 | libglib2.0-0, zsh, zsh-autosuggestions, zsh-syntax-highlighting, xdg-desktop-portal, xdg-desktop-portal-gtk, xdg-desktop-portal-wlr, pipewire"
+depends = "curl, libpam0g, libpulse0, libseat1, libinput10, libxkbcommon0, libgbm1, libdrm2, libudev1, libegl1, libgles2, libwayland-client0, libwayland-server0, libwayland-egl1, xwayland, xkb-data, wl-clipboard, libnotify-bin, xdg-utils, tar, libarchive-tools, util-linux, polkitd, pkexec, libpolkit-agent-1-0, libglib2.0-0t64 | libglib2.0-0, zsh, zsh-autosuggestions, zsh-syntax-highlighting, xdg-desktop-portal, xdg-desktop-portal-gtk, xdg-desktop-portal-wlr, pipewire"
 recommends = "flatpak, pipewire-pulse, network-manager, bluez, foot | kitty, libvulkan1, udisks2, gvfs-backends, gvfs-fuse, fonts-jetbrains-mono, fonts-liberation, fonts-noto-core, fonts-noto-color-emoji, fonts-noto-cjk, fonts-font-awesome, yaru-theme-icon, fzf, autojump"
 assets = [
     ["target/release/sparky", "usr/bin/", "755"],
@@ -111,6 +111,7 @@ assets = [
     ["../../data/applications/sparky-shot.desktop", "usr/share/applications/", "644"],
     ["../../data/applications/sparky-terminal.desktop", "usr/share/applications/", "644"],
     ["../../data/applications/sparky-mimeapps.list", "usr/share/applications/", "644"],
+    ["../../data/autostart/sparky-files-manager.desktop", "etc/xdg/autostart/", "644"],
     ["../../data/themes/*/*", "usr/share/sparky/themes/", "644"],
     ["../../data/i18n/pt-BR/*.ftl", "usr/share/sparky/i18n/pt-BR/", "644"],
     ["../../data/i18n/en/*.ftl", "usr/share/sparky/i18n/en/", "644"],
@@ -185,6 +186,7 @@ assets = [
     { source = "../../data/applications/sparky-shot.desktop", dest = "/usr/share/applications/sparky-shot.desktop", mode = "644" },
     { source = "../../data/applications/sparky-terminal.desktop", dest = "/usr/share/applications/sparky-terminal.desktop", mode = "644" },
     { source = "../../data/applications/sparky-mimeapps.list", dest = "/usr/share/applications/sparky-mimeapps.list", mode = "644" },
+    { source = "../../data/autostart/sparky-files-manager.desktop", dest = "/etc/xdg/autostart/sparky-files-manager.desktop", mode = "644" },
     { source = "../../data/themes/*/*", dest = "/usr/share/sparky/themes/", mode = "644" },
     { source = "../../data/i18n/pt-BR/*.ftl", dest = "/usr/share/sparky/i18n/pt-BR/", mode = "644" },
     { source = "../../data/i18n/en/*.ftl", dest = "/usr/share/sparky/i18n/en/", mode = "644" },
@@ -233,6 +235,7 @@ wl-clipboard = "*"
 libnotify = "*"
 xdg-utils = "*"
 tar = "*"
+bsdtar = "*"
 xdg-desktop-portal = "*"
 xdg-desktop-portal-gtk = "*"
 xdg-desktop-portal-wlr = "*"

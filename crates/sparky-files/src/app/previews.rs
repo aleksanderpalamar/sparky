@@ -67,23 +67,19 @@ impl Files {
         if self.sidebar_page.is_some() {
             return Task::none();
         }
-        let range = match self.view_mode {
-            ViewMode::Grid => self.layout.range(self.viewport.top(), self.listing.len()),
-            ViewMode::List => self.viewport.range(self.listing.len()),
-        };
+        let range = self.visible_range();
         self.previews.visible = range.len();
-        let candidates: Vec<PathBuf> = range
+        let candidates: Vec<(PathBuf, Option<SystemTime>)> = range
             .filter_map(|index| self.listing.get(index))
             .filter(|entry| entry.kind == Kind::File)
-            .map(|entry| self.location.join(&entry.name))
-            .filter(|path| supported(path))
+            .map(|entry| (self.location.join(&entry.name), entry.modified()))
+            .filter(|(path, _)| supported(path))
             .collect();
         let mut tasks = Vec::new();
-        for path in candidates {
+        for (path, stamp) in candidates {
             if self.previews.pending.len() >= JOB_LIMIT {
                 break;
             }
-            let stamp = self.services.disk.stamp(&path);
             if self.previews.seen(&path, stamp) {
                 continue;
             }
@@ -103,17 +99,35 @@ impl Files {
         Task::batch(tasks)
     }
 
+    pub fn visible_range(&self) -> std::ops::Range<usize> {
+        match self.view_mode {
+            ViewMode::Grid => self.layout.range(self.viewport.top(), self.listing.len()),
+            ViewMode::List => self.viewport.range(self.listing.len()),
+        }
+    }
+
     pub fn preview_ready(
         &mut self,
         path: PathBuf,
         stamp: Option<SystemTime>,
         image: Option<Thumbnail>,
     ) {
-        if self.services.disk.stamp(&path) != stamp {
+        if self
+            .listed_stamp(&path)
+            .is_some_and(|listed| listed != stamp)
+        {
             self.previews.pending.remove(&path);
             return;
         }
         self.previews.finish(path, stamp, image);
+    }
+
+    fn listed_stamp(&self, path: &Path) -> Option<Option<SystemTime>> {
+        if path.parent() != Some(self.location.as_path()) {
+            return None;
+        }
+        let name = path.file_name()?.to_str()?;
+        self.listing.find(name).map(|entry| entry.modified())
     }
 }
 

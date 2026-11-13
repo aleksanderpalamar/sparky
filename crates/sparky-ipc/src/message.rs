@@ -15,6 +15,7 @@ pub enum Request {
     Session { action: SessionAction },
     Idle { hold: IdleHold },
     Info,
+    Drag { uris: Vec<String> },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]

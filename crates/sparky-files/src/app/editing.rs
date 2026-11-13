@@ -2,77 +2,25 @@ use std::{mem, path::PathBuf};
 
 use iced::Task;
 
-use crate::app::keys::Answer;
 use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
 use crate::domain::clip::Clip;
 use crate::domain::entry::Kind;
 use crate::domain::naming::stem_length;
+use crate::domain::undo::Record;
 use crate::domain::wording::{agreed, items};
 use crate::i18n;
 use crate::operations::{self, Failure};
 
 impl Files {
     pub fn copy(&mut self) {
-        let paths = self.chosen_paths();
         self.hold(Clip::Copy);
-        self.publish_image(&paths);
+        self.publish_clip();
     }
 
     pub fn cut(&mut self) {
         self.hold(Clip::Cut);
-    }
-
-    pub fn paste(&mut self) {
-        let Some(clip) = self.clip.clone() else {
-            self.inform(i18n::text("nothing-to-paste"));
-            return;
-        };
-        let result = operations::paste(&clip, &self.location, self.services.disk.as_ref());
-        self.refresh();
-        match result {
-            Ok(names) => {
-                if let Err(error) = self.sync_favorite_moves(&clip, &names, &self.location) {
-                    self.fail(error);
-                    return;
-                }
-                if let Some(last) = names.last() {
-                    self.listing.select_name(last);
-                }
-                if matches!(clip, Clip::Cut(_)) {
-                    self.clip = None;
-                }
-                self.inform(format!(
-                    "{} {}",
-                    items(names.len()),
-                    agreed("colado", names.len())
-                ));
-            }
-            Err(failure) => self.fail(failure),
-        }
-    }
-
-    pub fn ask_trash(&mut self) {
-        let names = self.listing.chosen();
-        if !names.is_empty() {
-            self.mode = Mode::ConfirmTrash(names);
-        }
-    }
-
-    pub fn answer_trash(&mut self, answer: Answer) {
-        let Mode::ConfirmTrash(names) = mem::replace(&mut self.mode, Mode::Browse) else {
-            return;
-        };
-        if answer == Answer::No {
-            return;
-        }
-        let result = operations::trash(&self.location, &names, self.services.disk.as_ref());
-        self.listing.clear_marks();
-        self.refresh();
-        match result {
-            Ok(count) => self.inform(format!("{} na lixeira", items(count))),
-            Err(failure) => self.fail(failure),
-        }
+        self.publish_clip();
     }
 
     pub fn begin_rename(&mut self) -> Option<usize> {
@@ -113,6 +61,7 @@ impl Files {
         let input = mem::take(&mut self.input);
         match mem::replace(&mut self.mode, Mode::Browse) {
             Mode::Rename(original) => self.finish_rename(&original, input.trim()),
+            Mode::BatchRename(names) => self.finish_batch(&names, &input),
             Mode::Create => {
                 let result =
                     operations::create(&self.location, &input, self.services.disk.as_ref());
@@ -123,16 +72,21 @@ impl Files {
                 let result = operations::create_as(&self.location, &input, kind, disk);
                 self.created(result);
             }
-            Mode::Destination(clip) => self.finish_destination(&clip, &input),
+            Mode::Destination(clip) => return self.finish_destination(clip, &input),
+            Mode::Search => return self.start_search(&input),
             Mode::Compress(paths) => return self.start_archive(paths, &input),
-            Mode::ConfirmTrash(names) => self.mode = Mode::ConfirmTrash(names),
+            Mode::ConfirmDelete(names) => self.mode = Mode::ConfirmDelete(names),
             Mode::ConfirmEmptyTrash(count) => self.mode = Mode::ConfirmEmptyTrash(count),
+            Mode::Conflict(pending) => self.mode = Mode::Conflict(pending),
             Mode::Browse | Mode::Filter => {}
         }
         Task::none()
     }
 
     pub fn escape(&mut self) {
+        if self.cancel_drag() {
+            return;
+        }
         if self.open_with.take().is_some() {
             return;
         }
@@ -142,17 +96,26 @@ impl Files {
         if self.context.take().is_some() {
             return;
         }
+        if self.mode == Mode::Browse && self.cancel_job() {
+            return;
+        }
         match mem::replace(&mut self.mode, Mode::Browse) {
             Mode::Browse if !self.listing.filter().is_empty() => self.listing.set_filter(""),
+            Mode::Browse if self.listing.marked_count() == 0 && self.search.is_some() => {
+                self.end_search()
+            }
             Mode::Browse => self.listing.clear_marks(),
             Mode::Filter => self.listing.set_filter(""),
+            Mode::Search => {}
             Mode::Rename(_)
+            | Mode::BatchRename(_)
             | Mode::Create
             | Mode::New(_)
             | Mode::Destination(_)
             | Mode::Compress(_)
-            | Mode::ConfirmTrash(_)
-            | Mode::ConfirmEmptyTrash(_) => {}
+            | Mode::ConfirmDelete(_)
+            | Mode::ConfirmEmptyTrash(_)
+            | Mode::Conflict(_) => {}
         }
         self.input.clear();
     }
@@ -176,9 +139,16 @@ impl Files {
             Ok(()) => {
                 let from = self.location.join(original);
                 let to = self.location.join(new);
-                if let Err(error) = self.services.sidebar.relocated(&from, &to) {
+                if let Err(error) = self
+                    .services
+                    .sidebar
+                    .relocated(&[(from.clone(), to.clone())])
+                {
                     self.fail(error);
                     return;
+                }
+                if from != to {
+                    self.journal.push(Record::Renamed { from, to });
                 }
                 self.listing.select_name(new);
                 self.inform(i18n::with("renamed-to", "name", new.to_owned()));
@@ -191,6 +161,8 @@ impl Files {
         self.refresh();
         match result {
             Ok(name) => {
+                self.journal
+                    .push(Record::Created(self.location.join(&name)));
                 self.listing.select_name(&name);
                 self.inform(format!("Criado {name}"));
             }

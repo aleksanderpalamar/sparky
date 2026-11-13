@@ -6,8 +6,10 @@ menu-move-to = Mover para...
 menu-copy-to = Copiar para...
 menu-rename = Renomear...
 menu-compress = Comprimir...
+menu-extract = Extrair aqui
 menu-email = E-mail...
 menu-trash = Mover para a lixeira
+menu-delete = Excluir permanentemente
 menu-properties = Propriedades
 menu-new-folder = Nova pasta...
 menu-new-file = Novo documento...
@@ -23,6 +25,7 @@ copy-number = cópia { $number }
 trash-invalid-path = caminho inválido no registro da lixeira
 trash-invalid-name = nome inválido na lixeira
 trash-invalid-directory = pasta da lixeira inválida
+trash-unavailable = este local não tem lixeira
 application-unavailable = aplicativo indisponível
 item-not-found = item não encontrado
 trash-ambiguous-name = nome ambíguo na lixeira
@@ -64,7 +67,7 @@ path = Caminho
 size = Tamanho
 modified = Modificado
 permissions = Permissões
-open-file-with = Abrir { $file } com...
+open-file-with = Escolha um aplicativo para abrir { $file }
 cancel = Cancelar
 filter = Filtrar
 filter-hint = Enter fixa · Esc limpa
@@ -79,8 +82,6 @@ compress = Comprimir (.tar.gz)
 confirm-empty-trash = Excluir permanentemente { $count } itens da lixeira? Enter confirma · Esc cancela
 move-to = Mover para
 copy-to = Copiar para
-confirm-trash-one = Mover { $name } para a lixeira? Enter confirma · Esc cancela
-confirm-trash-many = Mover { $count } itens para a lixeira? Enter confirma · Esc cancela
 short-hints = Ctrl+1 grade · Ctrl+2 lista
 browse-hints = Enter abrir · h voltar · / filtrar · Ctrl+1 grade · Ctrl+2 lista
 one-item = 1 item
@@ -110,7 +111,6 @@ place-music = Músicas
 place-videos = Vídeos
 need-destination = Informe uma pasta de destino
 destination-not-folder = O destino não é uma pasta
-restored-to = Restaurado para { $path }
 nothing-to-paste = Nada para colar
 new-document = Novo documento
 renamed-to = Renomeado para { $name }
@@ -121,7 +121,6 @@ already-exists = Já existe um item chamado { $name }
 compressing = Compactando { $count }...
 archive-created = Arquivo criado: { $path }
 image-copied = Imagem copiada para a área de transferência
-image-not-copied = Arquivo copiado no Sparky Files, mas a imagem não foi para a área de transferência: { $error }
 empty-trash-state = Lixeira vazia
 emptying-trash = Esvaziando lixeira...
 no-app = Nenhum aplicativo disponível para este tipo de arquivo
@@ -132,3 +131,108 @@ item-exists = já existe um item chamado { $name }
 into-itself = não dá para colar { $name } dentro dela mesma
 no-visible-items = Nenhum item visível
 empty-folder = Pasta vazia
+conflict-question = { $count ->
+    [one] { $name } já existe no destino
+   *[other] { $count } itens já existem no destino
+  } · Enter ou m mantém os dois · s substitui · p pula · Esc cancela
+job-copying = Copiando { $done } de { $total } · { $percent }% · Esc cancela
+job-moving = Movendo { $done } de { $total } · { $percent }% · Esc cancela
+job-busy = Aguarde a operação em andamento terminar
+job-cancelling = Cancelando…
+job-cancelled = { $count ->
+    [0] Cancelado antes do primeiro item
+    [one] Cancelado depois de 1 item
+   *[other] Cancelado depois de { $count } itens
+  }
+job-copied = { $count ->
+    [0] Nenhum item copiado
+    [one] 1 item copiado
+   *[other] { $count } itens copiados
+  }
+job-moved = { $count ->
+    [0] Nenhum item movido
+    [one] 1 item movido
+   *[other] { $count } itens movidos
+  }
+job-skipped = { $count ->
+    [one] 1 pulado
+   *[other] { $count } pulados
+  }
+undone = Ação desfeita
+nothing-to-undo = Nada para desfazer
+undo-failed = Não foi possível desfazer: { $error }
+trash-of = Lixeira · { $disk }
+clipboard-not-published = Copiado no Sparky Files, mas a área de transferência do sistema não foi atualizada: { $error }
+deleted-items = { $count ->
+    [0] Nenhum item excluído
+    [one] 1 item excluído
+   *[other] { $count } itens excluídos
+}
+sort-name = nome
+sort-size = tamanho
+sort-modified = data de modificação
+sort-type = tipo
+sorted-by = Ordenado por { $key } { $arrow }
+extract-failed = não foi possível extrair o arquivo
+job-extracting = Extraindo { $done } de { $total } · { $percent }% · Esc cancela
+extracted-into = Extraído em { $name }
+extracted-many = { $count ->
+    [0] Nenhum arquivo extraído
+    [one] 1 arquivo extraído
+   *[other] { $count } arquivos extraídos
+  }
+batch-rename = Renomear { $count } itens
+batch-hint = {"{"}n{"}"} numera · antigo -> novo troca um trecho
+batch-invalid = Nome inválido: { $name }
+batch-repeated = Mais de um item ficaria com o nome { $name }
+batch-taken = Já existe um item chamado { $name }
+batch-unchanged = Nenhum nome mudaria
+batch-renamed = { $count ->
+    [0] Nenhum item renomeado
+    [one] 1 item renomeado
+   *[other] { $count } itens renomeados
+  }
+search = Buscar nas subpastas
+search-keys = Enter busca · Esc cancela
+search-title = Busca por “{ $query }” em { $place }
+search-running = { $count ->
+    [0] Buscando… · Esc volta
+    [one] Buscando… 1 encontrado · Esc volta
+   *[other] Buscando… { $count } encontrados · Esc volta
+  }
+search-complete = { $count ->
+    [0] Nenhum resultado · Esc volta
+    [one] 1 resultado · Esc volta
+   *[other] { $count } resultados · Esc volta
+  }
+search-limited = { $count ->
+    [0] Nenhum resultado · Esc volta
+    [one] Mostrando o primeiro resultado · Esc volta
+   *[other] Mostrando os primeiros { $count } resultados · Esc volta
+  }
+tab-search = Busca: { $query }
+drag-hint = { $count ->
+    [0] Arrastando
+    [one] Arrastando 1 item · solte numa pasta, na lateral, numa aba ou na lixeira · Ctrl copia · Shift move · Esc cancela
+   *[other] Arrastando { $count } itens · solte numa pasta, na lateral, numa aba ou na lixeira · Ctrl copia · Shift move · Esc cancela
+  }
+open = Abrir
+open-file = Abrir arquivo
+open-with-search = Buscar aplicativos
+open-with-recommended = Aplicativos recomendados
+open-with-others = Outros aplicativos
+open-with-always = Usar sempre para este tipo de arquivo
+open-with-none = Nenhum aplicativo encontrado
+drag-refused = Não foi possível arrastar: { $reason }
+drag-outside-sparky = arrastar só funciona na sessão Sparky
+delete-question-one = Excluir permanentemente “{ $name }”?
+delete-question-many = Excluir permanentemente { $count } itens selecionados?
+delete-warning = Itens excluídos permanentemente não podem ser restaurados
+delete = Excluir
+trashed-one = “{ $name }” foi para a lixeira
+trashed-many = { $count } itens foram para a lixeira
+undo = Desfazer
+restored-one = “{ $name }” foi movido para “{ $folder }”
+restored-many = { $count } itens movidos para “{ $folder }”
+restored-many-places = { $count } itens restaurados
+open-folder = Abrir pasta

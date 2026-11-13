@@ -4,7 +4,8 @@ use iced::Task;
 use sparky_ui::prompt;
 
 use crate::app::message::Message;
-use crate::app::state::{ContextMenu, Files, Mode, OpenWith};
+use crate::app::state::{ContextMenu, Files, Mode};
+use crate::domain::archive::extractable;
 use crate::domain::clip::Clip;
 use crate::domain::context::{self, Action, Row, Target};
 use crate::domain::entry::Kind;
@@ -26,6 +27,8 @@ pub fn entry(files: &mut Files, index: usize) {
             Target::Trashed
         } else if selected.is_directory() {
             Target::Folder
+        } else if extractable(&selected.name).is_some() {
+            Target::Archive
         } else {
             Target::File
         },
@@ -57,7 +60,7 @@ pub fn choose(files: &mut Files, action: Action) -> Task<Message> {
     let Some(menu) = files.context.take() else {
         return Task::none();
     };
-    if !offered(files, menu.target, action) {
+    if !offered(files, menu.target, action) || files.blocks_action_in_search(action) {
         return Task::none();
     }
     let path = menu
@@ -70,20 +73,6 @@ pub fn properties(files: &mut Files, path: &Path) {
     match files.services.disk.properties(path) {
         Ok(details) => files.details = Some(details),
         Err(error) => files.fail(error),
-    }
-}
-
-pub fn open_with(files: &mut Files, id: &str) {
-    let Some(choice) = files.open_with.as_ref() else {
-        return;
-    };
-    if !choice.apps.iter().any(|app| app.id == id) {
-        return;
-    }
-    let path = choice.path.clone();
-    files.open_with = None;
-    if let Err(error) = files.services.opener.open_with(&path, id) {
-        files.fail(error);
     }
 }
 
@@ -100,7 +89,7 @@ fn offered(files: &Files, target: Target, action: Action) -> bool {
 
 fn run(files: &mut Files, action: Action, path: PathBuf) -> Task<Message> {
     match action {
-        Action::Rename => return files.begin_rename().map_or_else(Task::none, prompt::select),
+        Action::Rename => return files.start_rename(),
         Action::NewFolder => return prompt::select(files.begin_new(Kind::Directory)),
         Action::NewFile => return prompt::select(files.begin_new(Kind::File)),
         Action::MoveTo => return destination(files, Clip::Cut),
@@ -111,14 +100,16 @@ fn run(files: &mut Files, action: Action, path: PathBuf) -> Task<Message> {
                 .begin_archive(paths)
                 .map_or_else(Task::none, prompt::select);
         }
+        Action::Extract => return files.extract(),
         Action::Open => files.open_selected(),
-        Action::OpenWith => applications(files, path),
+        Action::OpenWith => return files.begin_open_with(path),
         Action::Cut => files.cut(),
         Action::Copy => files.copy(),
         Action::Email => email(files),
         Action::Trash => files.ask_trash(),
+        Action::Delete => files.ask_delete(),
         Action::Properties => properties(files, &path),
-        Action::Paste => files.paste(),
+        Action::Paste => return files.paste(),
         Action::SelectAll => files.listing.select_all(),
         Action::Restore => files.restore_selected(),
         Action::RestoreAll => files.restore_all(),
@@ -129,15 +120,6 @@ fn run(files: &mut Files, action: Action, path: PathBuf) -> Task<Message> {
 fn destination(files: &mut Files, clip: fn(Vec<PathBuf>) -> Clip) -> Task<Message> {
     files.begin_destination(clip(files.chosen_paths()));
     prompt::focus()
-}
-
-fn applications(files: &mut Files, path: PathBuf) {
-    let apps = files.services.opener.applications(&path);
-    if apps.is_empty() {
-        files.fail(i18n::text("no-app"));
-        return;
-    }
-    files.open_with = Some(OpenWith { path, apps });
 }
 
 fn email(files: &mut Files) {

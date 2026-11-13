@@ -1,3 +1,5 @@
+use chrono::{DateTime, Local};
+
 use crate::domain::entry::{Entry, Kind};
 use crate::domain::listing::Listing;
 use crate::domain::size::human;
@@ -34,51 +36,80 @@ pub fn name(entry: &Entry, tone: Tone) -> String {
 pub fn size(entry: &Entry) -> String {
     match entry.kind {
         Kind::Directory => String::new(),
-        Kind::File => human(entry.size),
+        Kind::File => entry.size().map(human).unwrap_or_default(),
     }
 }
 
 pub fn date(entry: &Entry) -> String {
     entry
-        .modified
-        .map(|moment| moment.format("%d/%m/%Y %H:%M").to_string())
+        .modified()
+        .map(|moment| {
+            DateTime::<Local>::from(moment)
+                .format("%d/%m/%Y %H:%M")
+                .to_string()
+        })
         .unwrap_or_default()
 }
 
 #[cfg(test)]
 mod tests {
     use super::{Tone, date, name, size, tone};
-    use crate::domain::entry::{Entry, Kind, entry};
+    use crate::domain::entry::{Entry, Kind, Meta, entry};
     use crate::domain::listing::{Hidden, Listing};
-    use chrono::NaiveDate;
+    use chrono::{Local, NaiveDate, TimeZone};
+    use std::time::SystemTime;
 
     #[test]
     fn pasta_ganha_barra_e_item_marcado_ganha_bolinha() {
-        assert_eq!(name(&entry("Fotos", Kind::Directory), Tone::Directory), "Fotos/");
+        assert_eq!(
+            name(&entry("Fotos", Kind::Directory), Tone::Directory),
+            "Fotos/"
+        );
         assert_eq!(name(&entry("a.txt", Kind::File), Tone::Marked), "● a.txt");
     }
 
     #[test]
     fn o_tom_segue_marca_oculto_e_tipo() {
-        let mut listing = Listing::new(vec![entry("a.txt", Kind::File), entry(".b", Kind::File)], Hidden::Shown);
+        let mut listing = Listing::new(
+            vec![entry("a.txt", Kind::File), entry(".b", Kind::File)],
+            Hidden::Shown,
+        );
         listing.select_name("a.txt");
         listing.toggle_mark();
         assert_eq!(tone(&listing, &entry("a.txt", Kind::File)), Tone::Marked);
         assert_eq!(tone(&listing, &entry(".b", Kind::File)), Tone::Hidden);
-        assert_eq!(tone(&listing, &entry("Docs", Kind::Directory)), Tone::Directory);
+        assert_eq!(
+            tone(&listing, &entry("Docs", Kind::Directory)),
+            Tone::Directory
+        );
     }
 
     #[test]
     fn pasta_nao_mostra_tamanho_e_arquivo_mostra() {
-        let arquivo = Entry { size: 1536, ..entry("a.txt", Kind::File) };
+        let arquivo = Entry {
+            meta: Meta::Known {
+                size: 1536,
+                modified: None,
+            },
+            ..entry("a.txt", Kind::File)
+        };
         assert_eq!(size(&arquivo), "1,5 kB");
         assert_eq!(size(&entry("Docs", Kind::Directory)), "");
     }
 
     #[test]
     fn a_data_fica_no_formato_brasileiro() {
-        let modified = NaiveDate::from_ymd_opt(2026, 10, 20).and_then(|d| d.and_hms_opt(16, 4, 0));
-        assert_eq!(date(&Entry { modified, ..entry("a", Kind::File) }), "20/10/2026 16:04");
+        let modified = NaiveDate::from_ymd_opt(2026, 10, 20)
+            .and_then(|d| d.and_hms_opt(16, 4, 0))
+            .and_then(|moment| Local.from_local_datetime(&moment).single())
+            .map(SystemTime::from);
+        assert_eq!(
+            date(&Entry {
+                meta: Meta::Known { size: 0, modified },
+                ..entry("a", Kind::File)
+            }),
+            "20/10/2026 16:04"
+        );
         assert_eq!(date(&entry("a", Kind::File)), "");
     }
 }

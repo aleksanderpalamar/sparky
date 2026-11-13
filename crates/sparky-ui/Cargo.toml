@@ -6,5 +6,6 @@ authors.workspace = true
 license.workspace = true
 
 [dependencies]
+icu_normalizer = { version = "2", default-features = false, features = ["compiled_data"] }
 iced = { version = "0.14", features = ["tokio"] }
 sparky-theme.workspace = true

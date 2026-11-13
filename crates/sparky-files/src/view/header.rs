@@ -14,6 +14,8 @@ pub fn header(files: &Files) -> Element<'_, Message> {
     let skin = files.skin;
     let label = if files.sidebar_page.is_some() {
         crate::view::virtual_page::label(files)
+    } else if let Some(search) = &files.search {
+        crate::view::search_status::title(files, search)
     } else if files.in_trash() {
         i18n::text("trash")
     } else {

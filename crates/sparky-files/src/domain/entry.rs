@@ -1,4 +1,4 @@
-use chrono::NaiveDateTime;
+use std::time::SystemTime;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Kind {
@@ -6,15 +6,37 @@ pub enum Kind {
     File,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Meta {
+    Pending,
+    Known {
+        size: u64,
+        modified: Option<SystemTime>,
+    },
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Entry {
     pub name: String,
     pub kind: Kind,
-    pub size: u64,
-    pub modified: Option<NaiveDateTime>,
+    pub meta: Meta,
 }
 
 impl Entry {
+    pub fn size(&self) -> Option<u64> {
+        match self.meta {
+            Meta::Known { size, .. } => Some(size),
+            Meta::Pending => None,
+        }
+    }
+
+    pub fn modified(&self) -> Option<SystemTime> {
+        match self.meta {
+            Meta::Known { modified, .. } => modified,
+            Meta::Pending => None,
+        }
+    }
+
     pub fn hidden(&self) -> bool {
         self.name.starts_with('.')
     }
@@ -24,23 +46,22 @@ impl Entry {
     }
 }
 
-pub fn sort(entries: &mut [Entry]) {
-    entries.sort_by_cached_key(|entry| (!entry.is_directory(), entry.name.to_lowercase(), entry.name.clone()));
-}
-
 #[cfg(test)]
 pub fn entry(name: &str, kind: Kind) -> Entry {
     Entry {
         name: name.to_owned(),
         kind,
-        size: 0,
-        modified: None,
+        meta: Meta::Known {
+            size: 0,
+            modified: None,
+        },
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Kind, entry, sort};
+    use super::{Kind, entry};
+    use crate::domain::order::{Order, sort};
 
     #[test]
     fn pastas_vem_antes_e_o_resto_em_ordem_alfabetica_sem_caixa() {
@@ -50,9 +71,25 @@ mod tests {
             entry("alfa.txt", Kind::File),
             entry("alfa", Kind::Directory),
         ];
-        sort(&mut entries);
+        sort(&mut entries, Order::default());
         let names: Vec<&str> = entries.iter().map(|entry| entry.name.as_str()).collect();
         assert_eq!(names, ["alfa", "Beta", "alfa.txt", "zeta.txt"]);
+    }
+
+    #[test]
+    fn numeros_nos_nomes_seguem_a_ordem_natural_com_pastas_antes() {
+        let mut entries = vec![
+            entry("faixa 10.mp3", Kind::File),
+            entry("faixa 2.mp3", Kind::File),
+            entry("Disco 10", Kind::Directory),
+            entry("disco 9", Kind::Directory),
+        ];
+        sort(&mut entries, Order::default());
+        let names: Vec<&str> = entries.iter().map(|entry| entry.name.as_str()).collect();
+        assert_eq!(
+            names,
+            ["disco 9", "Disco 10", "faixa 2.mp3", "faixa 10.mp3"]
+        );
     }
 
     #[test]

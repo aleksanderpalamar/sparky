@@ -84,7 +84,10 @@ pub fn completed(files: &mut Files, operation: Operation, result: Result<Vec<Vol
     }
     files.volume_work = None;
     match result {
-        Ok(volumes) => apply(files, &operation, volumes),
+        Ok(volumes) => {
+            apply(files, &operation, volumes);
+            files.refresh_trashes();
+        }
         Err(error) => {
             files.volume_error = Some(error.clone());
             files.fail(error);

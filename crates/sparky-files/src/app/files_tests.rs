@@ -65,24 +65,17 @@ fn copiar_e_colar_na_mesma_pasta_duplica() {
     let mut cena = Cena::nova();
     cena.tecla("G");
     cena.tecla("y");
-    cena.tecla("p");
+    cena.tecla_concluida("p");
     assert!(cena.work().join("a (cópia).txt").exists());
     assert_eq!(cena.selecionado().as_deref(), Some("a (cópia).txt"));
 }
 
 #[test]
-fn a_lixeira_so_age_depois_da_confirmacao() {
+fn d_manda_para_a_lixeira_sem_confirmacao() {
     let mut cena = Cena::nova();
     cena.tecla("G");
     cena.tecla("d");
-    assert_eq!(
-        cena.files.mode,
-        Mode::ConfirmTrash(vec!["a.txt".to_owned()])
-    );
-    cena.tecla("n");
-    assert!(cena.work().join("a.txt").exists());
-    cena.tecla("d");
-    cena.nomeada(Named::Enter);
+    assert_eq!(cena.files.mode, Mode::Browse);
     assert!(!cena.work().join("a.txt").exists());
     assert!(cena.dir.path().join("Trash/files/a.txt").exists());
 }

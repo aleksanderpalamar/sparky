@@ -7,25 +7,35 @@ use sparky_theme::Skin;
 use sparky_xdg::UserDirs;
 
 use crate::adapters::archive::TarArchive;
-use crate::adapters::clipboard::WlImageClipboard;
+use crate::adapters::clipboard::WaylandClipboard;
+use crate::adapters::compositor_drag::CompositorDrag;
+use crate::adapters::disk_trash::DiskTrashes;
+use crate::adapters::finder::TreeFinder;
+use crate::adapters::gio_listing;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::icons::ThemeIcons;
 use crate::adapters::local_disk::LocalDisk;
 use crate::adapters::sidebar_source::DesktopSidebar;
 use crate::adapters::thumbnail::FileThumbnail;
+use crate::adapters::thumbnail_cache::SharedThumbnails;
+use crate::adapters::transfer::LocalTransfer;
 use crate::adapters::xdg_open::XdgOpen;
 use crate::app::message::Message;
 use crate::app::state::{Files, Services, Setup};
+use crate::domain::launch::{self, Start};
 use crate::domain::places::places;
 use crate::view::style::{WINDOW_HEIGHT, WINDOW_WIDTH, rows_for};
+
+const SEARCH_LIMIT: usize = 5000;
 
 pub fn boot() -> (Files, Task<Message>) {
     let dirs = UserDirs::from_env().unwrap_or_else(|| UserDirs::new("/", None));
     let home = dirs.home();
     let trash =
         HomeTrash::from_env().unwrap_or_else(|| HomeTrash::new(home.join(".local/share/Trash")));
+    let start = launch::parse(&env::args().skip(1).collect::<Vec<_>>());
     let setup = Setup {
-        start: start_dir(env::args().nth(1), &home),
+        start: start_dir(folder_of(&start), &home),
         places: places(&dirs)
             .into_iter()
             .filter(|place| place.path.is_dir())
@@ -35,17 +45,30 @@ pub fn boot() -> (Files, Task<Message>) {
         rows: rows_for(WINDOW_HEIGHT),
     };
     let services = Services {
-        disk: Box::new(LocalDisk::new(trash.clone())),
+        disk: Box::new(LocalDisk::new(trash.clone()).with_remote(gio_listing::remote_root())),
         opener: Box::new(XdgOpen),
         icons: Box::new(ThemeIcons::default()),
         volumes: Arc::new(sparky_storage::desktop::system()),
         archiver: Arc::new(TarArchive),
-        thumbnails: Arc::new(FileThumbnail),
-        trash: Arc::new(trash),
-        image_clipboard: Box::new(WlImageClipboard),
+        thumbnails: Arc::new(SharedThumbnails::from_env(FileThumbnail)),
+        trash: Arc::new(trash.clone()),
+        trash_disks: Arc::new(DiskTrashes::new(trash.clone())),
+        finder: Arc::new(TreeFinder::new(SEARCH_LIMIT)),
+        dragger: Arc::new(CompositorDrag),
+        clipboard: Box::new(WaylandClipboard),
         sidebar: std::sync::Arc::new(DesktopSidebar::from_env()),
+        transfer: Arc::new(LocalTransfer::new(
+            trash.clone(),
+            gio_listing::remote_root(),
+        )),
     };
     let mut files = Files::new(setup, services);
+    match start {
+        Start::Select(items) => files.reveal(&items),
+        Start::Properties(item) => files.reveal_properties(&item),
+        Start::Folder(_) => {}
+    }
+    files.refresh_trashes();
     files.resize(Size::new(WINDOW_WIDTH, WINDOW_HEIGHT));
     let task = Task::batch([
         crate::app::volumes::refresh(&mut files),
@@ -54,7 +77,18 @@ pub fn boot() -> (Files, Task<Message>) {
     (files, task)
 }
 
-pub fn start_dir(argument: Option<String>, home: &Path) -> PathBuf {
+fn folder_of(start: &Start) -> Option<PathBuf> {
+    match start {
+        Start::Folder(folder) => folder.clone(),
+        Start::Select(items) => items
+            .first()
+            .and_then(|item| item.parent())
+            .map(Path::to_path_buf),
+        Start::Properties(item) => item.parent().map(Path::to_path_buf),
+    }
+}
+
+pub fn start_dir(argument: Option<PathBuf>, home: &Path) -> PathBuf {
     argument
         .and_then(|path| std::path::absolute(path).ok())
         .filter(|path| path.is_dir())

@@ -1,4 +1,5 @@
 use crate::domain::grid::ViewMode;
+use crate::domain::transfer::Conflict;
 use iced::keyboard::key::Named;
 use iced::keyboard::{Key, Modifiers};
 
@@ -28,6 +29,16 @@ pub enum Command {
     SelectAll,
     Properties,
     Trash,
+    Delete,
+    SortNext,
+    Extract,
+    Search,
+    NewTab,
+    CloseTab,
+    NextTab,
+    PreviousTab,
+    SortReverse,
+    Undo,
     Refresh,
     Quit,
     View(ViewMode),
@@ -70,11 +81,24 @@ pub fn confirm(key: &Key) -> Option<Answer> {
     }
 }
 
+pub fn conflict(key: &Key) -> Option<Conflict> {
+    match key.as_ref() {
+        Key::Named(Named::Enter) | Key::Character("m" | "M") => Some(Conflict::KeepBoth),
+        Key::Character("s" | "S") => Some(Conflict::Replace),
+        Key::Character("p" | "P") => Some(Conflict::Skip),
+        _ => None,
+    }
+}
+
 fn named_command(named: Named, modifiers: Modifiers) -> Option<Command> {
     match named {
         Named::ArrowUp if modifiers.alt() => Some(Command::Parent),
         Named::Home if modifiers.alt() => Some(Command::Home),
         Named::Enter if modifiers.alt() => Some(Command::Properties),
+        Named::Tab if modifiers.control() && modifiers.shift() => Some(Command::PreviousTab),
+        Named::Tab if modifiers.control() => Some(Command::NextTab),
+        Named::PageDown if modifiers.control() => Some(Command::NextTab),
+        Named::PageUp if modifiers.control() => Some(Command::PreviousTab),
         Named::ArrowDown => Some(Command::Down),
         Named::ArrowUp => Some(Command::Up),
         Named::PageDown => Some(Command::PageDown),
@@ -88,6 +112,7 @@ fn named_command(named: Named, modifiers: Modifiers) -> Option<Command> {
         Named::Space => Some(Command::Mark),
         Named::F2 => Some(Command::Rename),
         Named::F5 => Some(Command::Refresh),
+        Named::Delete if modifiers.shift() => Some(Command::Delete),
         Named::Delete => Some(Command::Trash),
         _ => None,
     }
@@ -97,6 +122,9 @@ fn control_command(text: &str, modifiers: Modifiers) -> Option<Command> {
     match text.to_lowercase().as_str() {
         "n" if modifiers.shift() => Some(Command::NewFolder),
         "a" => Some(Command::SelectAll),
+        "f" => Some(Command::Search),
+        "t" => Some(Command::NewTab),
+        "w" => Some(Command::CloseTab),
         "c" => Some(Command::Copy),
         "x" => Some(Command::Cut),
         "v" => Some(Command::Paste),
@@ -105,6 +133,7 @@ fn control_command(text: &str, modifiers: Modifiers) -> Option<Command> {
         "d" => Some(Command::PageDown),
         "u" => Some(Command::PageUp),
         "q" => Some(Command::Quit),
+        "z" => Some(Command::Undo),
         "1" => Some(Command::View(ViewMode::Grid)),
         "2" => Some(Command::View(ViewMode::List)),
         _ => None,
@@ -138,6 +167,9 @@ fn letter_command(text: &str) -> Option<Command> {
         "r" => Some(Command::Rename),
         "a" => Some(Command::Create),
         "d" => Some(Command::Trash),
+        "e" => Some(Command::Extract),
+        "s" => Some(Command::SortNext),
+        "S" => Some(Command::SortReverse),
         "q" => Some(Command::Quit),
         digit => place(digit),
     }

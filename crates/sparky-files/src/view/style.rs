@@ -1,5 +1,7 @@
 use crate::domain::grid::{Layout, ViewMode};
-use iced::Size;
+use iced::widget::{button, container};
+use iced::{Background, Border, Color, Size};
+use sparky_theme::Skin;
 use sparky_ui::style::{HEADER_HEIGHT, PADDING, SIDEBAR_WIDTH, SPACING, STATUS_HEIGHT};
 
 pub const APPLICATION_ID: &str = "sparky-files";
@@ -26,6 +28,36 @@ pub fn layout_for(mode: ViewMode, size: Size) -> Layout {
         ((width + SPACING) / (TILE_WIDTH + SPACING)).floor() as usize,
         ((height + SPACING) / (TILE_HEIGHT + SPACING)).floor() as usize,
     )
+}
+
+pub fn dialog(skin: Skin, fill: Color) -> container::Style {
+    container::Style {
+        background: Some(Background::Color(fill)),
+        text_color: Some(skin.foreground),
+        border: Border {
+            color: skin.accent,
+            width: 1.0,
+            radius: 0.0.into(),
+        },
+        ..container::Style::default()
+    }
+}
+
+pub fn danger(skin: Skin, status: button::Status) -> button::Style {
+    let background = match status {
+        button::Status::Hovered | button::Status::Pressed => skin.background,
+        _ => Color::TRANSPARENT,
+    };
+    button::Style {
+        background: Some(Background::Color(background)),
+        text_color: skin.urgent,
+        border: Border {
+            color: skin.urgent,
+            width: 1.0,
+            radius: 0.0.into(),
+        },
+        ..button::Style::default()
+    }
 }
 
 #[cfg(test)]

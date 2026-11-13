@@ -1,10 +1,18 @@
-use iced::widget::{Space, button, column, container, mouse_area, scrollable, stack, text};
-use iced::{Background, Border, Element, Length};
+use iced::alignment::{Horizontal, Vertical};
+use iced::widget::{
+    Space, button, column, container, mouse_area, row, scrollable, stack, text, text_input, toggler,
+};
+use iced::{Element, Length};
 use sparky_theme::Skin;
+use sparky_ui::style;
 
 use crate::app::message::Message;
+use crate::app::open_with::SEARCH;
 use crate::app::state::{Files, OpenWith};
+use crate::domain::application::Remember;
 use crate::i18n;
+use crate::view::open_with_list::list;
+use crate::view::style::dialog;
 
 pub fn layer<'a>(files: &'a Files, base: Element<'a, Message>) -> Element<'a, Message> {
     let Some(choice) = files.open_with.as_ref() else {
@@ -29,43 +37,64 @@ fn pane(skin: Skin, choice: &OpenWith, height: f32) -> Element<'static, Message>
         .file_name()
         .map(|name| name.to_string_lossy().into_owned())
         .unwrap_or_else(|| choice.path.display().to_string());
-    let title = text(i18n::with("open-file-with", "file", filename)).size(15);
-    let apps = choice.apps.iter().map(|app| {
-        let id = app.id.clone();
-        button(text(app.name.clone()).size(13))
-            .on_press(Message::OpenWithChoice(id))
-            .width(Length::Fill)
-            .style(move |_, status| {
-                let hovered = matches!(status, button::Status::Hovered | button::Status::Pressed);
-                button::Style {
-                    background: hovered.then_some(Background::Color(skin.selection)),
-                    text_color: skin.foreground,
-                    ..button::Style::default()
-                }
-            })
-            .into()
-    });
-    let list: Element<'static, Message> = scrollable(column(apps).spacing(4))
-        .height((height - 120.0).clamp(80.0, 380.0))
-        .into();
+    let search = text_input(&i18n::text("open-with-search"), &choice.query)
+        .id(SEARCH)
+        .on_input(Message::OpenWithQuery)
+        .on_submit(Message::OpenWithConfirm)
+        .size(13)
+        .padding(8)
+        .style(style::input);
+    let prompt = text(i18n::with("open-file-with", "file", filename))
+        .size(13)
+        .width(Length::Fill)
+        .align_x(Horizontal::Center);
+    let apps = container(scrollable(list(skin, choice)))
+        .height((height - 260.0).clamp(120.0, 360.0))
+        .width(Length::Fill)
+        .padding(4)
+        .style(move |_| dialog(skin, skin.background));
     let content = column![
-        title,
-        list,
-        button(text(i18n::text("cancel"))).on_press(Message::ContextDismiss)
+        header(skin, choice.selected.is_some()),
+        search,
+        prompt,
+        apps,
+        remember(skin, choice)
     ]
     .spacing(12);
     container(content)
-        .width(420)
+        .width(440)
         .padding(16)
-        .style(move |_| container::Style {
-            background: Some(Background::Color(skin.lighter_background)),
-            text_color: Some(skin.foreground),
-            border: Border {
-                color: skin.accent,
-                width: 1.0,
-                radius: 0.0.into(),
-            },
-            ..container::Style::default()
-        })
+        .style(move |_| dialog(skin, skin.lighter_background))
         .into()
+}
+
+fn header(skin: Skin, ready: bool) -> Element<'static, Message> {
+    let cancel = button(text(i18n::text("cancel")).size(13))
+        .padding([6, 12])
+        .on_press(Message::ContextDismiss)
+        .style(move |_, status| style::entry(skin, style::Highlight::Plain, status));
+    let open = button(text(i18n::text("open")).size(13))
+        .padding([6, 12])
+        .on_press_maybe(ready.then_some(Message::OpenWithConfirm))
+        .style(move |_, status| style::entry(skin, style::Highlight::Selected, status));
+    let title = text(i18n::text("open-file"))
+        .size(15)
+        .width(Length::Fill)
+        .align_x(Horizontal::Center);
+    row![cancel, title, open].align_y(Vertical::Center).into()
+}
+
+fn remember(skin: Skin, choice: &OpenWith) -> Element<'static, Message> {
+    let always = choice.remember == Remember::Always;
+    let labels = column![
+        text(i18n::text("open-with-always")).size(13),
+        text(choice.choices.kind.clone())
+            .size(11)
+            .color(skin.dark_foreground)
+    ]
+    .width(Length::Fill);
+    let switch = toggler(always)
+        .on_toggle(Message::OpenWithRemember)
+        .style(sparky_ui::switch::switch(skin));
+    row![labels, switch].align_y(Vertical::Center).into()
 }

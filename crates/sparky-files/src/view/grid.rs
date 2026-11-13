@@ -4,6 +4,7 @@ use iced::{Element, Length};
 
 use crate::app::message::Message;
 use crate::app::state::Files;
+use crate::domain::drop::DropTarget;
 use crate::domain::entry::Entry;
 use crate::i18n;
 use crate::view::icon::entry_icon;
@@ -53,7 +54,9 @@ pub fn grid(files: &Files) -> Element<'_, Message> {
 
 fn tile<'a>(files: &'a Files, entry: &'a Entry, index: usize) -> Element<'a, Message> {
     let skin = files.skin;
-    let highlight = Highlight::when(index == files.listing.cursor());
+    let highlight = Highlight::when(
+        index == files.listing.cursor() || files.is_drop_target(DropTarget::Entry(index)),
+    );
     let path = files.location.join(&entry.name);
     let place = files
         .places
@@ -89,6 +92,8 @@ fn tile<'a>(files: &'a Files, entry: &'a Entry, index: usize) -> Element<'a, Mes
         .clip(true)
         .style(move |_| style::row(skin, highlight));
     mouse_area(cell)
+        .on_enter(Message::Hover(DropTarget::Entry(index)))
+        .on_exit(Message::Unhover(DropTarget::Entry(index)))
         .on_press(Message::Clicked(index))
         .on_right_press(Message::ContextEntry(index))
         .on_double_click(Message::Activated(index))

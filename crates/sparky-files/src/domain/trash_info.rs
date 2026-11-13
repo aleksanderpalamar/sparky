@@ -2,7 +2,7 @@ use std::ffi::OsString;
 use std::io;
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::ffi::OsStringExt;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 use chrono::NaiveDateTime;
 
@@ -26,7 +26,26 @@ fn encode(bytes: &[u8]) -> String {
         .collect()
 }
 
+pub fn original_in(record: &str, topdir: Option<&Path>) -> io::Result<PathBuf> {
+    let path = recorded(record)?;
+    match (path.is_absolute(), topdir) {
+        (true, _) => Ok(path),
+        (false, Some(topdir))
+            if path
+                .components()
+                .all(|part| matches!(part, Component::Normal(_))) =>
+        {
+            Ok(topdir.join(path))
+        }
+        _ => Err(invalid_path()),
+    }
+}
+
 pub fn original(record: &str) -> io::Result<PathBuf> {
+    original_in(record, None)
+}
+
+fn recorded(record: &str) -> io::Result<PathBuf> {
     let mut section = false;
     for line in record.lines() {
         if line.starts_with('[') {
@@ -40,8 +59,7 @@ pub fn original(record: &str) -> io::Result<PathBuf> {
         if bytes.contains(&0) {
             return Err(invalid_path());
         }
-        let path = PathBuf::from(OsString::from_vec(bytes));
-        return path.is_absolute().then_some(path).ok_or_else(invalid_path);
+        return Ok(PathBuf::from(OsString::from_vec(bytes)));
     }
     Err(invalid_path())
 }
@@ -73,7 +91,7 @@ fn invalid_path() -> io::Error {
 
 #[cfg(test)]
 mod tests {
-    use super::{info, original};
+    use super::{info, original, original_in};
     use chrono::NaiveDate;
     use std::path::Path;
 
@@ -107,5 +125,16 @@ mod tests {
         assert!(original("[Trash Info]\nPath=relative/file.txt\n").is_err());
         assert!(original("[Trash Info]\nPath=/home/p/%GG.txt\n").is_err());
         assert!(original("Path=/home/p/arquivo.txt\n").is_err());
+    }
+
+    #[test]
+    fn caminho_relativo_so_vale_dentro_da_raiz_do_disco() {
+        let registro = "[Trash Info]\nPath=Fotos/praia%20nova.png\n";
+        assert_eq!(
+            original_in(registro, Some(Path::new("/run/media/ana/USB"))).ok(),
+            Some(Path::new("/run/media/ana/USB/Fotos/praia nova.png").to_path_buf())
+        );
+        assert!(original_in("[Trash Info]\nPath=../segredo\n", Some(Path::new("/m"))).is_err());
+        assert!(original_in(registro, None).is_err());
     }
 }

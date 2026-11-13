@@ -7,12 +7,14 @@ use std::path::Component;
 use std::path::{Path, PathBuf};
 
 use crate::domain::naming::free_name;
-use crate::domain::trash_info::{info, original};
+use crate::domain::trash_info::{info, original_in};
+use crate::domain::undo::TrashEntry;
 use crate::ports::{EmptyReport, TrashStore};
 
 #[derive(Clone)]
 pub struct HomeTrash {
     root: PathBuf,
+    topdir: Option<PathBuf>,
 }
 
 impl TrashStore for HomeTrash {
@@ -24,6 +26,15 @@ impl TrashStore for HomeTrash {
 
     fn directory(&self) -> PathBuf {
         self.root.join("files")
+    }
+
+    fn label(&self) -> Option<String> {
+        self.topdir.as_deref().map(|topdir| {
+            topdir.file_name().map_or_else(
+                || topdir.display().to_string(),
+                |name| name.to_string_lossy().into_owned(),
+            )
+        })
     }
 
     fn names(&self) -> io::Result<Vec<OsString>> {
@@ -57,7 +68,7 @@ impl TrashStore for HomeTrash {
                 "registro da lixeira muito grande",
             ));
         }
-        let target = original(&fs::read_to_string(&record)?)?;
+        let target = original_in(&fs::read_to_string(&record)?, self.topdir.as_deref())?;
         renameat_with(CWD, &source, CWD, &target, RenameFlags::NOREPLACE)
             .map_err(io::Error::from)?;
         fs::remove_file(record)?;
@@ -116,7 +127,25 @@ fn remove_item(path: &Path) -> io::Result<()> {
 
 impl HomeTrash {
     pub fn new(root: PathBuf) -> Self {
-        Self { root }
+        Self { root, topdir: None }
+    }
+
+    pub fn on_disk(root: PathBuf, topdir: PathBuf) -> Self {
+        Self {
+            root,
+            topdir: Some(topdir),
+        }
+    }
+
+    pub fn root(&self) -> &Path {
+        &self.root
+    }
+
+    fn recorded(&self, absolute: &Path) -> PathBuf {
+        self.topdir
+            .as_deref()
+            .and_then(|topdir| absolute.strip_prefix(topdir).ok())
+            .map_or_else(|| absolute.to_path_buf(), Path::to_path_buf)
     }
 
     pub fn from_env() -> Option<Self> {
@@ -128,7 +157,7 @@ impl HomeTrash {
         Some(Self::new(Path::new(&data).join("Trash")))
     }
 
-    pub fn put(&self, path: &Path) -> io::Result<()> {
+    pub fn put(&self, path: &Path) -> io::Result<TrashEntry> {
         let files = self.root.join("files");
         let infos = self.root.join("info");
         fs::create_dir_all(&files)?;
@@ -147,10 +176,16 @@ impl HomeTrash {
             .write(true)
             .create_new(true)
             .open(&info_path)?;
-        record.write_all(info(&absolute, &chrono::Local::now().naive_local()).as_bytes())?;
+        let recorded = self.recorded(&absolute);
+        record.write_all(info(&recorded, &chrono::Local::now().naive_local()).as_bytes())?;
         fs::rename(path, files.join(&free)).or_else(|error| {
             fs::remove_file(&info_path)?;
             Err(explained(error))
+        })?;
+        Ok(TrashEntry {
+            root: self.root.clone(),
+            topdir: self.topdir.clone(),
+            name: free.into(),
         })
     }
 }

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Arquivos (D-Bus)
+Name[en]=Files (D-Bus)
+Comment=Atende "Mostrar na pasta" de outros aplicativos
+Comment[en]=Handles "Show in folder" from other applications
+Exec=sparky-files --file-manager1
+OnlyShowIn=sparky;
+NoDisplay=true
+Terminal=false

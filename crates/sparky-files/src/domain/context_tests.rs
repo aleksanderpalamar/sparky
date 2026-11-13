@@ -18,6 +18,7 @@ fn arquivo_e_pasta_expoem_operacoes_reais_e_propriedades() {
             Action::Compress,
             Action::Email,
             Action::Trash,
+            Action::Delete,
             Action::Properties,
         ] {
             assert!(actions.contains(&expected), "{target:?}: {expected:?}");
@@ -80,5 +81,25 @@ fn menu_permanece_dentro_da_janela_junto_das_bordas() {
     assert_eq!(
         position((20.0, 30.0), (100.0, 80.0), (280.0, 460.0)),
         (0.0, 0.0)
+    );
+}
+
+#[test]
+fn compactado_e_um_arquivo_com_extrair_aqui() {
+    let arquivo: Vec<_> = entries(Target::File, false, true)
+        .into_iter()
+        .filter_map(|row| row.action())
+        .collect();
+    let compactado: Vec<_> = entries(Target::Archive, false, true)
+        .into_iter()
+        .filter_map(|row| row.action())
+        .collect();
+    assert!(!arquivo.contains(&Action::Extract));
+    assert!(compactado.contains(&Action::Extract));
+    assert!(arquivo.iter().all(|action| compactado.contains(action)));
+    assert!(
+        !entries(Target::Archive, false, true)
+            .iter()
+            .any(|row| row.is_disabled(Action::Email))
     );
 }

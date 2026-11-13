@@ -9,33 +9,29 @@ use sparky_theme::Skin;
 use sparky_ui::notice::Notice;
 use sparky_ui::viewport::Viewport;
 
+use crate::app::drop::Gesture;
+use crate::app::jobs::Job;
+pub use crate::app::mode::Mode;
 use crate::app::previews::Previews;
-use crate::domain::application::Application;
+use crate::app::search::Search;
+use crate::app::tabs::Tab;
+use crate::domain::application::{AppChoices, Remember};
 use crate::domain::clip::Clip;
 use crate::domain::context::Target;
-use crate::domain::entry::Kind;
+use crate::domain::drop::Override;
 use crate::domain::grid::{Layout, ViewMode};
 use crate::domain::icons::Icons;
 use crate::domain::listing::Listing;
 use crate::domain::places::Place;
 use crate::domain::properties::Properties;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
+use crate::domain::tabs::Tabs;
+use crate::domain::toast::Toast;
+use crate::domain::undo::Journal;
 use crate::ports::{
-    Archiver, Disk, IconSource, ImageClipboard, Opener, SidebarSource, ThumbnailSource, TrashStore,
+    Archiver, Disk, Dragger, FileClipboard, Finder, IconSource, Opener, SidebarSource,
+    ThumbnailSource, Transfer, TrashDisks, TrashStore,
 };
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Mode {
-    Browse,
-    Filter,
-    Rename(String),
-    Create,
-    New(Kind),
-    Destination(Clip),
-    Compress(Vec<PathBuf>),
-    ConfirmTrash(Vec<String>),
-    ConfirmEmptyTrash(usize),
-}
 
 pub struct Services {
     pub disk: Box<dyn Disk>,
@@ -45,8 +41,12 @@ pub struct Services {
     pub archiver: Arc<dyn Archiver>,
     pub thumbnails: Arc<dyn ThumbnailSource>,
     pub trash: Arc<dyn TrashStore>,
-    pub image_clipboard: Box<dyn ImageClipboard>,
+    pub clipboard: Box<dyn FileClipboard>,
     pub sidebar: Arc<dyn SidebarSource>,
+    pub transfer: Arc<dyn Transfer>,
+    pub trash_disks: Arc<dyn TrashDisks>,
+    pub finder: Arc<dyn Finder>,
+    pub dragger: Arc<dyn Dragger>,
 }
 
 pub struct Setup {
@@ -67,7 +67,10 @@ pub struct ContextMenu {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OpenWith {
     pub path: PathBuf,
-    pub apps: Vec<Application>,
+    pub choices: AppChoices,
+    pub query: String,
+    pub selected: Option<String>,
+    pub remember: Remember,
 }
 
 pub struct Files {
@@ -99,8 +102,16 @@ pub struct Files {
     pub open_with: Option<OpenWith>,
     pub archive_work: Option<PathBuf>,
     pub emptying: bool,
+    pub job: Option<Job>,
+    pub search: Option<Search>,
+    pub tabs: Tabs<Tab>,
+    pub gesture: Gesture,
+    pub held: Override,
+    pub journal: Journal,
+    pub other_trashes: Vec<Arc<dyn TrashStore>>,
     pub previews: Previews,
     pub notice: Option<Notice>,
+    pub toast: Option<Toast>,
     pub skin: Skin,
     pub services: Services,
 }
@@ -141,8 +152,16 @@ impl Files {
             open_with: None,
             archive_work: None,
             emptying: false,
+            job: None,
+            search: None,
+            tabs: Tabs::default(),
+            gesture: Gesture::Idle,
+            held: Override::None,
+            journal: Journal::default(),
+            other_trashes: Vec::new(),
             previews: Previews::default(),
             notice: None,
+            toast: None,
             skin: setup.skin,
             services,
         };

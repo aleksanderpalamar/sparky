@@ -1,6 +1,7 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Target {
     File,
+    Archive,
     Folder,
     Background,
     Trashed,
@@ -17,8 +18,10 @@ pub enum Action {
     CopyTo,
     Rename,
     Compress,
+    Extract,
     Email,
     Trash,
+    Delete,
     Properties,
     NewFolder,
     NewFile,
@@ -73,8 +76,14 @@ pub fn entries(target: Target, has_clip: bool, has_entries: bool) -> Vec<Row> {
     );
     rows.push(Row::Separator);
     rows.extend([Action::Rename, Action::Compress].map(|action| item(action, true)));
-    rows.push(item(Action::Email, target == Target::File));
-    rows.push(item(Action::Trash, true));
+    if target == Target::Archive {
+        rows.push(item(Action::Extract, true));
+    }
+    rows.push(item(
+        Action::Email,
+        matches!(target, Target::File | Target::Archive),
+    ));
+    rows.extend([Action::Trash, Action::Delete].map(|action| item(action, true)));
     rows.extend([Row::Separator, item(Action::Properties, true)]);
     rows
 }
@@ -102,8 +111,10 @@ fn item(action: Action, enabled: bool) -> Row {
         Action::CopyTo => ("menu-copy-to", ""),
         Action::Rename => ("menu-rename", "F2"),
         Action::Compress => ("menu-compress", ""),
+        Action::Extract => ("menu-extract", "e"),
         Action::Email => ("menu-email", ""),
         Action::Trash => ("menu-trash", "Delete"),
+        Action::Delete => ("menu-delete", "Shift+Delete"),
         Action::Properties => ("menu-properties", "Alt+Enter"),
         Action::NewFolder => ("menu-new-folder", "Ctrl+Shift+N"),
         Action::NewFile => ("menu-new-file", ""),
