@@ -122,5 +122,6 @@ impl Files {
         self.details = None;
         self.open_with = None;
         self.refresh();
+        self.resize(self.size);
     }
 }

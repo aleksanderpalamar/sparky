@@ -6,6 +6,7 @@ use iced::keyboard::{Key, Modifiers};
 use super::message::Message;
 use super::test_scene::Cena;
 use crate::domain::entry::{Kind, entry};
+use crate::domain::grid::ViewMode;
 use crate::domain::order::{Order, SortDirection, SortKey};
 use crate::domain::search::SearchEvent;
 use crate::view::tabs::titles;
@@ -113,4 +114,14 @@ fn a_busca_de_uma_aba_guardada_respeita_a_ordem_por_tamanho() {
     cena.mandar(Message::Search(id, SearchEvent::Found(achados.to_vec())));
     cena.mandar(Message::Tab(0));
     assert_eq!(nomes(&cena), ["Fotos/nota b.txt", "Fotos/nota a.txt"]);
+}
+
+#[test]
+fn voltar_a_uma_aba_ajusta_a_rolagem_ao_modo_de_exibicao_atual() {
+    let mut cena = Cena::nova();
+    cena.files.change_view(ViewMode::List);
+    ctrl(&mut cena, "t");
+    cena.files.change_view(ViewMode::Grid);
+    cena.mandar(Message::Tab(0));
+    assert_eq!(cena.files.viewport.rows(), cena.files.layout.rows);
 }
