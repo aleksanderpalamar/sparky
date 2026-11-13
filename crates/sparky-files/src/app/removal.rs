@@ -6,7 +6,7 @@ use iced::Task;
 use crate::app::keys::Answer;
 use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
-use crate::domain::toast::Toast;
+use crate::domain::toast::{Toast, ToastKind};
 use crate::domain::undo::Record;
 use crate::i18n;
 use crate::operations;
@@ -44,12 +44,34 @@ impl Files {
     }
 
     pub fn undo_toast(&mut self) -> Task<Message> {
-        let Some(toast) = self.toast.take() else {
+        let Some(Toast {
+            kind: ToastKind::Trashed { entries, .. },
+            ..
+        }) = self.toast.take()
+        else {
             return Task::none();
         };
-        match self.journal.last() == Some(&Record::Trashed(toast.entries)) {
+        match self.journal.last() == Some(&Record::Trashed(entries)) {
             true => self.undo(),
             false => Task::none(),
+        }
+    }
+
+    pub fn open_toast_folder(&mut self) {
+        let Some(toast) = self.toast.take() else {
+            return;
+        };
+        let Some(folder) = toast.folder().map(|folder| folder.to_path_buf()) else {
+            return;
+        };
+        if !self.go(folder) {
+            return;
+        }
+        if let ToastKind::Restored(paths) = &toast.kind
+            && let [path] = paths.as_slice()
+            && let Some(name) = path.file_name().and_then(|name| name.to_str())
+        {
+            self.listing.select_name(name);
         }
     }
 

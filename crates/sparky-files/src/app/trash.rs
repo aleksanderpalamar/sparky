@@ -1,11 +1,12 @@
 use std::ffi::OsString;
 use std::io;
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use crate::app::keys::Command;
 use crate::app::message::TrashEvent;
 use crate::app::state::Files;
-use crate::i18n;
+use crate::domain::toast::Toast;
 use crate::ports::TrashStore;
 
 impl Files {
@@ -86,11 +87,7 @@ impl Files {
         match trash.restore(&name) {
             Ok(path) => {
                 self.refresh();
-                self.inform(i18n::with(
-                    "restored-to",
-                    "path",
-                    path.display().to_string(),
-                ));
+                self.toast = Some(Toast::restored(vec![path]));
             }
             Err(error) => self.fail(format!("{shown}: {error}")),
         }
@@ -111,13 +108,16 @@ impl Files {
         self.refresh();
         if let Some((name, error)) = failures.first() {
             self.fail(format!(
-                "{restored} restaurados; {} falharam. {}: {error}",
+                "{} restaurados; {} falharam. {}: {error}",
+                restored.len(),
                 failures.len(),
                 name.to_string_lossy()
             ));
             return;
         }
-        self.inform(format!("{restored} itens restaurados"));
+        if !restored.is_empty() {
+            self.toast = Some(Toast::restored(restored));
+        }
     }
 }
 
@@ -142,21 +142,21 @@ fn raw_name(trash: &dyn TrashStore, shown: &str) -> io::Result<OsString> {
 fn restore_items(
     trash: &dyn TrashStore,
     names: Vec<OsString>,
-) -> (usize, Vec<(OsString, io::Error)>) {
+) -> (Vec<PathBuf>, Vec<(OsString, io::Error)>) {
     let mut pending = names;
-    let mut restored = 0;
+    let mut restored = Vec::new();
     let mut failures = Vec::new();
     while !pending.is_empty() {
         let mut retry = Vec::new();
-        let previous = restored;
+        let previous = restored.len();
         for name in pending {
             match trash.restore(&name) {
-                Ok(_) => restored += 1,
+                Ok(path) => restored.push(path),
                 Err(error) if error.kind() == io::ErrorKind::NotFound => retry.push((name, error)),
                 Err(error) => failures.push((name, error)),
             }
         }
-        if restored == previous {
+        if restored.len() == previous {
             failures.extend(retry);
             break;
         }

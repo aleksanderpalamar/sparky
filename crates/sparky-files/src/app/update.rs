@@ -38,6 +38,7 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::DragRefused(reason) => files.drag_refused(&reason),
         Message::ToastUndo => return files.undo_toast(),
         Message::ToastDismiss => files.toast = None,
+        Message::ToastOpenFolder => files.open_toast_folder(),
         Message::DeleteConfirm => files.answer_delete(Answer::Yes),
         Message::DeleteCancel => files.answer_delete(Answer::No),
         Message::ContextEntry(index) => context::entry(files, index),

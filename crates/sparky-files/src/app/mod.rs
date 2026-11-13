@@ -78,6 +78,8 @@ mod previews_tests;
 #[cfg(test)]
 mod removal_tests;
 #[cfg(test)]
+mod restore_toast_tests;
+#[cfg(test)]
 mod reveal_tests;
 #[cfg(test)]
 mod search_tests;

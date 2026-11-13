@@ -9,6 +9,7 @@ use super::test_scene::Cena;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::local_disk::LocalDisk;
 use crate::domain::context::Action;
+use crate::domain::toast::ToastKind;
 
 fn shift_delete(cena: &mut Cena) {
     cena.mandar(Message::Key(Key::Named(Named::Delete), Modifiers::SHIFT));
@@ -44,8 +45,11 @@ fn delete_manda_para_a_lixeira_sem_perguntar_e_mostra_o_aviso() {
     assert_eq!(cena.files.mode, Mode::Browse);
     assert!(!cena.work().join("a.txt").exists());
     assert!(cena.dir.path().join("Trash/files/a.txt").exists());
-    let nomes = cena.files.toast.as_ref().map(|toast| toast.names.clone());
-    assert_eq!(nomes, Some(vec!["a.txt".to_owned()]));
+    let nomes = match cena.files.toast.as_ref().map(|toast| &toast.kind) {
+        Some(ToastKind::Trashed { names, .. }) => names.clone(),
+        _ => Vec::new(),
+    };
+    assert_eq!(nomes, ["a.txt"]);
 }
 
 #[test]

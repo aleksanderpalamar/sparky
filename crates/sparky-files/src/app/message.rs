@@ -31,6 +31,7 @@ pub enum Message {
     DragRefused(String),
     ToastUndo,
     ToastDismiss,
+    ToastOpenFolder,
     DeleteConfirm,
     DeleteCancel,
     ContextEntry(usize),
