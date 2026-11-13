@@ -9,6 +9,7 @@ use sparky_ui::viewport::Viewport;
 use crate::app::background::background;
 use crate::app::keys::Command;
 use crate::app::message::Message;
+use crate::app::sorting::detailed;
 use crate::app::state::{Files, Mode};
 use crate::domain::context::Action;
 use crate::domain::listing::Listing;
@@ -72,7 +73,11 @@ impl Files {
             return;
         };
         match event {
-            SearchEvent::Found(batch) => self.listing.extend(batch),
+            SearchEvent::Found(batch) => {
+                let disk = self.services.disk.as_ref();
+                let batch = detailed(disk, &self.location, self.listing.order(), batch);
+                self.listing.extend(batch);
+            }
             SearchEvent::Finished(finish) => search.finish = Some(finish),
         }
     }

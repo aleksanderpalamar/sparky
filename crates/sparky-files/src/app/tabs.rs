@@ -5,6 +5,7 @@ use std::time::SystemTime;
 use sparky_ui::viewport::Viewport;
 
 use crate::app::search::Search;
+use crate::app::sorting::detailed;
 use crate::app::state::{Files, Mode};
 use crate::domain::listing::Listing;
 use crate::domain::search::SearchEvent;
@@ -68,11 +69,15 @@ impl Files {
 
     pub(super) fn stored_search_event(&mut self, id: u64, event: SearchEvent) {
         let owner = |tab: &Tab| tab.search.as_ref().is_some_and(|search| search.id == id);
+        let disk = self.services.disk.as_ref();
         let Some(tab) = self.tabs.find_mut(owner) else {
             return;
         };
         match event {
-            SearchEvent::Found(batch) => tab.listing.extend(batch),
+            SearchEvent::Found(batch) => {
+                let batch = detailed(disk, &tab.location, tab.listing.order(), batch);
+                tab.listing.extend(batch);
+            }
             SearchEvent::Finished(finish) => {
                 if let Some(search) = tab.search.as_mut() {
                     search.finish = Some(finish);

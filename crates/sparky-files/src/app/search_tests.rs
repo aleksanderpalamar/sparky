@@ -6,6 +6,7 @@ use iced::keyboard::{Key, Modifiers};
 use super::message::Message;
 use super::state::Mode;
 use super::test_scene::Cena;
+use crate::domain::order::{Order, SortDirection, SortKey};
 use crate::domain::search::{Finish, SearchEvent};
 
 fn com_arvore() -> Cena {
@@ -109,4 +110,18 @@ fn cabecalho_e_barra_de_status_descrevem_a_busca() {
         crate::view::search_status::summary(&cena.files, &busca),
         "2 resultados · Esc volta"
     );
+}
+
+#[test]
+fn resultados_respeitam_a_ordem_por_tamanho_escolhida_antes_da_busca() {
+    let mut cena = Cena::nova();
+    let criado = fs::create_dir_all(cena.work().join("sub"))
+        .and_then(|()| fs::write(cena.work().join("nota a.txt"), "x"))
+        .and_then(|()| fs::write(cena.work().join("sub/nota b.txt"), "x".repeat(500)))
+        .and_then(|()| fs::write(cena.work().join("nota c.txt"), "x".repeat(50)));
+    assert!(criado.is_ok());
+    cena.files
+        .arrange(Order::new(SortKey::Size, SortDirection::Descending));
+    buscar(&mut cena, "nota");
+    assert_eq!(nomes(&cena), ["sub/nota b.txt", "nota c.txt", "nota a.txt"]);
 }

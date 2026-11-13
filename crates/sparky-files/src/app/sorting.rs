@@ -7,6 +7,7 @@ use crate::app::state::Files;
 use crate::domain::entry::Entry;
 use crate::domain::order::{Order, SortDirection, SortKey};
 use crate::i18n;
+use crate::ports::Disk;
 
 impl Files {
     pub fn arrange(&mut self, order: Order) {
@@ -25,14 +26,24 @@ impl Files {
     }
 
     pub(super) fn listed(&self, path: &Path) -> io::Result<Vec<Entry>> {
-        let mut entries = self.services.disk.list(path)?;
-        if self.listing.order().needs_details() {
-            for entry in &mut entries {
-                entry.meta = self.services.disk.detail(&path.join(&entry.name));
-            }
-        }
-        Ok(entries)
+        let entries = self.services.disk.list(path)?;
+        let disk = self.services.disk.as_ref();
+        Ok(detailed(disk, path, self.listing.order(), entries))
     }
+}
+
+pub(super) fn detailed(
+    disk: &dyn Disk,
+    dir: &Path,
+    order: Order,
+    mut entries: Vec<Entry>,
+) -> Vec<Entry> {
+    if order.needs_details() {
+        for entry in &mut entries {
+            entry.meta = disk.detail(&dir.join(&entry.name));
+        }
+    }
+    entries
 }
 
 pub fn described(order: Order) -> String {

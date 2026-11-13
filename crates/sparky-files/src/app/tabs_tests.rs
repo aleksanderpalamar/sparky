@@ -6,6 +6,7 @@ use iced::keyboard::{Key, Modifiers};
 use super::message::Message;
 use super::test_scene::Cena;
 use crate::domain::entry::{Kind, entry};
+use crate::domain::order::{Order, SortDirection, SortKey};
 use crate::domain::search::SearchEvent;
 use crate::view::tabs::titles;
 
@@ -91,4 +92,25 @@ fn a_busca_de_uma_aba_guardada_continua_chegando_nela() {
     cena.mandar(Message::Tab(0));
     assert!(nomes(&cena).contains(&"Fotos/abc.txt".to_owned()));
     assert_eq!(titles(&cena.files), ["Busca: a", "work"]);
+}
+
+#[test]
+fn a_busca_de_uma_aba_guardada_respeita_a_ordem_por_tamanho() {
+    let mut cena = Cena::nova();
+    let escrito = fs::write(cena.work().join("Fotos/nota a.txt"), "x")
+        .and_then(|()| fs::write(cena.work().join("Fotos/nota b.txt"), "x".repeat(300)));
+    assert!(escrito.is_ok());
+    cena.files
+        .arrange(Order::new(SortKey::Size, SortDirection::Descending));
+    ctrl(&mut cena, "f");
+    cena.mandar(Message::Typed("nota".to_owned()));
+    cena.mandar(Message::Submit);
+    let Some(id) = cena.files.search.as_ref().map(|busca| busca.id) else {
+        panic!("a busca deveria ter começado")
+    };
+    ctrl(&mut cena, "t");
+    let achados = ["Fotos/nota a.txt", "Fotos/nota b.txt"].map(|nome| entry(nome, Kind::File));
+    cena.mandar(Message::Search(id, SearchEvent::Found(achados.to_vec())));
+    cena.mandar(Message::Tab(0));
+    assert_eq!(nomes(&cena), ["Fotos/nota b.txt", "Fotos/nota a.txt"]);
 }
