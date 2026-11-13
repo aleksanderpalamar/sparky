@@ -9,7 +9,6 @@ use super::test_scene::Cena;
 use crate::domain::drop::DropTarget;
 use crate::domain::icons::IconKind;
 use crate::domain::places::Place;
-use crate::domain::removal::Removal;
 
 fn indice(cena: &Cena, nome: &str) -> usize {
     cena.files
@@ -123,14 +122,13 @@ fn soltar_num_lugar_da_lateral_ou_numa_aba_leva_para_a_pasta_dele() {
 }
 
 #[test]
-fn soltar_na_lixeira_pede_confirmacao() {
+fn soltar_na_lixeira_manda_direto_e_mostra_o_aviso() {
     let mut cena = Cena::nova();
     arrastar(&mut cena, "a.txt");
     soltar_em(&mut cena, DropTarget::Trash);
-    assert_eq!(
-        cena.files.mode,
-        Mode::ConfirmRemoval(Removal::Trash, vec!["a.txt".to_owned()])
-    );
+    assert_eq!(cena.files.mode, Mode::Browse);
+    assert!(!cena.work().join("a.txt").exists());
+    assert!(cena.files.toast.is_some());
 }
 
 #[test]

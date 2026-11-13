@@ -1,57 +1,76 @@
 use std::mem;
 
 use fluent_bundle::FluentArgs;
+use iced::Task;
 
 use crate::app::keys::Answer;
+use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
-use crate::domain::removal::Removal;
+use crate::domain::toast::Toast;
 use crate::domain::undo::Record;
-use crate::domain::wording::items;
 use crate::i18n;
 use crate::operations;
 
 impl Files {
     pub fn ask_trash(&mut self) {
-        let removal = match self.services.disk.has_trash(&self.location) {
-            true => Removal::Trash,
-            false => Removal::Delete,
-        };
-        self.ask_removal(removal);
+        let names = self.listing.chosen();
+        self.trash_or_ask(names);
     }
 
-    pub fn ask_removal(&mut self, removal: Removal) {
+    pub(super) fn trash_or_ask(&mut self, names: Vec<String>) {
+        if names.is_empty() {
+            return;
+        }
+        match self.services.disk.has_trash(&self.location) {
+            true => self.trash(names),
+            false => self.mode = Mode::ConfirmDelete(names),
+        }
+    }
+
+    pub fn ask_delete(&mut self) {
         let names = self.listing.chosen();
         if !names.is_empty() {
-            self.mode = Mode::ConfirmRemoval(removal, names);
+            self.mode = Mode::ConfirmDelete(names);
         }
     }
 
-    pub fn answer_removal(&mut self, answer: Answer) {
-        let Mode::ConfirmRemoval(removal, names) = mem::replace(&mut self.mode, Mode::Browse)
-        else {
+    pub fn answer_delete(&mut self, answer: Answer) {
+        let Mode::ConfirmDelete(names) = mem::replace(&mut self.mode, Mode::Browse) else {
             return;
         };
-        if answer == Answer::No {
-            return;
-        }
-        match removal {
-            Removal::Trash => self.trash(&names),
-            Removal::Delete => self.delete(&names),
+        if answer == Answer::Yes {
+            self.delete(&names);
         }
     }
 
-    fn trash(&mut self, names: &[String]) {
+    pub fn undo_toast(&mut self) -> Task<Message> {
+        let Some(toast) = self.toast.take() else {
+            return Task::none();
+        };
+        match self.journal.last() == Some(&Record::Trashed(toast.entries)) {
+            true => self.undo(),
+            false => Task::none(),
+        }
+    }
+
+    pub fn tick_toast(&mut self) {
+        if self.toast.as_mut().is_some_and(|toast| !toast.tick()) {
+            self.toast = None;
+        }
+    }
+
+    fn trash(&mut self, names: Vec<String>) {
         let (entries, result) =
-            operations::trash(&self.location, names, self.services.disk.as_ref());
+            operations::trash(&self.location, &names, self.services.disk.as_ref());
         self.listing.clear_marks();
         self.refresh();
-        let count = entries.len();
         self.refresh_trashes();
+        self.toast = None;
         if !entries.is_empty() {
-            self.journal.push(Record::Trashed(entries));
+            self.journal.push(Record::Trashed(entries.clone()));
         }
         match result {
-            Ok(()) => self.inform(format!("{} na lixeira", items(count))),
+            Ok(()) => self.toast = Some(Toast::trashed(names, entries)),
             Err(failure) => self.fail(failure),
         }
     }
@@ -61,6 +80,7 @@ impl Files {
             operations::delete(&self.location, names, self.services.disk.as_ref());
         self.listing.clear_marks();
         self.refresh();
+        self.toast = None;
         match result {
             Ok(()) => self.inform(deleted(count)),
             Err(failure) => self.fail(failure),

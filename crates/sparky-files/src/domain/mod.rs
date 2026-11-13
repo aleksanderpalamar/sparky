@@ -24,7 +24,6 @@ pub mod properties;
 pub mod relocation;
 #[cfg(test)]
 mod relocation_tests;
-pub mod removal;
 pub mod search;
 pub mod sidebar_location;
 pub mod size;
@@ -33,6 +32,7 @@ pub mod tabs;
 mod tabs_tests;
 pub mod thumbnail;
 pub mod thumbnail_key;
+pub mod toast;
 pub mod transfer;
 pub mod trash_info;
 pub mod undo;

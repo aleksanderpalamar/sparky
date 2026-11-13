@@ -1,6 +1,5 @@
 use std::fs;
 
-use iced::keyboard::key::Named;
 use iced::keyboard::{Key, Modifiers};
 
 use super::message::Message;
@@ -36,7 +35,6 @@ fn desfazer_lixeira_restaura_o_item() {
     let mut cena = Cena::nova();
     cena.tecla("G");
     cena.tecla("d");
-    cena.nomeada(Named::Enter);
     assert!(!cena.work().join("a.txt").exists());
     desfazer(&mut cena);
     assert_eq!(fs::read_to_string(cena.work().join("a.txt")).unwrap(), "oi");

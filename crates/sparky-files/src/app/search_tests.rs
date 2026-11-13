@@ -70,7 +70,6 @@ fn mandar_um_resultado_para_a_lixeira_tira_ele_da_lista() {
     let mut cena = com_arvore();
     buscar(&mut cena, "foto 1");
     cena.tecla("d");
-    cena.nomeada(Named::Enter);
     assert!(!cena.work().join("Fotos/Praia/Fóto 1.jpg").exists());
     assert!(nomes(&cena).is_empty());
     assert!(cena.files.search.is_some());

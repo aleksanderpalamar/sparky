@@ -2,7 +2,7 @@ use iced::alignment::{Horizontal, Vertical};
 use iced::widget::{
     Space, button, column, container, mouse_area, row, scrollable, stack, text, text_input, toggler,
 };
-use iced::{Background, Border, Element, Length};
+use iced::{Element, Length};
 use sparky_theme::Skin;
 use sparky_ui::style;
 
@@ -12,6 +12,7 @@ use crate::app::state::{Files, OpenWith};
 use crate::domain::application::Remember;
 use crate::i18n;
 use crate::view::open_with_list::list;
+use crate::view::style::dialog;
 
 pub fn layer<'a>(files: &'a Files, base: Element<'a, Message>) -> Element<'a, Message> {
     let Some(choice) = files.open_with.as_ref() else {
@@ -51,7 +52,7 @@ fn pane(skin: Skin, choice: &OpenWith, height: f32) -> Element<'static, Message>
         .height((height - 260.0).clamp(120.0, 360.0))
         .width(Length::Fill)
         .padding(4)
-        .style(move |_| framed(skin, skin.background));
+        .style(move |_| dialog(skin, skin.background));
     let content = column![
         header(skin, choice.selected.is_some()),
         search,
@@ -63,7 +64,7 @@ fn pane(skin: Skin, choice: &OpenWith, height: f32) -> Element<'static, Message>
     container(content)
         .width(440)
         .padding(16)
-        .style(move |_| framed(skin, skin.lighter_background))
+        .style(move |_| dialog(skin, skin.lighter_background))
         .into()
 }
 
@@ -96,17 +97,4 @@ fn remember(skin: Skin, choice: &OpenWith) -> Element<'static, Message> {
         .on_toggle(Message::OpenWithRemember)
         .style(sparky_ui::switch::switch(skin));
     row![labels, switch].align_y(Vertical::Center).into()
-}
-
-fn framed(skin: Skin, fill: iced::Color) -> container::Style {
-    container::Style {
-        background: Some(Background::Color(fill)),
-        text_color: Some(skin.foreground),
-        border: Border {
-            color: skin.accent,
-            width: 1.0,
-            radius: 0.0.into(),
-        },
-        ..container::Style::default()
-    }
 }

@@ -1,5 +1,6 @@
 pub mod batch_preview;
 pub mod context;
+pub mod delete_dialog;
 pub mod grid;
 pub mod header;
 pub mod icon;
@@ -16,6 +17,7 @@ mod sidebar_tests;
 pub mod status;
 pub mod style;
 pub mod tabs;
+pub mod toast;
 pub mod trash_sidebar;
 pub mod virtual_page;
 
@@ -45,7 +47,9 @@ pub fn view(files: &Files) -> Element<'_, Message> {
         .width(Length::Fill)
         .height(Length::Fill)
         .style(move |_| sparky_ui::style::window(skin));
-    context::layer(files, base.into())
+    let base = toast::layer(files, base.into());
+    let base = delete_dialog::layer(files, base);
+    context::layer(files, base)
 }
 
 pub fn title(files: &Files) -> String {

@@ -3,7 +3,7 @@ use iced::keyboard::{Key, Modifiers};
 
 use crate::app::commands::act;
 use crate::app::context;
-use crate::app::keys::{self, Command};
+use crate::app::keys::{self, Answer, Command};
 use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
 use crate::app::virtual_commands::virtual_command;
@@ -36,6 +36,10 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::Unhover(target) => files.unhover(target),
         Message::Modifiers(modifiers) => files.hold_keys(modifiers),
         Message::DragRefused(reason) => files.drag_refused(&reason),
+        Message::ToastUndo => return files.undo_toast(),
+        Message::ToastDismiss => files.toast = None,
+        Message::DeleteConfirm => files.answer_delete(Answer::Yes),
+        Message::DeleteCancel => files.answer_delete(Answer::No),
         Message::ContextEntry(index) => context::entry(files, index),
         Message::ContextBackground => context::background(files),
         Message::ContextDismiss => {
@@ -78,6 +82,7 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::FolderChanged => files.refresh(),
         Message::Job(event) => files.job_event(event),
         Message::Tick => {
+            files.tick_toast();
             files.refresh_if_changed();
             files.icons = files.services.icons.load();
             files.sidebar_icons = files.services.icons.load_sidebar();
@@ -129,7 +134,7 @@ fn key_pressed(files: &mut Files, key: &Key, modifiers: Modifiers) -> Task<Messa
         Mode::Browse => keys::browse(key, modifiers),
         Mode::Filter => keys::filtering(key),
         Mode::Search => None,
-        Mode::ConfirmRemoval(..) | Mode::ConfirmEmptyTrash(_) => return files.confirm(key),
+        Mode::ConfirmDelete(_) | Mode::ConfirmEmptyTrash(_) => return files.confirm(key),
         Mode::Conflict(_) => {
             return keys::conflict(key)
                 .map_or_else(Task::none, |choice| files.resolve_conflict(choice));

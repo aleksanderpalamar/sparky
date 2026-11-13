@@ -4,7 +4,6 @@ use crate::app::context;
 use crate::app::keys::Command;
 use crate::app::state::Files;
 use crate::domain::grid::{Direction, ViewMode};
-use crate::domain::removal::Removal;
 
 pub(super) fn act(files: &mut Files, command: Command) {
     let page = files.layout.capacity() as isize;
@@ -31,7 +30,7 @@ pub(super) fn act(files: &mut Files, command: Command) {
         Command::Copy => files.copy(),
         Command::Cut => files.cut(),
         Command::Trash => files.ask_trash(),
-        Command::Delete => files.ask_removal(Removal::Delete),
+        Command::Delete => files.ask_delete(),
         Command::SortNext => files.arrange(files.listing.order().next_key()),
         Command::SortReverse => files.arrange(files.listing.order().reversed()),
         Command::NewTab => files.open_tab(),

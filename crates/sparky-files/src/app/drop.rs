@@ -9,7 +9,6 @@ use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
 use crate::domain::clip::Clip;
 use crate::domain::drop::{DropTarget, Override, action};
-use crate::domain::removal::Removal;
 use crate::domain::transfer::Action;
 use crate::i18n;
 
@@ -124,9 +123,7 @@ impl Files {
             return Task::none();
         }
         if target == DropTarget::Trash {
-            if self.services.disk.has_trash(&self.location) {
-                self.mode = Mode::ConfirmRemoval(Removal::Trash, names);
-            }
+            self.trash_or_ask(names);
             return Task::none();
         }
         let Some(into) = self.drop_folder(&names, target) else {

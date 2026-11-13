@@ -5,7 +5,6 @@ use sparky_ui::notice::Notice;
 use super::test_scene::Cena;
 use crate::app::message::Message;
 use crate::app::state::Mode;
-use crate::domain::removal::Removal;
 
 #[test]
 fn evento_de_paleta_preserva_uma_renomeacao_em_andamento() {
@@ -72,18 +71,11 @@ fn copiar_e_colar_na_mesma_pasta_duplica() {
 }
 
 #[test]
-fn a_lixeira_so_age_depois_da_confirmacao() {
+fn d_manda_para_a_lixeira_sem_confirmacao() {
     let mut cena = Cena::nova();
     cena.tecla("G");
     cena.tecla("d");
-    assert_eq!(
-        cena.files.mode,
-        Mode::ConfirmRemoval(Removal::Trash, vec!["a.txt".to_owned()])
-    );
-    cena.tecla("n");
-    assert!(cena.work().join("a.txt").exists());
-    cena.tecla("d");
-    cena.nomeada(Named::Enter);
+    assert_eq!(cena.files.mode, Mode::Browse);
     assert!(!cena.work().join("a.txt").exists());
     assert!(cena.dir.path().join("Trash/files/a.txt").exists());
 }

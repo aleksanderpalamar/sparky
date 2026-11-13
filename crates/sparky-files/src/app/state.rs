@@ -26,6 +26,7 @@ use crate::domain::places::Place;
 use crate::domain::properties::Properties;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::domain::tabs::Tabs;
+use crate::domain::toast::Toast;
 use crate::domain::undo::Journal;
 use crate::ports::{
     Archiver, Disk, Dragger, FileClipboard, Finder, IconSource, Opener, SidebarSource,
@@ -110,6 +111,7 @@ pub struct Files {
     pub other_trashes: Vec<Arc<dyn TrashStore>>,
     pub previews: Previews,
     pub notice: Option<Notice>,
+    pub toast: Option<Toast>,
     pub skin: Skin,
     pub services: Services,
 }
@@ -159,6 +161,7 @@ impl Files {
             other_trashes: Vec::new(),
             previews: Previews::default(),
             notice: None,
+            toast: None,
             skin: setup.skin,
             services,
         };

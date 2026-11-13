@@ -46,6 +46,10 @@ impl Journal {
         self.records.pop_back()
     }
 
+    pub fn last(&self) -> Option<&Record> {
+        self.records.back()
+    }
+
     pub fn len(&self) -> usize {
         self.records.len()
     }
