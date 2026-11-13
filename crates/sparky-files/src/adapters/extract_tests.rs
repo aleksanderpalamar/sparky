@@ -137,3 +137,23 @@ fn caminho_que_sobe_de_pasta_e_recusado_sem_vazar_nada() {
     assert!(nomes(&alvo).is_empty());
     assert_eq!(nomes(dir.path()), ["alvo", "mal.tar", "origem"]);
 }
+
+#[test]
+fn cancelar_depois_do_ultimo_progresso_nao_publica_os_arquivos() {
+    let dir = pasta();
+    let origem = dir.path().join("origem");
+    assert!(fs::create_dir(&origem).is_ok());
+    assert!(fs::write(origem.join("a.txt"), "a").is_ok());
+    let destino = dir.path().join("destino");
+    assert!(fs::create_dir(&destino).is_ok());
+    let arquivo = dir.path().join("x.tar");
+    compactar(&arquivo, &origem, &["a.txt"]);
+    let mut concluidos = false;
+    let resultado = extract(&arquivo, &destino, &mut |progress| {
+        let continuar = !concluidos;
+        concluidos = progress.items_done == progress.items_total;
+        continuar
+    });
+    assert_eq!(resultado.ok(), Some(Extraction::Cancelled));
+    assert!(nomes(&destino).is_empty());
+}

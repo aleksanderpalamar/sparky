@@ -2,7 +2,10 @@ use std::fs::{self, Permissions};
 use std::io::{self, BufRead, BufReader};
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
-use std::process::{Child, Command, Stdio};
+use std::process::{Child, ChildStderr, Command, Stdio};
+use std::sync::mpsc::{self, Receiver, RecvTimeoutError};
+use std::thread;
+use std::time::Duration;
 
 use tempfile::TempDir;
 
@@ -13,6 +16,7 @@ use crate::domain::transfer::Progress;
 use crate::i18n;
 
 const TOOL: &str = "bsdtar";
+const POLL: Duration = Duration::from_millis(100);
 
 enum Followed {
     Finished(Option<String>),
@@ -53,6 +57,9 @@ pub fn extract(
             complaint.unwrap_or_else(|| i18n::text("extract-failed")),
         ));
     }
+    if !advance(progress) {
+        return Ok(Extraction::Cancelled);
+    }
     place(staging, into, &stem(archive)).map(Extraction::Done)
 }
 
@@ -81,19 +88,37 @@ fn follow(
     let Some(stderr) = child.stderr.take() else {
         return Ok(Followed::Finished(None));
     };
+    let lines = read_lines(stderr);
     let mut complaint = None;
-    for line in BufReader::new(stderr).lines() {
-        let line = line?;
-        if !line.starts_with("x ") {
-            complaint = Some(line);
-            continue;
+    loop {
+        match lines.recv_timeout(POLL) {
+            Ok(line) => {
+                let line = line?;
+                if !line.starts_with("x ") {
+                    complaint = Some(line);
+                    continue;
+                }
+                progress.items_done += 1;
+            }
+            Err(RecvTimeoutError::Timeout) => {}
+            Err(RecvTimeoutError::Disconnected) => return Ok(Followed::Finished(complaint)),
         }
-        progress.items_done += 1;
         if !advance(*progress) {
             return Ok(Followed::Cancelled);
         }
     }
-    Ok(Followed::Finished(complaint))
+}
+
+fn read_lines(stderr: ChildStderr) -> Receiver<io::Result<String>> {
+    let (sender, lines) = mpsc::channel();
+    thread::spawn(move || {
+        for line in BufReader::new(stderr).lines() {
+            if sender.send(line).is_err() {
+                return;
+            }
+        }
+    });
+    lines
 }
 
 fn place(staging: TempDir, into: &Path, stem: &str) -> io::Result<PathBuf> {
