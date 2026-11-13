@@ -104,3 +104,28 @@ fn um_unico_item_continua_na_renomeacao_simples() {
     cena.tecla("r");
     assert_eq!(cena.files.mode, Mode::Rename("a.txt".to_owned()));
 }
+
+#[test]
+fn renomear_em_cadeia_mantem_cada_favorito_na_sua_pasta() {
+    let cena = Cena::nova();
+    let criado =
+        fs::create_dir(cena.work().join("a")).and_then(|()| fs::create_dir(cena.work().join("aa")));
+    assert!(criado.is_ok());
+    let mut cena = cena;
+    cena.mandar(Message::FolderChanged);
+    let sidebar = cena.files.services.sidebar.clone();
+    assert!(sidebar.favorite(&cena.work().join("a"), true).is_ok());
+    for nome in ["a", "aa"] {
+        cena.files.listing.select_name(nome);
+        cena.files.listing.toggle_mark();
+    }
+    cena.tecla("r");
+    cena.mandar(Message::Typed("a -> aa".to_owned()));
+    cena.mandar(Message::Submit);
+    assert!(cena.work().join("aaaa").is_dir());
+    assert!(sidebar.is_favorite(&cena.work().join("aa")));
+    assert!(!sidebar.is_favorite(&cena.work().join("aaaa")));
+    cena.concluir(Message::Key(Key::Character("z".into()), Modifiers::CTRL));
+    assert!(cena.work().join("a").is_dir());
+    assert!(sidebar.is_favorite(&cena.work().join("a")));
+}

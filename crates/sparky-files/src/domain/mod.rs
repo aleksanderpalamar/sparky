@@ -21,6 +21,9 @@ pub mod naming;
 pub mod order;
 pub mod places;
 pub mod properties;
+pub mod relocation;
+#[cfg(test)]
+mod relocation_tests;
 pub mod removal;
 pub mod search;
 pub mod sidebar_location;

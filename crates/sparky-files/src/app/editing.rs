@@ -141,7 +141,11 @@ impl Files {
             Ok(()) => {
                 let from = self.location.join(original);
                 let to = self.location.join(new);
-                if let Err(error) = self.services.sidebar.relocated(&from, &to) {
+                if let Err(error) = self
+                    .services
+                    .sidebar
+                    .relocated(&[(from.clone(), to.clone())])
+                {
                     self.fail(error);
                     return;
                 }

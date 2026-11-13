@@ -32,7 +32,7 @@ pub trait SidebarSource: Send + Sync {
     fn open_remote(&self, uri: &str) -> Result<(), String>;
     fn favorite(&self, path: &Path, enabled: bool) -> Result<(), String>;
     fn is_favorite(&self, path: &Path) -> bool;
-    fn relocated(&self, from: &Path, to: &Path) -> Result<(), String>;
+    fn relocated(&self, moves: &[(PathBuf, PathBuf)]) -> Result<(), String>;
 }
 
 pub trait FileClipboard {

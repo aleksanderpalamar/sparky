@@ -41,7 +41,7 @@ impl Files {
             Record::Renamed { from, to } => disk.relocate(&to, &from).and_then(|()| {
                 self.services
                     .sidebar
-                    .relocated(&to, &from)
+                    .relocated(&[(to, from)])
                     .map_err(std::io::Error::other)
             }),
             Record::RenamedMany(pairs) => {
@@ -52,12 +52,10 @@ impl Files {
                 rename_all(&back, disk)
                     .map_err(|failure| std::io::Error::other(failure.to_string()))
                     .and_then(|()| {
-                        back.iter().try_for_each(|(from, to)| {
-                            self.services
-                                .sidebar
-                                .relocated(from, to)
-                                .map_err(std::io::Error::other)
-                        })
+                        self.services
+                            .sidebar
+                            .relocated(&back)
+                            .map_err(std::io::Error::other)
                     })
             }
             Record::Trashed(entries) => entries

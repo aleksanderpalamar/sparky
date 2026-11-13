@@ -49,11 +49,9 @@ impl Files {
             self.fail(failure);
             return;
         }
-        for (from, to) in &paths {
-            if let Err(error) = self.services.sidebar.relocated(from, to) {
-                self.fail(error);
-                return;
-            }
+        if let Err(error) = self.services.sidebar.relocated(&paths) {
+            self.fail(error);
+            return;
         }
         if let Some((_, last)) = pairs.last() {
             self.listing.select_name(last);

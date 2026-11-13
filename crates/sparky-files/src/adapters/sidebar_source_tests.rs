@@ -63,7 +63,9 @@ fn renomear_diretorio_mantem_favoritos_filhos() {
     let source = DesktopSidebar::new(dir.path().join("data"));
     source.favorite(&child, true).unwrap();
     fs::rename(&before, &after).unwrap();
-    source.relocated(&before, &after).unwrap();
+    source
+        .relocated(&[(before.clone(), after.clone())])
+        .unwrap();
     assert!(source.is_favorite(&after.join("arquivo.txt")));
 }
 

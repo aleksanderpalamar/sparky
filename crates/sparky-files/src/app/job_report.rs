@@ -9,10 +9,12 @@ impl Files {
     pub(super) fn transferred(&mut self, action: Action, origin: Origin, outcome: Outcome) {
         self.refresh();
         if action == Action::Move {
-            let moved = outcome
+            let moves: Vec<_> = outcome
                 .completed
                 .iter()
-                .try_for_each(|step| self.services.sidebar.relocated(&step.source, &step.target));
+                .map(|step| (step.source.clone(), step.target.clone()))
+                .collect();
+            let moved = self.services.sidebar.relocated(&moves);
             if let Err(error) = moved {
                 self.fail(error);
                 return;

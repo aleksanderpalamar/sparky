@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use gio::prelude::*;
 
+use crate::domain::relocation::relocate;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation, SidebarTarget};
 use crate::ports::SidebarSource;
 
@@ -146,15 +147,9 @@ impl SidebarSource for DesktopSidebar {
             .is_ok_and(|paths| paths.iter().any(|saved| saved == path))
     }
 
-    fn relocated(&self, from: &Path, to: &Path) -> Result<(), String> {
+    fn relocated(&self, moves: &[(PathBuf, PathBuf)]) -> Result<(), String> {
         let paths = self.favorites()?;
-        let changed: Vec<_> = paths
-            .iter()
-            .map(|path| {
-                path.strip_prefix(from)
-                    .map_or_else(|_| path.clone(), |suffix| to.join(suffix))
-            })
-            .collect();
+        let changed: Vec<_> = paths.iter().map(|path| relocate(path, moves)).collect();
         if changed == paths {
             return Ok(());
         }
