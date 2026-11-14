@@ -11,6 +11,10 @@ pub mod tray_commands;
 pub mod tray_events;
 
 #[cfg(test)]
+mod bluez_duplicates_tests;
+#[cfg(test)]
+mod bluez_fixtures;
+#[cfg(test)]
 mod bluez_objects_tests;
 #[cfg(test)]
 mod tray_events_tests;

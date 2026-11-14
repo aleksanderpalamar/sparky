@@ -4,6 +4,7 @@ use zbus::fdo::ManagedObjects;
 use zbus::zvariant::OwnedValue;
 
 use crate::domain::bluetooth::{Adapter, Bluetooth, Device, DeviceKind};
+use crate::domain::bluetooth_devices::{Record, physical};
 use crate::i18n;
 
 pub const ADAPTER: &str = "org.bluez.Adapter1";
@@ -17,18 +18,11 @@ pub fn bluetooth(objects: &ManagedObjects) -> Option<Bluetooth> {
         .filter_map(|(path, interfaces)| {
             let properties = interfaces.get(ADAPTER)?;
             let powered = flag(properties, "Powered");
-            let mut connected: Vec<_> = objects
-                .values()
-                .filter_map(|interfaces| {
-                    let device = interfaces.get(DEVICE)?;
-                    if !powered
-                        || !flag(device, "Connected")
-                        || text(device, "Adapter").as_deref() != Some(path.as_str())
-                    {
-                        return None;
-                    }
-                    text(device, "Alias").or_else(|| text(device, "Name"))
-                })
+            let devices = devices(objects, path.as_str());
+            let mut connected: Vec<_> = devices
+                .iter()
+                .filter(|device| powered && device.connected)
+                .map(|device| device.name.clone())
                 .collect();
             connected.sort();
             let adapter = Adapter {
@@ -38,7 +32,7 @@ pub fn bluetooth(objects: &ManagedObjects) -> Option<Bluetooth> {
                     .unwrap_or_else(|| "Adaptador Bluetooth".to_owned()),
                 powered,
                 discovering: flag(properties, "Discovering"),
-                devices: devices(objects, path.as_str()),
+                devices,
                 connected,
             };
             Some((path.as_str(), adapter))
@@ -50,31 +44,40 @@ pub fn bluetooth(objects: &ManagedObjects) -> Option<Bluetooth> {
 }
 
 fn devices(objects: &ManagedObjects, adapter: &str) -> Vec<Device> {
-    let mut devices: Vec<_> = objects
+    let records = objects
         .iter()
         .filter_map(|(path, interfaces)| {
             let properties = interfaces.get(DEVICE)?;
             if text(properties, "Adapter").as_deref() != Some(adapter) {
                 return None;
             }
-            Some(Device {
-                path: path.to_string(),
-                name: text(properties, "Alias")
-                    .or_else(|| text(properties, "Name"))
-                    .unwrap_or_else(|| i18n::text("bluetooth-device")),
-                paired: flag(properties, "Paired"),
-                connected: flag(properties, "Connected"),
-                kind: DeviceKind::from_bluez(text(properties, "Icon").as_deref()),
-            })
+            Some(record(path.as_str(), properties))
         })
         .collect();
+    let mut devices = physical(records);
     devices.sort_by(|a, b| {
         b.connected
             .cmp(&a.connected)
             .then(b.paired.cmp(&a.paired))
             .then(a.name.cmp(&b.name))
+            .then(a.path.cmp(&b.path))
     });
     devices
+}
+
+fn record(path: &str, properties: &Properties) -> Record {
+    Record {
+        device: Device {
+            path: path.to_owned(),
+            name: text(properties, "Alias")
+                .or_else(|| text(properties, "Name"))
+                .unwrap_or_else(|| i18n::text("bluetooth-device")),
+            paired: flag(properties, "Paired"),
+            connected: flag(properties, "Connected"),
+            kind: DeviceKind::from_bluez(text(properties, "Icon").as_deref()),
+        },
+        address: text(properties, "Address"),
+    }
 }
 
 fn flag(properties: &Properties, key: &str) -> bool {
