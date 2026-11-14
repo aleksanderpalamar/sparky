@@ -1,3 +1,7 @@
+use crate::domain::tag_color::TagColor;
+
+pub const PALETTE_HEIGHT: f32 = 56.0;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Target {
     File,
@@ -6,6 +10,7 @@ pub enum Target {
     Background,
     Trashed,
     TrashBackground,
+    Bookmark(usize),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -29,6 +34,8 @@ pub enum Action {
     SelectAll,
     Restore,
     RestoreAll,
+    Tag(Option<TagColor>),
+    RemoveBookmark,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -39,6 +46,7 @@ pub enum Row {
         shortcut: &'static str,
         enabled: bool,
     },
+    Palette,
     Separator,
 }
 
@@ -46,7 +54,17 @@ impl Row {
     pub fn action(self) -> Option<Action> {
         match self {
             Self::Item { action, .. } => Some(action),
-            Self::Separator => None,
+            Self::Palette | Self::Separator => None,
+        }
+    }
+
+    pub fn offers(self, sought: Action) -> bool {
+        match self {
+            Self::Item {
+                action, enabled, ..
+            } => enabled && action == sought,
+            Self::Palette => matches!(sought, Action::Tag(Some(_))),
+            Self::Separator => false,
         }
     }
 
@@ -56,6 +74,14 @@ impl Row {
 }
 
 pub fn entries(target: Target, has_clip: bool, has_entries: bool) -> Vec<Row> {
+    if let Target::Bookmark(_) = target {
+        return vec![
+            Row::Palette,
+            item(Action::Tag(None), true),
+            Row::Separator,
+            item(Action::RemoveBookmark, true),
+        ];
+    }
     if target == Target::Trashed {
         return vec![item(Action::Restore, true), item(Action::Properties, true)];
     }
@@ -122,6 +148,9 @@ fn item(action: Action, enabled: bool) -> Row {
         Action::SelectAll => ("menu-select-all", "Ctrl+A"),
         Action::Restore => ("menu-restore", ""),
         Action::RestoreAll => ("menu-restore-all", ""),
+        Action::Tag(Some(color)) => (color.label(), ""),
+        Action::Tag(None) => ("menu-no-color", ""),
+        Action::RemoveBookmark => ("menu-remove-bookmark", ""),
     };
     Row::Item {
         action,
@@ -136,6 +165,7 @@ pub fn height(rows: &[Row]) -> f32 {
         .iter()
         .map(|row| match row {
             Row::Item { .. } => 32.0,
+            Row::Palette => PALETTE_HEIGHT,
             Row::Separator => 10.0,
         })
         .sum::<f32>()

@@ -7,6 +7,8 @@ use sparky_theme::Skin;
 use crate::app::message::Message;
 use crate::app::state::Files;
 use crate::domain::context::{self, Row};
+use crate::domain::tag_color::TagColor;
+use crate::view::tag_palette::palette;
 
 const WIDTH: f32 = 280.0;
 const ITEM_HEIGHT: f32 = 32.0;
@@ -27,6 +29,14 @@ pub fn layer<'a>(files: &'a Files, base: Element<'a, Message>) -> Element<'a, Me
         !files.listing.is_empty()
     };
     let entries = context::entries(menu.target, files.clip.is_some(), has_entries);
+    let tag = match menu.target {
+        context::Target::Bookmark(index) => files
+            .bookmarks
+            .items
+            .get(index)
+            .and_then(|bookmark| bookmark.color),
+        _ => None,
+    };
     let height = context::height(&entries).min((files.size.height - 16.0).max(32.0));
     let (x, y) = context::position(
         (menu.point.x, menu.point.y),
@@ -36,7 +46,7 @@ pub fn layer<'a>(files: &'a Files, base: Element<'a, Message>) -> Element<'a, Me
     let backdrop = mouse_area(Space::new().width(Length::Fill).height(Length::Fill))
         .on_press(Message::ContextDismiss)
         .on_right_press(Message::ContextDismiss);
-    let pane = menu_pane(files.skin, &entries, height);
+    let pane = menu_pane(files.skin, &entries, height, tag);
     let positioned = column![Space::new().height(y), row![Space::new().width(x), pane],];
     stack![base, backdrop, positioned]
         .width(Length::Fill)
@@ -44,8 +54,16 @@ pub fn layer<'a>(files: &'a Files, base: Element<'a, Message>) -> Element<'a, Me
         .into()
 }
 
-fn menu_pane(skin: Skin, entries: &[Row], height: f32) -> Element<'static, Message> {
-    let rows = entries.iter().copied().map(|entry| menu_row(skin, entry));
+fn menu_pane(
+    skin: Skin,
+    entries: &[Row],
+    height: f32,
+    tag: Option<TagColor>,
+) -> Element<'static, Message> {
+    let rows = entries.iter().copied().map(|entry| match entry {
+        Row::Palette => palette(skin, tag),
+        entry => menu_row(skin, entry),
+    });
     let body = scrollable(column(rows).padding(6)).height(height);
     container(body)
         .width(WIDTH)

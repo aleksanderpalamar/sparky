@@ -17,7 +17,7 @@ pub struct BookmarkBar {
 
 impl Files {
     pub fn reload_bookmarks(&mut self) {
-        if self.bookmarks.reorder != Reorder::Idle {
+        if self.bookmarks.reorder != Reorder::Idle || self.bookmark_menu_open() {
             return;
         }
         if let Ok(items) = self.services.bookmarks.load() {

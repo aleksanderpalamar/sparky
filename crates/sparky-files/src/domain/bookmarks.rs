@@ -1,5 +1,7 @@
 use std::path::{Path, PathBuf};
 
+use crate::domain::tag_color::TagColor;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Target {
     Local(PathBuf),
@@ -10,6 +12,7 @@ pub enum Target {
 pub struct Bookmark {
     pub target: Target,
     pub label: Option<String>,
+    pub color: Option<TagColor>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -26,6 +29,7 @@ impl Bookmark {
         Self {
             target: Target::Local(path),
             label: None,
+            color: None,
         }
     }
 
@@ -71,7 +75,13 @@ impl Bookmarks {
     }
 
     pub fn contains(&self, path: &Path) -> bool {
-        self.0.iter().any(|bookmark| bookmark.path() == Some(path))
+        self.find(path).is_some()
+    }
+
+    pub fn find(&self, path: &Path) -> Option<usize> {
+        self.0
+            .iter()
+            .position(|bookmark| bookmark.path() == Some(path))
     }
 
     pub fn add(&mut self, path: PathBuf) -> Added {
@@ -80,6 +90,20 @@ impl Bookmarks {
         }
         self.0.push(Bookmark::local(path));
         Added::New
+    }
+
+    pub fn paint(&mut self, index: usize, color: Option<TagColor>) -> bool {
+        match self.0.get_mut(index) {
+            Some(bookmark) if bookmark.color != color => {
+                bookmark.color = color;
+                true
+            }
+            _ => false,
+        }
+    }
+
+    pub fn remove(&mut self, index: usize) -> Option<Bookmark> {
+        (index < self.0.len()).then(|| self.0.remove(index))
     }
 
     pub fn reorder(&mut self, from: usize, to: usize) -> bool {

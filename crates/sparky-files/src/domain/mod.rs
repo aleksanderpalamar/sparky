@@ -33,6 +33,7 @@ pub mod size;
 pub mod tabs;
 #[cfg(test)]
 mod tabs_tests;
+pub mod tag_color;
 pub mod thumbnail;
 pub mod thumbnail_key;
 pub mod toast;

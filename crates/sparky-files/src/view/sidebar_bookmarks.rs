@@ -10,7 +10,8 @@ use crate::domain::bookmarks::Bookmark;
 use crate::domain::drop::DropTarget;
 use crate::domain::icons::IconKind;
 use crate::i18n;
-use crate::view::icon::sidebar_icon;
+use crate::view::icon::tinted_sidebar_icon;
+use crate::view::tag_palette::tint;
 
 const ROW_PADDING: Padding = Padding {
     top: 5.0,
@@ -64,7 +65,7 @@ fn bookmark_row<'a>(
     let selected = current || files.is_bookmark_target(index);
     let hovered = files.bookmarks.hovered == Some(index);
     let label = row![
-        sidebar_icon(files, IconKind::Folder, 20.0),
+        tinted_sidebar_icon(files, IconKind::Folder, 20.0, bookmark.color.map(tint)),
         text(bookmark.name()).size(13.0).width(Length::Fill)
     ]
     .spacing(6)
@@ -75,6 +76,7 @@ fn bookmark_row<'a>(
         .style(move |_| look(skin, selected, hovered));
     mouse_area(body)
         .on_press(Message::BookmarkPressed(index))
+        .on_right_press(Message::ContextBookmark(index))
         .on_enter(Message::Hover(DropTarget::Bookmark(index)))
         .on_exit(Message::Unhover(DropTarget::Bookmark(index)))
         .into()

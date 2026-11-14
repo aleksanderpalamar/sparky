@@ -1,5 +1,5 @@
 use iced::widget::{image, svg};
-use iced::{ContentFit, Element};
+use iced::{Color, ContentFit, Element};
 
 use crate::app::message::Message;
 use crate::app::state::Files;
@@ -25,6 +25,26 @@ pub fn entry_icon(
 
 pub fn icon(files: &Files, kind: IconKind, size: f32) -> Element<'static, Message> {
     render_icon(files, files.icons.get(&kind), kind, size)
+}
+
+pub fn tinted_sidebar_icon(
+    files: &Files,
+    kind: IconKind,
+    size: f32,
+    tint: Option<Color>,
+) -> Element<'static, Message> {
+    let symbolic = files
+        .sidebar_icons
+        .get(&kind)
+        .filter(|path| path.to_string_lossy().ends_with("-symbolic.svg"));
+    match (tint, symbolic) {
+        (Some(color), Some(path)) => svg(svg::Handle::from_path(path))
+            .width(size)
+            .height(size)
+            .style(move |_, _| svg::Style { color: Some(color) })
+            .into(),
+        _ => sidebar_icon(files, kind, size),
+    }
 }
 
 pub fn sidebar_icon(files: &Files, kind: IconKind, size: f32) -> Element<'static, Message> {

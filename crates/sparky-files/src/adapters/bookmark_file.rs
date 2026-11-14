@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use gio::prelude::*;
 
 use crate::domain::bookmarks::{Bookmark, Target};
+use crate::domain::tag_color::TagColor;
 use crate::ports::BookmarkStore;
 
 pub struct BookmarkFile {
@@ -59,24 +60,51 @@ fn parse(line: &str) -> Option<Bookmark> {
     if line.is_empty() {
         return None;
     }
-    let (uri, label) = match line.split_once(' ') {
-        Some((uri, label)) => (uri, Some(label.to_owned())),
-        None => (line, None),
+    let (uri, label, color) = match line.split_once('\t') {
+        Some((uri, rest)) => {
+            let (label, color) = fields(rest);
+            (uri, label, color)
+        }
+        None => match line.split_once(' ') {
+            Some((uri, label)) => (uri, Some(label.to_owned()), None),
+            None => (line, None, None),
+        },
     };
     let target = match uri.starts_with("file://") {
         true => Target::Local(gio::File::for_uri(uri).path()?),
         false => Target::Remote(uri.to_owned()),
     };
-    Some(Bookmark { target, label })
+    Some(Bookmark {
+        target,
+        label,
+        color,
+    })
+}
+
+fn fields(rest: &str) -> (Option<String>, Option<TagColor>) {
+    let mut label = None;
+    let mut color = None;
+    for field in rest.split('\t') {
+        match field.split_once('=') {
+            Some(("label", value)) => label = Some(value.to_owned()),
+            Some(("color", value)) => color = TagColor::from_key(value),
+            _ => {}
+        }
+    }
+    (label, color)
 }
 
 fn render(bookmark: &Bookmark) -> String {
-    let uri = match &bookmark.target {
+    let mut line = match &bookmark.target {
         Target::Local(path) => gio::File::for_path(path).uri().to_string(),
         Target::Remote(uri) => uri.clone(),
     };
-    match &bookmark.label {
-        Some(label) => format!("{uri} {label}\n"),
-        None => format!("{uri}\n"),
+    if let Some(color) = bookmark.color {
+        line.push_str(&format!("\tcolor={}", color.key()));
     }
+    if let Some(label) = &bookmark.label {
+        line.push_str(&format!("\tlabel={}", label.replace(['\t', '\n'], " ")));
+    }
+    line.push('\n');
+    line
 }

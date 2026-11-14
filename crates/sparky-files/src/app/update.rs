@@ -44,6 +44,7 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::DeleteCancel => files.answer_delete(Answer::No),
         Message::ContextEntry(index) => context::entry(files, index),
         Message::ContextBackground => context::background(files),
+        Message::ContextBookmark(index) => files.open_bookmark_menu(index),
         Message::ContextDismiss => {
             files.context = None;
             files.details = None;

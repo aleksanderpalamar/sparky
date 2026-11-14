@@ -18,6 +18,7 @@ mod sidebar_tests;
 pub mod status;
 pub mod style;
 pub mod tabs;
+mod tag_palette;
 pub mod toast;
 pub mod trash_sidebar;
 pub mod virtual_page;

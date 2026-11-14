@@ -37,6 +37,7 @@ pub enum Message {
     DeleteCancel,
     ContextEntry(usize),
     ContextBackground,
+    ContextBookmark(usize),
     ContextAction(Action),
     ContextDismiss,
     OpenWithChoice(String),
