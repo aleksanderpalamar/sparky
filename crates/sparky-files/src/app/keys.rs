@@ -44,6 +44,7 @@ pub enum Command {
     View(ViewMode),
     Volume(usize),
     UnmountCurrent,
+    Bookmark,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -130,7 +131,7 @@ fn control_command(text: &str, modifiers: Modifiers) -> Option<Command> {
         "v" => Some(Command::Paste),
         "h" => Some(Command::ToggleHidden),
         "r" => Some(Command::Refresh),
-        "d" => Some(Command::PageDown),
+        "d" => Some(Command::Bookmark),
         "u" => Some(Command::PageUp),
         "q" => Some(Command::Quit),
         "z" => Some(Command::Undo),

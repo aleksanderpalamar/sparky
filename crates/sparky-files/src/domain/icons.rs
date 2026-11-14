@@ -63,8 +63,9 @@ pub const ALL: [IconKind; 24] = [
 
 pub type Icons = BTreeMap<IconKind, PathBuf>;
 
-pub const SIDEBAR: [IconKind; 14] = [
+pub const SIDEBAR: [IconKind; 15] = [
     IconKind::Home,
+    IconKind::Folder,
     IconKind::Recent,
     IconKind::Favorite,
     IconKind::Network,

@@ -30,11 +30,12 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::Scrolled(lines) => files
             .viewport
             .scroll(lines, files.layout.row_count(files.listing.len())),
-        Message::Pointer(point) => return files.pointer_moved(point),
-        Message::Released => return files.released(),
-        Message::Hover(target) => files.hover(target),
-        Message::Unhover(target) => files.unhover(target),
+        Message::Pointer(point) => return files.pointer_at(point),
+        Message::Released => return files.release_all(),
+        Message::Hover(target) => files.hovered(target),
+        Message::Unhover(target) => files.unhovered(target),
         Message::Modifiers(modifiers) => files.hold_keys(modifiers),
+        Message::BookmarkPressed(index) => files.press_bookmark(index),
         Message::DragRefused(reason) => files.drag_refused(&reason),
         Message::ToastUndo => return files.undo_toast(),
         Message::ToastDismiss => files.toast = None,
@@ -84,6 +85,7 @@ fn dispatch(files: &mut Files, message: Message) -> Task<Message> {
         Message::Job(event) => files.job_event(event),
         Message::Tick => {
             files.tick_toast();
+            files.reload_bookmarks();
             files.refresh_if_changed();
             files.icons = files.services.icons.load();
             files.sidebar_icons = files.services.icons.load_sidebar();

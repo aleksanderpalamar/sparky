@@ -7,6 +7,7 @@ use std::time::SystemTime;
 
 use crate::domain::application::{AppChoices, Remember};
 use crate::domain::archive::Extraction;
+use crate::domain::bookmarks::Bookmark;
 use crate::domain::clip::{ClipOffer, Pasted};
 use crate::domain::entry::{Entry, Meta};
 use crate::domain::icons::Icons;
@@ -33,6 +34,11 @@ pub trait SidebarSource: Send + Sync {
     fn favorite(&self, path: &Path, enabled: bool) -> Result<(), String>;
     fn is_favorite(&self, path: &Path) -> bool;
     fn relocated(&self, moves: &[(PathBuf, PathBuf)]) -> Result<(), String>;
+}
+
+pub trait BookmarkStore: Send + Sync {
+    fn load(&self) -> Result<Vec<Bookmark>, String>;
+    fn save(&self, bookmarks: &[Bookmark]) -> Result<(), String>;
 }
 
 pub trait FileClipboard {

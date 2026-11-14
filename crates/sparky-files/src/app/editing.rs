@@ -84,7 +84,7 @@ impl Files {
     }
 
     pub fn escape(&mut self) {
-        if self.cancel_drag() {
+        if self.cancel_drag() || self.cancel_reorder() {
             return;
         }
         if self.open_with.take().is_some() {

@@ -122,6 +122,10 @@ impl Files {
         if !live {
             return Task::none();
         }
+        if let DropTarget::Bookmarks | DropTarget::Bookmark(_) = target {
+            self.bookmark_dropped(names);
+            return Task::none();
+        }
         if target == DropTarget::Trash {
             self.trash_or_ask(names);
             return Task::none();
@@ -168,7 +172,7 @@ impl Files {
                 .stored(index)
                 .filter(|tab| tab.sidebar_page.is_none() && tab.search.is_none())
                 .map(|tab| tab.location.clone()),
-            DropTarget::Trash => None,
+            DropTarget::Trash | DropTarget::Bookmarks | DropTarget::Bookmark(_) => None,
         }
     }
 

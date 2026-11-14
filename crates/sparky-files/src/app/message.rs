@@ -25,6 +25,7 @@ pub enum Message {
     Scrolled(isize),
     Pointer(Point),
     Released,
+    BookmarkPressed(usize),
     Hover(DropTarget),
     Unhover(DropTarget),
     Modifiers(Modifiers),

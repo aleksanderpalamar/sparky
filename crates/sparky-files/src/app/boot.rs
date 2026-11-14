@@ -12,6 +12,7 @@ use crate::adapters::compositor_drag::CompositorDrag;
 use crate::adapters::disk_trash::DiskTrashes;
 use crate::adapters::finder::TreeFinder;
 use crate::adapters::gio_listing;
+use crate::adapters::gtk_bookmarks::GtkBookmarks;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::icons::ThemeIcons;
 use crate::adapters::local_disk::LocalDisk;
@@ -55,6 +56,7 @@ pub fn boot() -> (Files, Task<Message>) {
         trash_disks: Arc::new(DiskTrashes::new(trash.clone())),
         finder: Arc::new(TreeFinder::new(SEARCH_LIMIT)),
         dragger: Arc::new(CompositorDrag),
+        bookmarks: Arc::new(GtkBookmarks::from_env()),
         clipboard: Box::new(WaylandClipboard),
         sidebar: std::sync::Arc::new(DesktopSidebar::from_env()),
         transfer: Arc::new(LocalTransfer::new(

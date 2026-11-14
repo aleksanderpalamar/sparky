@@ -11,6 +11,7 @@ mod open_with_list;
 pub mod properties;
 pub mod search_status;
 pub mod sidebar;
+mod sidebar_bookmarks;
 mod sidebar_device;
 #[cfg(test)]
 mod sidebar_tests;
