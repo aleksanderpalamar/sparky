@@ -1,17 +1,17 @@
 use std::fs;
 use std::io::{ErrorKind, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use gio::prelude::*;
 
 use crate::domain::bookmarks::{Bookmark, Target};
 use crate::ports::BookmarkStore;
 
-pub struct GtkBookmarks {
+pub struct BookmarkFile {
     file: PathBuf,
 }
 
-impl GtkBookmarks {
+impl BookmarkFile {
     pub fn new(file: PathBuf) -> Self {
         Self { file }
     }
@@ -21,11 +21,11 @@ impl GtkBookmarks {
             .map(PathBuf::from)
             .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".config")))
             .unwrap_or_default();
-        Self::new(config.join("gtk-3.0/bookmarks"))
+        Self::new(location(&config))
     }
 }
 
-impl BookmarkStore for GtkBookmarks {
+impl BookmarkStore for BookmarkFile {
     fn load(&self) -> Result<Vec<Bookmark>, String> {
         match fs::read_to_string(&self.file) {
             Ok(contents) => Ok(contents.lines().filter_map(parse).collect()),
@@ -48,6 +48,10 @@ impl BookmarkStore for GtkBookmarks {
             .map(drop)
             .map_err(|error| error.to_string())
     }
+}
+
+pub fn location(config: &Path) -> PathBuf {
+    config.join("sparky/bookmarks")
 }
 
 fn parse(line: &str) -> Option<Bookmark> {

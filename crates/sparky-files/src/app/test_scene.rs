@@ -13,8 +13,8 @@ use tempfile::TempDir;
 use super::test_sources::{
     AreaFalsa, ArquivosComprimidos, ArrastoFalso, NoDiskTrashes, NoIcons, NoVolumes,
 };
+use crate::adapters::bookmark_file::BookmarkFile;
 use crate::adapters::finder::TreeFinder;
-use crate::adapters::gtk_bookmarks::GtkBookmarks;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::local_disk::LocalDisk;
 use crate::adapters::sidebar_source::DesktopSidebar;
@@ -96,8 +96,8 @@ impl Cena {
             trash_disks: Arc::new(NoDiskTrashes),
             finder: Arc::new(TreeFinder::new(100)),
             dragger: Arc::new(arrastos.clone()),
-            bookmarks: Arc::new(GtkBookmarks::new(
-                dir.path().join("config/gtk-3.0/bookmarks"),
+            bookmarks: Arc::new(BookmarkFile::new(
+                dir.path().join("config/sparky/bookmarks"),
             )),
             clipboard: Box::new(area.clone()),
             sidebar: Arc::new(DesktopSidebar::new(dir.path().join("data"))),

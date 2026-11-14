@@ -1,5 +1,8 @@
 pub mod app_icons;
 pub mod archive;
+pub mod bookmark_file;
+#[cfg(test)]
+mod bookmark_file_tests;
 pub mod clipboard;
 pub mod clipboard_request;
 pub mod clipboard_server;
@@ -21,9 +24,6 @@ mod finder_tests;
 pub mod gio_listing;
 #[cfg(test)]
 mod gio_listing_tests;
-pub mod gtk_bookmarks;
-#[cfg(test)]
-mod gtk_bookmarks_tests;
 pub mod home_trash;
 pub mod icons;
 pub mod local_disk;

@@ -6,17 +6,17 @@ use iced::keyboard::{Key, Modifiers};
 
 use super::message::Message;
 use super::test_scene::Cena;
-use crate::adapters::gtk_bookmarks::GtkBookmarks;
+use crate::adapters::bookmark_file::BookmarkFile;
 use crate::domain::bookmarks::Bookmark;
 use crate::domain::drop::DropTarget;
 use crate::ports::BookmarkStore;
 
 fn arquivo(cena: &Cena) -> PathBuf {
-    cena.dir.path().join("config/gtk-3.0/bookmarks")
+    cena.dir.path().join("config/sparky/bookmarks")
 }
 
 fn gravados(cena: &Cena) -> Vec<String> {
-    GtkBookmarks::new(arquivo(cena))
+    BookmarkFile::new(arquivo(cena))
         .load()
         .unwrap_or_default()
         .iter()
@@ -55,7 +55,7 @@ fn com_marcadores(nomes: &[&str]) -> Cena {
             Bookmark::local(pasta)
         })
         .collect();
-    assert!(GtkBookmarks::new(arquivo(&cena)).save(&lista).is_ok());
+    assert!(BookmarkFile::new(arquivo(&cena)).save(&lista).is_ok());
     cena.mandar(Message::Tick);
     cena
 }
@@ -84,7 +84,7 @@ fn arrastar_marcador(cena: &mut Cena, de: usize, para: usize) {
 }
 
 #[test]
-fn ctrl_d_marca_a_pasta_atual_e_grava_no_arquivo_do_gtk() {
+fn ctrl_d_marca_a_pasta_atual_e_grava_no_arquivo_do_sparky() {
     let mut cena = Cena::nova();
     assert!(cena.files.go(cena.work().join("Fotos")));
     ctrl_d(&mut cena);
@@ -108,9 +108,9 @@ fn marcadores_gravados_por_outra_sessao_aparecem_e_nao_se_perdem() {
     assert_eq!(mostrados(&cena), ["Projetos"]);
     let externo = cena.work().join("Musica");
     assert!(fs::create_dir(&externo).is_ok());
-    let mut lista = GtkBookmarks::new(arquivo(&cena)).load().unwrap_or_default();
+    let mut lista = BookmarkFile::new(arquivo(&cena)).load().unwrap_or_default();
     lista.push(Bookmark::local(externo));
-    assert!(GtkBookmarks::new(arquivo(&cena)).save(&lista).is_ok());
+    assert!(BookmarkFile::new(arquivo(&cena)).save(&lista).is_ok());
     assert!(cena.files.go(cena.work().join("Fotos")));
     ctrl_d(&mut cena);
     assert_eq!(gravados(&cena), ["Projetos", "Musica", "Fotos"]);
