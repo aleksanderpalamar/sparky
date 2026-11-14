@@ -392,7 +392,7 @@ As consultas periódicas de dispositivos não exibem indicador de atualização.
 | `s` / `S` | Troca o critério de ordenação (nome, tamanho, data de modificação, tipo) / inverte a ordem; as pastas ficam sempre no topo, e na lista clicar no título de uma coluna ordena por ela (de novo, inverte) |
 | `F5` ou `CTRL + R` | Relê a pasta |
 | `CTRL + Z` | Desfaz a última renomeação, criação, ida para a lixeira, cópia ou movimentação (até 50 passos; cópias e itens criados vão para a lixeira) |
-| `CTRL + D` | Adiciona a pasta aberta aos **Marcadores**; uma pasta já marcada não é repetida |
+| `CTRL + D` | Adiciona aos **Marcadores** a pasta selecionada (ou as pastas marcadas); com um arquivo selecionado ou numa pasta vazia, adiciona a pasta aberta. Uma pasta já marcada não é repetida |
 | `q` ou `CTRL + Q` | Fecha |
 
 | `CTRL + SHIFT + N` | Cria uma pasta, com o nome sugerido selecionado |

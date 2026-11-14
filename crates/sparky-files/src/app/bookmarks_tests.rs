@@ -41,10 +41,6 @@ fn aviso(cena: &Cena) -> String {
         .unwrap_or_default()
 }
 
-fn ctrl_d(cena: &mut Cena) {
-    cena.mandar(Message::Key(Key::Character("d".into()), Modifiers::CTRL));
-}
-
 fn com_marcadores(nomes: &[&str]) -> Cena {
     let mut cena = Cena::nova();
     let lista: Vec<_> = nomes
@@ -84,25 +80,6 @@ fn arrastar_marcador(cena: &mut Cena, de: usize, para: usize) {
 }
 
 #[test]
-fn ctrl_d_marca_a_pasta_atual_e_grava_no_arquivo_do_sparky() {
-    let mut cena = Cena::nova();
-    assert!(cena.files.go(cena.work().join("Fotos")));
-    ctrl_d(&mut cena);
-    assert_eq!(mostrados(&cena), ["Fotos"]);
-    assert_eq!(gravados(&cena), ["Fotos"]);
-    assert_eq!(aviso(&cena), "“Fotos” adicionado aos marcadores");
-}
-
-#[test]
-fn ctrl_d_numa_pasta_ja_marcada_nao_duplica() {
-    let mut cena = Cena::nova();
-    ctrl_d(&mut cena);
-    ctrl_d(&mut cena);
-    assert_eq!(gravados(&cena), ["work"]);
-    assert_eq!(aviso(&cena), "“work” já está nos marcadores");
-}
-
-#[test]
 fn marcadores_gravados_por_outra_sessao_aparecem_e_nao_se_perdem() {
     let mut cena = com_marcadores(&["Projetos"]);
     assert_eq!(mostrados(&cena), ["Projetos"]);
@@ -112,7 +89,7 @@ fn marcadores_gravados_por_outra_sessao_aparecem_e_nao_se_perdem() {
     lista.push(Bookmark::local(externo));
     assert!(BookmarkFile::new(arquivo(&cena)).save(&lista).is_ok());
     assert!(cena.files.go(cena.work().join("Fotos")));
-    ctrl_d(&mut cena);
+    cena.mandar(Message::Key(Key::Character("d".into()), Modifiers::CTRL));
     assert_eq!(gravados(&cena), ["Projetos", "Musica", "Fotos"]);
 }
 

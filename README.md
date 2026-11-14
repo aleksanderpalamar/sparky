@@ -400,7 +400,7 @@ Periodic device queries do not display a refresh indicator. The sidebar shows pr
 | `s` / `S` | Cycle the sort key (name, size, modification date, type) / reverse the order; folders always stay on top, and in the list clicking a column title sorts by it (again, reverses) |
 | `F5` or `CTRL + R` | Reread the folder |
 | `CTRL + Z` | Undo the last rename, creation, move to trash, copy, or move (up to 50 steps; copies and created items go to the trash) |
-| `CTRL + D` | Adds the open folder to **Bookmarks**; a folder that is already bookmarked is not repeated |
+| `CTRL + D` | Adds the selected folder (or the marked folders) to **Bookmarks**; with a file selected or in an empty folder, adds the open folder. A folder that is already bookmarked is not repeated |
 | `q` or `CTRL + Q` | Close |
 
 | `CTRL + SHIFT + N` | Create a folder, with the suggested name selected |

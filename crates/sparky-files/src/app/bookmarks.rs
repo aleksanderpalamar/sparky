@@ -25,28 +25,38 @@ impl Files {
         }
     }
 
-    pub fn bookmark_location(&mut self) {
+    pub fn bookmark_selection(&mut self) {
         if self.sidebar_page.is_some() || self.in_trash() {
             self.inform(i18n::text("bookmark-unavailable"));
             return;
         }
-        self.add_bookmarks(vec![self.location.clone()]);
+        let marked = self.listing.marked_count() > 0;
+        let folders = self.folders_among(&self.listing.chosen());
+        match (folders.is_empty(), marked) {
+            (false, _) => self.add_bookmarks(folders),
+            (true, true) => self.inform(i18n::text("bookmark-only-folders")),
+            (true, false) => self.add_bookmarks(vec![self.location.clone()]),
+        }
     }
 
     pub(super) fn bookmark_dropped(&mut self, names: Vec<String>) {
+        let folders = self.folders_among(&names);
+        match folders.is_empty() {
+            true => self.inform(i18n::text("bookmark-only-folders")),
+            false => self.add_bookmarks(folders),
+        }
+    }
+
+    fn folders_among(&self, names: &[String]) -> Vec<PathBuf> {
         let disk = self.services.disk.as_ref();
-        let folders: Vec<PathBuf> = names
+        names
             .iter()
             .map(|name| self.location.join(name))
             .filter(|path| {
                 disk.properties(path)
                     .is_ok_and(|item| item.kind == Kind::Directory)
             })
-            .collect();
-        match folders.is_empty() {
-            true => self.inform(i18n::text("bookmark-only-folders")),
-            false => self.add_bookmarks(folders),
-        }
+            .collect()
     }
 
     pub(super) fn open_bookmark(&mut self, index: usize) {

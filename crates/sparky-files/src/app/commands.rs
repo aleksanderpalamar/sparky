@@ -30,7 +30,7 @@ pub(super) fn act(files: &mut Files, command: Command) {
         Command::Copy => files.copy(),
         Command::Cut => files.cut(),
         Command::Trash => files.ask_trash(),
-        Command::Bookmark => files.bookmark_location(),
+        Command::Bookmark => files.bookmark_selection(),
         Command::Delete => files.ask_delete(),
         Command::SortNext => files.arrange(files.listing.order().next_key()),
         Command::SortReverse => files.arrange(files.listing.order().reversed()),

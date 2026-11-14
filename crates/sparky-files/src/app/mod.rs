@@ -1,6 +1,8 @@
 pub mod archive;
 mod background;
 pub mod batch;
+#[cfg(test)]
+mod bookmark_keys_tests;
 mod bookmark_menu;
 #[cfg(test)]
 mod bookmark_menu_tests;
