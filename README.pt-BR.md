@@ -227,7 +227,7 @@ A configuração (`data/zsh/`) reproduz a do powerlevel10k *rainbow* em zsh puro
 
 A emulação (PTY, sequências VT/xterm, histórico de 10 mil linhas e seleção) vem da biblioteca `alacritty_terminal`; a janela, o desenho das células, o teclado e as cores são do sparky. O texto usa a JetBrainsMono Nerd Font em 12 px, com a margem de 18 px e os cantos retos do sparky, e mede a célula com o mesmo motor de texto que desenha, para as colunas não desalinharem. Negrito, itálico, sublinhado, riscado, inverso, esmaecido, 256 cores, truecolor, caracteres largos e os glifos da Nerd Font aparecem como no kitty.
 
-As cores seguem o tema do sparky, inclusive com o terminal aberto: as 16 cores ANSI saem do `colors.toml` na mesma ordem que o Omarchy usa no kitty (`background`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `foreground`, `muted` e as `bright_*`), o cursor e a seleção usam `bright_foreground` e `selection`, e aplicar outro tema no painel recolore o terminal em até um segundo. Cores trocadas por um programa (OSC 4, 10, 11 e 12) valem até o programa desfazer.
+As cores seguem o tema do sparky, inclusive com o terminal aberto: as 16 cores ANSI saem do `colors.toml` na mesma ordem que o Omarchy usa no kitty (`background`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `foreground`, `muted` e as `bright_*`); o cursor e a seleção usam `bright_foreground` e `selection`. Um tema pode dar cores próprias ao terminal com o prefixo `terminal_` (por exemplo `terminal_background` ou `terminal_red`) sem mudar o resto da interface; sem o prefixo, valem as chaves comuns. Aplicar outro tema no painel recolore o terminal em até um segundo. Cores trocadas por um programa (OSC 4, 10, 11 e 12) valem até o programa desfazer.
 
 | Tecla | O que faz |
 |---|---|
@@ -497,7 +497,7 @@ Sem nenhum dos dois, vale o Tokyo Night embutido.
 
 A seção Temas lista paletas em `$XDG_DATA_HOME/sparky/themes/<nome>/colors.toml` (por padrão `~/.local/share/sparky/themes`) e em `$SPARKY_PATH/themes` (por padrão `/usr/share/sparky/themes`). O usuário tem prioridade sobre nomes iguais do sistema; Tokyo Night permanece disponível. Arquivos sem cores reconhecidas ou com cores inválidas são ignorados.
 
-O sparky traz 22 temas: catppuccin, catppuccin-latte, ethereal, everforest, flexoki-light, gruvbox, hackerman, kanagawa, last-horizon, lumon, lupine, matte-black, miasma, nord, osaka-jade, retro-82, ristretto, rose-pine, solitude, tokyo-night, vantablack e white. Além do `colors.toml`, cada tema pode ter um `icons.theme` com o nome do tema de ícones que combina com ele (os temas do sparky usam as cores do Yaru, como `Yaru-blue` e `Yaru-sage`).
+O sparky traz 24 temas: catppuccin, catppuccin-latte, ethereal, everforest, flexoki-light, gruvbox, hackerman, kanagawa, last-horizon, lumon, lupine, matte-black, miasma, nord, osaka-jade, retro-82, ristretto, rose-pine, solitude, spark, spark-98, tokyo-night, vantablack e white. O **spark** segue as cores do Ubuntu e do Yaru: superfícies em cinza-escuro, destaque laranja, pastas laranja do `Yaru` e terminal berinjela. O **spark-98** segue o esquema clássico do Windows 98: painéis e menus em cinza, azul-marinho na borda da janela ativa e na seleção dos menus, pastas do `Yaru-yellow`, área de trabalho verde-petróleo e terminal preto com as 16 cores clássicas. Além do `colors.toml`, cada tema pode ter um `icons.theme` com o nome do tema de ícones que combina com ele (os temas do sparky usam as cores do Yaru, como `Yaru-blue` e `Yaru-sage`).
 
 `j`/`k` escolhem a paleta; `Enter` ou clique aplica. As cores são gravadas por substituição atômica em `~/.config/sparky/colors.toml` (respeitando `XDG_CONFIG_HOME`). Se o tema tiver `icons.theme`, o painel também troca o tema de ícones: grava `gtk-icon-theme-name` no `settings.ini` do GTK 3 e do GTK 4 (as outras chaves ficam) e roda `gsettings set org.gnome.desktop.interface icon-theme`. Esse ajuste é do GTK, então vale também fora do sparky. O painel atualiza imediatamente; compositor, barra, lançador, arquivos e capturador verificam as cores a cada segundo, preservando janelas, seleção e edições abertas. A seção não depende de Hyprland ou hypr-theme e não gerencia temas de aplicativos externos.
 
@@ -572,7 +572,7 @@ check obrigatório na main.
 
 ## Créditos
 
-Os temas de `data/themes` (paletas e nomes dos temas de ícones), os papéis de parede de `data/wallpapers` e o layout vêm do Omarchy, © David Heinemeier Hansson, licença MIT; a licença acompanha cada tema. O repositório do Omarchy não informa a autoria das imagens.
+Os temas de `data/themes` (paletas e nomes dos temas de ícones), os papéis de parede de `data/wallpapers` e o layout vêm do Omarchy, © David Heinemeier Hansson, licença MIT; a licença acompanha cada tema. O repositório do Omarchy não informa a autoria das imagens. Os temas spark e spark-98 e seus papéis de parede são originais do sparky (GPL-3.0-or-later): reproduzem só os valores de cor do Ubuntu e do Windows 98, sem logotipos, marcas ou imagens desses sistemas.
 
 ## Licença
 

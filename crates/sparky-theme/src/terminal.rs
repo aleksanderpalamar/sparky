@@ -72,7 +72,7 @@ impl TerminalPalette {
     pub fn from_colors(contents: &str) -> Self {
         let fallback = Self::TOKYO_NIGHT;
         let color = |key: &str, default: Rgb| {
-            colors_file::value(contents, key)
+            terminal_value(contents, key)
                 .and_then(Rgb::parse)
                 .unwrap_or(default)
         };
@@ -92,4 +92,9 @@ impl TerminalPalette {
             selection_background: color("selection", fallback.selection_background),
         }
     }
+}
+
+fn terminal_value<'a>(contents: &'a str, key: &str) -> Option<&'a str> {
+    colors_file::value(contents, &format!("terminal_{key}"))
+        .or_else(|| colors_file::value(contents, key))
 }

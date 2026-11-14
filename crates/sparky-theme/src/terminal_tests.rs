@@ -43,3 +43,38 @@ fn o_tokyo_night_embutido_e_o_do_kitty_do_usuario() {
     let pacote = include_str!("../../../data/themes/tokyo-night/colors.toml");
     assert_eq!(TerminalPalette::from_colors(pacote), paleta);
 }
+
+#[test]
+fn as_chaves_do_terminal_valem_so_no_terminal() {
+    let cores = "background = \"#2b2b2b\"\nforeground = \"#f7f7f7\"\nred = \"#c7162b\"\nselection = \"#5e2750\"\nterminal_background = \"#300a24\"\nterminal_foreground = \"#ffffff\"\nterminal_red = \"#c01c28\"\nterminal_selection = \"#77216f\"\n";
+    let paleta = TerminalPalette::from_colors(cores);
+    assert_eq!(Some(paleta.background), Rgb::parse("#300a24"));
+    assert_eq!(Some(paleta.cursor_text), Rgb::parse("#300a24"));
+    assert_eq!(Some(paleta.ansi[0]), Rgb::parse("#300a24"));
+    assert_eq!(Some(paleta.foreground), Rgb::parse("#ffffff"));
+    assert_eq!(Some(paleta.ansi[7]), Rgb::parse("#ffffff"));
+    assert_eq!(Some(paleta.ansi[1]), Rgb::parse("#c01c28"));
+    assert_eq!(Some(paleta.selection_background), Rgb::parse("#77216f"));
+    assert_eq!(
+        crate::Palette::from_colors(cores).background,
+        Rgb::new(0x2b, 0x2b, 0x2b)
+    );
+}
+
+#[test]
+fn sem_chave_do_terminal_vale_a_cor_comum() {
+    let paleta = TerminalPalette::from_colors("red = \"#010203\"\nterminal_green = \"#040506\"");
+    assert_eq!(paleta.ansi[1], Rgb::new(1, 2, 3));
+    assert_eq!(paleta.ansi[2], Rgb::new(4, 5, 6));
+}
+
+#[test]
+fn os_temas_spark_tem_terminal_proprio() {
+    let spark =
+        TerminalPalette::from_colors(include_str!("../../../data/themes/spark/colors.toml"));
+    assert_eq!(Some(spark.background), Rgb::parse("#300a24"));
+    let classico =
+        TerminalPalette::from_colors(include_str!("../../../data/themes/spark-98/colors.toml"));
+    assert_eq!(Some(classico.background), Rgb::parse("#000000"));
+    assert_eq!(Some(classico.foreground), Rgb::parse("#c0c0c0"));
+}

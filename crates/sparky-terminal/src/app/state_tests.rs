@@ -80,3 +80,43 @@ fn o_ime_abre_na_celula_do_cursor() {
         (18.0 + 24.0, 18.0 + 32.0, 8.0, 16.0)
     );
 }
+
+#[test]
+fn alternar_entre_spark_e_spark_98_troca_o_fundo_do_terminal_aberto() {
+    let spark = include_str!("../../../../data/themes/spark/colors.toml");
+    let classico = include_str!("../../../../data/themes/spark-98/colors.toml");
+    let mut aberto = terminal();
+    for (tema, fundo) in [
+        (spark, "#300a24"),
+        (classico, "#000000"),
+        (spark, "#300a24"),
+    ] {
+        let cores = TerminalPalette::from_colors(tema);
+        assert_eq!(
+            aberto.observe_colors(Palette::from_colors(tema), cores),
+            Changed::Yes
+        );
+        assert_eq!(
+            Some(aberto.palette.background),
+            sparky_theme::Rgb::parse(fundo)
+        );
+    }
+    assert_ne!(
+        Palette::from_colors(spark).background,
+        aberto.palette.background
+    );
+}
+
+#[test]
+fn mudar_so_as_cores_do_terminal_redesenha() {
+    let mut aberto = terminal();
+    let cores = TerminalPalette::from_colors("terminal_background = \"#300a24\"");
+    assert_eq!(
+        aberto.observe_colors(Palette::TOKYO_NIGHT, cores),
+        Changed::Yes
+    );
+    assert_eq!(
+        aberto.palette.background,
+        sparky_theme::Rgb::new(0x30, 0x0a, 0x24)
+    );
+}
