@@ -42,6 +42,11 @@ class FilesActionsDependenciesTest(unittest.TestCase):
         servico = (ROOT / "data/dbus/org.freedesktop.impl.portal.desktop.sparky.service").read_text()
         self.assertIn("Name=org.freedesktop.impl.portal.desktop.sparky", servico)
         self.assertIn("Exec=/usr/bin/sparky-files --file-chooser", servico)
+        self.assertIn("SystemdService=xdg-desktop-portal-sparky.service", servico)
+        unidade = (ROOT / "data/session/xdg-desktop-portal-sparky.service").read_text()
+        self.assertIn("PartOf=graphical-session.target", unidade)
+        self.assertIn("BusName=org.freedesktop.impl.portal.desktop.sparky", unidade)
+        self.assertIn("ExecStart=/usr/bin/sparky-files --file-chooser", unidade)
         preferidos = (ROOT / "data/portals/sparky-portals.conf").read_text()
         self.assertIn("org.freedesktop.impl.portal.FileChooser=sparky", preferidos)
         cargo = (ROOT / "crates/sparky-compositor/Cargo.toml").read_text()
@@ -51,6 +56,8 @@ class FilesActionsDependenciesTest(unittest.TestCase):
         self.assertIn('"usr/share/dbus-1/services/"', cargo)
         self.assertIn('data/portals/sparky.portal -t "$pkgdir/usr/share/xdg-desktop-portal/portals"', pkgbuild)
         self.assertIn('-t "$pkgdir/usr/share/dbus-1/services"', pkgbuild)
+        self.assertIn('dest = "/usr/lib/systemd/user/xdg-desktop-portal-sparky.service"', cargo)
+        self.assertIn('data/session/xdg-desktop-portal-sparky.service -t "$pkgdir/usr/lib/systemd/user"', pkgbuild)
 
 
 if __name__ == "__main__":

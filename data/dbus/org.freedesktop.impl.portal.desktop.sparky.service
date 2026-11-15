@@ -1,3 +1,4 @@
 [D-BUS Service]
 Name=org.freedesktop.impl.portal.desktop.sparky
 Exec=/usr/bin/sparky-files --file-chooser
+SystemdService=xdg-desktop-portal-sparky.service
