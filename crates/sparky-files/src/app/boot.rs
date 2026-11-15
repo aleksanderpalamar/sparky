@@ -29,13 +29,23 @@ use crate::view::style::{WINDOW_HEIGHT, WINDOW_WIDTH, rows_for};
 const SEARCH_LIMIT: usize = 5000;
 
 pub fn boot() -> (Files, Task<Message>) {
+    let start = launch::parse(&env::args().skip(1).collect::<Vec<_>>());
+    let mut files = assemble(folder_of(&start));
+    match start {
+        Start::Select(items) => files.reveal(&items),
+        Start::Properties(item) => files.reveal_properties(&item),
+        Start::Folder(_) => {}
+    }
+    ready(files)
+}
+
+pub fn assemble(folder: Option<PathBuf>) -> Files {
     let dirs = UserDirs::from_env().unwrap_or_else(|| UserDirs::new("/", None));
     let home = dirs.home();
     let trash =
         HomeTrash::from_env().unwrap_or_else(|| HomeTrash::new(home.join(".local/share/Trash")));
-    let start = launch::parse(&env::args().skip(1).collect::<Vec<_>>());
     let setup = Setup {
-        start: start_dir(folder_of(&start), &home),
+        start: start_dir(folder, &home),
         places: places(&dirs)
             .into_iter()
             .filter(|place| place.path.is_dir())
@@ -62,12 +72,10 @@ pub fn boot() -> (Files, Task<Message>) {
             gio_listing::remote_root(),
         )),
     };
-    let mut files = Files::new(setup, services);
-    match start {
-        Start::Select(items) => files.reveal(&items),
-        Start::Properties(item) => files.reveal_properties(&item),
-        Start::Folder(_) => {}
-    }
+    Files::new(setup, services)
+}
+
+pub fn ready(mut files: Files) -> (Files, Task<Message>) {
     files.refresh_trashes();
     files.resize(Size::new(WINDOW_WIDTH, WINDOW_HEIGHT));
     let task = Task::batch([

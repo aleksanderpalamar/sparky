@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::PathBuf;
 
-use sparky_xdg::desktop_entry::DesktopEntry;
 use sparky_compositor::session::environment::DESKTOP;
+use sparky_xdg::desktop_entry::DesktopEntry;
 
 fn raiz() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../data")
@@ -29,34 +29,76 @@ fn a_sessao_abre_o_binario_do_compositor() {
         panic!("sparky.desktop não é uma entrada válida");
     };
     let binario = PathBuf::from(env!("CARGO_BIN_EXE_sparky"));
-    let nome = binario.file_name().map(|nome| nome.to_string_lossy().into_owned());
+    let nome = binario
+        .file_name()
+        .map(|nome| nome.to_string_lossy().into_owned());
     assert_eq!(entrada.exec, nome);
 }
 
 #[test]
 fn a_sessao_se_anuncia_com_o_nome_do_desktop() {
-    assert_eq!(valor(&ler("session/sparky.desktop"), "DesktopNames").as_deref(), Some(DESKTOP));
+    assert_eq!(
+        valor(&ler("session/sparky.desktop"), "DesktopNames").as_deref(),
+        Some(DESKTOP)
+    );
 }
 
 #[test]
 fn os_portais_seguem_o_nome_do_desktop() {
     let portais = raiz().join(format!("portals/{DESKTOP}-portals.conf"));
     assert!(portais.is_file(), "falta {}", portais.display());
-    assert_eq!(valor(&ler(&format!("portals/{DESKTOP}-portals.conf")), "default").as_deref(), Some("gtk"));
+    assert_eq!(
+        valor(&ler(&format!("portals/{DESKTOP}-portals.conf")), "default").as_deref(),
+        Some("gtk")
+    );
 }
 
 #[test]
 fn compartilhar_e_capturar_a_tela_vao_pelo_portal_wlr() {
     let portais = ler(&format!("portals/{DESKTOP}-portals.conf"));
-    assert_eq!(valor(&portais, "org.freedesktop.impl.portal.ScreenCast").as_deref(), Some("wlr"));
-    assert_eq!(valor(&portais, "org.freedesktop.impl.portal.Screenshot").as_deref(), Some("wlr"));
+    assert_eq!(
+        valor(&portais, "org.freedesktop.impl.portal.ScreenCast").as_deref(),
+        Some("wlr")
+    );
+    assert_eq!(
+        valor(&portais, "org.freedesktop.impl.portal.Screenshot").as_deref(),
+        Some("wlr")
+    );
 }
 
 #[test]
 fn os_segredos_dos_aplicativos_isolados_vao_para_o_sparky_keyring() {
     let portais = ler(&format!("portals/{DESKTOP}-portals.conf"));
-    assert_eq!(valor(&portais, "org.freedesktop.impl.portal.Secret").as_deref(), Some("sparky-keyring"));
+    assert_eq!(
+        valor(&portais, "org.freedesktop.impl.portal.Secret").as_deref(),
+        Some("sparky-keyring")
+    );
     let portal = ler("portals/sparky-keyring.portal");
-    assert_eq!(valor(&portal, "DBusName").as_deref(), Some("org.freedesktop.secrets"));
-    assert_eq!(valor(&portal, "Interfaces").as_deref(), Some("org.freedesktop.impl.portal.Secret"));
+    assert_eq!(
+        valor(&portal, "DBusName").as_deref(),
+        Some("org.freedesktop.secrets")
+    );
+    assert_eq!(
+        valor(&portal, "Interfaces").as_deref(),
+        Some("org.freedesktop.impl.portal.Secret")
+    );
+}
+
+#[test]
+fn a_escolha_de_arquivos_vai_para_a_janela_do_sparky() {
+    let portais = ler(&format!("portals/{DESKTOP}-portals.conf"));
+    assert_eq!(
+        valor(&portais, "org.freedesktop.impl.portal.FileChooser").as_deref(),
+        Some("sparky")
+    );
+    let portal = ler("portals/sparky.portal");
+    assert_eq!(
+        valor(&portal, "DBusName").as_deref(),
+        Some("org.freedesktop.impl.portal.desktop.sparky")
+    );
+    assert_eq!(
+        valor(&portal, "Interfaces").as_deref(),
+        Some("org.freedesktop.impl.portal.FileChooser")
+    );
+    assert_eq!(valor(&portal, "UseIn").as_deref(), Some("sparky"));
 }

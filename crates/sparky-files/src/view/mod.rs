@@ -1,4 +1,5 @@
 pub mod batch_preview;
+pub mod chooser_bar;
 pub mod context;
 pub mod delete_dialog;
 pub mod grid;
@@ -43,7 +44,11 @@ pub fn view(files: &Files) -> Element<'_, Message> {
     .width(Length::Fill)
     .height(Length::Fill);
     let body = row![sidebar::sidebar(files), main].height(Length::Fill);
-    let base = container(column![body, status::status(files)])
+    let footer = match &files.chooser {
+        Some(chooser) => column![status::status(files), chooser_bar::bar(skin, chooser)],
+        None => column![status::status(files)],
+    };
+    let base = container(column![body, footer])
         .width(Length::Fill)
         .height(Length::Fill)
         .style(move |_| sparky_ui::style::window(skin));
@@ -53,6 +58,9 @@ pub fn view(files: &Files) -> Element<'_, Message> {
 }
 
 pub fn title(files: &Files) -> String {
+    if let Some(chooser) = &files.chooser {
+        return chooser.title();
+    }
     if files.sidebar_page.is_some() {
         return i18n::with("window-title", "location", virtual_page::label(files));
     }
