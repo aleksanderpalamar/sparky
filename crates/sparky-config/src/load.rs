@@ -20,7 +20,11 @@ impl std::fmt::Display for ConfigError {
 impl std::error::Error for ConfigError {}
 
 pub fn parse(contents: &str) -> Result<Config, ConfigError> {
-    toml::from_str(contents).map_err(|error| ConfigError::Invalid(error.message().to_owned()))
+    let mut config: Config = toml::from_str(contents)
+        .map_err(|error| ConfigError::Invalid(error.message().to_owned()))?;
+    config.general.wallpaper = config.general.wallpaper.map(crate::renamed::wallpaper);
+    config.login.wallpaper = config.login.wallpaper.map(crate::renamed::wallpaper);
+    Ok(config)
 }
 
 pub fn path(config_home: Option<&str>, home: &str) -> PathBuf {
@@ -39,8 +43,17 @@ mod tests {
 
     #[test]
     fn o_arquivo_fica_na_pasta_do_sparky_em_config() {
-        assert_eq!(path(None, "/home/palamar"), PathBuf::from("/home/palamar/.config/sparky/sparky.toml"));
-        assert_eq!(path(Some("/cfg"), "/home/palamar"), PathBuf::from("/cfg/sparky/sparky.toml"));
-        assert_eq!(path(Some(" "), "/h"), PathBuf::from("/h/.config/sparky/sparky.toml"));
+        assert_eq!(
+            path(None, "/home/palamar"),
+            PathBuf::from("/home/palamar/.config/sparky/sparky.toml")
+        );
+        assert_eq!(
+            path(Some("/cfg"), "/home/palamar"),
+            PathBuf::from("/cfg/sparky/sparky.toml")
+        );
+        assert_eq!(
+            path(Some(" "), "/h"),
+            PathBuf::from("/h/.config/sparky/sparky.toml")
+        );
     }
 }

@@ -61,12 +61,39 @@ impl TerminalPalette {
         selection_background: Rgb::new(0x29, 0x2e, 0x42),
     };
 
+    pub const SPARKY: Self = Self {
+        ansi: [
+            Rgb::new(0x30, 0x0a, 0x24),
+            Rgb::new(0xc0, 0x1c, 0x28),
+            Rgb::new(0x26, 0xa2, 0x69),
+            Rgb::new(0xa2, 0x73, 0x4c),
+            Rgb::new(0x12, 0x48, 0x8b),
+            Rgb::new(0xa3, 0x47, 0xba),
+            Rgb::new(0x2a, 0xa1, 0xb3),
+            Rgb::new(0xff, 0xff, 0xff),
+            Rgb::new(0x5e, 0x5c, 0x64),
+            Rgb::new(0xf6, 0x61, 0x51),
+            Rgb::new(0x33, 0xda, 0x7a),
+            Rgb::new(0xe9, 0xad, 0x0c),
+            Rgb::new(0x2a, 0x7b, 0xde),
+            Rgb::new(0xc0, 0x61, 0xcb),
+            Rgb::new(0x33, 0xc7, 0xde),
+            Rgb::new(0xff, 0xff, 0xff),
+        ],
+        foreground: Rgb::new(0xff, 0xff, 0xff),
+        background: Rgb::new(0x30, 0x0a, 0x24),
+        cursor: Rgb::new(0xff, 0xff, 0xff),
+        cursor_text: Rgb::new(0x30, 0x0a, 0x24),
+        selection_foreground: Rgb::new(0xff, 0xff, 0xff),
+        selection_background: Rgb::new(0x77, 0x21, 0x6f),
+    };
+
     pub fn load(read: impl Fn(&Path) -> Option<String>, candidates: &[PathBuf]) -> Self {
         candidates
             .iter()
             .find_map(|path| read(path))
             .map(|contents| Self::from_colors(&contents))
-            .unwrap_or(Self::TOKYO_NIGHT)
+            .unwrap_or(Self::SPARKY)
     }
 
     pub fn from_colors(contents: &str) -> Self {

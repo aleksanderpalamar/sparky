@@ -20,7 +20,7 @@ fn sem_copia_vale_o_tema_padrao() {
     let Ok(dir) = tempfile::tempdir() else {
         panic!("pasta temporária");
     };
-    assert_eq!(palette_from(dir.path(), Vec::new()), Palette::TOKYO_NIGHT);
+    assert_eq!(palette_from(dir.path(), Vec::new()), Palette::SPARKY);
 }
 
 #[test]

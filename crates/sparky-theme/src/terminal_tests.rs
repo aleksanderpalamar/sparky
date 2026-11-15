@@ -69,12 +69,22 @@ fn sem_chave_do_terminal_vale_a_cor_comum() {
 }
 
 #[test]
-fn os_temas_spark_tem_terminal_proprio() {
-    let spark =
-        TerminalPalette::from_colors(include_str!("../../../data/themes/spark/colors.toml"));
-    assert_eq!(Some(spark.background), Rgb::parse("#300a24"));
+fn os_temas_sparky_tem_terminal_proprio() {
+    let sparky =
+        TerminalPalette::from_colors(include_str!("../../../data/themes/sparky/colors.toml"));
+    assert_eq!(Some(sparky.background), Rgb::parse("#300a24"));
+    assert_eq!(sparky, TerminalPalette::SPARKY);
     let classico =
-        TerminalPalette::from_colors(include_str!("../../../data/themes/spark-98/colors.toml"));
+        TerminalPalette::from_colors(include_str!("../../../data/themes/sparky-98/colors.toml"));
     assert_eq!(Some(classico.background), Rgb::parse("#000000"));
     assert_eq!(Some(classico.foreground), Rgb::parse("#c0c0c0"));
+}
+
+#[test]
+fn sem_arquivo_o_terminal_usa_o_tema_padrao_sparky() {
+    let candidatos = [std::path::PathBuf::from("/nada/colors.toml")];
+    assert_eq!(
+        TerminalPalette::load(|_| None, &candidatos),
+        TerminalPalette::SPARKY
+    );
 }

@@ -56,7 +56,7 @@ impl ThemeFiles {
         Self::new(
             vec![data.join("sparky/themes"), system.clone()],
             locations::config_dir(config_home.to_str(), &home).join("colors.toml"),
-            system.join("tokyo-night/colors.toml"),
+            system.join(locations::DEFAULT_THEME).join("colors.toml"),
         )
         .with_gtk(vec![
             config_home.join("gtk-3.0"),
@@ -93,7 +93,7 @@ impl ThemeFiles {
             }
         }
         themes
-            .entry("tokyo-night".to_owned())
+            .entry(locations::DEFAULT_THEME.to_owned())
             .or_insert_with(Theme::builtin);
         Ok(themes)
     }

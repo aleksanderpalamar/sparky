@@ -82,14 +82,14 @@ fn o_ime_abre_na_celula_do_cursor() {
 }
 
 #[test]
-fn alternar_entre_spark_e_spark_98_troca_o_fundo_do_terminal_aberto() {
-    let spark = include_str!("../../../../data/themes/spark/colors.toml");
-    let classico = include_str!("../../../../data/themes/spark-98/colors.toml");
+fn alternar_entre_sparky_e_sparky_98_troca_o_fundo_do_terminal_aberto() {
+    let sparky = include_str!("../../../../data/themes/sparky/colors.toml");
+    let classico = include_str!("../../../../data/themes/sparky-98/colors.toml");
     let mut aberto = terminal();
     for (tema, fundo) in [
-        (spark, "#300a24"),
+        (sparky, "#300a24"),
         (classico, "#000000"),
-        (spark, "#300a24"),
+        (sparky, "#300a24"),
     ] {
         let cores = TerminalPalette::from_colors(tema);
         assert_eq!(
@@ -102,7 +102,7 @@ fn alternar_entre_spark_e_spark_98_troca_o_fundo_do_terminal_aberto() {
         );
     }
     assert_ne!(
-        Palette::from_colors(spark).background,
+        Palette::from_colors(sparky).background,
         aberto.palette.background
     );
 }

@@ -46,6 +46,14 @@ impl Editor {
         put(self.document.as_table_mut(), key, value(array));
     }
 
+    pub fn text(&self, table: &str, key: &str) -> Option<&str> {
+        self.document
+            .get(table)?
+            .as_table_like()?
+            .get(key)?
+            .as_str()
+    }
+
     pub fn contents(&self) -> String {
         self.document.to_string()
     }
