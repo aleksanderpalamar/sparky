@@ -138,7 +138,8 @@ Without `layout` in `[input]`, the system keyboard layout is used. Without `term
 Login managers (SDDM, GDM, etc.) list the **Sparky** session through `data/session/sparky.desktop`, installed in `/usr/share/wayland-sessions`, which starts `sparky` with `XDG_CURRENT_DESKTOP=sparky`. When running directly on hardware, Sparky:
 
 - exports `WAYLAND_DISPLAY`, `DISPLAY`, `XDG_CURRENT_DESKTOP`, `XDG_SESSION_TYPE`, and `SPARKY_SOCKET` to D-Bus and systemd (`dbus-update-activation-environment --systemd`) so portals and activated services can find the session;
-- restarts the user's `sparky-session.target`, which anchors `graphical-session.target`: portals (`xdg-desktop-portal`, `-wlr`, `-gtk`) and graphical services left over from an earlier session stop and restart attached to the current compositor, even when `systemd --user` persists between logins (linger);
+- stops portals left over from an earlier session (`systemctl --user stop 'xdg-desktop-portal*.service'`: `xdg-desktop-portal`, `-wlr`, `-gtk`, and other backends with that prefix), which come back on demand with the new session's environment and configuration; the Flatpak document portal and the permission store are left alone;
+- restarts the user's `sparky-session.target`, which anchors `graphical-session.target`: graphical services left over from an earlier session stop and restart attached to the current compositor, even when `systemd --user` persists between logins (linger);
 - starts the keyring (`sparky-keyring`), authentication agent (`polkit-sparky`), lock daemon (`sparky-lockd`), native notifications (`sparky-notifications`), and bar (`sparky-bar`);
 - runs XDG autostart entries (`~/.config/autostart` and `/etc/xdg/autostart`), respecting `Hidden`, `OnlyShowIn`, `NotShowIn`, `TryExec`, and `X-GNOME-Autostart-enabled`; a user file overrides a system file with the same name.
 
