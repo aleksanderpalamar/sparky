@@ -1,6 +1,7 @@
 use sparky_xdg::desktop_entry::DesktopEntry;
 
 use crate::domain::app::{App, Runs, app_of, command_line};
+use crate::domain::icon::Icon;
 
 fn entrada(contents: &str) -> DesktopEntry {
     match DesktopEntry::parse(contents) {
@@ -11,8 +12,12 @@ fn entrada(contents: &str) -> DesktopEntry {
 
 #[test]
 fn le_nome_detalhe_palavras_e_comando_no_idioma() {
-    let entry = entrada("[Desktop Entry]\nName=Files\nName[pt_BR]=Arquivos\nGenericName[pt_BR]=Gerenciador\nKeywords=pastas;\nExec=nautilus %U\n");
-    let Some(app) = app_of("org.gnome.Nautilus", &entry, "pt_BR", "sparky") else { panic!("deveria virar app") };
+    let entry = entrada(
+        "[Desktop Entry]\nName=Files\nName[pt_BR]=Arquivos\nGenericName[pt_BR]=Gerenciador\nKeywords=pastas;\nExec=nautilus %U\n",
+    );
+    let Some(app) = app_of("org.gnome.Nautilus", &entry, "pt_BR", "sparky") else {
+        panic!("deveria virar app")
+    };
     assert_eq!(app.name, "Arquivos");
     assert_eq!(app.detail.as_deref(), Some("Gerenciador"));
     assert_eq!(app.keywords, ["pastas"]);
@@ -22,15 +27,44 @@ fn le_nome_detalhe_palavras_e_comando_no_idioma() {
 
 #[test]
 fn escondidas_e_de_outros_desktops_ficam_de_fora() {
-    assert!(app_of("a", &entrada("[Desktop Entry]\nName=A\nExec=a\nNoDisplay=true\n"), "pt_BR", "sparky").is_none());
-    assert!(app_of("b", &entrada("[Desktop Entry]\nName=B\nExec=b\nOnlyShowIn=GNOME;\n"), "pt_BR", "sparky").is_none());
-    assert!(app_of("c", &entrada("[Desktop Entry]\nName=C\n"), "pt_BR", "sparky").is_none());
+    assert!(
+        app_of(
+            "a",
+            &entrada("[Desktop Entry]\nName=A\nExec=a\nNoDisplay=true\n"),
+            "pt_BR",
+            "sparky"
+        )
+        .is_none()
+    );
+    assert!(
+        app_of(
+            "b",
+            &entrada("[Desktop Entry]\nName=B\nExec=b\nOnlyShowIn=GNOME;\n"),
+            "pt_BR",
+            "sparky"
+        )
+        .is_none()
+    );
+    assert!(
+        app_of(
+            "c",
+            &entrada("[Desktop Entry]\nName=C\n"),
+            "pt_BR",
+            "sparky"
+        )
+        .is_none()
+    );
 }
 
 #[test]
 fn o_detalhe_que_repete_o_nome_some() {
-    let entry = entrada("[Desktop Entry]\nName=Firefox\nGenericName=Firefox\nComment=Navegue\nExec=firefox\n");
-    assert_eq!(app_of("firefox", &entry, "C", "sparky").and_then(|app| app.detail), None);
+    let entry = entrada(
+        "[Desktop Entry]\nName=Firefox\nGenericName=Firefox\nComment=Navegue\nExec=firefox\n",
+    );
+    assert_eq!(
+        app_of("firefox", &entry, "C", "sparky").and_then(|app| app.detail),
+        None
+    );
 }
 
 #[test]
@@ -42,9 +76,42 @@ fn app_de_terminal_abre_no_terminal_escolhido() {
         keywords: Vec::new(),
         command: "htop".to_owned(),
         runs: Runs::InTerminal,
+        icon: None,
     };
     assert_eq!(command_line(&app, "foot").as_deref(), Some("foot -e htop"));
-    assert_eq!(command_line(&App { runs: Runs::Directly, ..app.clone() }, "foot").as_deref(), Some("htop"));
-    let sessao = App { runs: Runs::Session(sparky_ipc::SessionAction::Lock), ..app };
+    assert_eq!(
+        command_line(
+            &App {
+                runs: Runs::Directly,
+                ..app.clone()
+            },
+            "foot"
+        )
+        .as_deref(),
+        Some("htop")
+    );
+    let sessao = App {
+        runs: Runs::Session(sparky_ipc::SessionAction::Lock),
+        ..app
+    };
     assert_eq!(command_line(&sessao, "foot"), None);
+}
+
+#[test]
+fn o_icone_vem_do_desktop_e_entrada_sem_icone_fica_sem() {
+    let com = entrada("[Desktop Entry]\nName=Firefox\nExec=firefox\nIcon=firefox\n");
+    let sem = entrada("[Desktop Entry]\nName=Kitty\nExec=kitty\n");
+    let vazio = entrada("[Desktop Entry]\nName=Foot\nExec=foot\nIcon=\n");
+    assert_eq!(
+        app_of("firefox", &com, "C", "sparky").and_then(|app| app.icon),
+        Some(Icon::Named("firefox".to_owned()))
+    );
+    assert_eq!(
+        app_of("kitty", &sem, "C", "sparky").and_then(|app| app.icon),
+        None
+    );
+    assert_eq!(
+        app_of("foot", &vazio, "C", "sparky").and_then(|app| app.icon),
+        None
+    );
 }

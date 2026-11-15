@@ -13,24 +13,56 @@ pub fn movement(key: &Key, modifiers: Modifiers) -> Option<isize> {
     }
 }
 
+pub fn confirms(key: &Key) -> bool {
+    matches!(key.as_ref(), Key::Named(Named::Enter))
+}
+
 #[cfg(test)]
 mod tests {
-    use super::movement;
+    use super::{confirms, movement};
     use iced::keyboard::key::Named;
     use iced::keyboard::{Key, Modifiers};
 
     #[test]
     fn setas_e_tab_andam_pela_lista() {
-        assert_eq!(movement(&Key::Named(Named::ArrowDown), Modifiers::empty()), Some(1));
-        assert_eq!(movement(&Key::Named(Named::ArrowUp), Modifiers::empty()), Some(-1));
-        assert_eq!(movement(&Key::Named(Named::Tab), Modifiers::empty()), Some(1));
-        assert_eq!(movement(&Key::Named(Named::Tab), Modifiers::SHIFT), Some(-1));
+        assert_eq!(
+            movement(&Key::Named(Named::ArrowDown), Modifiers::empty()),
+            Some(1)
+        );
+        assert_eq!(
+            movement(&Key::Named(Named::ArrowUp), Modifiers::empty()),
+            Some(-1)
+        );
+        assert_eq!(
+            movement(&Key::Named(Named::Tab), Modifiers::empty()),
+            Some(1)
+        );
+        assert_eq!(
+            movement(&Key::Named(Named::Tab), Modifiers::SHIFT),
+            Some(-1)
+        );
+    }
+
+    #[test]
+    fn enter_confirma_a_opcao_escolhida() {
+        assert!(confirms(&Key::Named(Named::Enter)));
+        assert!(!confirms(&Key::Named(Named::Space)));
+        assert!(!confirms(&Key::Character("a".into())));
     }
 
     #[test]
     fn ctrl_com_n_p_j_k_tambem_andam() {
-        assert_eq!(movement(&Key::Character("j".into()), Modifiers::CTRL), Some(1));
-        assert_eq!(movement(&Key::Character("p".into()), Modifiers::CTRL), Some(-1));
-        assert_eq!(movement(&Key::Character("j".into()), Modifiers::empty()), None);
+        assert_eq!(
+            movement(&Key::Character("j".into()), Modifiers::CTRL),
+            Some(1)
+        );
+        assert_eq!(
+            movement(&Key::Character("p".into()), Modifiers::CTRL),
+            Some(-1)
+        );
+        assert_eq!(
+            movement(&Key::Character("j".into()), Modifiers::empty()),
+            None
+        );
     }
 }

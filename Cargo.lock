@@ -5041,6 +5041,8 @@ dependencies = [
  "sparky-theme",
  "sparky-ui",
  "sparky-xdg",
+ "tempfile",
+ "tokio",
 ]
 
 [[package]]

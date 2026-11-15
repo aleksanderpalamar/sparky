@@ -1,6 +1,5 @@
 search-app = Search applications
 usage = usage: sparky-launcher [--system]
-system = System
 no-apps = No applications found
 lock-name = Lock
 lock-detail = Lock the screen

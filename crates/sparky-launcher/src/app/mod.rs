@@ -13,8 +13,9 @@ use sparky_ui::prompt;
 use sparky_ui::surface::transparent;
 
 use crate::adapters::catalog::installed_apps;
+use crate::adapters::icons::Icons;
 use crate::adapters::launch::launch;
-use crate::app::keys::movement;
+use crate::app::keys::{confirms, movement};
 use crate::app::state::Launcher;
 use crate::domain::app::App;
 use crate::domain::mode::Mode;
@@ -26,6 +27,7 @@ const NAMESPACE: &str = "sparky-launcher";
 #[derive(Debug, Clone)]
 pub enum Message {
     Palette(sparky_theme::Palette),
+    Icons(std::collections::HashMap<String, std::path::PathBuf>),
     Typed(String),
     Submit,
     Step(isize),
@@ -39,14 +41,24 @@ pub fn run(mode: Mode) -> Result<(), iced_layershell::Error> {
         Mode::System => entries(),
     };
     let boot = move || {
-        let launcher = Launcher::new(apps.clone(), Skin::new(sparky_theme::current_palette()), mode);
-        (launcher, prompt::focus())
+        let launcher = Launcher::new(
+            apps.clone(),
+            Skin::new(sparky_theme::current_palette()),
+            mode,
+        );
+        let focus = match mode.search() {
+            Some(_) => prompt::focus(),
+            None => Task::none(),
+        };
+        (launcher, Task::batch([focus, icons(apps.clone())]))
     };
     iced_layershell::application(boot, || NAMESPACE.to_owned(), update, view::view)
-        .subscription(|_| Subscription::batch([
-            event::listen_with(keyboard_message),
-            sparky_ui::palette::subscription().map(Message::Palette),
-        ]))
+        .subscription(|_| {
+            Subscription::batch([
+                event::listen_with(keyboard_message),
+                sparky_ui::palette::subscription().map(Message::Palette),
+            ])
+        })
         .theme(|launcher: &Launcher| launcher.skin.theme())
         .style(transparent)
         .settings(settings(mode))
@@ -56,6 +68,7 @@ pub fn run(mode: Mode) -> Result<(), iced_layershell::Error> {
 fn update(launcher: &mut Launcher, message: Message) -> Task<Message> {
     match message {
         Message::Palette(palette) => launcher.skin = Skin::new(palette),
+        Message::Icons(icons) => launcher.icons = icons,
         Message::Typed(text) => launcher.type_query(text),
         Message::Step(delta) => launcher.step(delta),
         Message::Submit => return start(launcher.chosen()),
@@ -64,6 +77,17 @@ fn update(launcher: &mut Launcher, message: Message) -> Task<Message> {
         _ => {}
     }
     Task::none()
+}
+
+fn icons(apps: Vec<App>) -> Task<Message> {
+    Task::perform(
+        async move {
+            tokio::task::spawn_blocking(move || Icons::current().resolve(&apps))
+                .await
+                .unwrap_or_default()
+        },
+        Message::Icons,
+    )
 }
 
 fn start(app: Option<App>) -> Task<Message> {
@@ -79,6 +103,7 @@ fn start(app: Option<App>) -> Task<Message> {
 fn keyboard_message(event: Event, status: Status, _window: window::Id) -> Option<Message> {
     match press(event, status)? {
         Press::Escape => Some(Message::Close),
+        Press::Key(key, _) if confirms(&key) => Some(Message::Submit),
         Press::Key(key, modifiers) => movement(&key, modifiers).map(Message::Step),
     }
 }

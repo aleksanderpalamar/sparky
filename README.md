@@ -206,11 +206,11 @@ The image is saved in `Capturas de tela` inside the pictures folder (`XDG_PICTUR
 
 ## Launcher
 
-`sparky-launcher` opens with `SUPER + SPACE`: a box in the center of the screen with search already focused and a list of installed applications, named in the system language. Typing filters the list (name prefixes first, then word prefixes, name substrings, keywords and description, and finally letters in order, such as `ffx` for Firefox); arrow keys, `Tab`/`SHIFT + Tab`, or `CTRL + N`/`P` (or `J`/`K`) select; `Enter` opens and `Esc` closes. Clicking also opens an application. The list comes from `.desktop` files in `~/.local/share/applications` and the `XDG_DATA_DIRS` directories (including Flatpak), respecting `NoDisplay`, `Hidden`, `OnlyShowIn`/`NotShowIn`, and `TryExec`; terminal applications open in the selected terminal, which sparky passes to programs in `TERMINAL`.
+`sparky-launcher` opens with `SUPER + SPACE`: a box in the center of the screen with search already focused and a list of installed applications, each with its icon from the icon theme and its name in the system language. Typing filters the list (name prefixes first, then word prefixes, name substrings, keywords and description, and finally letters in order, such as `ffx` for Firefox); arrow keys, `Tab`/`SHIFT + Tab`, or `CTRL + N`/`P` (or `J`/`K`) select; `Enter` opens and `Esc` closes. Clicking also opens an application. The list comes from `.desktop` files in `~/.local/share/applications` and the `XDG_DATA_DIRS` directories (including Flatpak), respecting `NoDisplay`, `Hidden`, `OnlyShowIn`/`NotShowIn`, and `TryExec`; terminal applications open in the selected terminal, which sparky passes to programs in `TERMINAL`.
 
 ### System menu
 
-`SUPER + ESC` opens `sparky-launcher --system` (`system_menu` in `[apps]`), with the same keys as the launcher and five options in this order:
+`SUPER + ESC` opens `sparky-launcher --system` (`system_menu` in `[apps]`), without a search field, with a symbolic icon on each option and five options in this order; arrow keys, `Tab`/`SHIFT + Tab`, or `CTRL + N`/`P` (or `J`/`K`) select, `Enter` confirms, and `Esc` closes:
 
 | Option | Action |
 |---|---|
