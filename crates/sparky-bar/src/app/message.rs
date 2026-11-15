@@ -37,6 +37,7 @@ pub enum Message {
     AudioReady(super::panel_state::AudioClient),
     BluetoothReady(super::panel_state::BluetoothClient),
     BluetoothRequest(crate::domain::bluetooth::BluetoothRequest),
+    BluetoothUnpair(Option<String>),
     Audio(crate::domain::audio::Audio),
     AudioRequest(crate::domain::audio::AudioRequest),
     VolumeDraft(crate::domain::audio::Direction, u16),

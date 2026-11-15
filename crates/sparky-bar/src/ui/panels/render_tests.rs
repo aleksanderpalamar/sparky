@@ -92,6 +92,10 @@ fn paineis_e_formularios_renderizam_sem_servidor_grafico_nos_temas_claro_e_escur
             },
         });
         let _ = render(skin, &panels, PanelKind::Bluetooth);
+        let mut panels = ready();
+        panels.unpairing = Some("/org/bluez/hci0/dev_1".to_owned());
+        let pixels = render(skin, &panels, PanelKind::Bluetooth);
+        assert!(pixels.chunks_exact(4).all(|pixel| pixel[3] == 255));
     }
 }
 

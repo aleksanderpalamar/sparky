@@ -63,6 +63,7 @@ pub fn ready() -> Panels {
             paired: true,
             connected: true,
             kind: crate::domain::bluetooth::DeviceKind::Audio,
+            duplicates: Vec::new(),
         }],
         connected: vec!["Fone Bluetooth".to_owned()],
     }]));

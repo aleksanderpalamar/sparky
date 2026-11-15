@@ -1,4 +1,4 @@
-use super::bluetooth::{Device, DeviceKind};
+use super::bluetooth::{BluetoothRequest, Device, DeviceKind};
 use super::bluetooth_devices::{Record, physical};
 
 fn registro(path: &str, address: Option<&str>, paired: bool, connected: bool) -> Record {
@@ -9,6 +9,7 @@ fn registro(path: &str, address: Option<&str>, paired: bool, connected: bool) ->
             paired,
             connected,
             kind: DeviceKind::Audio,
+            duplicates: Vec::new(),
         },
         address: address.map(str::to_owned),
     }
@@ -64,4 +65,25 @@ fn a_escolha_nao_depende_da_ordem_dos_objetos() {
     let ida = physical(vec![primeiro.clone(), segundo.clone()]);
     let volta = physical(vec![segundo, primeiro]);
     assert_eq!(ida, volta);
+}
+
+#[test]
+fn desparear_remove_o_objeto_escolhido_e_os_registros_duplicados() {
+    let lista = physical(vec![
+        registro("/org/bluez/hci0/dev_7E_00", Some("D8:68"), true, false),
+        registro("/org/bluez/hci0/dev_D8_68", Some("D8:68"), true, false),
+        registro("/org/bluez/hci0/dev_11", Some("11:11"), true, false),
+    ]);
+    assert_eq!(lista[0].duplicates, vec!["/org/bluez/hci0/dev_7E_00"]);
+    assert!(lista[1].duplicates.is_empty());
+    assert_eq!(
+        lista[0].unpair("/org/bluez/hci0"),
+        BluetoothRequest::Unpair {
+            adapter: "/org/bluez/hci0".to_owned(),
+            devices: vec![
+                "/org/bluez/hci0/dev_D8_68".to_owned(),
+                "/org/bluez/hci0/dev_7E_00".to_owned(),
+            ],
+        }
+    );
 }

@@ -47,7 +47,11 @@ pub fn update(bar: &mut Bar, message: Message) -> Task<Message> {
         Message::Network(network) => bar.panels.network = network,
         Message::AudioRequest(request) => return super::audio::request(bar, request),
         Message::NetworkRequest(request) => return super::network::request(bar, request),
-        Message::BluetoothRequest(request) => return bluetooth(bar, request),
+        Message::BluetoothRequest(request) => {
+            bar.panels.unpairing = None;
+            return bluetooth(bar, request);
+        }
+        Message::BluetoothUnpair(device) => bar.panels.unpairing = device,
         Message::VolumeDraft(direction, percent) => bar.panels.draft_volume(direction, percent),
         Message::VolumeCommit => {
             let Some(request) = bar.panels.volume_request() else {

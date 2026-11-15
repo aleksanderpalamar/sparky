@@ -53,6 +53,7 @@ fn o_mesmo_celular_em_dois_objetos_do_bluez_aparece_uma_vez() {
     let lista = dispositivos(&cenario(false));
     assert_eq!(lista.len(), 1);
     assert_eq!(lista[0].path, IDENTIDADE);
+    assert_eq!(lista[0].duplicates, vec![ANTIGO.to_owned()]);
     assert!(lista[0].paired);
 }
 

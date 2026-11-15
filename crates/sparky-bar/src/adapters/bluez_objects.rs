@@ -75,6 +75,7 @@ fn record(path: &str, properties: &Properties) -> Record {
             paired: flag(properties, "Paired"),
             connected: flag(properties, "Connected"),
             kind: DeviceKind::from_bluez(text(properties, "Icon").as_deref()),
+            duplicates: Vec::new(),
         },
         address: text(properties, "Address"),
     }
