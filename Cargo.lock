@@ -5036,6 +5036,7 @@ version = "0.31.0"
 dependencies = [
  "iced",
  "iced_layershell",
+ "image",
  "sparky-i18n",
  "sparky-ipc",
  "sparky-theme",

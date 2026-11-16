@@ -16,6 +16,7 @@ path = "src/lib.rs"
 [dependencies]
 sparky-i18n.workspace = true
 iced = { version = "0.14", features = ["image", "svg", "tokio"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
 iced_layershell = "0.19.1"
 sparky-ipc.workspace = true
 sparky-theme.workspace = true

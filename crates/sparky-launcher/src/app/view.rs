@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use iced::widget::{Column, column, container, image, mouse_area, row, svg, text, text_input};
 use iced::{Alignment, Background, Border, Element, Length};
 use sparky_theme::Skin;
@@ -7,14 +5,15 @@ use sparky_ui::prompt::PROMPT;
 use sparky_ui::style::{self, Highlight, PADDING, SMALL_TEXT, SPACING, TEXT_SIZE};
 
 use crate::app::Message;
+use crate::app::pictures::Shown;
 use crate::app::state::Launcher;
 use crate::domain::app::App;
-use crate::domain::icon::Icon;
+use crate::domain::icon::{ICON_PIXELS, Icon};
 use crate::i18n;
 
 const ROW_HEIGHT: f32 = 44.0;
 const SEARCH_SIZE: f32 = 16.0;
-const ICON_SIZE: f32 = 28.0;
+const ICON_SIZE: f32 = ICON_PIXELS as f32;
 const SYMBOLIC_SIZE: f32 = 20.0;
 
 pub fn view(launcher: &Launcher) -> Element<'_, Message> {
@@ -27,7 +26,7 @@ pub fn view(launcher: &Launcher) -> Element<'_, Message> {
             line(
                 skin,
                 app,
-                launcher.icons.get(&app.id).map(|path| path.as_path()),
+                launcher.icons.get(&app.id),
                 index - top,
                 Highlight::when(index == launcher.cursor),
             )
@@ -66,7 +65,7 @@ fn search<'a>(placeholder: &str, query: &str) -> Element<'a, Message> {
 fn line(
     skin: Skin,
     app: &App,
-    icon: Option<&Path>,
+    icon: Option<&Shown>,
     index: usize,
     highlight: Highlight,
 ) -> Element<'static, Message> {
@@ -93,24 +92,19 @@ fn line(
     mouse_area(cell).on_press(Message::Pick(index)).into()
 }
 
-fn picture(skin: Skin, app: &App, path: Option<&Path>) -> Element<'static, Message> {
+fn picture(skin: Skin, app: &App, icon: Option<&Shown>) -> Element<'static, Message> {
     let symbolic = matches!(app.icon, Some(Icon::Symbolic(_)));
-    let shown: Element<'static, Message> = match path {
+    let shown: Element<'static, Message> = match icon {
         None => column![].into(),
-        Some(path) if symbolic => svg(path.to_path_buf())
+        Some(Shown::Vector(path)) if symbolic => svg(path.clone())
             .width(SYMBOLIC_SIZE)
             .height(SYMBOLIC_SIZE)
             .style(move |_, _| svg::Style {
                 color: Some(skin.bright_foreground),
             })
             .into(),
-        Some(path) if path.extension().is_some_and(|extension| extension == "svg") => {
-            svg(path.to_path_buf())
-                .width(ICON_SIZE)
-                .height(ICON_SIZE)
-                .into()
-        }
-        Some(path) => image(path.to_path_buf())
+        Some(Shown::Vector(path)) => svg(path.clone()).width(ICON_SIZE).height(ICON_SIZE).into(),
+        Some(Shown::Raster(handle)) => image(handle.clone())
             .width(ICON_SIZE)
             .height(ICON_SIZE)
             .into(),
