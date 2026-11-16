@@ -1,6 +1,8 @@
+use crate::app::navigation::Scroll;
 use crate::app::test_support::{Memory, app, launcher};
+use crate::app::view::{CELL_HEIGHT, ROW_STEP};
 use crate::domain::category::Category;
-use crate::domain::grid::Move;
+use crate::domain::grid::{Move, Window};
 use crate::domain::shelf::Shelf;
 
 fn nomes(launcher: &crate::app::state::Launcher) -> Vec<String> {
@@ -38,15 +40,23 @@ fn andar_para_nas_pontas_da_grade() {
 }
 
 #[test]
-fn a_grade_rola_por_linhas_para_mostrar_a_selecao() {
+fn descer_alem_da_janela_pede_para_rolar_ate_a_linha() {
     let nomes: Vec<String> = (0..40).map(|index| format!("App {index:02}")).collect();
     let referencias: Vec<&str> = nomes.iter().map(String::as_str).collect();
     let mut launcher = launcher(&referencias, &Memory::default());
-    for _ in 0..5 {
+    launcher.scrolled(Window {
+        offset: 0.0,
+        height: 440.0,
+    });
+    assert_eq!(launcher.step(Move::Down), Scroll::Keep);
+    for _ in 0..3 {
         launcher.step(Move::Down);
     }
-    assert_eq!(launcher.cursor, 30);
-    assert_eq!(launcher.list.top(), 2);
+    assert_eq!(launcher.cursor, 24);
+    assert_eq!(
+        launcher.step(Move::Down),
+        Scroll::To(5.0 * ROW_STEP + CELL_HEIGHT - 440.0)
+    );
     assert_eq!(
         launcher.pick(30).map(|app| app.name),
         Some("App 30".to_owned())
@@ -54,10 +64,37 @@ fn a_grade_rola_por_linhas_para_mostrar_a_selecao() {
 }
 
 #[test]
+fn buscar_ou_trocar_de_prateleira_volta_ao_topo() {
+    let mut launcher = launcher(&["A", "B"], &Memory::default());
+    launcher.scrolled(Window {
+        offset: 300.0,
+        height: 440.0,
+    });
+    assert_eq!(launcher.type_query("a".to_owned()), Scroll::To(0.0));
+    assert_eq!(launcher.window.offset, 0.0);
+    launcher.scrolled(Window {
+        offset: 200.0,
+        height: 440.0,
+    });
+    assert_eq!(launcher.next_shelf(1), Scroll::To(0.0));
+}
+
+#[test]
 fn sem_resultado_nao_ha_escolha() {
     let mut launcher = launcher(&["Firefox"], &Memory::default());
     launcher.type_query("zzz".to_owned());
     assert_eq!(launcher.chosen(), None);
+}
+
+#[test]
+fn o_inicio_mostra_so_quem_nao_tem_categoria() {
+    let mut launcher = launcher(&[], &Memory::default());
+    launcher.apps = vec![
+        app("Steam", &["Game"]),
+        app("Emojify", &["Network"]),
+        app("Kitty", &["System"]),
+    ];
+    assert_eq!(nomes(&launcher), vec!["Emojify"]);
 }
 
 #[test]

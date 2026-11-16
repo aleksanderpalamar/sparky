@@ -6,7 +6,6 @@ pub mod pictures;
 pub mod state;
 pub mod update;
 pub mod view;
-pub mod wheel;
 
 #[cfg(test)]
 mod editing_tests;
@@ -25,8 +24,8 @@ use sparky_ui::prompt;
 use sparky_ui::surface::transparent;
 
 use crate::adapters::catalog::installed_apps;
-use crate::adapters::group_file::GroupFile;
 use crate::adapters::icons::Icons;
+use crate::adapters::library_files::LibraryFiles;
 use crate::app::keys::{Command, command, confirms};
 use crate::app::message::Message;
 use crate::app::state::Launcher;
@@ -48,7 +47,7 @@ pub fn run(mode: Mode) -> Result<(), iced_layershell::Error> {
             apps.clone(),
             Skin::new(sparky_theme::current_palette()),
             mode,
-            Box::new(GroupFile::from_env()),
+            Box::new(LibraryFiles::from_env()),
         );
         let focus = match mode.search() {
             Some(_) => prompt::focus(),

@@ -18,7 +18,13 @@ pub const CATEGORIES: [Category; 5] = [
 ];
 
 impl Category {
-    fn key(self) -> &'static str {
+    pub fn from_key(key: &str) -> Option<Self> {
+        CATEGORIES
+            .into_iter()
+            .find(|category| category.key() == key)
+    }
+
+    pub fn key(self) -> &'static str {
         match self {
             Category::Office => "Office",
             Category::Development => "Development",
@@ -88,6 +94,16 @@ mod tests {
         assert!(Category::Development.holds(&app(&["Development", "IDE"])));
         assert!(Category::Office.holds(&app(&["Office"])));
         assert!(Category::System.holds(&app(&["System", "Monitor"])));
+    }
+
+    #[test]
+    fn a_chave_do_freedesktop_volta_para_a_categoria() {
+        assert!(
+            CATEGORIES
+                .iter()
+                .all(|category| Category::from_key(category.key()) == Some(*category))
+        );
+        assert_eq!(Category::from_key("Network"), None);
     }
 
     #[test]

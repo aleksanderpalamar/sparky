@@ -2,9 +2,10 @@ mod grid;
 mod list;
 mod overlay;
 mod picture;
+mod scrollbar;
 mod shelves;
 
-pub use grid::ROW_STEP;
+pub use grid::{CELL_HEIGHT, ROW_STEP};
 
 use iced::widget::{Column, container, mouse_area, text, text_input};
 use iced::{Background, Border, Element, Length};

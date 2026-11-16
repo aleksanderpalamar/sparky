@@ -27,9 +27,55 @@ pub fn rows(len: usize, columns: usize) -> usize {
     len.div_ceil(columns.max(1))
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct Window {
+    pub offset: f32,
+    pub height: f32,
+}
+
+pub fn reveal(row: usize, step: f32, cell: f32, window: Window) -> Option<f32> {
+    let top = row as f32 * step;
+    let bottom = top + cell;
+    match () {
+        _ if top < window.offset => Some(top),
+        _ if window.height > 0.0 && bottom > window.offset + window.height => {
+            Some(bottom - window.height)
+        }
+        _ => None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{Move, moved, row_of, rows};
+    use super::{Move, Window, moved, reveal, row_of, rows};
+
+    fn janela(offset: f32) -> Window {
+        Window {
+            offset,
+            height: 440.0,
+        }
+    }
+
+    #[test]
+    fn linha_visivel_nao_rola() {
+        assert_eq!(reveal(2, 116.0, 108.0, janela(0.0)), None);
+    }
+
+    #[test]
+    fn linha_abaixo_rola_ate_ela_aparecer_inteira() {
+        assert_eq!(reveal(4, 116.0, 108.0, janela(0.0)), Some(132.0));
+    }
+
+    #[test]
+    fn linha_acima_rola_ate_o_topo_dela() {
+        assert_eq!(reveal(1, 116.0, 108.0, janela(300.0)), Some(116.0));
+    }
+
+    #[test]
+    fn sem_altura_conhecida_so_rola_para_cima() {
+        let desconhecida = Window::default();
+        assert_eq!(reveal(9, 116.0, 108.0, desconhecida), None);
+    }
 
     #[test]
     fn proximo_e_anterior_andam_uma_casa_e_param_nas_pontas() {

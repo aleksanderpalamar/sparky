@@ -1,18 +1,21 @@
 use iced::alignment::Horizontal;
+use iced::widget::scrollable::Direction;
 use iced::widget::text::Wrapping;
-use iced::widget::{Column, Row, Space, column, container, mouse_area, text, tooltip};
+use iced::widget::{Column, Row, Space, column, container, mouse_area, scrollable, text, tooltip};
 use iced::{Element, Length};
 use sparky_ui::style::{self, Highlight, SPACING};
 
 use crate::app::message::Message;
 use crate::app::state::Launcher;
+use crate::app::update::APPS;
 use crate::app::view::picture::{Tint, picture};
+use crate::app::view::scrollbar;
 use crate::domain::app::App;
 use crate::domain::caption::caption;
-use crate::domain::grid::rows;
+use crate::domain::grid::{Window, rows};
 use crate::domain::icon::ICON_PIXELS;
 
-const CELL_HEIGHT: f32 = 108.0;
+pub const CELL_HEIGHT: f32 = 108.0;
 pub const ROW_STEP: f32 = CELL_HEIGHT + SPACING;
 const LABEL_CHARS: usize = 14;
 const LABEL_LINES: usize = 2;
@@ -22,25 +25,34 @@ const ICON_SIZE: f32 = ICON_PIXELS as f32;
 
 pub fn grid<'a>(launcher: &'a Launcher, results: &[&'a App]) -> Element<'a, Message> {
     let columns = launcher.mode.columns();
-    let lines = launcher
-        .list
-        .range(rows(results.len(), columns))
-        .map(|line| {
-            let cells =
-                (line * columns..(line + 1) * columns).map(|index| match results.get(index) {
-                    Some(app) => cell(launcher, app, index),
-                    None => Space::new().width(Length::FillPortion(1)).into(),
-                });
-            Row::with_children(cells)
-                .spacing(SPACING)
-                .width(Length::Fill)
-                .into()
+    let lines = (0..rows(results.len(), columns)).map(|line| {
+        let cells = (line * columns..(line + 1) * columns).map(|index| match results.get(index) {
+            Some(app) => cell(launcher, app, index),
+            None => Space::new().width(Length::FillPortion(1)).into(),
         });
+        Row::with_children(cells)
+            .spacing(SPACING)
+            .width(Length::Fill)
+            .into()
+    });
     let body = Column::with_children(lines)
         .spacing(SPACING)
+        .width(Length::Fill);
+    let skin = launcher.skin;
+    scrollable(body)
+        .id(APPS)
+        .direction(Direction::Vertical(scrollbar::bar()))
+        .spacing(scrollbar::GAP)
         .width(Length::Fill)
-        .height(Length::Fill);
-    mouse_area(body).on_scroll(Message::Scrolled).into()
+        .height(Length::Fill)
+        .on_scroll(|viewport| {
+            Message::Scrolled(Window {
+                offset: viewport.absolute_offset().y,
+                height: viewport.bounds().height,
+            })
+        })
+        .style(move |theme, status| scrollbar::style(skin, theme, status))
+        .into()
 }
 
 fn cell(launcher: &Launcher, app: &App, index: usize) -> Element<'static, Message> {

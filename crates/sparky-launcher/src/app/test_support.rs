@@ -5,20 +5,20 @@ use sparky_theme::Skin;
 
 use crate::app::state::Launcher;
 use crate::domain::app::{App, Runs};
-use crate::domain::groups::Group;
+use crate::domain::library::Library;
 use crate::domain::mode::Mode;
-use crate::ports::GroupStore;
+use crate::ports::LibraryStore;
 
 #[derive(Clone, Default)]
-pub struct Memory(pub Rc<RefCell<Vec<Group>>>);
+pub struct Memory(pub Rc<RefCell<Library>>);
 
-impl GroupStore for Memory {
-    fn load(&self) -> Result<Vec<Group>, String> {
+impl LibraryStore for Memory {
+    fn load(&self) -> Result<Library, String> {
         Ok(self.0.borrow().clone())
     }
 
-    fn save(&self, groups: &[Group]) -> Result<(), String> {
-        *self.0.borrow_mut() = groups.to_vec();
+    fn save(&self, library: &Library) -> Result<(), String> {
+        *self.0.borrow_mut() = library.clone();
         Ok(())
     }
 }

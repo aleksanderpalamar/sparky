@@ -1,6 +1,6 @@
-use crate::domain::groups::Group;
+use crate::domain::library::Library;
 
-pub trait GroupStore {
-    fn load(&self) -> Result<Vec<Group>, String>;
-    fn save(&self, groups: &[Group]) -> Result<(), String>;
+pub trait LibraryStore {
+    fn load(&self) -> Result<Library, String>;
+    fn save(&self, library: &Library) -> Result<(), String>;
 }

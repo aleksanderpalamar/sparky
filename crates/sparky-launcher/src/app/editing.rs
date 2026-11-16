@@ -1,6 +1,8 @@
 use crate::app::state::Launcher;
-use crate::domain::menu::{Action, Item, Target, items};
+use crate::domain::app::App;
+use crate::domain::menu::{Action, Item, Spot, Target, items};
 use crate::domain::overlay::{Menu, Overlay, Purpose};
+use crate::domain::placements::Choice;
 use crate::domain::shelf::{Shelf, after_removal};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -12,7 +14,7 @@ pub enum Focus {
 
 impl Launcher {
     pub fn open_menu(&mut self, target: Target) {
-        if !self.mode.has_shelves() || items(&target, &self.groups, self.shelf).is_empty() {
+        if !self.mode.has_shelves() || items(&target, &self.library, self.shelf).is_empty() {
             return;
         }
         self.overlay = Overlay::Menu(Menu {
@@ -22,15 +24,21 @@ impl Launcher {
         });
     }
 
+    pub fn open_app_menu(&mut self, id: &str) {
+        if let Some(app) = self.find(id) {
+            self.open_menu(Target::App(app));
+        }
+    }
+
     pub fn open_menu_on_chosen(&mut self) {
         if let Some(app) = self.chosen() {
-            self.open_menu(Target::App(app.id));
+            self.open_menu(Target::App(app));
         }
     }
 
     pub fn menu_items(&self) -> Vec<Item> {
         match &self.overlay {
-            Overlay::Menu(menu) => items(&menu.target, &self.groups, self.shelf),
+            Overlay::Menu(menu) => items(&menu.target, &self.library, self.shelf),
             _ => Vec::new(),
         }
     }
@@ -48,15 +56,19 @@ impl Launcher {
         };
         self.overlay = Overlay::Closed;
         match item.action {
-            Action::AddTo { group, app } => {
-                self.edited(|launcher| launcher.groups.add(group, &app))
+            Action::AddTo { spot, app } => {
+                self.edited(|launcher| launcher.put(spot, &app, Choice::Added))
             }
-            Action::TakeFrom { group, app } => {
-                self.edited(|launcher| launcher.groups.take(group, &app))
+            Action::TakeFrom { spot, app } => {
+                self.edited(|launcher| launcher.put(spot, &app, Choice::Removed))
             }
             Action::NewGroupWith(app) => self.ask_name(Purpose::Create { with: Some(app) }, ""),
             Action::Rename(group) => {
-                let name = self.groups.get(group).map(|group| group.name.clone());
+                let name = self
+                    .library
+                    .groups
+                    .get(group)
+                    .map(|group| group.name.clone());
                 self.ask_name(Purpose::Rename(group), &name.unwrap_or_default())
             }
             Action::Remove(group) => self.edited(|launcher| launcher.remove_group(group)),
@@ -80,7 +92,7 @@ impl Launcher {
         };
         let done = match purpose {
             Purpose::Create { with } => self.create_group(&text, with),
-            Purpose::Rename(group) => self.groups.rename(group, &text),
+            Purpose::Rename(group) => self.library.groups.rename(group, &text),
         };
         if let (false, Overlay::Naming { refused, .. }) = (done, &mut self.overlay) {
             *refused = true;
@@ -95,6 +107,16 @@ impl Launcher {
         Focus::Search
     }
 
+    fn put(&mut self, spot: Spot, app: &App, choice: Choice) -> bool {
+        match (spot, choice) {
+            (Spot::Category(category), choice) => {
+                self.library.placements.place(category, app, choice)
+            }
+            (Spot::Group(group), Choice::Added) => self.library.groups.add(group, &app.id),
+            (Spot::Group(group), Choice::Removed) => self.library.groups.take(group, &app.id),
+        }
+    }
+
     fn ask_name(&mut self, purpose: Purpose, text: &str) -> Focus {
         self.overlay = Overlay::Naming {
             purpose,
@@ -105,18 +127,18 @@ impl Launcher {
     }
 
     fn create_group(&mut self, name: &str, with: Option<String>) -> bool {
-        let Some(group) = self.groups.create(name) else {
+        let Some(group) = self.library.groups.create(name) else {
             return false;
         };
         if let Some(app) = with {
-            self.groups.add(group, &app);
+            self.library.groups.add(group, &app);
         }
         self.show_shelf(Shelf::Group(group));
         true
     }
 
     fn remove_group(&mut self, group: usize) -> bool {
-        let removed = self.groups.remove(group).is_some();
+        let removed = self.library.groups.remove(group).is_some();
         if removed {
             self.shelf = after_removal(self.shelf, group);
         }

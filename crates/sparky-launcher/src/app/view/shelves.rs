@@ -40,6 +40,7 @@ fn shelf_button(launcher: &Launcher, shelf: Shelf) -> Element<'static, Message> 
         Shelf::Home => i18n::text("shelf-home"),
         Shelf::Category(category) => i18n::text(category.label()),
         Shelf::Group(index) => launcher
+            .library
             .groups
             .get(index)
             .map(|group| group.name.clone())

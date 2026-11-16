@@ -8,7 +8,7 @@ use sparky_ui::style::{self, Highlight, PADDING, SMALL_TEXT, SPACING, TEXT_SIZE,
 use crate::app::message::Message;
 use crate::app::state::Launcher;
 use crate::app::update::NAME_INPUT;
-use crate::domain::menu::{Item, placed};
+use crate::domain::menu::{Item, Spot, placed};
 use crate::domain::overlay::{Overlay, Purpose};
 use crate::i18n;
 
@@ -43,19 +43,37 @@ fn menu_layer(launcher: &Launcher, point: (f32, f32), cursor: usize) -> Element<
     let height = items.len() as f32 * ITEM_HEIGHT + 2.0 * MENU_PADDING;
     let (width, tall) = launcher.mode.size();
     let (x, y) = placed(point, (width as f32, tall as f32), (MENU_WIDTH, height));
-    let rows = items
-        .iter()
-        .enumerate()
-        .map(|(index, item)| menu_row(skin, item, index, index == cursor));
+    let rows = items.iter().enumerate().map(|(index, item)| {
+        let name = item.spot.map(|spot| spot_name(launcher, spot));
+        menu_row(skin, item, name, index, index == cursor)
+    });
     let pane = container(Column::with_children(rows).padding(MENU_PADDING))
         .width(MENU_WIDTH)
         .style(move |_| frame(skin));
     column![Space::new().height(y), row![Space::new().width(x), pane]].into()
 }
 
-fn menu_row(skin: Skin, item: &Item, index: usize, current: bool) -> Element<'static, Message> {
-    let label = match &item.group {
-        Some(group) => i18n::with_group(item.label, group),
+fn spot_name(launcher: &Launcher, spot: Spot) -> String {
+    match spot {
+        Spot::Category(category) => i18n::text(category.label()),
+        Spot::Group(index) => launcher
+            .library
+            .groups
+            .get(index)
+            .map(|group| group.name.clone())
+            .unwrap_or_default(),
+    }
+}
+
+fn menu_row(
+    skin: Skin,
+    item: &Item,
+    name: Option<String>,
+    index: usize,
+    current: bool,
+) -> Element<'static, Message> {
+    let label = match name {
+        Some(name) => i18n::with_group(item.label, &name),
         None => i18n::text(item.label),
     };
     button(text(label).size(13.0).color(skin.foreground))

@@ -1,10 +1,9 @@
 use std::collections::HashMap;
 
 use iced::Point;
-use iced::mouse::ScrollDelta;
 use iced_layershell::to_layer_message;
 
-use crate::domain::grid::Move;
+use crate::domain::grid::{Move, Window};
 use crate::domain::icon::Picture;
 use crate::domain::shelf::Shelf;
 
@@ -20,7 +19,7 @@ pub enum Message {
     ShowShelf(Shelf),
     Hover(usize),
     Pick(usize),
-    Scrolled(ScrollDelta),
+    Scrolled(Window),
     Pointer(Point),
     AppMenu(String),
     GroupMenu(usize),
