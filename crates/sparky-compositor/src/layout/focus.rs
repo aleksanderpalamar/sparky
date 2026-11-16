@@ -12,6 +12,7 @@ impl Sparky {
             true => self.lock_surface(),
             false => self.exclusive_layer().or_else(|| self.focused_surface()),
         };
+        self.announce_active_window(target.as_ref());
         let Some(keyboard) = self.seat.get_keyboard() else {
             return;
         };
