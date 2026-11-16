@@ -24,7 +24,7 @@ struct Espera;
 
 impl Dialogs for Espera {
     fn show(&self, _request: &Request, closer: &Closer) -> Shown {
-        for _ in 0..200 {
+        for _ in 0..1000 {
             if closer.closed() {
                 return Shown::Cancelled;
             }
@@ -99,16 +99,21 @@ async fn o_aplicativo_pode_fechar_o_pedido_e_a_janela_some() {
     let destino = servidor.unique_name().unwrap().to_owned();
     let fechar = cliente.clone();
     tokio::spawn(async move {
-        tokio::time::sleep(Duration::from_millis(100)).await;
-        let _ = fechar
-            .call_method(
-                Some(destino),
-                HANDLE,
-                Some("org.freedesktop.impl.portal.Request"),
-                "Close",
-                &(),
-            )
-            .await;
+        for _ in 0..500 {
+            tokio::time::sleep(Duration::from_millis(20)).await;
+            let fechado = fechar
+                .call_method(
+                    Some(destino.clone()),
+                    HANDLE,
+                    Some("org.freedesktop.impl.portal.Request"),
+                    "Close",
+                    &(),
+                )
+                .await;
+            if fechado.is_ok() {
+                return;
+            }
+        }
     });
     let (codigo, _) = pedir(&cliente, &servidor).await;
     assert_eq!(codigo, 1);

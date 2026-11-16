@@ -1,5 +1,5 @@
-use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::time::{Duration, Instant};
 
 use super::dialog::ProcessDialogs;
@@ -22,8 +22,13 @@ fn pedido() -> Request {
 
 fn programa(pasta: &Path, corpo: &str) -> PathBuf {
     let caminho = pasta.join("janela");
-    assert!(std::fs::write(&caminho, format!("#!/bin/sh\n{corpo}\n")).is_ok());
-    assert!(std::fs::set_permissions(&caminho, std::fs::Permissions::from_mode(0o755)).is_ok());
+    let gravado = Command::new("/bin/sh")
+        .args(["-c", "printf '%s\\n' \"$2\" > \"$1\" && chmod 755 \"$1\""])
+        .arg("sh")
+        .arg(&caminho)
+        .arg(format!("#!/bin/sh\n{corpo}"))
+        .status();
+    assert!(gravado.is_ok_and(|status| status.success()));
     caminho
 }
 
