@@ -4,6 +4,7 @@ use crate::domain::search::{Order, rank};
 fn app(name: &str, keywords: &[&str]) -> App {
     App {
         icon: None,
+        categories: Vec::new(),
         id: name.to_lowercase(),
         name: name.to_owned(),
         detail: None,

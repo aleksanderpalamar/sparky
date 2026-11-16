@@ -1,40 +1,42 @@
+pub mod editing;
 pub mod keys;
+pub mod message;
+pub mod navigation;
 pub mod pictures;
 pub mod state;
+pub mod update;
 pub mod view;
+pub mod wheel;
+
+#[cfg(test)]
+mod editing_tests;
+#[cfg(test)]
+mod state_tests;
+#[cfg(test)]
+mod test_support;
 
 use iced::event::{self, Event, Status};
 use iced::{Subscription, Task, window};
 use iced_layershell::reexport::{Anchor, KeyboardInteractivity, Layer};
 use iced_layershell::settings::{LayerShellSettings, Settings, StartMode};
-use iced_layershell::to_layer_message;
 use sparky_theme::Skin;
 use sparky_ui::press::{Press, press};
 use sparky_ui::prompt;
 use sparky_ui::surface::transparent;
 
 use crate::adapters::catalog::installed_apps;
+use crate::adapters::group_file::GroupFile;
 use crate::adapters::icons::Icons;
-use crate::adapters::launch::launch;
-use crate::app::keys::{confirms, movement};
+use crate::app::keys::{Command, command, confirms};
+use crate::app::message::Message;
 use crate::app::state::Launcher;
+use crate::app::update::update;
 use crate::domain::app::App;
 use crate::domain::mode::Mode;
+use crate::domain::symbols::symbols;
 use crate::domain::system::entries;
 
 const NAMESPACE: &str = "sparky-launcher";
-
-#[to_layer_message]
-#[derive(Debug, Clone)]
-pub enum Message {
-    Palette(sparky_theme::Palette),
-    Icons(std::collections::HashMap<String, crate::domain::icon::Picture>),
-    Typed(String),
-    Submit,
-    Step(isize),
-    Pick(usize),
-    Close,
-}
 
 pub fn run(mode: Mode) -> Result<(), iced_layershell::Error> {
     let apps = match mode {
@@ -46,6 +48,7 @@ pub fn run(mode: Mode) -> Result<(), iced_layershell::Error> {
             apps.clone(),
             Skin::new(sparky_theme::current_palette()),
             mode,
+            Box::new(GroupFile::from_env()),
         );
         let focus = match mode.search() {
             Some(_) => prompt::focus(),
@@ -66,46 +69,31 @@ pub fn run(mode: Mode) -> Result<(), iced_layershell::Error> {
         .run()
 }
 
-fn update(launcher: &mut Launcher, message: Message) -> Task<Message> {
-    match message {
-        Message::Palette(palette) => launcher.skin = Skin::new(palette),
-        Message::Icons(icons) => launcher.icons = pictures::shown(icons),
-        Message::Typed(text) => launcher.type_query(text),
-        Message::Step(delta) => launcher.step(delta),
-        Message::Submit => return start(launcher.chosen()),
-        Message::Pick(row) => return start(launcher.pick(row)),
-        Message::Close => return iced::exit(),
-        _ => {}
-    }
-    Task::none()
-}
-
 fn icons(apps: Vec<App>) -> Task<Message> {
     Task::perform(
         async move {
-            tokio::task::spawn_blocking(move || Icons::current().resolve(&apps))
-                .await
-                .unwrap_or_default()
+            tokio::task::spawn_blocking(move || {
+                let icons = Icons::current();
+                let mut found = icons.resolve(&apps);
+                found.extend(icons.named(&symbols()));
+                found
+            })
+            .await
+            .unwrap_or_default()
         },
         Message::Icons,
     )
-}
-
-fn start(app: Option<App>) -> Task<Message> {
-    let Some(app) = app else {
-        return Task::none();
-    };
-    if let Err(error) = launch(&app) {
-        eprintln!("sparky-launcher: não deu para abrir {}: {error}", app.name);
-    }
-    iced::exit()
 }
 
 fn keyboard_message(event: Event, status: Status, _window: window::Id) -> Option<Message> {
     match press(event, status)? {
         Press::Escape => Some(Message::Close),
         Press::Key(key, _) if confirms(&key) => Some(Message::Submit),
-        Press::Key(key, modifiers) => movement(&key, modifiers).map(Message::Step),
+        Press::Key(key, modifiers) => match command(&key, modifiers)? {
+            Command::Move(step) => Some(Message::Move(step)),
+            Command::Shelf(delta) => Some(Message::NextShelf(delta)),
+            Command::Menu => Some(Message::MenuKey),
+        },
     }
 }
 

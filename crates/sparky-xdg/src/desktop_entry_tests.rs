@@ -167,3 +167,17 @@ fn desktop_names_da_sessao_vira_lista() {
     };
     assert!(sem.desktop_names.is_empty());
 }
+
+#[test]
+fn le_as_categorias_do_aplicativo() {
+    let Some(entry) =
+        DesktopEntry::parse("[Desktop Entry]\nName=Code\nExec=code\nCategories=Development;IDE;\n")
+    else {
+        panic!("deveria ler")
+    };
+    assert_eq!(entry.categories, vec!["Development", "IDE"]);
+    let Some(sem) = DesktopEntry::parse("[Desktop Entry]\nName=X\nExec=x\n") else {
+        panic!("deveria ler")
+    };
+    assert!(sem.categories.is_empty());
+}

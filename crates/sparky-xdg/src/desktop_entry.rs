@@ -61,6 +61,7 @@ pub struct DesktopEntry {
     pub only_show_in: Vec<String>,
     pub not_show_in: Vec<String>,
     pub desktop_names: Vec<String>,
+    pub categories: Vec<String>,
 }
 
 impl DesktopEntry {
@@ -91,6 +92,7 @@ impl DesktopEntry {
             only_show_in: list_of(value("OnlyShowIn")),
             not_show_in: list_of(value("NotShowIn")),
             desktop_names: list_of(value("DesktopNames")),
+            categories: list_of(value("Categories")),
         })
     }
 }

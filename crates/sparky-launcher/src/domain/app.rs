@@ -19,6 +19,7 @@ pub struct App {
     pub command: String,
     pub runs: Runs,
     pub icon: Option<Icon>,
+    pub categories: Vec<String>,
 }
 
 pub fn app_of(id: &str, entry: &DesktopEntry, locale: &str, desktop: &str) -> Option<App> {
@@ -53,6 +54,7 @@ pub fn app_of(id: &str, entry: &DesktopEntry, locale: &str, desktop: &str) -> Op
             .map(str::trim)
             .filter(|icon| !icon.is_empty())
             .map(|icon| Icon::Named(icon.to_owned())),
+        categories: entry.categories.clone(),
     })
 }
 

@@ -88,6 +88,7 @@ fn o_mapa_liga_cada_aplicativo_ao_seu_icone_e_pula_os_sem_icone() {
         command: id.to_owned(),
         runs: crate::domain::app::Runs::Directly,
         icon,
+        categories: Vec::new(),
     };
     let mapa = icones.resolve(&[
         app("firefox", Some(Icon::Named("firefox".to_owned()))),
@@ -100,11 +101,27 @@ fn o_mapa_liga_cada_aplicativo_ao_seu_icone_e_pula_os_sem_icone() {
     let Some(Picture::Raster(firefox)) = mapa.get("firefox") else {
         panic!("firefox vira bitmap");
     };
-    assert_eq!((firefox.width, firefox.height), (28, 28));
+    assert_eq!((firefox.width, firefox.height), (48, 48));
     assert_eq!(
         mapa.get("kvantum"),
         Some(&Picture::Vector(
             dir.path().join("icons/Teste/scalable/actions/kvantum.svg")
         ))
     );
+}
+
+#[test]
+fn icones_soltos_da_barra_tambem_sao_achados_pela_chave() {
+    let Ok(dir) = tempfile::tempdir() else {
+        panic!("pasta temporária");
+    };
+    let mapa = icones(dir.path()).named(&[
+        (
+            "@reboot".to_owned(),
+            Icon::Symbolic(&["system-reboot-symbolic"]),
+        ),
+        ("@nada".to_owned(), Icon::Symbolic(&["nao-existe-symbolic"])),
+    ]);
+    assert_eq!(mapa.len(), 1);
+    assert!(matches!(mapa.get("@reboot"), Some(Picture::Vector(_))));
 }

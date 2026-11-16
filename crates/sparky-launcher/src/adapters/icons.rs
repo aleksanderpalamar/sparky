@@ -7,8 +7,6 @@ use crate::adapters::raster::raster;
 use crate::domain::app::App;
 use crate::domain::icon::{ICON_PIXELS, Icon, Picture};
 
-const PIXELS: u32 = 32;
-
 pub struct Icons {
     theme: IconTheme,
     pixmaps: Vec<PathBuf>,
@@ -26,17 +24,23 @@ impl Icons {
             .filter_map(|root| root.parent().map(|parent| parent.join("pixmaps")))
             .collect();
         Self {
-            theme: IconTheme::with_size(roots, preferred, PIXELS),
+            theme: IconTheme::with_size(roots, preferred, ICON_PIXELS),
             pixmaps,
         }
     }
 
     pub fn resolve(&self, apps: &[App]) -> HashMap<String, Picture> {
-        apps.iter()
-            .filter_map(|app| {
-                let path = self.path(app.icon.as_ref()?)?;
-                Some((app.id.clone(), picture(path)?))
-            })
+        let wanted: Vec<(String, Icon)> = apps
+            .iter()
+            .filter_map(|app| Some((app.id.clone(), app.icon.clone()?)))
+            .collect();
+        self.named(&wanted)
+    }
+
+    pub fn named(&self, wanted: &[(String, Icon)]) -> HashMap<String, Picture> {
+        wanted
+            .iter()
+            .filter_map(|(key, icon)| Some((key.clone(), picture(self.path(icon)?)?)))
             .collect()
     }
 
