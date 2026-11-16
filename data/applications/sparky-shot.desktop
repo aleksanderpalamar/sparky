@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
-Name=Capturador de tela
-Name[en]=Screenshot
+Name=sparky-shot
+Name[en]=sparky-shot
 Comment=Captura uma região, uma janela ou o monitor
 Comment[en]=Capture a region, window, or monitor
 Exec=sparky-shot

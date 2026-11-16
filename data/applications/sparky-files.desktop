@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
-Name=Arquivos
-Name[en]=Files
+Name=sparky-files
+Name[en]=sparky-files
 GenericName=Gerenciador de arquivos
 GenericName[en]=File manager
 Comment=Navegue e organize pastas pelo teclado
