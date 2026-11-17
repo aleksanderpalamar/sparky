@@ -16,7 +16,7 @@ use crate::ports::LibraryStore;
 pub struct Launcher {
     pub apps: Vec<App>,
     pub query: String,
-    pub cursor: usize,
+    pub cursor: Option<usize>,
     pub list: Viewport,
     pub window: Window,
     pub skin: Skin,
@@ -38,7 +38,7 @@ impl Launcher {
         Self {
             apps,
             query: String::new(),
-            cursor: 0,
+            cursor: mode.first_selection(),
             list: Viewport::new(mode.rows()),
             window: Window::default(),
             skin,
@@ -74,7 +74,8 @@ impl Launcher {
     }
 
     pub fn chosen(&self) -> Option<App> {
-        self.results().get(self.cursor).map(|app| (*app).clone())
+        let cursor = self.cursor?;
+        self.results().get(cursor).map(|app| (*app).clone())
     }
 
     pub fn pick(&self, index: usize) -> Option<App> {

@@ -14,18 +14,28 @@ pub enum Scroll {
 impl Launcher {
     pub fn type_query(&mut self, text: String) -> Scroll {
         self.query = text;
-        self.restart()
+        let scroll = self.restart();
+        if !self.query.trim().is_empty() {
+            self.cursor = Some(0);
+        }
+        scroll
     }
 
     pub fn step(&mut self, step: Move) -> Scroll {
         let count = self.results().len();
-        self.cursor = moved(self.cursor, count, self.mode.columns(), step);
+        if count == 0 {
+            return Scroll::Keep;
+        }
+        self.cursor = Some(match self.cursor {
+            Some(cursor) => moved(cursor, count, self.mode.columns(), step),
+            None => 0,
+        });
         self.follow()
     }
 
     pub fn hover(&mut self, index: usize) {
         if index < self.results().len() {
-            self.cursor = index;
+            self.cursor = Some(index);
         }
     }
 
@@ -48,20 +58,27 @@ impl Launcher {
     }
 
     pub fn settle(&mut self) {
-        self.cursor = self.cursor.min(self.results().len().saturating_sub(1));
+        let count = self.results().len();
+        self.cursor = self
+            .cursor
+            .filter(|_| count > 0)
+            .map(|cursor| cursor.min(count - 1));
         self.follow();
     }
 
     fn restart(&mut self) -> Scroll {
-        self.cursor = 0;
+        self.cursor = self.mode.first_selection();
         self.list = Viewport::new(self.mode.rows());
         self.window.offset = 0.0;
         Scroll::To(0.0)
     }
 
     fn follow(&mut self) -> Scroll {
+        let Some(cursor) = self.cursor else {
+            return Scroll::Keep;
+        };
         let columns = self.mode.columns();
-        let row = row_of(self.cursor, columns);
+        let row = row_of(cursor, columns);
         self.list.follow(row, rows(self.results().len(), columns));
         match reveal(row, ROW_STEP, CELL_HEIGHT, self.window) {
             Some(offset) if self.mode.has_shelves() => Scroll::To(offset),

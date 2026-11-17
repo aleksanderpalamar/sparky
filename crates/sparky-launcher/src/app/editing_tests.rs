@@ -174,6 +174,9 @@ fn renomear_comeca_com_o_nome_atual_e_apagar_devolve_os_apps() {
 fn o_cursor_do_menu_para_nas_pontas() {
     let mut launcher = launcher(&["Steam"], &Memory::default());
     launcher.open_menu_on_chosen();
+    assert_eq!(launcher.overlay, Overlay::Closed);
+    launcher.hover(0);
+    launcher.open_menu_on_chosen();
     let ultimo = launcher.menu_items().len() - 1;
     launcher.menu_step(50);
     assert!(matches!(&launcher.overlay, Overlay::Menu(menu) if menu.cursor == ultimo));

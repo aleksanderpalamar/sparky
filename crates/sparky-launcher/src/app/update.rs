@@ -39,6 +39,8 @@ pub fn update(launcher: &mut Launcher, message: Message) -> Task<Message> {
         Message::Dismiss => return focus(launcher.dismiss()),
         Message::Submit => return submit(launcher),
         Message::Pick(index) if closed => return start(launcher.pick(index)),
+        Message::Inside => {}
+        Message::Outside => return iced::exit(),
         Message::Close if closed => return iced::exit(),
         Message::Close => return focus(launcher.dismiss()),
         _ => {}

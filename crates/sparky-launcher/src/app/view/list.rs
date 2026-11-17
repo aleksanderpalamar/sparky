@@ -21,7 +21,7 @@ pub fn list<'a>(launcher: &'a Launcher, results: &[&'a App]) -> Element<'a, Mess
 
 fn line(launcher: &Launcher, app: &App, index: usize) -> Element<'static, Message> {
     let skin = launcher.skin;
-    let highlight = Highlight::when(index == launcher.cursor);
+    let highlight = Highlight::when(Some(index) == launcher.cursor);
     let mut lines = column![
         text(app.name.clone())
             .size(TEXT_SIZE)

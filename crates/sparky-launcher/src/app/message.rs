@@ -29,5 +29,7 @@ pub enum Message {
     Named(String),
     ConfirmName,
     Dismiss,
+    Inside,
+    Outside,
     Close,
 }

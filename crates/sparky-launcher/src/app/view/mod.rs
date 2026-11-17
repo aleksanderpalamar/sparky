@@ -42,7 +42,14 @@ pub fn view(launcher: &Launcher) -> Element<'_, Message> {
         .height(Length::Fill)
         .style(move |_| panel(skin));
     let tracked = mouse_area(base).on_move(Message::Pointer).into();
-    overlay::layer(launcher, tracked)
+    let (width, height) = launcher.mode.size();
+    let framed = container(overlay::layer(launcher, tracked))
+        .width(width as f32)
+        .height(height as f32);
+    let inside = mouse_area(framed).on_press(Message::Inside);
+    mouse_area(container(inside).center(Length::Fill))
+        .on_press(Message::Outside)
+        .into()
 }
 
 fn empty(launcher: &Launcher) -> Element<'_, Message> {

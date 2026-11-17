@@ -19,7 +19,7 @@ fn digitar_filtra_e_volta_a_selecao_para_o_primeiro() {
     launcher.step(Move::Next);
     launcher.step(Move::Next);
     launcher.type_query("fo".to_owned());
-    assert_eq!(launcher.cursor, 0);
+    assert_eq!(launcher.cursor, Some(0));
     assert_eq!(
         launcher.chosen().map(|app| app.name),
         Some("Fonts".to_owned())
@@ -30,9 +30,9 @@ fn digitar_filtra_e_volta_a_selecao_para_o_primeiro() {
 fn andar_para_nas_pontas_da_grade() {
     let mut launcher = launcher(&["A", "B", "C"], &Memory::default());
     launcher.step(Move::Previous);
-    assert_eq!(launcher.cursor, 0);
+    assert_eq!(launcher.cursor, Some(0));
     launcher.step(Move::Down);
-    assert_eq!(launcher.cursor, 0);
+    assert_eq!(launcher.cursor, Some(0));
     for _ in 0..5 {
         launcher.step(Move::Next);
     }
@@ -48,11 +48,12 @@ fn descer_alem_da_janela_pede_para_rolar_ate_a_linha() {
         offset: 0.0,
         height: 440.0,
     });
+    launcher.hover(0);
     assert_eq!(launcher.step(Move::Down), Scroll::Keep);
     for _ in 0..3 {
         launcher.step(Move::Down);
     }
-    assert_eq!(launcher.cursor, 24);
+    assert_eq!(launcher.cursor, Some(24));
     assert_eq!(
         launcher.step(Move::Down),
         Scroll::To(5.0 * ROW_STEP + CELL_HEIGHT - 440.0)
@@ -77,6 +78,46 @@ fn buscar_ou_trocar_de_prateleira_volta_ao_topo() {
         height: 440.0,
     });
     assert_eq!(launcher.next_shelf(1), Scroll::To(0.0));
+}
+
+#[test]
+fn ao_abrir_nada_vem_selecionado_e_a_primeira_seta_marca_o_primeiro() {
+    let mut launcher = launcher(&["A", "B"], &Memory::default());
+    assert_eq!(launcher.cursor, None);
+    assert_eq!(launcher.chosen(), None);
+    launcher.step(Move::Down);
+    assert_eq!(launcher.cursor, Some(0));
+}
+
+#[test]
+fn digitar_marca_o_primeiro_e_apagar_a_busca_desmarca() {
+    let mut launcher = launcher(&["Alfa", "Beta"], &Memory::default());
+    launcher.type_query("be".to_owned());
+    assert_eq!(
+        launcher.chosen().map(|app| app.name),
+        Some("Beta".to_owned())
+    );
+    launcher.type_query(String::new());
+    assert_eq!(launcher.cursor, None);
+}
+
+#[test]
+fn trocar_de_prateleira_tira_a_selecao() {
+    let mut launcher = launcher(&["A"], &Memory::default());
+    launcher.hover(0);
+    launcher.show_shelf(Shelf::Home);
+    assert_eq!(launcher.cursor, None);
+}
+
+#[test]
+fn o_menu_do_sistema_abre_com_a_primeira_opcao_marcada() {
+    let lancador = crate::app::state::Launcher::new(
+        crate::domain::system::entries(),
+        sparky_theme::Skin::default(),
+        crate::domain::mode::Mode::System,
+        Box::new(Memory::default()),
+    );
+    assert_eq!(lancador.cursor, Some(0));
 }
 
 #[test]

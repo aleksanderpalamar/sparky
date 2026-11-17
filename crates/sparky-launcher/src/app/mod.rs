@@ -25,6 +25,7 @@ use sparky_ui::surface::transparent;
 
 use crate::adapters::catalog::installed_apps;
 use crate::adapters::icons::Icons;
+use crate::adapters::instance::{Claim, Instance, claim, socket_from_env};
 use crate::adapters::library_files::LibraryFiles;
 use crate::app::keys::{Command, command, confirms};
 use crate::app::message::Message;
@@ -38,6 +39,14 @@ use crate::domain::system::entries;
 const NAMESPACE: &str = "sparky-launcher";
 
 pub fn run(mode: Mode) -> Result<(), iced_layershell::Error> {
+    match socket_from_env(mode).map(|path| claim(&path)) {
+        Some(Ok(Claim::Signalled)) => return Ok(()),
+        Some(Ok(Claim::Owner(instance))) => close_on_request(instance),
+        Some(Err(error)) => {
+            eprintln!("sparky-launcher: não deu para controlar a abertura única: {error}")
+        }
+        None => {}
+    }
     let apps = match mode {
         Mode::Apps => installed_apps(),
         Mode::System => entries(),
@@ -64,8 +73,16 @@ pub fn run(mode: Mode) -> Result<(), iced_layershell::Error> {
         })
         .theme(|launcher: &Launcher| launcher.skin.theme())
         .style(transparent)
-        .settings(settings(mode))
+        .settings(settings())
         .run()
+}
+
+fn close_on_request(instance: Instance) {
+    std::thread::spawn(move || {
+        if instance.wait().is_ok() {
+            std::process::exit(0);
+        }
+    });
 }
 
 fn icons(apps: Vec<App>) -> Task<Message> {
@@ -96,13 +113,13 @@ fn keyboard_message(event: Event, status: Status, _window: window::Id) -> Option
     }
 }
 
-fn settings(mode: Mode) -> Settings {
+fn settings() -> Settings {
     Settings {
         layer_settings: LayerShellSettings {
-            anchor: Anchor::empty(),
+            anchor: Anchor::Top | Anchor::Bottom | Anchor::Left | Anchor::Right,
             layer: Layer::Overlay,
-            exclusive_zone: 0,
-            size: Some(mode.size()),
+            exclusive_zone: -1,
+            size: None,
             keyboard_interactivity: KeyboardInteractivity::Exclusive,
             start_mode: StartMode::Active,
             ..LayerShellSettings::default()
@@ -110,5 +127,23 @@ fn settings(mode: Mode) -> Settings {
         antialiasing: true,
         default_font: sparky_ui::style::FONT,
         ..Settings::default()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use iced_layershell::reexport::Anchor;
+
+    use super::settings;
+
+    #[test]
+    fn a_camada_cobre_a_tela_toda_para_o_clique_fora_fechar() {
+        let camada = settings().layer_settings;
+        assert_eq!(
+            camada.anchor,
+            Anchor::Top | Anchor::Bottom | Anchor::Left | Anchor::Right
+        );
+        assert_eq!(camada.exclusive_zone, -1);
+        assert_eq!(camada.size, None);
     }
 }

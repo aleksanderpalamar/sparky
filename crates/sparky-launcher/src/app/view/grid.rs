@@ -57,7 +57,7 @@ pub fn grid<'a>(launcher: &'a Launcher, results: &[&'a App]) -> Element<'a, Mess
 
 fn cell(launcher: &Launcher, app: &App, index: usize) -> Element<'static, Message> {
     let skin = launcher.skin;
-    let highlight = Highlight::when(index == launcher.cursor);
+    let highlight = Highlight::when(Some(index) == launcher.cursor);
     let shown = caption(&app.name, LABEL_CHARS, LABEL_LINES);
     let label = text(shown.text)
         .size(LABEL_SIZE)

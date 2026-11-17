@@ -56,6 +56,13 @@ impl Mode {
         }
     }
 
+    pub fn first_selection(self) -> Option<usize> {
+        match self {
+            Mode::Apps => None,
+            Mode::System => Some(0),
+        }
+    }
+
     pub fn has_shelves(self) -> bool {
         matches!(self, Mode::Apps)
     }
@@ -92,5 +99,7 @@ mod tests {
         assert_eq!(Mode::System.columns(), 1);
         assert!(Mode::Apps.has_shelves());
         assert!(!Mode::System.has_shelves());
+        assert_eq!(Mode::Apps.first_selection(), None);
+        assert_eq!(Mode::System.first_selection(), Some(0));
     }
 }
