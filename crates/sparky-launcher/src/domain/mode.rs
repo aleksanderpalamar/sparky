@@ -37,9 +37,34 @@ impl Mode {
 
     pub fn size(self) -> (u32, u32) {
         match self {
-            Mode::Apps => (640, 440),
+            Mode::Apps => (800, 600),
             Mode::System => (440, 252),
         }
+    }
+
+    pub fn columns(self) -> usize {
+        match self {
+            Mode::Apps => 6,
+            Mode::System => 1,
+        }
+    }
+
+    pub fn rows(self) -> usize {
+        match self {
+            Mode::Apps => 4,
+            Mode::System => 8,
+        }
+    }
+
+    pub fn first_selection(self) -> Option<usize> {
+        match self {
+            Mode::Apps => None,
+            Mode::System => Some(0),
+        }
+    }
+
+    pub fn has_shelves(self) -> bool {
+        matches!(self, Mode::Apps)
     }
 }
 
@@ -66,5 +91,15 @@ mod tests {
         assert!(Mode::System.size().1 < Mode::Apps.size().1);
         assert_eq!(Mode::System.search(), None);
         assert_eq!(Mode::Apps.search().as_deref(), Some("Buscar aplicativo"));
+    }
+
+    #[test]
+    fn aplicativos_aparecem_em_grade_com_prateleiras_e_o_menu_do_sistema_em_lista() {
+        assert_eq!((Mode::Apps.columns(), Mode::Apps.rows()), (6, 4));
+        assert_eq!(Mode::System.columns(), 1);
+        assert!(Mode::Apps.has_shelves());
+        assert!(!Mode::System.has_shelves());
+        assert_eq!(Mode::Apps.first_selection(), None);
+        assert_eq!(Mode::System.first_selection(), Some(0));
     }
 }

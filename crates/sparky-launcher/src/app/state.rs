@@ -5,125 +5,90 @@ use sparky_ui::viewport::Viewport;
 
 use crate::app::pictures::Shown;
 use crate::domain::app::App;
+use crate::domain::grid::Window;
+use crate::domain::library::Library;
 use crate::domain::mode::Mode;
+use crate::domain::overlay::Overlay;
 use crate::domain::search::rank;
-
-pub const VISIBLE: usize = 8;
+use crate::domain::shelf::{Shelf, shelves};
+use crate::ports::LibraryStore;
 
 pub struct Launcher {
     pub apps: Vec<App>,
     pub query: String,
-    pub cursor: usize,
+    pub cursor: Option<usize>,
     pub list: Viewport,
+    pub window: Window,
     pub skin: Skin,
     pub mode: Mode,
     pub icons: HashMap<String, Shown>,
+    pub shelf: Shelf,
+    pub library: Library,
+    pub overlay: Overlay,
+    pub pointer: (f32, f32),
+    store: Box<dyn LibraryStore>,
 }
 
 impl Launcher {
-    pub fn new(apps: Vec<App>, skin: Skin, mode: Mode) -> Self {
+    pub fn new(apps: Vec<App>, skin: Skin, mode: Mode, store: Box<dyn LibraryStore>) -> Self {
+        let library = store.load().unwrap_or_else(|error| {
+            eprintln!("sparky-launcher: não deu para ler os grupos: {error}");
+            Library::default()
+        });
         Self {
             apps,
             query: String::new(),
-            cursor: 0,
-            list: Viewport::new(VISIBLE),
+            cursor: mode.first_selection(),
+            list: Viewport::new(mode.rows()),
+            window: Window::default(),
             skin,
             mode,
             icons: HashMap::new(),
+            shelf: Shelf::Home,
+            library,
+            overlay: Overlay::Closed,
+            pointer: (0.0, 0.0),
+            store,
         }
     }
 
     pub fn results(&self) -> Vec<&App> {
-        rank(&self.apps, &self.query, self.mode.order())
+        let order = self.mode.order();
+        match self.query.trim().is_empty() {
+            true => rank(
+                self.apps
+                    .iter()
+                    .filter(|app| !self.mode.has_shelves() || self.shelf.holds(app, &self.library)),
+                "",
+                order,
+            ),
+            false => rank(&self.apps, &self.query, order),
+        }
     }
 
-    pub fn type_query(&mut self, text: String) {
-        self.query = text;
-        self.cursor = 0;
-        self.list = Viewport::new(VISIBLE);
-    }
-
-    pub fn step(&mut self, delta: isize) {
-        let count = self.results().len();
-        self.cursor = self
-            .cursor
-            .saturating_add_signed(delta)
-            .min(count.saturating_sub(1));
-        self.list.follow(self.cursor, count);
+    pub fn shelves(&self) -> Vec<Shelf> {
+        match self.mode.has_shelves() {
+            true => shelves(&self.apps, &self.library),
+            false => Vec::new(),
+        }
     }
 
     pub fn chosen(&self) -> Option<App> {
-        self.results().get(self.cursor).map(|app| (*app).clone())
+        let cursor = self.cursor?;
+        self.results().get(cursor).map(|app| (*app).clone())
     }
 
-    pub fn pick(&self, row: usize) -> Option<App> {
-        self.results()
-            .get(self.list.top() + row)
-            .map(|app| (*app).clone())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{Launcher, VISIBLE};
-    use crate::domain::app::{App, Runs};
-    use crate::domain::mode::Mode;
-    use sparky_theme::Skin;
-
-    fn lancador(nomes: &[&str]) -> Launcher {
-        let apps = nomes
-            .iter()
-            .map(|name| App {
-                id: name.to_lowercase(),
-                name: (*name).to_owned(),
-                detail: None,
-                keywords: Vec::new(),
-                command: name.to_lowercase(),
-                runs: Runs::Directly,
-                icon: None,
-            })
-            .collect();
-        Launcher::new(apps, Skin::default(), Mode::Apps)
+    pub fn pick(&self, index: usize) -> Option<App> {
+        self.results().get(index).map(|app| (*app).clone())
     }
 
-    #[test]
-    fn digitar_filtra_e_volta_a_selecao_para_o_primeiro() {
-        let mut launcher = lancador(&["Firefox", "Fonts", "Kitty"]);
-        launcher.step(2);
-        launcher.type_query("fo".to_owned());
-        assert_eq!(launcher.cursor, 0);
-        assert_eq!(
-            launcher.chosen().map(|app| app.name),
-            Some("Fonts".to_owned())
-        );
+    pub fn find(&self, id: &str) -> Option<App> {
+        self.apps.iter().find(|app| app.id == id).cloned()
     }
 
-    #[test]
-    fn andar_para_nas_pontas_da_lista() {
-        let mut launcher = lancador(&["A", "B", "C"]);
-        launcher.step(-1);
-        assert_eq!(launcher.cursor, 0);
-        launcher.step(9);
-        assert_eq!(launcher.chosen().map(|app| app.name), Some("C".to_owned()));
-    }
-
-    #[test]
-    fn a_lista_rola_para_mostrar_a_selecao_e_o_clique_conta_a_rolagem() {
-        let nomes: Vec<String> = (0..12).map(|index| format!("App {index:02}")).collect();
-        let referencias: Vec<&str> = nomes.iter().map(String::as_str).collect();
-        let mut launcher = lancador(&referencias);
-        launcher.step(VISIBLE as isize + 1);
-        assert_eq!(launcher.list.top(), 2);
-        assert_eq!(
-            launcher.pick(0).map(|app| app.name),
-            Some("App 02".to_owned())
-        );
-    }
-
-    #[test]
-    fn sem_resultado_nao_ha_escolha() {
-        let mut launcher = lancador(&["Firefox"]);
-        launcher.type_query("zzz".to_owned());
-        assert_eq!(launcher.chosen(), None);
+    pub fn persist(&self) {
+        if let Err(error) = self.store.save(&self.library) {
+            eprintln!("sparky-launcher: não deu para salvar os grupos: {error}");
+        }
     }
 }

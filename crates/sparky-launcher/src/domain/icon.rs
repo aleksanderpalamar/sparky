@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-pub const ICON_PIXELS: u32 = 28;
+pub const ICON_PIXELS: u32 = 48;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Icon {

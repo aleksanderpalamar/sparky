@@ -77,6 +77,7 @@ fn app_de_terminal_abre_no_terminal_escolhido() {
         command: "htop".to_owned(),
         runs: Runs::InTerminal,
         icon: None,
+        categories: Vec::new(),
     };
     assert_eq!(command_line(&app, "foot").as_deref(), Some("foot -e htop"));
     assert_eq!(
@@ -114,4 +115,13 @@ fn o_icone_vem_do_desktop_e_entrada_sem_icone_fica_sem() {
         app_of("foot", &vazio, "C", "sparky").and_then(|app| app.icon),
         None
     );
+}
+
+#[test]
+fn as_categorias_do_desktop_chegam_ao_aplicativo() {
+    let entry = entrada("[Desktop Entry]\nName=Steam\nExec=steam\nCategories=Network;Game;\n");
+    let Some(app) = app_of("steam.desktop", &entry, "C", "sparky") else {
+        panic!("deveria virar aplicativo")
+    };
+    assert_eq!(app.categories, vec!["Network", "Game"]);
 }

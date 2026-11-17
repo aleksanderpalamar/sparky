@@ -75,6 +75,7 @@ pub fn entries() -> Vec<App> {
             command: String::new(),
             runs: Runs::Session(entry.action),
             icon: Some(Icon::Symbolic(entry.icon)),
+            categories: Vec::new(),
         })
         .collect()
 }
