@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::SystemTime;
 
+pub use crate::app::popups::{ContextMenu, OpenWith};
 use iced::{Point, Size};
 use sparky_storage::{Operation, Volume};
 use sparky_theme::Skin;
@@ -10,6 +11,7 @@ use sparky_ui::notice::Notice;
 use sparky_ui::viewport::Viewport;
 
 use crate::app::bookmarks::BookmarkBar;
+use crate::app::chooser::Chooser;
 use crate::app::drop::Gesture;
 use crate::app::jobs::Job;
 pub use crate::app::mode::Mode;
@@ -17,9 +19,7 @@ use crate::app::previews::Previews;
 use crate::app::search::Search;
 pub use crate::app::services::{Services, Setup};
 use crate::app::tabs::Tab;
-use crate::domain::application::{AppChoices, Remember};
 use crate::domain::clip::Clip;
-use crate::domain::context::Target;
 use crate::domain::drop::Override;
 use crate::domain::grid::{Layout, ViewMode};
 use crate::domain::icons::Icons;
@@ -31,22 +31,6 @@ use crate::domain::tabs::Tabs;
 use crate::domain::toast::Toast;
 use crate::domain::undo::Journal;
 use crate::ports::TrashStore;
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct ContextMenu {
-    pub target: Target,
-    pub name: Option<String>,
-    pub point: Point,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct OpenWith {
-    pub path: PathBuf,
-    pub choices: AppChoices,
-    pub query: String,
-    pub selected: Option<String>,
-    pub remember: Remember,
-}
 
 pub struct Files {
     pub location: PathBuf,
@@ -88,6 +72,7 @@ pub struct Files {
     pub notice: Option<Notice>,
     pub toast: Option<Toast>,
     pub bookmarks: BookmarkBar,
+    pub chooser: Option<Chooser>,
     pub skin: Skin,
     pub services: Services,
 }
@@ -139,6 +124,7 @@ impl Files {
             notice: None,
             toast: None,
             bookmarks: BookmarkBar::default(),
+            chooser: None,
             skin: setup.skin,
             services,
         };

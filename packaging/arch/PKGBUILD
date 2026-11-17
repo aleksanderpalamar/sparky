@@ -91,6 +91,7 @@ package_sparky() {
   done
   install -Dm644 data/session/sparky.desktop -t "$pkgdir/usr/share/wayland-sessions"
   install -Dm644 data/session/sparky-session.target -t "$pkgdir/usr/lib/systemd/user"
+  install -Dm644 data/session/xdg-desktop-portal-sparky.service -t "$pkgdir/usr/lib/systemd/user"
   install -Dm644 data/login/sparky-login.service "$pkgdir/usr/lib/systemd/system/sparky-login.service"
   install -Dm644 data/login/sparky-login.sysusers "$pkgdir/usr/lib/sysusers.d/sparky-login.conf"
   install -Dm644 data/login/sparky-login.tmpfiles "$pkgdir/usr/lib/tmpfiles.d/sparky-login.conf"
@@ -101,6 +102,8 @@ package_sparky() {
   install -Dm644 data/autostart/sparky-files-manager.desktop -t "$pkgdir/etc/xdg/autostart"
   install -Dm644 data/portals/sparky-wlr.conf "$pkgdir/etc/xdg/xdg-desktop-portal-wlr/sparky"
   install -Dm644 data/portals/sparky-keyring.portal -t "$pkgdir/usr/share/xdg-desktop-portal/portals"
+  install -Dm644 data/portals/sparky.portal -t "$pkgdir/usr/share/xdg-desktop-portal/portals"
+  install -Dm644 data/dbus/org.freedesktop.impl.portal.desktop.sparky.service -t "$pkgdir/usr/share/dbus-1/services"
   install -Dm644 data/applications/* -t "$pkgdir/usr/share/applications"
   local file
   for file in data/themes/*/*; do

@@ -68,6 +68,7 @@ pub enum Message {
     UnmountVolume(String),
     EjectVolume(String),
     VolumesCompleted(Operation, Result<Vec<Volume>, String>),
+    Chooser(crate::app::chooser::ChooserEvent),
 }
 
 #[derive(Debug, Clone, Copy)]

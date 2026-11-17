@@ -1,3 +1,5 @@
+pub mod chooser;
+
 use std::ffi::{OsStr, OsString};
 use std::io;
 use std::path::Path;

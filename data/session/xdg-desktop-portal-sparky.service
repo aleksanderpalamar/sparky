@@ -1,0 +1,10 @@
+[Unit]
+Description=Portal service (sparky implementation)
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=dbus
+BusName=org.freedesktop.impl.portal.desktop.sparky
+ExecStart=/usr/bin/sparky-files --file-chooser
+Slice=session.slice

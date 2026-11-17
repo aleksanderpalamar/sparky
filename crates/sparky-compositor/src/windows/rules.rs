@@ -1,7 +1,8 @@
 use sparky_tiling::{Opening, Style};
 
-const FLOATING_APPS: [&str; 6] = [
+const FLOATING_APPS: [&str; 7] = [
     "sparky-settings",
+    "sparky-file-chooser",
     "sparky-shot",
     "org.pulseaudio.pavucontrol",
     "nm-connection-editor",
@@ -53,7 +54,22 @@ mod tests {
 
     #[test]
     fn os_aplicativos_de_dialogo_do_sparky_flutuam() {
-        assert_eq!(opening(&janela("sparky-settings"), Style::SPARKY, 2), Opening::Floating(875, 600));
+        assert_eq!(
+            opening(&janela("sparky-settings"), Style::SPARKY, 2),
+            Opening::Floating(875, 600)
+        );
+    }
+
+    #[test]
+    fn a_janela_de_escolher_arquivos_flutua_como_dialogo() {
+        assert_eq!(
+            opening(&janela("sparky-file-chooser"), Style::SPARKY, 2),
+            Opening::Floating(875, 600)
+        );
+        assert_eq!(
+            opening(&janela("sparky-files"), Style::SPARKY, 2),
+            Opening::Tiled
+        );
     }
 
     #[test]
@@ -62,7 +78,10 @@ mod tests {
             dialog: true,
             ..janela("org.gnome.Nautilus")
         };
-        assert_eq!(opening(&dialogo, Style::SPARKY, 2), Opening::Floating(875, 600));
+        assert_eq!(
+            opening(&dialogo, Style::SPARKY, 2),
+            Opening::Floating(875, 600)
+        );
     }
 
     #[test]
@@ -72,7 +91,10 @@ mod tests {
             max_size: (400, 300),
             ..janela("calculadora")
         };
-        assert_eq!(opening(&fixa, Style::SPARKY, 2), Opening::Floating(404, 304));
+        assert_eq!(
+            opening(&fixa, Style::SPARKY, 2),
+            Opening::Floating(404, 304)
+        );
     }
 
     #[test]

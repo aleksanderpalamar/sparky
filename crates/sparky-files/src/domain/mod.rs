@@ -6,6 +6,7 @@ mod batch_name_tests;
 pub mod bookmarks;
 #[cfg(test)]
 mod bookmarks_tests;
+pub mod choice;
 pub mod clip;
 pub mod clip_payload;
 #[cfg(test)]
