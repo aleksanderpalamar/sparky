@@ -1,6 +1,8 @@
 use sparky_ipc::SessionAction;
 use sparky_xdg::desktop_entry::{DesktopEntry, command_of, list_of};
 
+use crate::domain::icon::Icon;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Runs {
     Directly,
@@ -16,6 +18,8 @@ pub struct App {
     pub keywords: Vec<String>,
     pub command: String,
     pub runs: Runs,
+    pub icon: Option<Icon>,
+    pub categories: Vec<String>,
 }
 
 pub fn app_of(id: &str, entry: &DesktopEntry, locale: &str, desktop: &str) -> Option<App> {
@@ -44,6 +48,13 @@ pub fn app_of(id: &str, entry: &DesktopEntry, locale: &str, desktop: &str) -> Op
         keywords: list_of(entry.keywords.get(locale)),
         command,
         runs,
+        icon: entry
+            .icon
+            .as_deref()
+            .map(str::trim)
+            .filter(|icon| !icon.is_empty())
+            .map(|icon| Icon::Named(icon.to_owned())),
+        categories: entry.categories.clone(),
     })
 }
 

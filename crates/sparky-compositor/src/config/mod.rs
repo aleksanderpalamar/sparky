@@ -12,7 +12,19 @@ use crate::input::keyboard_layout::KeyboardLayout;
 use crate::state::Sparky;
 
 pub fn initial() -> (Config, Option<SystemTime>) {
-    let snapshot = disk::read(&disk::path());
+    let path = disk::path();
+    match disk::migrate(&path) {
+        Ok(true) => tracing::info!(
+            "caminhos de papel de parede dos temas renomeados atualizados em {}",
+            path.display()
+        ),
+        Ok(false) => {}
+        Err(error) => tracing::warn!(
+            "não foi possível atualizar os caminhos antigos em {}: {error}",
+            path.display()
+        ),
+    }
+    let snapshot = disk::read(&path);
     match disk::interpret(snapshot.contents.as_deref()) {
         Ok(config) => (config, snapshot.stamp),
         Err(error) => {

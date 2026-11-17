@@ -6,10 +6,14 @@ pub enum Order {
     AsListed,
 }
 
-pub fn rank<'a>(apps: &'a [App], query: &str, order: Order) -> Vec<&'a App> {
+pub fn rank<'a>(
+    apps: impl IntoIterator<Item = &'a App>,
+    query: &str,
+    order: Order,
+) -> Vec<&'a App> {
     let wanted = query.trim().to_lowercase();
     let mut found: Vec<(u8, String, &App)> = apps
-        .iter()
+        .into_iter()
         .filter_map(|app| score(app, &wanted).map(|score| (score, tiebreak(app, order), app)))
         .collect();
     found.sort_by(|left, right| (left.0, &left.1).cmp(&(right.0, &right.1)));
@@ -29,13 +33,22 @@ fn score(app: &App, wanted: &str) -> Option<u8> {
     }
     let name = app.name.to_lowercase();
     let words = || name.split([' ', '-', '_', '.']);
-    let extra = app.keywords.iter().chain(app.detail.iter()).chain(std::iter::once(&app.id));
+    let extra = app
+        .keywords
+        .iter()
+        .chain(app.detail.iter())
+        .chain(std::iter::once(&app.id));
     match () {
         _ if name == wanted => Some(0),
         _ if name.starts_with(wanted) => Some(1),
         _ if words().any(|word| word.starts_with(wanted)) => Some(2),
         _ if name.contains(wanted) => Some(3),
-        _ if extra.map(|text| text.to_lowercase()).any(|text| text.contains(wanted)) => Some(4),
+        _ if extra
+            .map(|text| text.to_lowercase())
+            .any(|text| text.contains(wanted)) =>
+        {
+            Some(4)
+        }
         _ if in_order(wanted, &name) => Some(5),
         _ => None,
     }
@@ -43,5 +56,7 @@ fn score(app: &App, wanted: &str) -> Option<u8> {
 
 fn in_order(wanted: &str, name: &str) -> bool {
     let mut letters = name.chars();
-    wanted.chars().all(|letter| letters.any(|candidate| candidate == letter))
+    wanted
+        .chars()
+        .all(|letter| letters.any(|candidate| candidate == letter))
 }

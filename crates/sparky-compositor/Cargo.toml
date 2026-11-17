@@ -28,6 +28,7 @@ sparky-tiling.workspace = true
 sparky-xdg.workspace = true
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+x11rb = "0.13"
 xcursor = "0.3"
 
 [dependencies.smithay]
@@ -94,6 +95,7 @@ assets = [
     ["target/release/sparky-terminal", "usr/bin/", "755"],
     ["../../data/session/sparky.desktop", "usr/share/wayland-sessions/", "644"],
     ["../../data/session/sparky-session.target", "usr/lib/systemd/user/", "644"],
+    ["../../data/session/xdg-desktop-portal-sparky.service", "usr/lib/systemd/user/", "644"],
     ["../../data/login/sparky-login.service", "usr/lib/systemd/system/sparky-login.service", "644"],
     ["../../data/login/sparky-login.sysusers", "usr/lib/sysusers.d/sparky-login.conf", "644"],
     ["../../data/login/sparky-login.tmpfiles", "usr/lib/tmpfiles.d/sparky-login.conf", "644"],
@@ -103,6 +105,8 @@ assets = [
     ["../../data/portals/sparky-portals.conf", "usr/share/xdg-desktop-portal/", "644"],
     ["../../data/portals/sparky-wlr.conf", "etc/xdg/xdg-desktop-portal-wlr/sparky", "644"],
     ["../../data/portals/sparky-keyring.portal", "usr/share/xdg-desktop-portal/portals/", "644"],
+    ["../../data/portals/sparky.portal", "usr/share/xdg-desktop-portal/portals/", "644"],
+    ["../../data/dbus/org.freedesktop.impl.portal.desktop.sparky.service", "usr/share/dbus-1/services/", "644"],
     ["../../data/applications/sparky-files.desktop", "usr/share/applications/", "644"],
     ["../../data/applications/sparky-image.desktop", "usr/share/applications/", "644"],
     ["../../data/applications/sparky-monitor.desktop", "usr/share/applications/", "644"],
@@ -169,6 +173,7 @@ assets = [
     { source = "target/release/sparky-terminal", dest = "/usr/bin/sparky-terminal", mode = "755" },
     { source = "../../data/session/sparky.desktop", dest = "/usr/share/wayland-sessions/sparky.desktop", mode = "644" },
     { source = "../../data/session/sparky-session.target", dest = "/usr/lib/systemd/user/sparky-session.target", mode = "644" },
+    { source = "../../data/session/xdg-desktop-portal-sparky.service", dest = "/usr/lib/systemd/user/xdg-desktop-portal-sparky.service", mode = "644" },
     { source = "../../data/login/sparky-login.service", dest = "/usr/lib/systemd/system/sparky-login.service", mode = "644" },
     { source = "../../data/login/sparky-login.sysusers", dest = "/usr/lib/sysusers.d/sparky-login.conf", mode = "644" },
     { source = "../../data/login/sparky-login.tmpfiles", dest = "/usr/lib/tmpfiles.d/sparky-login.conf", mode = "644" },
@@ -178,6 +183,8 @@ assets = [
     { source = "../../data/portals/sparky-portals.conf", dest = "/usr/share/xdg-desktop-portal/sparky-portals.conf", mode = "644" },
     { source = "../../data/portals/sparky-wlr.conf", dest = "/etc/xdg/xdg-desktop-portal-wlr/sparky", mode = "644", config = "noreplace" },
     { source = "../../data/portals/sparky-keyring.portal", dest = "/usr/share/xdg-desktop-portal/portals/sparky-keyring.portal", mode = "644" },
+    { source = "../../data/portals/sparky.portal", dest = "/usr/share/xdg-desktop-portal/portals/sparky.portal", mode = "644" },
+    { source = "../../data/dbus/org.freedesktop.impl.portal.desktop.sparky.service", dest = "/usr/share/dbus-1/services/org.freedesktop.impl.portal.desktop.sparky.service", mode = "644" },
     { source = "../../data/applications/sparky-files.desktop", dest = "/usr/share/applications/sparky-files.desktop", mode = "644" },
     { source = "../../data/applications/sparky-image.desktop", dest = "/usr/share/applications/sparky-image.desktop", mode = "644" },
     { source = "../../data/applications/sparky-monitor.desktop", dest = "/usr/share/applications/sparky-monitor.desktop", mode = "644" },

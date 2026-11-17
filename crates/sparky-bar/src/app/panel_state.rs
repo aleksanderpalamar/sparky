@@ -62,6 +62,7 @@ pub struct Panels {
     pub audio_client: Option<AudioClient>,
     pub network_client: Option<NetworkClient>,
     pub bluetooth_client: Option<BluetoothClient>,
+    pub unpairing: Option<String>,
     pub prompts: Option<PromptClient>,
     pub prompt: Option<Prompt>,
     pub prompt_input: Secret,
@@ -131,6 +132,7 @@ impl Panels {
         self.prompt_input = Secret::default();
         self.volume = None;
         self.app_volume = None;
+        self.unpairing = None;
     }
 
     pub fn dismiss(&mut self, id: PromptId) {

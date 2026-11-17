@@ -61,7 +61,7 @@ impl Skin {
 
 impl Default for Skin {
     fn default() -> Self {
-        Self::new(Palette::TOKYO_NIGHT)
+        Self::new(Palette::SPARKY)
     }
 }
 

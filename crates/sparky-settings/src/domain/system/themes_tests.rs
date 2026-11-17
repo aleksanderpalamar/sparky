@@ -32,7 +32,7 @@ fn catalogo() -> Themes {
     let claro = tema("claro", "mode = \"light\"\naccent = \"#040506\"");
     Themes::Ready(Catalog {
         themes: vec![Theme::builtin(), azul, claro],
-        current: Palette::TOKYO_NIGHT,
+        current: Palette::SPARKY,
     })
 }
 
@@ -42,8 +42,8 @@ fn o_catalogo_vira_uma_escolha_com_o_tema_em_uso() {
     assert_eq!(rows.len(), 1);
     assert_eq!(rows[0].id, RowId::Theme);
     assert_eq!(rows[0].label, "Tema atual");
-    assert_eq!(rows[0].value, "tokyo-night (escuro)");
-    let opcoes = ["tokyo-night (escuro)", "azul (escuro)", "claro (claro)"]
+    assert_eq!(rows[0].value, "sparky (escuro)");
+    let opcoes = ["sparky (escuro)", "azul (escuro)", "claro (claro)"]
         .map(str::to_owned)
         .to_vec();
     assert_eq!(rows[0].control, Control::Choice(opcoes));
@@ -57,10 +57,7 @@ fn escolher_pelo_nome_ou_pelas_setas_so_aplica_outro_tema() {
         escolha(Change::Text("azul (escuro)".to_owned())),
         Some("azul".to_owned())
     );
-    assert_eq!(
-        escolha(Change::Text("tokyo-night (escuro)".to_owned())),
-        None
-    );
+    assert_eq!(escolha(Change::Text("sparky (escuro)".to_owned())), None);
     assert_eq!(escolha(Change::Text("roxo (escuro)".to_owned())), None);
     assert_eq!(escolha(Change::Step(Step::More)), Some("azul".to_owned()));
     assert_eq!(escolha(Change::Step(Step::Less)), Some("claro".to_owned()));

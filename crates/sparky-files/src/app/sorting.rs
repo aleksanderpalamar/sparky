@@ -26,7 +26,10 @@ impl Files {
     }
 
     pub(super) fn listed(&self, path: &Path) -> io::Result<Vec<Entry>> {
-        let entries = self.services.disk.list(path)?;
+        let mut entries = self.services.disk.list(path)?;
+        if let Some(chooser) = &self.chooser {
+            chooser.keep(&mut entries);
+        }
         let disk = self.services.disk.as_ref();
         Ok(detailed(disk, path, self.listing.order(), entries))
     }

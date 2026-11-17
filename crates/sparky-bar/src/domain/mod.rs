@@ -1,6 +1,7 @@
 pub mod agents;
 pub mod audio;
 pub mod bluetooth;
+pub mod bluetooth_devices;
 pub mod calendar;
 pub mod clock;
 pub mod indicator;
@@ -26,5 +27,7 @@ mod tray_layout_tests;
 #[cfg(test)]
 mod panel_domain_tests;
 
+#[cfg(test)]
+mod bluetooth_devices_tests;
 #[cfg(test)]
 mod calendar_tests;

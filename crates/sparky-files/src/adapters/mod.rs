@@ -1,5 +1,8 @@
 pub mod app_icons;
 pub mod archive;
+pub mod bookmark_file;
+#[cfg(test)]
+mod bookmark_file_tests;
 pub mod clipboard;
 pub mod clipboard_request;
 pub mod clipboard_server;
@@ -24,6 +27,7 @@ mod gio_listing_tests;
 pub mod home_trash;
 pub mod icons;
 pub mod local_disk;
+pub mod portal;
 mod sidebar_network;
 mod sidebar_recent;
 pub mod sidebar_source;
@@ -50,3 +54,5 @@ pub mod xdg_open;
 mod home_trash_tests;
 #[cfg(test)]
 mod local_disk_tests;
+#[cfg(test)]
+mod test_bus;

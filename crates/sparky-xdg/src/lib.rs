@@ -10,6 +10,8 @@ mod applications_tests;
 #[cfg(test)]
 mod desktop_entry_tests;
 #[cfg(test)]
+mod icons_lookup_tests;
+#[cfg(test)]
 mod icons_tests;
 
 pub use tilde::tilde;

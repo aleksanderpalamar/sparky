@@ -19,6 +19,19 @@ pub struct Device {
     pub paired: bool,
     pub connected: bool,
     pub kind: DeviceKind,
+    pub duplicates: Vec<String>,
+}
+
+impl Device {
+    pub fn unpair(&self, adapter: &str) -> BluetoothRequest {
+        BluetoothRequest::Unpair {
+            adapter: adapter.to_owned(),
+            devices: std::iter::once(&self.path)
+                .chain(&self.duplicates)
+                .cloned()
+                .collect(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -57,12 +70,22 @@ impl DeviceKind {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BluetoothRequest {
-    Power { adapter: String, enabled: bool },
+    Power {
+        adapter: String,
+        enabled: bool,
+    },
     Discover(String),
     StopDiscovery(String),
     Connect(String),
     Disconnect(String),
-    Pair { device: String, name: String },
+    Pair {
+        device: String,
+        name: String,
+    },
+    Unpair {
+        adapter: String,
+        devices: Vec<String>,
+    },
     Cancel,
 }
 

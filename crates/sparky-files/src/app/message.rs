@@ -25,6 +25,7 @@ pub enum Message {
     Scrolled(isize),
     Pointer(Point),
     Released,
+    BookmarkPressed(usize),
     Hover(DropTarget),
     Unhover(DropTarget),
     Modifiers(Modifiers),
@@ -36,6 +37,7 @@ pub enum Message {
     DeleteCancel,
     ContextEntry(usize),
     ContextBackground,
+    ContextBookmark(usize),
     ContextAction(Action),
     ContextDismiss,
     OpenWithChoice(String),
@@ -66,6 +68,7 @@ pub enum Message {
     UnmountVolume(String),
     EjectVolume(String),
     VolumesCompleted(Operation, Result<Vec<Volume>, String>),
+    Chooser(crate::app::chooser::ChooserEvent),
 }
 
 #[derive(Debug, Clone, Copy)]

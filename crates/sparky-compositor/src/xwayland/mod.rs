@@ -1,5 +1,8 @@
+pub mod active;
 mod handler;
 mod selection;
+mod x11_active;
+mod x11_windows;
 
 use std::os::unix::net::UnixStream;
 use std::process::Stdio;
@@ -9,7 +12,11 @@ use smithay::utils::{Point, Size};
 use smithay::xwayland::{X11Wm, XWayland, XWaylandEvent};
 
 use crate::cursor::CursorPixels;
+use crate::focus::KeyboardFocus;
 use crate::state::Sparky;
+
+use active::NO_WINDOW;
+use x11_active::X11ActiveWindow;
 
 impl Sparky {
     pub fn start_xwayland(&mut self) {
@@ -30,15 +37,20 @@ impl Sparky {
             }
         };
         self.x_display = Some(xwayland.display_number());
-        let inserted = self.loop_handle.insert_source(xwayland, move |event, _, state| match event {
-            XWaylandEvent::Ready { x11_socket, display_number } => {
-                state.xwayland_ready(x11_socket, display_number, client.clone());
-            }
-            XWaylandEvent::Error => {
-                tracing::warn!("o XWayland caiu ao iniciar");
-                state.x_display = None;
-            }
-        });
+        let inserted =
+            self.loop_handle
+                .insert_source(xwayland, move |event, _, state| match event {
+                    XWaylandEvent::Ready {
+                        x11_socket,
+                        display_number,
+                    } => {
+                        state.xwayland_ready(x11_socket, display_number, client.clone());
+                    }
+                    XWaylandEvent::Error => {
+                        tracing::warn!("o XWayland caiu ao iniciar");
+                        state.x_display = None;
+                    }
+                });
         match inserted {
             Ok(token) => self.xwayland_source = Some(token),
             Err(error) => tracing::warn!("o XWayland ficou sem fonte de eventos: {error}"),
@@ -47,6 +59,7 @@ impl Sparky {
 
     pub fn stop_xwayland(&mut self) {
         self.xwm = None;
+        self.active_window = None;
         if let Some(token) = self.xwayland_source.take() {
             self.loop_handle.remove(token);
         }
@@ -68,5 +81,23 @@ impl Sparky {
         }
         tracing::info!("XWayland pronto em :{number}");
         self.xwm = Some(wm);
+        self.watch_active_window(number);
+    }
+
+    fn watch_active_window(&mut self, number: u32) {
+        match X11ActiveWindow::connect(number) {
+            Ok(active) => self.active_window = Some(Box::new(active)),
+            Err(error) => tracing::warn!("janela ativa do X11 sem vigia: {error}"),
+        }
+    }
+
+    pub fn announce_active_window(&self, target: Option<&KeyboardFocus>) {
+        let window = match target {
+            Some(KeyboardFocus::X11(x11)) => x11.window_id(),
+            _ => NO_WINDOW,
+        };
+        if let Some(active) = &self.active_window {
+            active.announce(window);
+        }
     }
 }

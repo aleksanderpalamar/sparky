@@ -2,6 +2,8 @@ mod agent;
 mod context;
 mod discovery;
 mod pairing;
+mod profiles;
+mod removal;
 
 use crate::{
     adapters::prompts::Broker, domain::bluetooth::BluetoothRequest,
@@ -80,6 +82,9 @@ impl BluezControl {
             BluetoothRequest::Pair { device, name } => {
                 pairing::pair(&connection, self.pairing.clone(), device, name).await
             }
+            BluetoothRequest::Unpair { adapter, devices } => {
+                removal::remove(&connection, &adapter, &devices).await
+            }
             BluetoothRequest::Cancel => {
                 self.pairing.cancel();
                 self.discoveries.stop_all(&connection).await;
@@ -123,3 +128,9 @@ mod tests;
 
 #[cfg(test)]
 mod pairing_tests;
+
+#[cfg(test)]
+mod profile_tests;
+
+#[cfg(test)]
+mod removal_tests;

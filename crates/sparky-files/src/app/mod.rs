@@ -1,7 +1,17 @@
 pub mod archive;
 mod background;
 pub mod batch;
+#[cfg(test)]
+mod bookmark_keys_tests;
+mod bookmark_menu;
+#[cfg(test)]
+mod bookmark_menu_tests;
+mod bookmark_reorder;
+pub mod bookmarks;
+#[cfg(test)]
+mod bookmarks_tests;
 pub mod boot;
+pub mod chooser;
 pub mod clipboard;
 mod commands;
 pub mod context;
@@ -19,11 +29,13 @@ pub mod message;
 pub mod mode;
 pub mod navigation;
 pub mod open_with;
+pub mod popups;
 pub mod presentation;
 pub mod previews;
 mod removal;
 mod reveal;
 pub mod search;
+mod services;
 mod sidebar_navigation;
 pub mod sorting;
 pub mod state;

@@ -4903,6 +4903,7 @@ dependencies = [
  "wayland-client",
  "wayland-protocols",
  "wayland-protocols-wlr",
+ "x11rb",
  "xcursor",
 ]
 
@@ -5034,13 +5035,17 @@ dependencies = [
 name = "sparky-launcher"
 version = "0.31.0"
 dependencies = [
+ "fluent-bundle",
  "iced",
  "iced_layershell",
+ "image",
  "sparky-i18n",
  "sparky-ipc",
  "sparky-theme",
  "sparky-ui",
  "sparky-xdg",
+ "tempfile",
+ "tokio",
 ]
 
 [[package]]

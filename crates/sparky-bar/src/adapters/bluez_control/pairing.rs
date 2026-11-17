@@ -58,13 +58,13 @@ async fn operate(
         *target = Some(Target {
             owner,
             device: device.clone(),
-            name,
+            name: name.clone(),
             canceled: false,
         });
     }
     let result = match tokio::time::timeout(
         Duration::from_secs(110),
-        run(connection, &context, &device, procedure),
+        run(connection, &context, &device, &name, procedure),
     )
     .await
     {
@@ -91,6 +91,7 @@ async fn run(
     connection: &Connection,
     context: &PairContext,
     device: &str,
+    name: &str,
     procedure: Procedure,
 ) -> zbus::Result<()> {
     let manager = proxy(connection, "/org/bluez", "org.bluez.AgentManager1").await?;
@@ -110,7 +111,7 @@ async fn run(
     if matches!(procedure, Procedure::Pair) {
         device.set_property("Trusted", true).await?;
     }
-    device.call("Connect", &()).await
+    super::profiles::connect(&device, name).await
 }
 
 pub async fn cancel(connection: &Connection, context: &PairContext) -> zbus::Result<()> {

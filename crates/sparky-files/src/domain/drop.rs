@@ -6,6 +6,8 @@ pub enum DropTarget {
     Place(usize),
     Tab(usize),
     Trash,
+    Bookmarks,
+    Bookmark(usize),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]

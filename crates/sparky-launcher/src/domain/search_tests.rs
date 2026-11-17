@@ -3,6 +3,8 @@ use crate::domain::search::{Order, rank};
 
 fn app(name: &str, keywords: &[&str]) -> App {
     App {
+        icon: None,
+        categories: Vec::new(),
         id: name.to_lowercase(),
         name: name.to_owned(),
         detail: None,
@@ -22,17 +24,26 @@ fn catalogo() -> Vec<App> {
 }
 
 fn nomes(apps: &[App], query: &str) -> Vec<String> {
-    rank(apps, query, Order::ByName).into_iter().map(|found| found.name.clone()).collect()
+    rank(apps, query, Order::ByName)
+        .into_iter()
+        .map(|found| found.name.clone())
+        .collect()
 }
 
 #[test]
 fn sem_busca_lista_tudo_em_ordem_alfabetica() {
-    assert_eq!(nomes(&catalogo(), "  "), ["Arquivos", "Configurações do Sparky", "Firefox", "Fonts"]);
+    assert_eq!(
+        nomes(&catalogo(), "  "),
+        ["Arquivos", "Configurações do Sparky", "Firefox", "Fonts"]
+    );
 }
 
 #[test]
 fn o_comeco_do_nome_vem_antes_do_meio_e_da_palavra_chave() {
-    assert_eq!(nomes(&catalogo(), "f"), ["Firefox", "Fonts", "Configurações do Sparky"]);
+    assert_eq!(
+        nomes(&catalogo(), "f"),
+        ["Firefox", "Fonts", "Configurações do Sparky"]
+    );
 }
 
 #[test]
@@ -54,6 +65,9 @@ fn busca_sem_resultado_fica_vazia() {
 #[test]
 fn na_ordem_da_lista_o_empate_mantem_a_ordem_dada() {
     let lista = vec![app("Sair", &[]), app("Bloquear", &[]), app("Desligar", &[])];
-    let achados: Vec<String> = rank(&lista, "", Order::AsListed).into_iter().map(|found| found.name.clone()).collect();
+    let achados: Vec<String> = rank(&lista, "", Order::AsListed)
+        .into_iter()
+        .map(|found| found.name.clone())
+        .collect();
     assert_eq!(achados, ["Sair", "Bloquear", "Desligar"]);
 }

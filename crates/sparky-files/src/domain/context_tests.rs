@@ -103,3 +103,22 @@ fn compactado_e_um_arquivo_com_extrair_aqui() {
             .any(|row| row.is_disabled(Action::Email))
     );
 }
+
+#[test]
+fn o_marcador_oferece_a_paleta_sem_cor_e_remover() {
+    let rows = entries(Target::Bookmark(0), false, true);
+    assert_eq!(rows[0], super::context::Row::Palette);
+    let actions: Vec<_> = rows.iter().filter_map(|row| row.action()).collect();
+    assert_eq!(actions, [Action::Tag(None), Action::RemoveBookmark]);
+    let vermelho = Action::Tag(Some(super::tag_color::TagColor::Red));
+    assert!(rows.iter().any(|row| row.offers(vermelho)));
+    assert!(!rows.iter().any(|row| row.offers(Action::Trash)));
+}
+
+#[test]
+fn a_paleta_nao_aparece_nos_menus_de_arquivos() {
+    let rows = entries(Target::Folder, false, true);
+    let vermelho = Action::Tag(Some(super::tag_color::TagColor::Red));
+    assert!(!rows.iter().any(|row| row.offers(vermelho)));
+    assert!(!rows.iter().any(|row| row.offers(Action::RemoveBookmark)));
+}

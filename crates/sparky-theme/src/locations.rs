@@ -2,7 +2,7 @@ use std::env;
 use std::path::{Path, PathBuf};
 
 pub const DEFAULT_SPARKY_PATH: &str = "/usr/share/sparky";
-pub const DEFAULT_THEME: &str = "tokyo-night";
+pub const DEFAULT_THEME: &str = "sparky";
 const COLORS_FILE: &str = "colors.toml";
 
 pub struct Environment<'a> {
@@ -113,7 +113,7 @@ mod tests {
             color_files(&ambiente(None, None)),
             vec![
                 PathBuf::from("/home/palamar/.config/sparky/colors.toml"),
-                PathBuf::from("/usr/share/sparky/themes/tokyo-night/colors.toml"),
+                PathBuf::from("/usr/share/sparky/themes/sparky/colors.toml"),
             ]
         );
     }
@@ -122,9 +122,6 @@ mod tests {
     fn o_tema_padrao_segue_o_sparky_path() {
         let files = color_files(&ambiente(Some("/x"), Some("/dados")));
         assert_eq!(files[0], PathBuf::from("/x/sparky/colors.toml"));
-        assert_eq!(
-            files[1],
-            PathBuf::from("/dados/themes/tokyo-night/colors.toml")
-        );
+        assert_eq!(files[1], PathBuf::from("/dados/themes/sparky/colors.toml"));
     }
 }
