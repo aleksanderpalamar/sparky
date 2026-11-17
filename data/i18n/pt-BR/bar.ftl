@@ -82,6 +82,7 @@ pairing-state-unavailable = Estado de pareamento indisponível
 pairing-already-running = Já existe um pareamento em andamento
 bluetooth-timeout = A operação Bluetooth excedeu o tempo limite
 bluetooth-invalid-path = Caminho Bluetooth inválido
+bluetooth-no-profiles = { $name }: nenhum perfil compatível disponível para conectar a este computador
 pairing-unavailable = Pareamento indisponível
 pairing-not-requested = Nenhum pareamento solicitado
 pairing-canceled = Pareamento cancelado

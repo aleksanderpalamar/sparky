@@ -82,6 +82,7 @@ pairing-state-unavailable = Pairing state unavailable
 pairing-already-running = Pairing already in progress
 bluetooth-timeout = Bluetooth operation timed out
 bluetooth-invalid-path = Invalid Bluetooth path
+bluetooth-no-profiles = { $name }: no compatible profile is available to connect to this computer
 pairing-unavailable = Pairing unavailable
 pairing-not-requested = No pairing requested
 pairing-canceled = Pairing canceled

@@ -1,31 +1,9 @@
 use zbus::fdo::ManagedObjects;
-use zbus::zvariant::{ObjectPath, OwnedValue, Value};
+use zbus::zvariant::{ObjectPath, Value};
 
+use super::bluez_fixtures::{insert, value};
 use super::bluez_objects::{ADAPTER, DEVICE, bluetooth};
 use crate::domain::bluetooth::Bluetooth;
-
-fn value(value: &str) -> OwnedValue {
-    Value::from(value).try_into().unwrap()
-}
-
-fn insert(
-    objects: &mut ManagedObjects,
-    path: &str,
-    interface: &str,
-    properties: Vec<(&str, OwnedValue)>,
-) {
-    objects.insert(
-        path.try_into().unwrap(),
-        [(
-            interface.try_into().unwrap(),
-            properties
-                .into_iter()
-                .map(|(key, value)| (key.to_owned(), value))
-                .collect(),
-        )]
-        .into(),
-    );
-}
 
 #[test]
 fn sem_adaptador_nao_exibe_bluetooth() {

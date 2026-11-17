@@ -2,6 +2,7 @@ mod agent;
 mod context;
 mod discovery;
 mod pairing;
+mod profiles;
 
 use crate::{
     adapters::prompts::Broker, domain::bluetooth::BluetoothRequest,
@@ -123,3 +124,6 @@ mod tests;
 
 #[cfg(test)]
 mod pairing_tests;
+
+#[cfg(test)]
+mod profile_tests;
