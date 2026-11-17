@@ -174,6 +174,8 @@ fn na_escolha_menus_e_teclas_que_mexem_em_arquivos_nao_funcionam() {
     mandar(&mut cena, Message::Clicked(indice));
     mandar(&mut cena, Message::ContextEntry(indice));
     assert!(cena.files.context.is_none());
+    mandar(&mut cena, Message::ContextBookmark(0));
+    assert!(cena.files.context.is_none());
     mandar(
         &mut cena,
         Message::Key(Key::Named(Named::Delete), Modifiers::empty()),

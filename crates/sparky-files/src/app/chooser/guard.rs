@@ -33,6 +33,7 @@ pub fn blocked(message: &Message) -> bool {
         message,
         Message::ContextEntry(_)
             | Message::ContextBackground
+            | Message::ContextBookmark(_)
             | Message::ContextAction(_)
             | Message::DeleteConfirm
             | Message::Trash(_)
