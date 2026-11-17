@@ -4903,6 +4903,7 @@ dependencies = [
  "wayland-client",
  "wayland-protocols",
  "wayland-protocols-wlr",
+ "x11rb",
  "xcursor",
 ]
 
