@@ -40,9 +40,9 @@ impl std::error::Error for InvalidTheme {}
 impl Theme {
     pub fn builtin() -> Self {
         Self {
-            name: "tokyo-night".to_owned(),
-            contents: include_str!("../../../../../data/themes/tokyo-night/colors.toml").to_owned(),
-            palette: Palette::TOKYO_NIGHT,
+            name: sparky_theme::locations::DEFAULT_THEME.to_owned(),
+            contents: include_str!("../../../../../data/themes/sparky/colors.toml").to_owned(),
+            palette: Palette::SPARKY,
             icons: None,
             wallpapers: Vec::new(),
         }

@@ -131,7 +131,7 @@ Each `[[output]]` configures a monitor by name (`sparky-msg outputs` lists the n
 
 Applications describe their content's color through `wp-color-management-v1` (sRGB, called `compound_power_2_4` in version 2 of the protocol, gamma 2.2, extended linear, and PQ transfer functions; sRGB, BT.2020, Display P3, and DCI-P3 primaries; Windows scRGB). The compositor converts each window for its display: in HDR, HDR content uses its declared brightness up to the display peak reported by EDID (1000 nits if unavailable); in SDR and screenshots, values above white are clipped without tone mapping. At session startup, the display starts in SDR and switches to HDR when it presents its first frame. If an HDR frame fails or the display rejects it, Sparky returns to SDR without changing `sparky.toml`, logs the reason, and retries on each configuration reload, such as when enabling HDR in Displays. The Displays section of sparky-settings saves these options and only offers HDR on supported displays. Applications receive their scale through fractional-scale-v1 and render sharply at that scale; changing the scale rearranges monitors side by side.
 
-Without `layout` in `[input]`, the system keyboard layout is used. Without `terminal` in `[apps]`, Sparky uses `$TERMINAL` or the first installed terminal, starting with `sparky-terminal`. `wallpaper` in `[general]` is the background image path (`~/` means the home directory); `wallpaper = ""` uses only the theme background color. If omitted, the first Tokyo Night wallpaper is used when `sparky-wallpapers` is installed. `wallpaper` in `[login]` sets the login screen wallpaper; when omitted, the desktop wallpaper is used.
+Without `layout` in `[input]`, the system keyboard layout is used. Without `terminal` in `[apps]`, Sparky uses `$TERMINAL` or the first installed terminal, starting with `sparky-terminal`. `wallpaper` in `[general]` is the background image path (`~/` means the home directory); `wallpaper = ""` uses only the theme background color. If omitted, the first sparky theme wallpaper is used when `sparky-wallpapers` is installed. Paths in the old `wallpapers/spark` and `wallpapers/spark-98` folders are read as `wallpapers/sparky` and `wallpapers/sparky-98`, and `sparky.toml` is rewritten with the new path when the session starts. `wallpaper` in `[login]` sets the login screen wallpaper; when omitted, the desktop wallpaper is used.
 
 ## Session
 
@@ -235,7 +235,7 @@ The configuration (`data/zsh/`) reproduces powerlevel10k's *rainbow* setup in pu
 
 Emulation (PTY, VT/xterm sequences, 10,000 lines of history, and selection) comes from the `alacritty_terminal` library; the window, cell rendering, keyboard handling, and colors are sparky's. Text uses JetBrainsMono Nerd Font at 12 px, with an 18 px margin and sparky's square corners, and cell measurements use the same text engine as rendering so columns stay aligned. Bold, italic, underline, strikethrough, inverse, dim, 256 colors, truecolor, wide characters, and Nerd Font glyphs appear as they do in kitty.
 
-Colors follow sparky's theme, including while the terminal is open: the 16 ANSI colors come from `colors.toml` in the same order Omarchy uses in kitty (`background`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `foreground`, `muted`, and the `bright_*` colors), the cursor and selection use `bright_foreground` and `selection`, and applying another theme in the settings panel recolors the terminal within one second. Colors changed by a program (OSC 4, 10, 11, and 12) remain until the program resets them.
+Colors follow sparky's theme, including while the terminal is open: the 16 ANSI colors come from `colors.toml` in the same order Omarchy uses in kitty (`background`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `foreground`, `muted`, and the `bright_*` colors); the cursor and selection use `bright_foreground` and `selection`. A theme can give the terminal its own colors with the `terminal_` prefix (for example `terminal_background` or `terminal_red`) without changing the rest of the interface; keys without the prefix are used otherwise. Applying another theme in the settings panel recolors the terminal within one second. Colors changed by a program (OSC 4, 10, 11, and 12) remain until the program resets them.
 
 | Key | Action |
 |---|---|
@@ -502,13 +502,13 @@ Media lists filesystems on external/removable disks and volumes under `/run/medi
 Colors come from the first file that exists:
 
 1. `~/.config/sparky/colors.toml`
-2. `$SPARKY_PATH/themes/tokyo-night/colors.toml` (`SPARKY_PATH` is `/usr/share/sparky` when installed)
+2. `$SPARKY_PATH/themes/sparky/colors.toml` (`SPARKY_PATH` is `/usr/share/sparky` when installed)
 
-If neither exists, the built-in Tokyo Night theme is used.
+If neither exists, the built-in sparky theme, the default, is used.
 
-The Themes section lists palettes under `$XDG_DATA_HOME/sparky/themes/<name>/colors.toml` (defaulting to `~/.local/share/sparky/themes`) and `$SPARKY_PATH/themes` (defaulting to `/usr/share/sparky/themes`). User themes take priority over system themes with the same name; Tokyo Night remains available. Files without recognized colors or with invalid colors are ignored.
+The Themes section lists palettes under `$XDG_DATA_HOME/sparky/themes/<name>/colors.toml` (defaulting to `~/.local/share/sparky/themes`) and `$SPARKY_PATH/themes` (defaulting to `/usr/share/sparky/themes`). User themes take priority over system themes with the same name; sparky, the default theme, remains available. Files without recognized colors or with invalid colors are ignored.
 
-sparky includes 22 themes: catppuccin, catppuccin-latte, ethereal, everforest, flexoki-light, gruvbox, hackerman, kanagawa, last-horizon, lumon, lupine, matte-black, miasma, nord, osaka-jade, retro-82, ristretto, rose-pine, solitude, tokyo-night, vantablack, and white. In addition to `colors.toml`, each theme can have an `icons.theme` containing the name of a matching icon theme (sparky themes use Yaru colors, such as `Yaru-blue` and `Yaru-sage`).
+sparky includes 24 themes: catppuccin, catppuccin-latte, ethereal, everforest, flexoki-light, gruvbox, hackerman, kanagawa, last-horizon, lumon, lupine, matte-black, miasma, nord, osaka-jade, retro-82, ristretto, rose-pine, solitude, sparky, sparky-98, tokyo-night, vantablack, and white. **sparky**, the default theme, follows the colors of Ubuntu and Yaru: dark gray surfaces, orange accent, `Yaru` orange folders, and an aubergine terminal. **sparky-98** follows the classic Windows 98 scheme: gray panels and menus, navy accent on the active window border and menu selection, `Yaru-yellow` folders, a teal desktop, and a black terminal with the 16 classic colors. In addition to `colors.toml`, each theme can have an `icons.theme` containing the name of a matching icon theme (sparky themes use Yaru colors, such as `Yaru-blue` and `Yaru-sage`).
 
 `j`/`k` select the palette; `Enter` or a click applies it. Colors are written by atomic replacement to `~/.config/sparky/colors.toml` (respecting `XDG_CONFIG_HOME`). If the theme has an `icons.theme`, the panel also changes the icon theme: it writes `gtk-icon-theme-name` to the GTK 3 and GTK 4 `settings.ini` files (preserving other keys) and runs `gsettings set org.gnome.desktop.interface icon-theme`. This is a GTK setting, so it also applies outside sparky. The panel updates immediately; the compositor, bar, launcher, files, and screenshot tool check colors every second, preserving windows, selection, and ongoing edits. The section does not depend on Hyprland or hypr-theme and does not manage external application themes.
 
@@ -583,7 +583,7 @@ required check on main.
 
 ## Credits
 
-The themes in `data/themes` (palettes and icon theme names), wallpapers in `data/wallpapers`, and layout come from Omarchy, © David Heinemeier Hansson, under the MIT license; the license accompanies each theme. The Omarchy repository does not identify the image authors.
+The themes in `data/themes` (palettes and icon theme names), wallpapers in `data/wallpapers`, and layout come from Omarchy, © David Heinemeier Hansson, under the MIT license; the license accompanies each theme. The Omarchy repository does not identify the image authors. The sparky and sparky-98 themes and their wallpapers are original to sparky (GPL-3.0-or-later): they only reproduce the color values of Ubuntu and Windows 98, without logos, trademarks, or images from those systems.
 
 ## License
 

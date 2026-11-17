@@ -15,7 +15,7 @@ impl Default for Catalog {
     fn default() -> Self {
         Self {
             themes: vec![Theme::builtin()],
-            current: Palette::TOKYO_NIGHT,
+            current: Palette::SPARKY,
         }
     }
 }

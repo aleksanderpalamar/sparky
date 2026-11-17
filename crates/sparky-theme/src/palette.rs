@@ -39,12 +39,26 @@ impl Palette {
         cyan: Rgb::new(0x44, 0x9d, 0xab),
     };
 
+    pub const SPARKY: Self = Self {
+        mode: Mode::Dark,
+        background: Rgb::new(0x2b, 0x2b, 0x2b),
+        lighter_background: Rgb::new(0x3a, 0x3a, 0x3a),
+        foreground: Rgb::new(0xf7, 0xf7, 0xf7),
+        bright_foreground: Rgb::new(0xff, 0xff, 0xff),
+        dark_foreground: Rgb::new(0xae, 0xa7, 0x9f),
+        accent: Rgb::new(0xe9, 0x54, 0x20),
+        selection: Rgb::new(0x5e, 0x27, 0x50),
+        muted: Rgb::new(0x4d, 0x4d, 0x4d),
+        urgent: Rgb::new(0xda, 0x34, 0x50),
+        cyan: Rgb::new(0x2a, 0xa1, 0xb3),
+    };
+
     pub fn load(read: impl Fn(&Path) -> Option<String>, candidates: &[PathBuf]) -> Self {
         candidates
             .iter()
             .find_map(|path| read(path))
             .map(|contents| Self::from_colors(&contents))
-            .unwrap_or(Self::TOKYO_NIGHT)
+            .unwrap_or(Self::SPARKY)
     }
 
     pub fn from_colors(contents: &str) -> Self {
@@ -72,7 +86,7 @@ impl Palette {
 
 impl Default for Palette {
     fn default() -> Self {
-        Self::TOKYO_NIGHT
+        Self::SPARKY
     }
 }
 
@@ -90,10 +104,12 @@ mod tests {
     use std::path::{Path, PathBuf};
 
     const TOKYO_NIGHT: &str = include_str!("../../../data/themes/tokyo-night/colors.toml");
+    const SPARKY: &str = include_str!("../../../data/themes/sparky/colors.toml");
 
     #[test]
-    fn a_paleta_embutida_e_igual_ao_tema_distribuido() {
+    fn as_paletas_embutidas_sao_iguais_aos_temas_distribuidos() {
         assert_eq!(Palette::from_colors(TOKYO_NIGHT), Palette::TOKYO_NIGHT);
+        assert_eq!(Palette::from_colors(SPARKY), Palette::SPARKY);
     }
 
     #[test]
@@ -128,7 +144,10 @@ mod tests {
 
     #[test]
     fn carrega_o_primeiro_arquivo_que_existe() {
-        let candidatos = [PathBuf::from("/usuario/colors.toml"), PathBuf::from("/sistema/colors.toml")];
+        let candidatos = [
+            PathBuf::from("/usuario/colors.toml"),
+            PathBuf::from("/sistema/colors.toml"),
+        ];
         let ler = |path: &Path| match path.starts_with("/sistema") {
             true => Some("accent = \"#010203\"".to_owned()),
             false => None,
@@ -138,7 +157,10 @@ mod tests {
 
     #[test]
     fn o_arquivo_do_usuario_tem_prioridade() {
-        let candidatos = [PathBuf::from("/usuario/colors.toml"), PathBuf::from("/sistema/colors.toml")];
+        let candidatos = [
+            PathBuf::from("/usuario/colors.toml"),
+            PathBuf::from("/sistema/colors.toml"),
+        ];
         let ler = |path: &Path| match path.starts_with("/usuario") {
             true => Some("accent = \"#0a0b0c\"".to_owned()),
             false => Some("accent = \"#010203\"".to_owned()),
@@ -147,8 +169,9 @@ mod tests {
     }
 
     #[test]
-    fn sem_arquivo_nenhum_fica_o_tokyo_night() {
+    fn sem_arquivo_nenhum_fica_o_tema_padrao_sparky() {
         let candidatos = [PathBuf::from("/nada/colors.toml")];
-        assert_eq!(Palette::load(|_| None, &candidatos), Palette::TOKYO_NIGHT);
+        assert_eq!(Palette::load(|_| None, &candidatos), Palette::SPARKY);
+        assert_eq!(Palette::default(), Palette::SPARKY);
     }
 }
