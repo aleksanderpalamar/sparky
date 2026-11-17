@@ -2,9 +2,9 @@ use iced::Element;
 use iced::widget::{column, text};
 use sparky_theme::Skin;
 
-use super::{action, parts};
+use super::{action, bluetooth_rows::Rows, parts};
 use crate::app::{message::Message, panel_state::Panels};
-use crate::domain::bluetooth::{Adapter, Bluetooth, BluetoothRequest, Device};
+use crate::domain::bluetooth::{Adapter, Bluetooth, BluetoothRequest};
 use crate::domain::panel::PanelKind;
 use crate::i18n;
 
@@ -26,12 +26,18 @@ pub fn view<'a>(skin: &Skin, panels: &'a Panels) -> Element<'a, Message> {
     let busy = panels.pending.contains_key(&PanelKind::Bluetooth);
     let mut body = column![].spacing(12);
     for adapter in adapters {
-        body = body.push(adapter_view(skin, adapter, busy));
+        let rows = Rows {
+            skin: *skin,
+            adapter: &adapter.path,
+            busy,
+            unpairing: panels.unpairing.as_deref(),
+        };
+        body = body.push(adapter_view(skin, adapter, &rows));
     }
     body.into()
 }
 
-fn adapter_view<'a>(skin: &Skin, adapter: &'a Adapter, busy: bool) -> Element<'a, Message> {
+fn adapter_view<'a>(skin: &Skin, adapter: &'a Adapter, rows: &Rows<'_>) -> Element<'a, Message> {
     let status = match (adapter.powered, adapter.discovering) {
         (false, _) => "off",
         (true, true) => "searching-devices",
@@ -58,7 +64,7 @@ fn adapter_view<'a>(skin: &Skin, adapter: &'a Adapter, busy: bool) -> Element<'a
         .iter()
         .filter(|device| device.paired)
         .collect();
-    body = device_list(body, skin, &paired, busy);
+    body = rows.push(body, &paired);
     if paired.is_empty() {
         body = body.push(
             text(i18n::text("no-paired-device"))
@@ -72,7 +78,7 @@ fn adapter_view<'a>(skin: &Skin, adapter: &'a Adapter, busy: bool) -> Element<'a
         .iter()
         .filter(|device| !device.paired)
         .collect();
-    body = device_list(body, skin, &available, busy);
+    body = rows.push(body, &available);
     if available.is_empty() {
         body = body.push(
             text(i18n::text("no-device-found"))
@@ -80,7 +86,7 @@ fn adapter_view<'a>(skin: &Skin, adapter: &'a Adapter, busy: bool) -> Element<'a
                 .color(skin.dark_foreground),
         );
     }
-    if !adapter.discovering && !busy {
+    if !adapter.discovering && !rows.busy {
         body = body.push(action(
             skin,
             i18n::text("search-devices"),
@@ -88,40 +94,4 @@ fn adapter_view<'a>(skin: &Skin, adapter: &'a Adapter, busy: bool) -> Element<'a
         ));
     }
     body.into()
-}
-
-fn device_list<'a>(
-    mut body: iced::widget::Column<'a, Message>,
-    skin: &Skin,
-    devices: &[&'a Device],
-    busy: bool,
-) -> iced::widget::Column<'a, Message> {
-    for device in devices {
-        let (trailing, request) = match (device.connected, device.paired) {
-            (true, _) => (
-                Some(i18n::text("disconnect-lower")),
-                BluetoothRequest::Disconnect(device.path.clone()),
-            ),
-            (_, true) => (
-                Some(i18n::text("connect-lower")),
-                BluetoothRequest::Connect(device.path.clone()),
-            ),
-            _ => (
-                Some(i18n::text("pair-lower")),
-                BluetoothRequest::Pair {
-                    device: device.path.clone(),
-                    name: device.name.clone(),
-                },
-            ),
-        };
-        body = body.push(parts::choice(
-            skin,
-            device.kind.icon(),
-            device.name.clone(),
-            trailing,
-            device.connected,
-            (!busy).then_some(Message::BluetoothRequest(request)),
-        ));
-    }
-    body
 }

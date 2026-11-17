@@ -89,6 +89,9 @@ fn settings() -> Settings {
 pub(crate) mod panel_flow_tests;
 
 #[cfg(test)]
+mod bluetooth_unpair_tests;
+
+#[cfg(test)]
 mod network_sampling_tests;
 
 #[cfg(test)]

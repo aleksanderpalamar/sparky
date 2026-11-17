@@ -24,14 +24,15 @@ fn same_device(first: &Record, second: &Record) -> bool {
     }
 }
 
-fn merge(kept: &mut Record, other: Record) {
-    let paired = kept.device.paired || other.device.paired;
-    let connected = kept.device.connected || other.device.connected;
+fn merge(kept: &mut Record, mut other: Record) {
     if preferred(&other, kept) {
-        *kept = other;
+        std::mem::swap(kept, &mut other);
     }
-    kept.device.paired = paired;
-    kept.device.connected = connected;
+    kept.device.paired |= other.device.paired;
+    kept.device.connected |= other.device.connected;
+    kept.device.duplicates.push(other.device.path);
+    kept.device.duplicates.append(&mut other.device.duplicates);
+    kept.device.duplicates.sort();
 }
 
 fn preferred(candidate: &Record, kept: &Record) -> bool {
