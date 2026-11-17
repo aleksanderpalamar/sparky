@@ -1,5 +1,7 @@
+use iced::Event;
+use iced::event::Status;
 use iced::keyboard::key::Named;
-use iced::keyboard::{Key, Modifiers};
+use iced::keyboard::{self, Key, Modifiers};
 
 use crate::domain::grid::Move;
 
@@ -27,6 +29,20 @@ pub fn command(key: &Key, modifiers: Modifiers) -> Option<Command> {
         Key::Character("p" | "k") if modifiers.control() => Some(Command::Move(Move::Up)),
         _ => None,
     }
+}
+
+pub fn typed(event: &Event, status: Status) -> Option<String> {
+    let Event::Keyboard(keyboard::Event::KeyPressed {
+        text: Some(text),
+        modifiers,
+        ..
+    }) = event
+    else {
+        return None;
+    };
+    let shortcut = modifiers.control() || modifiers.alt() || modifiers.logo();
+    let printable = !text.is_empty() && !text.chars().any(char::is_control);
+    (status == Status::Ignored && !shortcut && printable).then(|| text.to_string())
 }
 
 pub fn confirms(key: &Key) -> bool {

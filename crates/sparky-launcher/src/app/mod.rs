@@ -10,6 +10,8 @@ pub mod view;
 #[cfg(test)]
 mod editing_tests;
 #[cfg(test)]
+mod keys_tests;
+#[cfg(test)]
 mod state_tests;
 #[cfg(test)]
 mod test_support;
@@ -20,14 +22,13 @@ use iced_layershell::reexport::{Anchor, KeyboardInteractivity, Layer};
 use iced_layershell::settings::{LayerShellSettings, Settings, StartMode};
 use sparky_theme::Skin;
 use sparky_ui::press::{Press, press};
-use sparky_ui::prompt;
 use sparky_ui::surface::transparent;
 
 use crate::adapters::catalog::installed_apps;
 use crate::adapters::icons::Icons;
 use crate::adapters::instance::{Claim, Instance, claim, socket_from_env};
 use crate::adapters::library_files::LibraryFiles;
-use crate::app::keys::{Command, command, confirms};
+use crate::app::keys::{Command, command, confirms, typed};
 use crate::app::message::Message;
 use crate::app::state::Launcher;
 use crate::app::update::update;
@@ -58,11 +59,7 @@ pub fn run(mode: Mode) -> Result<(), iced_layershell::Error> {
             mode,
             Box::new(LibraryFiles::from_env()),
         );
-        let focus = match mode.search() {
-            Some(_) => prompt::focus(),
-            None => Task::none(),
-        };
-        (launcher, Task::batch([focus, icons(apps.clone())]))
+        (launcher, icons(apps.clone()))
     };
     iced_layershell::application(boot, || NAMESPACE.to_owned(), update, view::view)
         .subscription(|_| {
@@ -102,6 +99,9 @@ fn icons(apps: Vec<App>) -> Task<Message> {
 }
 
 fn keyboard_message(event: Event, status: Status, _window: window::Id) -> Option<Message> {
+    if let Some(text) = typed(&event, status) {
+        return Some(Message::TypeAhead(text));
+    }
     match press(event, status)? {
         Press::Escape => Some(Message::Close),
         Press::Key(key, _) if confirms(&key) => Some(Message::Submit),

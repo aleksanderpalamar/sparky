@@ -50,7 +50,7 @@ fn novo_grupo_pede_o_nome_salva_e_abre_o_grupo() {
     let mut launcher = launcher(&["Kitty"], &memoria);
     assert_eq!(launcher.add_group(), Focus::Name);
     launcher.type_name("Trabalho".to_owned());
-    assert_eq!(launcher.confirm_name(), Focus::Search);
+    assert_eq!(launcher.confirm_name(), Focus::Stay);
     assert_eq!(launcher.overlay, Overlay::Closed);
     assert_eq!(launcher.shelf, Shelf::Group(0));
     assert_eq!(salvos(&memoria), vec![grupo("Trabalho", &[])]);

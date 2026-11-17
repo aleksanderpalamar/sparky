@@ -166,3 +166,27 @@ fn o_menu_do_sistema_nao_tem_prateleiras() {
     launcher.mode = crate::domain::mode::Mode::System;
     assert!(launcher.shelves().is_empty());
 }
+
+#[test]
+fn digitar_com_a_busca_sem_foco_comeca_a_busca() {
+    use crate::app::message::Message;
+    use crate::app::update::update;
+    let mut launcher = launcher(&["Firefox", "Kitty"], &Memory::default());
+    let _ = update(&mut launcher, Message::TypeAhead("k".to_owned()));
+    let _ = update(&mut launcher, Message::TypeAhead("i".to_owned()));
+    assert_eq!(launcher.query, "ki");
+    assert_eq!(
+        launcher.chosen().map(|app| app.name),
+        Some("Kitty".to_owned())
+    );
+}
+
+#[test]
+fn o_menu_do_sistema_ignora_a_digitacao() {
+    use crate::app::message::Message;
+    use crate::app::update::update;
+    let mut launcher = launcher(&["A"], &Memory::default());
+    launcher.mode = crate::domain::mode::Mode::System;
+    let _ = update(&mut launcher, Message::TypeAhead("a".to_owned()));
+    assert!(launcher.query.is_empty());
+}

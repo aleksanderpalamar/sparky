@@ -23,6 +23,10 @@ pub fn update(launcher: &mut Launcher, message: Message) -> Task<Message> {
         Message::Palette(palette) => launcher.skin = Skin::new(palette),
         Message::Icons(icons) => launcher.icons = pictures::shown(icons),
         Message::Typed(text) => return scroll(launcher.type_query(text)),
+        Message::TypeAhead(text) if closed && launcher.mode.search().is_some() => {
+            let query = format!("{}{text}", launcher.query);
+            return Task::batch([scroll(launcher.type_query(query)), prompt::focus()]);
+        }
         Message::Move(step) => return moved(launcher, step),
         Message::NextShelf(delta) if closed => return scroll(launcher.next_shelf(delta)),
         Message::ShowShelf(shelf) if closed => return scroll(launcher.show_shelf(shelf)),
@@ -83,7 +87,6 @@ fn scroll(target: Scroll) -> Task<Message> {
 
 fn focus(target: Focus) -> Task<Message> {
     match target {
-        Focus::Search => prompt::focus(),
         Focus::Name => {
             operation::focus(NAME_INPUT).chain(operation::move_cursor_to_end(NAME_INPUT))
         }

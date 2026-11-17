@@ -13,6 +13,7 @@ pub enum Message {
     Palette(sparky_theme::Palette),
     Icons(HashMap<String, Picture>),
     Typed(String),
+    TypeAhead(String),
     Submit,
     Move(Move),
     NextShelf(isize),

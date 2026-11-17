@@ -7,7 +7,6 @@ use crate::domain::shelf::{Shelf, after_removal};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Focus {
-    Search,
     Name,
     Stay,
 }
@@ -104,7 +103,7 @@ impl Launcher {
 
     pub fn dismiss(&mut self) -> Focus {
         self.overlay = Overlay::Closed;
-        Focus::Search
+        Focus::Stay
     }
 
     fn put(&mut self, spot: Spot, app: &App, choice: Choice) -> bool {
@@ -150,6 +149,6 @@ impl Launcher {
             self.persist();
             self.settle();
         }
-        Focus::Search
+        Focus::Stay
     }
 }
