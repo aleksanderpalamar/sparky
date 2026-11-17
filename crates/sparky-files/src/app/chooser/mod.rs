@@ -3,7 +3,11 @@ mod run;
 mod update;
 
 #[cfg(test)]
+mod activation_tests;
+#[cfg(test)]
 mod chooser_tests;
+#[cfg(test)]
+mod test_support;
 
 use std::path::{Path, PathBuf};
 use std::rc::Rc;

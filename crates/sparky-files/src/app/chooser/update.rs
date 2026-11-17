@@ -10,6 +10,7 @@ use crate::app::message::Message;
 use crate::app::state::{Files, Mode};
 use crate::domain::choice::{Decision, Purpose, decide};
 use crate::domain::entry::Kind;
+use crate::domain::grid::ViewMode;
 
 pub fn update(files: &mut Files, message: Message) -> Task<Message> {
     if files.chooser.is_none() {
@@ -35,10 +36,16 @@ pub fn accept(files: &mut Files) -> Task<Message> {
         return Task::none();
     };
     let purpose = chooser.purpose();
+    let untouched = !chooser.touched_here(&files.location);
     let selected = match purpose {
         Purpose::Open {
             directory: true, ..
-        } if !chooser.touched_here(&files.location) => Vec::new(),
+        }
+        | Purpose::SaveFiles { .. }
+            if untouched =>
+        {
+            Vec::new()
+        }
         _ => selection(files),
     };
     let disk = files.services.disk.as_ref();
@@ -114,6 +121,9 @@ fn pressed(files: &mut Files, key: Key, modifiers: Modifiers) -> Task<Message> {
     if files.mode == Mode::Browse && files.context.is_none() {
         match keys::browse(&key, modifiers) {
             Some(Command::Open) => return accept(files),
+            Some(Command::Right) if files.view_mode == ViewMode::List => {
+                return activate(files, files.listing.cursor());
+            }
             Some(Command::Quit) => return iced::exit(),
             Some(command) if !allowed(command) => return Task::none(),
             Some(_) => touch(files),
