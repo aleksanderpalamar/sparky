@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
-Name=Terminal
-Name[en]=Terminal
+Name=sparky-terminal
+Name[en]=sparky-terminal
 GenericName=Emulador de terminal
 GenericName[en]=Terminal emulator
 Comment=Use a linha de comando com o zsh nas cores do tema do sparky

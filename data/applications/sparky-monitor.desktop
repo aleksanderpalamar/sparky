@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
-Name=Monitor do sistema
-Name[en]=System Monitor
+Name=sparky-monitor
+Name[en]=sparky-monitor
 GenericName=Monitor do sistema
 GenericName[en]=System monitor
 Comment=Acompanhe CPU, memória, disco, rede, GPU e processos pelo teclado
