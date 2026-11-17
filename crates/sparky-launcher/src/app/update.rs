@@ -16,6 +16,7 @@ use crate::domain::overlay::Overlay;
 
 pub const NAME_INPUT: &str = "group-name";
 pub const APPS: &str = "apps";
+pub const MENU: &str = "menu";
 
 pub fn update(launcher: &mut Launcher, message: Message) -> Task<Message> {
     let closed = launcher.overlay == Overlay::Closed;
@@ -32,6 +33,7 @@ pub fn update(launcher: &mut Launcher, message: Message) -> Task<Message> {
         Message::ShowShelf(shelf) if closed => return scroll(launcher.show_shelf(shelf)),
         Message::Hover(index) if closed => launcher.hover(index),
         Message::Scrolled(window) => launcher.scrolled(window),
+        Message::MenuScrolled(offset) => launcher.menu_scrolled(offset),
         Message::Pointer(point) => launcher.pointer = (point.x, point.y),
         Message::AppMenu(app) if closed => launcher.open_app_menu(&app),
         Message::GroupMenu(group) if closed => launcher.open_menu(Target::Group(group)),
@@ -55,8 +57,12 @@ pub fn update(launcher: &mut Launcher, message: Message) -> Task<Message> {
 fn moved(launcher: &mut Launcher, step: Move) -> Task<Message> {
     match (&launcher.overlay, step) {
         (Overlay::Closed, step) => return scroll(launcher.step(step)),
-        (Overlay::Menu(_), Move::Up | Move::Previous) => launcher.menu_step(-1),
-        (Overlay::Menu(_), Move::Down | Move::Next) => launcher.menu_step(1),
+        (Overlay::Menu(_), Move::Up | Move::Previous) => {
+            return scroll_in(MENU, launcher.menu_step(-1));
+        }
+        (Overlay::Menu(_), Move::Down | Move::Next) => {
+            return scroll_in(MENU, launcher.menu_step(1));
+        }
         (Overlay::Naming { .. }, _) => {}
     }
     Task::none()
@@ -79,9 +85,13 @@ fn edited(launcher: &mut Launcher, change: impl FnOnce(&mut Launcher) -> Focus) 
 }
 
 fn scroll(target: Scroll) -> Task<Message> {
+    scroll_in(APPS, target)
+}
+
+fn scroll_in(id: &'static str, target: Scroll) -> Task<Message> {
     match target {
         Scroll::Keep => Task::none(),
-        Scroll::To(y) => operation::scroll_to(APPS, AbsoluteOffset { x: 0.0, y }),
+        Scroll::To(y) => operation::scroll_to(id, AbsoluteOffset { x: 0.0, y }),
     }
 }
 

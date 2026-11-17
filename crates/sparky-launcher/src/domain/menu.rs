@@ -97,6 +97,10 @@ fn group_items(index: usize, library: &Library) -> Vec<Item> {
     ]
 }
 
+pub fn fitted(count: usize, item: f32, room: f32) -> f32 {
+    (count as f32 * item).min(room).max(0.0)
+}
+
 pub fn placed(point: (f32, f32), area: (f32, f32), menu: (f32, f32)) -> (f32, f32) {
     let fit = |start: f32, room: f32, size: f32| start.min(room - size).max(0.0);
     (fit(point.0, area.0, menu.0), fit(point.1, area.1, menu.1))

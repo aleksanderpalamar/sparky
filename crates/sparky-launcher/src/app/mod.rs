@@ -12,6 +12,8 @@ mod editing_tests;
 #[cfg(test)]
 mod keys_tests;
 #[cfg(test)]
+mod menu_tests;
+#[cfg(test)]
 mod state_tests;
 #[cfg(test)]
 mod test_support;

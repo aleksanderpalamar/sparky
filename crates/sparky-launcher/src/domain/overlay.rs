@@ -11,6 +11,7 @@ pub struct Menu {
     pub target: Target,
     pub point: (f32, f32),
     pub cursor: usize,
+    pub offset: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]

@@ -1,5 +1,8 @@
+use crate::app::navigation::Scroll;
 use crate::app::state::Launcher;
+use crate::app::view::{MENU_ITEM, menu_height};
 use crate::domain::app::App;
+use crate::domain::grid::{Window, reveal};
 use crate::domain::menu::{Action, Item, Spot, Target, items};
 use crate::domain::overlay::{Menu, Overlay, Purpose};
 use crate::domain::placements::Choice;
@@ -20,6 +23,7 @@ impl Launcher {
             target,
             point: self.pointer,
             cursor: 0,
+            offset: 0.0,
         });
     }
 
@@ -42,10 +46,32 @@ impl Launcher {
         }
     }
 
-    pub fn menu_step(&mut self, delta: isize) {
-        let last = self.menu_items().len().saturating_sub(1);
+    pub fn menu_step(&mut self, delta: isize) -> Scroll {
+        let count = self.menu_items().len();
+        let height = menu_height(count, self.mode);
+        let Overlay::Menu(menu) = &mut self.overlay else {
+            return Scroll::Keep;
+        };
+        menu.cursor = menu
+            .cursor
+            .saturating_add_signed(delta)
+            .min(count.saturating_sub(1));
+        let window = Window {
+            offset: menu.offset,
+            height,
+        };
+        match reveal(menu.cursor, MENU_ITEM, MENU_ITEM, window) {
+            Some(offset) => {
+                menu.offset = offset;
+                Scroll::To(offset)
+            }
+            None => Scroll::Keep,
+        }
+    }
+
+    pub fn menu_scrolled(&mut self, offset: f32) {
         if let Overlay::Menu(menu) = &mut self.overlay {
-            menu.cursor = menu.cursor.saturating_add_signed(delta).min(last);
+            menu.offset = offset;
         }
     }
 

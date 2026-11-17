@@ -26,6 +26,7 @@ pub enum Message {
     GroupMenu(usize),
     MenuKey,
     Choose(usize),
+    MenuScrolled(f32),
     AddGroup,
     Named(String),
     ConfirmName,

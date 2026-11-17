@@ -2,7 +2,7 @@ use crate::domain::app::{App, Runs};
 use crate::domain::category::Category;
 use crate::domain::groups::{Group, Groups};
 use crate::domain::library::Library;
-use crate::domain::menu::{Spot, Target, items, placed};
+use crate::domain::menu::{Spot, Target, fitted, items, placed};
 use crate::domain::shelf::Shelf;
 
 fn app(id: &str, categorias: &[&str]) -> App {
@@ -94,4 +94,11 @@ fn o_menu_nao_sai_da_janela() {
         placed((50.0, 50.0), (100.0, 80.0), (200.0, 100.0)),
         (0.0, 0.0)
     );
+}
+
+#[test]
+fn a_altura_do_menu_cabe_no_espaco_disponivel() {
+    assert_eq!(fitted(3, 32.0, 500.0), 96.0);
+    assert_eq!(fitted(26, 32.0, 500.0), 500.0);
+    assert_eq!(fitted(0, 32.0, 500.0), 0.0);
 }

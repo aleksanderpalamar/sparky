@@ -1,11 +1,13 @@
 mod grid;
 mod list;
+mod menu;
 mod overlay;
 mod picture;
 mod scrollbar;
 mod shelves;
 
 pub use grid::{CELL_HEIGHT, ROW_STEP};
+pub use menu::{MENU_ITEM, menu_height};
 
 use iced::widget::{Column, container, mouse_area, text, text_input};
 use iced::{Background, Border, Element, Length};

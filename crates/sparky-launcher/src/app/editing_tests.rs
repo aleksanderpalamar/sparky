@@ -1,25 +1,12 @@
 use crate::app::editing::Focus;
 use crate::app::state::Launcher;
-use crate::app::test_support::{Memory, app, launcher};
+use crate::app::test_support::{Memory, app, com_grupos, grupo, launcher};
 use crate::domain::category::Category;
-use crate::domain::groups::{Group, Groups};
+use crate::domain::groups::Group;
 use crate::domain::library::Library;
 use crate::domain::menu::{Action, Spot, Target};
 use crate::domain::overlay::Overlay;
 use crate::domain::shelf::Shelf;
-
-fn grupo(name: &str, apps: &[&str]) -> Group {
-    Group {
-        name: name.to_owned(),
-        apps: apps.iter().map(|app| (*app).to_owned()).collect(),
-    }
-}
-
-fn com_grupos(lista: Vec<Group>) -> Memory {
-    let memoria = Memory::default();
-    memoria.0.borrow_mut().groups = Groups::new(lista);
-    memoria
-}
 
 fn salvos(memoria: &Memory) -> Vec<Group> {
     memoria.0.borrow().groups.list().to_vec()
@@ -168,20 +155,6 @@ fn renomear_comeca_com_o_nome_atual_e_apagar_devolve_os_apps() {
     assert_eq!(launcher.shelf, Shelf::Home);
     assert_eq!(salvos(&memoria), vec![grupo("Jogos", &[])]);
     assert_eq!(nomes(&launcher), vec!["Steam"]);
-}
-
-#[test]
-fn o_cursor_do_menu_para_nas_pontas() {
-    let mut launcher = launcher(&["Steam"], &Memory::default());
-    launcher.open_menu_on_chosen();
-    assert_eq!(launcher.overlay, Overlay::Closed);
-    launcher.hover(0);
-    launcher.open_menu_on_chosen();
-    let ultimo = launcher.menu_items().len() - 1;
-    launcher.menu_step(50);
-    assert!(matches!(&launcher.overlay, Overlay::Menu(menu) if menu.cursor == ultimo));
-    launcher.menu_step(-90);
-    assert!(matches!(&launcher.overlay, Overlay::Menu(menu) if menu.cursor == 0));
 }
 
 #[test]
