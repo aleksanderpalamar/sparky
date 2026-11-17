@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+use std::path::PathBuf;
+
 use sparky_theme::Skin;
 use sparky_ui::viewport::Viewport;
 
@@ -14,11 +17,20 @@ pub struct Launcher {
     pub list: Viewport,
     pub skin: Skin,
     pub mode: Mode,
+    pub icons: HashMap<String, PathBuf>,
 }
 
 impl Launcher {
     pub fn new(apps: Vec<App>, skin: Skin, mode: Mode) -> Self {
-        Self { apps, query: String::new(), cursor: 0, list: Viewport::new(VISIBLE), skin, mode }
+        Self {
+            apps,
+            query: String::new(),
+            cursor: 0,
+            list: Viewport::new(VISIBLE),
+            skin,
+            mode,
+            icons: HashMap::new(),
+        }
     }
 
     pub fn results(&self) -> Vec<&App> {
@@ -33,7 +45,10 @@ impl Launcher {
 
     pub fn step(&mut self, delta: isize) {
         let count = self.results().len();
-        self.cursor = self.cursor.saturating_add_signed(delta).min(count.saturating_sub(1));
+        self.cursor = self
+            .cursor
+            .saturating_add_signed(delta)
+            .min(count.saturating_sub(1));
         self.list.follow(self.cursor, count);
     }
 
@@ -42,7 +57,9 @@ impl Launcher {
     }
 
     pub fn pick(&self, row: usize) -> Option<App> {
-        self.results().get(self.list.top() + row).map(|app| (*app).clone())
+        self.results()
+            .get(self.list.top() + row)
+            .map(|app| (*app).clone())
     }
 }
 
@@ -63,6 +80,7 @@ mod tests {
                 keywords: Vec::new(),
                 command: name.to_lowercase(),
                 runs: Runs::Directly,
+                icon: None,
             })
             .collect();
         Launcher::new(apps, Skin::default(), Mode::Apps)
@@ -74,7 +92,10 @@ mod tests {
         launcher.step(2);
         launcher.type_query("fo".to_owned());
         assert_eq!(launcher.cursor, 0);
-        assert_eq!(launcher.chosen().map(|app| app.name), Some("Fonts".to_owned()));
+        assert_eq!(
+            launcher.chosen().map(|app| app.name),
+            Some("Fonts".to_owned())
+        );
     }
 
     #[test]
@@ -93,7 +114,10 @@ mod tests {
         let mut launcher = lancador(&referencias);
         launcher.step(VISIBLE as isize + 1);
         assert_eq!(launcher.list.top(), 2);
-        assert_eq!(launcher.pick(0).map(|app| app.name), Some("App 02".to_owned()));
+        assert_eq!(
+            launcher.pick(0).map(|app| app.name),
+            Some("App 02".to_owned())
+        );
     }
 
     #[test]

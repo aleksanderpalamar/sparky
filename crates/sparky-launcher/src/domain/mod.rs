@@ -1,4 +1,5 @@
 pub mod app;
+pub mod icon;
 pub mod mode;
 pub mod search;
 pub mod system;
