@@ -4,11 +4,14 @@ use crate::spawn::start;
 pub const TARGET: &str = "sparky-session.target";
 const ACTIVATION: &str = "dbus-update-activation-environment";
 const SYSTEMCTL: &str = "systemctl";
+const PORTALS: &str = "xdg-desktop-portal*.service";
 
 pub fn preparation(variables: &[(String, String)]) -> Vec<(&'static str, Vec<String>)> {
+    let stop = ["--user", "stop", PORTALS].map(str::to_owned).to_vec();
     let restart = ["--user", "restart", TARGET].map(str::to_owned).to_vec();
     vec![
         (ACTIVATION, activation_arguments(variables)),
+        (SYSTEMCTL, stop),
         (SYSTEMCTL, restart),
     ]
 }
@@ -29,23 +32,26 @@ mod tests {
     use super::{TARGET, preparation};
 
     #[test]
-    fn exporta_o_ambiente_antes_de_reiniciar_a_sessao_grafica() {
+    fn para_os_portais_da_sessao_anterior_antes_de_ligar_a_nova() {
         let variaveis = vec![("WAYLAND_DISPLAY".to_owned(), "wayland-1".to_owned())];
-        let passos = preparation(&variaveis);
+        let texto = |lista: &[&str]| {
+            lista
+                .iter()
+                .map(|item| (*item).to_owned())
+                .collect::<Vec<_>>()
+        };
         assert_eq!(
-            passos,
+            preparation(&variaveis),
             vec![
                 (
                     "dbus-update-activation-environment",
-                    vec![
-                        "--systemd".to_owned(),
-                        "WAYLAND_DISPLAY=wayland-1".to_owned()
-                    ]
+                    texto(&["--systemd", "WAYLAND_DISPLAY=wayland-1"])
                 ),
                 (
                     "systemctl",
-                    vec!["--user".to_owned(), "restart".to_owned(), TARGET.to_owned()]
+                    texto(&["--user", "stop", "xdg-desktop-portal*.service"])
                 ),
+                ("systemctl", texto(&["--user", "restart", TARGET])),
             ]
         );
     }
