@@ -7,7 +7,7 @@ use crate::app::message::Message;
 use crate::app::state::{ContextMenu, Files, Mode};
 use crate::domain::archive::extractable;
 use crate::domain::clip::Clip;
-use crate::domain::context::{self, Action, Row, Target};
+use crate::domain::context::{self, Action, Target};
 use crate::domain::entry::Kind;
 use crate::i18n;
 
@@ -63,6 +63,10 @@ pub fn choose(files: &mut Files, action: Action) -> Task<Message> {
     if !offered(files, menu.target, action) || files.blocks_action_in_search(action) {
         return Task::none();
     }
+    if let Target::Bookmark(index) = menu.target {
+        files.bookmark_action(index, action);
+        return Task::none();
+    }
     let path = menu
         .name
         .map_or_else(|| files.location.clone(), |name| files.location.join(name));
@@ -84,7 +88,7 @@ fn offered(files: &Files, target: Target, action: Action) -> bool {
     };
     context::entries(target, files.clip.is_some(), has_entries)
         .into_iter()
-        .any(|row| matches!(row, Row::Item { action: listed, enabled: true, .. } if listed == action))
+        .any(|row| row.offers(action))
 }
 
 fn run(files: &mut Files, action: Action, path: PathBuf) -> Task<Message> {
@@ -113,6 +117,7 @@ fn run(files: &mut Files, action: Action, path: PathBuf) -> Task<Message> {
         Action::SelectAll => files.listing.select_all(),
         Action::Restore => files.restore_selected(),
         Action::RestoreAll => files.restore_all(),
+        Action::Tag(_) | Action::RemoveBookmark => {}
     }
     Task::none()
 }

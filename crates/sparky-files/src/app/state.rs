@@ -4,16 +4,18 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 use iced::{Point, Size};
-use sparky_storage::{Operation, Volume, VolumeSource};
+use sparky_storage::{Operation, Volume};
 use sparky_theme::Skin;
 use sparky_ui::notice::Notice;
 use sparky_ui::viewport::Viewport;
 
+use crate::app::bookmarks::BookmarkBar;
 use crate::app::drop::Gesture;
 use crate::app::jobs::Job;
 pub use crate::app::mode::Mode;
 use crate::app::previews::Previews;
 use crate::app::search::Search;
+pub use crate::app::services::{Services, Setup};
 use crate::app::tabs::Tab;
 use crate::domain::application::{AppChoices, Remember};
 use crate::domain::clip::Clip;
@@ -28,34 +30,7 @@ use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::domain::tabs::Tabs;
 use crate::domain::toast::Toast;
 use crate::domain::undo::Journal;
-use crate::ports::{
-    Archiver, Disk, Dragger, FileClipboard, Finder, IconSource, Opener, SidebarSource,
-    ThumbnailSource, Transfer, TrashDisks, TrashStore,
-};
-
-pub struct Services {
-    pub disk: Box<dyn Disk>,
-    pub opener: Box<dyn Opener>,
-    pub icons: Box<dyn IconSource>,
-    pub volumes: Arc<dyn VolumeSource>,
-    pub archiver: Arc<dyn Archiver>,
-    pub thumbnails: Arc<dyn ThumbnailSource>,
-    pub trash: Arc<dyn TrashStore>,
-    pub clipboard: Box<dyn FileClipboard>,
-    pub sidebar: Arc<dyn SidebarSource>,
-    pub transfer: Arc<dyn Transfer>,
-    pub trash_disks: Arc<dyn TrashDisks>,
-    pub finder: Arc<dyn Finder>,
-    pub dragger: Arc<dyn Dragger>,
-}
-
-pub struct Setup {
-    pub start: PathBuf,
-    pub home: PathBuf,
-    pub places: Vec<Place>,
-    pub skin: Skin,
-    pub rows: usize,
-}
+use crate::ports::TrashStore;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ContextMenu {
@@ -112,6 +87,7 @@ pub struct Files {
     pub previews: Previews,
     pub notice: Option<Notice>,
     pub toast: Option<Toast>,
+    pub bookmarks: BookmarkBar,
     pub skin: Skin,
     pub services: Services,
 }
@@ -162,10 +138,12 @@ impl Files {
             previews: Previews::default(),
             notice: None,
             toast: None,
+            bookmarks: BookmarkBar::default(),
             skin: setup.skin,
             services,
         };
         files.go(setup.start);
+        files.reload_bookmarks();
         files
     }
 

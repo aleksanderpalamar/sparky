@@ -1,14 +1,17 @@
 use std::cell::RefCell;
+use std::fs;
 use std::io;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use sparky_storage::{Operation, Volume, VolumeSource};
 
+use crate::domain::archive::{Extraction, extractable};
 use crate::domain::clip::{ClipOffer, Pasted};
 use crate::domain::icons::Icons;
 use crate::domain::image::ImageMime;
-use crate::ports::{FileClipboard, IconSource, TrashDisks, TrashStore};
+use crate::domain::transfer::Progress;
+use crate::ports::{Archiver, FileClipboard, IconSource, TrashDisks, TrashStore};
 
 #[derive(Clone)]
 pub struct AreaFalsa {
@@ -106,5 +109,37 @@ impl crate::ports::Dragger for ArrastoFalso {
             lista.push(uris);
         }
         self.recusa.clone().map_or(Ok(()), Err)
+    }
+}
+
+pub struct ArquivosComprimidos;
+
+impl Archiver for ArquivosComprimidos {
+    fn create(&self, _paths: &[PathBuf], target: &Path) -> io::Result<()> {
+        fs::write(target, "arquivo de teste")
+    }
+
+    fn extract(
+        &self,
+        archive: &Path,
+        into: &Path,
+        advance: &mut dyn FnMut(Progress) -> bool,
+    ) -> io::Result<Extraction> {
+        let name = archive
+            .file_name()
+            .map(|name| name.to_string_lossy().into_owned());
+        let stem = name.as_deref().and_then(extractable).unwrap_or("saida");
+        let target = into.join(stem);
+        let progress = Progress {
+            items_done: 1,
+            items_total: 1,
+            ..Progress::default()
+        };
+        if !advance(progress) {
+            return Ok(Extraction::Cancelled);
+        }
+        fs::create_dir(&target)?;
+        fs::write(target.join("conteudo.txt"), "extraído")?;
+        Ok(Extraction::Done(target))
     }
 }

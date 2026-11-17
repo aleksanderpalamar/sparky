@@ -163,3 +163,12 @@ fn atalhos_de_abas_usam_ctrl() {
     assert_eq!(letra("s"), Some(Command::SortNext));
     assert_eq!(letra("S"), Some(Command::SortReverse));
 }
+
+#[test]
+fn ctrl_d_marca_a_pasta_e_page_down_continua_descendo() {
+    assert_eq!(
+        browse(&Key::Character("d".into()), Modifiers::CTRL),
+        Some(Command::Bookmark)
+    );
+    assert_eq!(nomeada(Named::PageDown), Some(Command::PageDown));
+}

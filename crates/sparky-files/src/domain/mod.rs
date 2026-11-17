@@ -3,6 +3,9 @@ pub mod archive;
 pub mod batch_name;
 #[cfg(test)]
 mod batch_name_tests;
+pub mod bookmarks;
+#[cfg(test)]
+mod bookmarks_tests;
 pub mod clip;
 pub mod clip_payload;
 #[cfg(test)]
@@ -30,6 +33,7 @@ pub mod size;
 pub mod tabs;
 #[cfg(test)]
 mod tabs_tests;
+pub mod tag_color;
 pub mod thumbnail;
 pub mod thumbnail_key;
 pub mod toast;

@@ -10,7 +10,10 @@ use iced::keyboard::{Key, Modifiers};
 use sparky_theme::Skin;
 use tempfile::TempDir;
 
-use super::test_sources::{AreaFalsa, ArrastoFalso, NoDiskTrashes, NoIcons, NoVolumes};
+use super::test_sources::{
+    AreaFalsa, ArquivosComprimidos, ArrastoFalso, NoDiskTrashes, NoIcons, NoVolumes,
+};
+use crate::adapters::bookmark_file::BookmarkFile;
 use crate::adapters::finder::TreeFinder;
 use crate::adapters::home_trash::HomeTrash;
 use crate::adapters::local_disk::LocalDisk;
@@ -21,9 +24,7 @@ use crate::app::message::Message;
 use crate::app::state::{Files, Services, Setup};
 use crate::app::update::update;
 use crate::domain::application::{AppChoices, Application, Remember};
-use crate::domain::archive::{Extraction, extractable};
-use crate::domain::transfer::Progress;
-use crate::ports::{Archiver, Opener};
+use crate::ports::Opener;
 
 type Escolhas = Rc<RefCell<Vec<(String, Remember)>>>;
 
@@ -63,38 +64,6 @@ impl Opener for Abertos {
     }
 }
 
-struct ArquivosComprimidos;
-
-impl Archiver for ArquivosComprimidos {
-    fn create(&self, _paths: &[PathBuf], target: &Path) -> io::Result<()> {
-        fs::write(target, "arquivo de teste")
-    }
-
-    fn extract(
-        &self,
-        archive: &Path,
-        into: &Path,
-        advance: &mut dyn FnMut(Progress) -> bool,
-    ) -> io::Result<Extraction> {
-        let name = archive
-            .file_name()
-            .map(|name| name.to_string_lossy().into_owned());
-        let stem = name.as_deref().and_then(extractable).unwrap_or("saida");
-        let target = into.join(stem);
-        let progress = Progress {
-            items_done: 1,
-            items_total: 1,
-            ..Progress::default()
-        };
-        if !advance(progress) {
-            return Ok(Extraction::Cancelled);
-        }
-        fs::create_dir(&target)?;
-        fs::write(target.join("conteudo.txt"), "extraído")?;
-        Ok(Extraction::Done(target))
-    }
-}
-
 pub struct Cena {
     pub dir: TempDir,
     pub files: Files,
@@ -127,6 +96,9 @@ impl Cena {
             trash_disks: Arc::new(NoDiskTrashes),
             finder: Arc::new(TreeFinder::new(100)),
             dragger: Arc::new(arrastos.clone()),
+            bookmarks: Arc::new(BookmarkFile::new(
+                dir.path().join("config/sparky/bookmarks"),
+            )),
             clipboard: Box::new(area.clone()),
             sidebar: Arc::new(DesktopSidebar::new(dir.path().join("data"))),
             transfer: Arc::new(LocalTransfer::new(trash.clone(), None)),

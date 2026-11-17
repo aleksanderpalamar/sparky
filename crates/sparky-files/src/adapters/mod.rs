@@ -1,5 +1,8 @@
 pub mod app_icons;
 pub mod archive;
+pub mod bookmark_file;
+#[cfg(test)]
+mod bookmark_file_tests;
 pub mod clipboard;
 pub mod clipboard_request;
 pub mod clipboard_server;

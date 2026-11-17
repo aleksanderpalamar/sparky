@@ -11,12 +11,14 @@ mod open_with_list;
 pub mod properties;
 pub mod search_status;
 pub mod sidebar;
+mod sidebar_bookmarks;
 mod sidebar_device;
 #[cfg(test)]
 mod sidebar_tests;
 pub mod status;
 pub mod style;
 pub mod tabs;
+mod tag_palette;
 pub mod toast;
 pub mod trash_sidebar;
 pub mod virtual_page;

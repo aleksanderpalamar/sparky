@@ -51,6 +51,8 @@ pub fn sidebar(files: &Files) -> Element<'_, Message> {
         rule::horizontal(1),
         Column::with_children(folders).spacing(3),
         rule::horizontal(1),
+        super::sidebar_bookmarks::section(files),
+        rule::horizontal(1),
         text(i18n::text("devices"))
             .size(SMALL_TEXT)
             .color(skin.bright_foreground),
