@@ -1,10 +1,14 @@
 mod config;
 mod index;
+mod rank;
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 pub use config::{configured_theme, icon_roots, theme_from_settings};
+
+const FORMATS: [&str; 2] = ["svg", "png"];
+const LEGACY_SUFFIXES: [&str; 3] = [".png", ".svg", ".xpm"];
 
 pub struct IconTheme {
     directories: Vec<PathBuf>,
@@ -33,14 +37,23 @@ impl IconTheme {
             .iter()
             .filter(|name| valid_name(name))
             .find_map(|name| {
-                self.directories.iter().find_map(|directory| {
-                    ["svg", "png"]
-                        .iter()
-                        .map(|extension| directory.join(format!("{name}.{extension}")))
-                        .find(|path| path.is_file())
-                })
+                self.directories
+                    .iter()
+                    .find_map(|directory| find_in(directory, name))
             })
     }
+}
+
+pub fn find_in(directory: &Path, name: &str) -> Option<PathBuf> {
+    let stem = LEGACY_SUFFIXES
+        .iter()
+        .find_map(|suffix| name.strip_suffix(suffix))
+        .filter(|stem| !stem.is_empty());
+    let named = FORMATS
+        .iter()
+        .map(|format| directory.join(format!("{}.{format}", stem.unwrap_or(name))));
+    let literal = stem.map(|_| directory.join(name));
+    named.chain(literal).find(|path| path.is_file())
 }
 
 fn collect(
@@ -53,15 +66,21 @@ fn collect(
     if !valid_name(theme) || !visited.insert(theme.to_owned()) || visited.len() > 32 {
         return;
     }
-    let mut inherited = Vec::new();
-    for root in roots {
-        let directory = root.join(theme);
-        let theme = index::read(&directory, pixels);
-        directories.extend(theme.directories);
-        inherited.extend(theme.inherits);
+    let Some(index) = roots
+        .iter()
+        .find_map(|root| index::read(&root.join(theme), pixels))
+    else {
+        return;
+    };
+    for directory in &index.directories {
+        let existing = roots
+            .iter()
+            .map(|root| root.join(theme).join(directory))
+            .filter(|path| path.is_dir());
+        directories.extend(existing);
     }
-    for parent in inherited {
-        collect(&parent, roots, pixels, visited, directories);
+    for parent in &index.inherits {
+        collect(parent, roots, pixels, visited, directories);
     }
 }
 

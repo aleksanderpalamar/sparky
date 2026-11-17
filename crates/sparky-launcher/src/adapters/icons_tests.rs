@@ -1,8 +1,10 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use image::{Rgba, RgbaImage};
+
 use super::icons::Icons;
-use crate::domain::icon::Icon;
+use crate::domain::icon::{Icon, Picture};
 
 fn tema(raiz: &Path) -> PathBuf {
     let tema = raiz.join("icons/Teste");
@@ -11,7 +13,9 @@ fn tema(raiz: &Path) -> PathBuf {
     }
     let indice = "[Icon Theme]\nDirectories=32x32/apps,scalable/actions\n\n[32x32/apps]\nSize=32\n\n[scalable/actions]\nSize=16\nType=Scalable\n";
     assert!(fs::write(tema.join("index.theme"), indice).is_ok());
-    assert!(fs::write(tema.join("32x32/apps/firefox.png"), "png").is_ok());
+    let firefox = RgbaImage::from_pixel(64, 64, Rgba([10, 20, 30, 255]));
+    assert!(firefox.save(tema.join("32x32/apps/firefox.png")).is_ok());
+    assert!(fs::write(tema.join("scalable/actions/kvantum.svg"), "<svg/>").is_ok());
     assert!(
         fs::write(
             tema.join("scalable/actions/system-reboot-symbolic.svg"),
@@ -45,6 +49,10 @@ fn o_icone_do_aplicativo_vem_do_tema_dos_pixmaps_ou_do_caminho_absoluto() {
     );
     let absoluto = dir.path().join("pixmaps/antigo.png");
     assert_eq!(nomeado(&absoluto.to_string_lossy()), Some(absoluto));
+    assert_eq!(
+        nomeado("antigo.png"),
+        Some(dir.path().join("pixmaps/antigo.png"))
+    );
     assert_eq!(nomeado("inexistente"), None);
     assert_eq!(nomeado("../antigo"), None);
 }
@@ -84,8 +92,19 @@ fn o_mapa_liga_cada_aplicativo_ao_seu_icone_e_pula_os_sem_icone() {
     let mapa = icones.resolve(&[
         app("firefox", Some(Icon::Named("firefox".to_owned()))),
         app("kitty", None),
+        app("kvantum", Some(Icon::Named("kvantum".to_owned()))),
         app("sumido", Some(Icon::Named("sumido".to_owned()))),
+        app("quebrado", Some(Icon::Named("antigo".to_owned()))),
     ]);
-    assert_eq!(mapa.len(), 1);
-    assert!(mapa.contains_key("firefox"));
+    assert_eq!(mapa.len(), 2);
+    let Some(Picture::Raster(firefox)) = mapa.get("firefox") else {
+        panic!("firefox vira bitmap");
+    };
+    assert_eq!((firefox.width, firefox.height), (28, 28));
+    assert_eq!(
+        mapa.get("kvantum"),
+        Some(&Picture::Vector(
+            dir.path().join("icons/Teste/scalable/actions/kvantum.svg")
+        ))
+    );
 }

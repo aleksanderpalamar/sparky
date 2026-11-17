@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
-use sparky_xdg::icons::{IconTheme, configured_theme, icon_roots};
+use sparky_xdg::icons::{IconTheme, configured_theme, find_in, icon_roots};
 
+use crate::adapters::raster::raster;
 use crate::domain::app::App;
-use crate::domain::icon::Icon;
+use crate::domain::icon::{ICON_PIXELS, Icon, Picture};
 
 const PIXELS: u32 = 32;
 
@@ -30,11 +31,11 @@ impl Icons {
         }
     }
 
-    pub fn resolve(&self, apps: &[App]) -> HashMap<String, PathBuf> {
+    pub fn resolve(&self, apps: &[App]) -> HashMap<String, Picture> {
         apps.iter()
             .filter_map(|app| {
                 let path = self.path(app.icon.as_ref()?)?;
-                Some((app.id.clone(), path))
+                Some((app.id.clone(), picture(path)?))
             })
             .collect()
     }
@@ -53,11 +54,15 @@ impl Icons {
         if Path::new(name).components().count() != 1 || name == "." || name == ".." {
             return None;
         }
-        self.pixmaps.iter().find_map(|directory| {
-            ["svg", "png"]
-                .iter()
-                .map(|extension| directory.join(format!("{name}.{extension}")))
-                .find(|path| path.is_file())
-        })
+        self.pixmaps
+            .iter()
+            .find_map(|directory| find_in(directory, name))
+    }
+}
+
+fn picture(path: PathBuf) -> Option<Picture> {
+    match path.extension().is_some_and(|extension| extension == "svg") {
+        true => Some(Picture::Vector(path)),
+        false => raster(&path, ICON_PIXELS).map(Picture::Raster),
     }
 }

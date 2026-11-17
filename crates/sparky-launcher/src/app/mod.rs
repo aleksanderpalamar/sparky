@@ -1,4 +1,5 @@
 pub mod keys;
+pub mod pictures;
 pub mod state;
 pub mod view;
 
@@ -27,7 +28,7 @@ const NAMESPACE: &str = "sparky-launcher";
 #[derive(Debug, Clone)]
 pub enum Message {
     Palette(sparky_theme::Palette),
-    Icons(std::collections::HashMap<String, std::path::PathBuf>),
+    Icons(std::collections::HashMap<String, crate::domain::icon::Picture>),
     Typed(String),
     Submit,
     Step(isize),
@@ -68,7 +69,7 @@ pub fn run(mode: Mode) -> Result<(), iced_layershell::Error> {
 fn update(launcher: &mut Launcher, message: Message) -> Task<Message> {
     match message {
         Message::Palette(palette) => launcher.skin = Skin::new(palette),
-        Message::Icons(icons) => launcher.icons = icons,
+        Message::Icons(icons) => launcher.icons = pictures::shown(icons),
         Message::Typed(text) => launcher.type_query(text),
         Message::Step(delta) => launcher.step(delta),
         Message::Submit => return start(launcher.chosen()),

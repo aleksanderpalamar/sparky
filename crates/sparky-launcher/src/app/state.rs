@@ -1,9 +1,9 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
 
 use sparky_theme::Skin;
 use sparky_ui::viewport::Viewport;
 
+use crate::app::pictures::Shown;
 use crate::domain::app::App;
 use crate::domain::mode::Mode;
 use crate::domain::search::rank;
@@ -17,7 +17,7 @@ pub struct Launcher {
     pub list: Viewport,
     pub skin: Skin,
     pub mode: Mode,
-    pub icons: HashMap<String, PathBuf>,
+    pub icons: HashMap<String, Shown>,
 }
 
 impl Launcher {
