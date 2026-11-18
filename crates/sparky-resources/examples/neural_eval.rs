@@ -61,7 +61,7 @@ fn main() -> std::io::Result<()> {
 fn compare(rows: &[(f64, Features)], split: usize, model: &SequenceModel) {
     let mut errors = vec![[0.0_f64; 3]; OUTPUTS];
     let mut counts = [0_usize; OUTPUTS];
-    let mut holts = [Holt::new(0.5, 0.2); METRICS.len()];
+    let mut holts = [Holt::new(0.2, 0.0); METRICS.len()];
     let mut naive = [Persistence::default(); METRICS.len()];
     for (index, end) in (WINDOW..rows.len()).enumerate() {
         let (at, features) = &rows[end - 1];

@@ -11,16 +11,29 @@ fn main() -> std::io::Result<()> {
         let text = std::fs::read_to_string(&path)?;
         let rows: Vec<_> = text.lines().skip(1).filter_map(parse).collect();
         println!("# {path}: {} amostras", rows.len());
-        println!("metrica,horizonte_s,previsoes,mae_persistencia,mae_holt");
+        println!(
+            "metrica,horizonte_s,previsoes,mae_persistencia,mae_holt_0.5_0.2,mae_ses_0.5,mae_ses_0.2,mae_holt_0.3_0.02"
+        );
         for metric in METRICS {
             let points = series(&rows, metric);
             for horizon in HORIZONS {
                 let naive = evaluate(&points, &mut Persistence::default(), horizon);
-                let holt = evaluate(&points, &mut Holt::new(0.5, 0.2), horizon);
-                if let (Some(naive), Some(holt)) = (naive, holt) {
+                let others = [(0.5, 0.2), (0.5, 0.0), (0.2, 0.0), (0.3, 0.02)]
+                    .map(|(alpha, beta)| evaluate(&points, &mut Holt::new(alpha, beta), horizon));
+                if let Some(naive) = naive {
+                    let errors: Vec<String> = others
+                        .iter()
+                        .map(|score| {
+                            score.map_or("-".to_owned(), |score| {
+                                format!("{:.3}", score.mean_absolute_error)
+                            })
+                        })
+                        .collect();
                     println!(
-                        "{metric:?},{horizon},{},{:.3},{:.3}",
-                        holt.forecasts, naive.mean_absolute_error, holt.mean_absolute_error
+                        "{metric:?},{horizon},{},{:.3},{}",
+                        naive.forecasts,
+                        naive.mean_absolute_error,
+                        errors.join(",")
                     );
                 }
             }

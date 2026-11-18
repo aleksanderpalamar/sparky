@@ -168,3 +168,44 @@ reconhecimento de contexto em sessões reais. As duas continuam **não validadas
 Desvio registrado: "comunicação" é reconhecida, mas sozinha não suspende o
 treinamento. Sem detectar uma chamada de voz, o Discord aberto o dia todo
 impediria qualquer aprendizado.
+
+## Fases 3 e 4: primeiro traço real
+
+Traço `trace-desktop-1`: 20 min de desktop em 2026-11-18, amostra a cada
+2 s, 600 linhas, sem jogo. Gravado com `--example record_trace`. Só métricas
+agregadas, sem nomes de processos.
+
+Baseline estatístico (`--example baseline_eval`), erro médio absoluto (MAE) em
+pontos percentuais com horizonte de 10 s:
+
+| Métrica | Persistência | Holt α0,5 β0,2 | SES α0,5 | SES α0,2 |
+|---|---|---|---|---|
+| CPU | 3,774 | 4,954 | 3,463 | 3,234 |
+| Memória | 0,350 | 0,484 | 0,327 | 0,298 |
+| GPU | 0,583 | 0,664 | 0,527 | 0,510 |
+| PSI de I/O | 0,171 | 0,212 | 0,176 | 0,183 |
+
+A tendência de Holt piorou todas as métricas neste uso. O baseline passou a ser
+suavização exponencial simples (α = 0,2, sem tendência). Viés: α foi escolhido
+neste mesmo traço; precisa ser reconfirmado com traços novos.
+
+Comparação neural (`--example neural_eval`): 70% treino, 30% teste em ordem
+temporal, 40 linhas de folga contra vazamento, semente fixa.
+
+| Métrica (10 s) | Persistência | SES | GRU |
+|---|---|---|---|
+| CPU | 5,536 | 4,698 | 4,608 |
+| Memória | 0,446 | 0,367 | 0,335 |
+| GPU | 0,586 | 0,541 | 0,406 |
+| PSI de I/O | 0,219 | 0,223 | 0,519 |
+| VRAM | 0,044 | 0,047 | 0,789 |
+
+- Parâmetros: GRU 5.166 + MLP 1.626 = 6.792 (limite 100 mil).
+- Inferência GRU + MLP: p50 35 µs, p95 36 µs, p99 39 µs (meta 1 ms).
+- Treino: 32 ms por época com 366 exemplos.
+
+Conclusão: **inconclusivo**. A GRU ganhou em CPU, memória e GPU e perdeu nas
+métricas próximas de zero. Com 20 min de dados não há base para a promoção. A
+validação incremental exige vencer o baseline na média geral, então este
+modelo seria recusado e o serviço continuaria no baseline. QG13 segue **não
+validado**.

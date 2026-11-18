@@ -3,8 +3,8 @@ use crate::domain::{Features, METRICS};
 use crate::neural::SequenceModel;
 use crate::predict::Holt;
 
-const ALPHA: f32 = 0.5;
-const BETA: f32 = 0.2;
+const ALPHA: f32 = 0.2;
+const BETA: f32 = 0.0;
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Errors {
