@@ -129,6 +129,15 @@ na Fase 4.
 | Testes de pressão de RAM | só em ambiente descartável |
 | Telemetria de frametime e OBS | não há fonte confiável no sistema hoje |
 
+## Decisões do mantenedor após o diagnóstico
+
+| Tema | Decisão (2026-11-18) |
+|---|---|
+| Intervenções | Helper root com allowlist de operações tipadas e regra polkit |
+| Contexto gráfico | Estender o `sparky-ipc` e o compositor com janelas, foco, app_id e PID, versão de protocolo e limite de payload |
+| Ciclo de vida | Unit `systemd --user` presa ao `sparky-session.target`, com reinício, limites rígidos e watchdog |
+| Rede neural | Implementação própria em f32, sem framework |
+
 ## Quality Gates
 
 Todos os gates (QG01–QG21): **não executados**.
