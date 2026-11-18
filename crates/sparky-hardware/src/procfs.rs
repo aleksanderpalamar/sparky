@@ -19,6 +19,10 @@ pub fn available_memory_kib(meminfo: &str) -> Option<u64> {
     kib(meminfo, "MemAvailable")
 }
 
+pub fn swap_kib(meminfo: &str) -> Option<(u64, u64)> {
+    Some((kib(meminfo, "SwapTotal")?, kib(meminfo, "SwapFree")?))
+}
+
 fn kib(meminfo: &str, key: &str) -> Option<u64> {
     let mut parts = field(meminfo, key)?.split_whitespace();
     let kib = parts.next()?.parse::<u64>().ok()?;

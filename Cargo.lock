@@ -5150,6 +5150,7 @@ dependencies = [
  "iced",
  "iced_runtime",
  "rustix 1.1.5",
+ "sparky-hardware",
  "sparky-i18n",
  "sparky-theme",
  "sparky-ui",
