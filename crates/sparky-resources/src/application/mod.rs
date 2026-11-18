@@ -5,6 +5,9 @@ pub mod encoding;
 #[cfg(test)]
 mod encoding_tests;
 pub mod features;
+pub mod hardware;
+#[cfg(test)]
+mod hardware_tests;
 pub mod learning;
 #[cfg(test)]
 mod learning_tests;

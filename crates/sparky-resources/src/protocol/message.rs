@@ -30,6 +30,7 @@ pub enum Request {
     SetEnabled { switch: Switch },
     SetLearning { switch: Switch },
     ClearSafeMode,
+    ForgetKnowledge,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

@@ -1,5 +1,5 @@
-use crate::application::{Insight, Lifecycle, Link, Signal, training};
-use crate::domain::{Activities, ServiceState, Switch};
+use crate::application::{Insight, Knowledge, Lifecycle, Link, Signal, training};
+use crate::domain::{Activities, ServiceState, Switch, TrainingState};
 use crate::protocol::{Refusal, Reply, Request, Status};
 
 #[derive(Debug, Default)]
@@ -8,6 +8,8 @@ pub struct Service {
     learning: Switch,
     activities: Activities,
     insights: Vec<Insight>,
+    training_active: bool,
+    forget_requested: bool,
 }
 
 impl Service {
@@ -19,6 +21,25 @@ impl Service {
         self.activities = activities;
         self.insights = insights;
         self.lifecycle.receive(Signal::Context(link));
+    }
+
+    pub fn learned(&mut self, knowledge: Knowledge) {
+        self.lifecycle.receive(Signal::Learned(knowledge));
+    }
+
+    pub fn set_training_active(&mut self, active: bool) {
+        self.training_active = active;
+    }
+
+    pub fn take_forget(&mut self) -> bool {
+        std::mem::take(&mut self.forget_requested)
+    }
+
+    pub fn training(&self) -> TrainingState {
+        match training(self.learning, self.state(), self.activities) {
+            TrainingState::Allowed if self.training_active => TrainingState::Active,
+            other => other,
+        }
     }
 
     pub fn state(&self) -> ServiceState {
@@ -38,6 +59,10 @@ impl Service {
                 Reply::Done
             }
             Request::ClearSafeMode => self.clear_safe_mode(),
+            Request::ForgetKnowledge => {
+                self.forget_requested = true;
+                Reply::Done
+            }
         }
     }
 
@@ -63,7 +88,7 @@ impl Service {
             enabled: self.lifecycle.switch(),
             mode: self.lifecycle.mode(),
             learning: self.learning,
-            training: training(self.learning, state, self.activities),
+            training: self.training(),
             activities: self.activities,
         }
     }

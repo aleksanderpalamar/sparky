@@ -4,8 +4,11 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 use sparky_resources::application::Observer;
+use sparky_resources::application::hardware::fingerprint;
+use sparky_resources::daemon::brain::Brain;
 use sparky_resources::daemon::{Server, Service, Stop, Windows, follow, sample_forever};
-use sparky_resources::platform::LinuxFiles;
+use sparky_resources::persistence::Knowledge;
+use sparky_resources::platform::{DiskStorage, LinuxFiles};
 use sparky_resources::protocol::socket;
 use sparky_resources::telemetry::Collector;
 
@@ -29,8 +32,14 @@ fn main() -> ExitCode {
     if let Some(compositor) = sparky_ipc::socket::from_env() {
         follow(compositor, windows.clone());
     }
+    let collector = Collector::new(LinuxFiles);
+    let hardware = fingerprint(&LinuxFiles, collector.system().gpu.measured().is_some());
+    let knowledge = DiskStorage::from_env()
+        .and_then(|directory| DiskStorage::open(directory).ok())
+        .map(Knowledge::new);
     sample_forever(
-        Observer::new(Collector::new(LinuxFiles)),
+        Observer::new(collector),
+        Brain::new(knowledge, hardware),
         windows,
         Arc::clone(&service),
     );

@@ -16,6 +16,8 @@ pub struct Insight {
     pub estimate_short: Option<f32>,
     pub estimate_long: Option<f32>,
     pub anomaly: Option<f32>,
+    pub neural_short: Option<f32>,
+    pub neural_long: Option<f32>,
 }
 
 pub struct Baseline {
@@ -58,6 +60,8 @@ impl Baseline {
             estimate_short: estimate(SHORT),
             estimate_long: estimate(LONG),
             anomaly,
+            neural_short: None,
+            neural_long: None,
         }
     }
 }
