@@ -2,6 +2,7 @@ pub mod application;
 pub mod context;
 pub mod daemon;
 pub mod domain;
+pub mod elevation;
 pub mod neural;
 pub mod orchestration;
 pub mod persistence;

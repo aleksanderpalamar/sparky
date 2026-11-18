@@ -30,3 +30,27 @@ pub trait Executor {
     ) -> Result<crate::domain::Change, ExecError>;
     fn write(&self, task: u32, change: &crate::domain::Change) -> Result<(), ExecError>;
 }
+
+pub trait Priority {
+    fn nice(&self, task: u32) -> io::Result<i8>;
+    fn set_nice(&self, task: u32, value: i8) -> io::Result<()>;
+}
+
+pub trait Elevator {
+    fn renice(&self, task: u32, value: i8) -> Result<(), ExecError>;
+}
+
+impl<E: Elevator> Elevator for Option<E> {
+    fn renice(&self, task: u32, value: i8) -> Result<(), ExecError> {
+        match self {
+            Some(elevator) => elevator.renice(task, value),
+            None => Err(ExecError::Denied),
+        }
+    }
+}
+
+impl<E: Elevator> Elevator for &E {
+    fn renice(&self, task: u32, value: i8) -> Result<(), ExecError> {
+        (*self).renice(task, value)
+    }
+}

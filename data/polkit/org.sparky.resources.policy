@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>Sparky</vendor>
+  <action id="org.sparky.resources.nice">
+    <description>Restore the priority of your own processes</description>
+    <description xml:lang="pt_BR">Restaurar a prioridade dos seus próprios processos</description>
+    <message>The Sparky resource manager wants to restore a process priority</message>
+    <message xml:lang="pt_BR">O gerenciador de recursos do Sparky quer restaurar a prioridade de um processo</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/sparky/sparky-resources-helper</annotate>
+  </action>
+</policyconfig>

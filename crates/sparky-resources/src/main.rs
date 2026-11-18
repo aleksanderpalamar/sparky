@@ -12,7 +12,7 @@ use sparky_resources::daemon::notify::notify;
 use sparky_resources::daemon::{Server, Service, Stop, Windows, follow, sample_forever};
 use sparky_resources::orchestration::Conductor;
 use sparky_resources::persistence::Knowledge;
-use sparky_resources::platform::{DiskStorage, LinuxExecutor, LinuxFiles};
+use sparky_resources::platform::{DiskStorage, LinuxExecutor, LinuxFiles, Pkexec};
 use sparky_resources::policy::Capabilities;
 use sparky_resources::protocol::socket;
 use sparky_resources::safety::{Ledger, Outcome};
@@ -80,7 +80,10 @@ fn recover(socket: &std::path::Path) -> bool {
     let Ok(storage) = runtime(socket) else {
         return true;
     };
-    let outcomes = Ledger::open(storage).recover(&LinuxExecutor::new(LinuxFiles));
+    let outcomes = Ledger::open(storage).recover(&LinuxExecutor::new(
+        LinuxFiles,
+        Pkexec::installed(LinuxFiles),
+    ));
     !outcomes.contains(&Outcome::Unconfirmed)
 }
 
@@ -90,8 +93,9 @@ fn runtime(socket: &std::path::Path) -> std::io::Result<DiskStorage> {
 }
 
 fn orchestra(ledger: Ledger<DiskStorage>) -> Orchestra<DiskStorage> {
+    let elevator = Pkexec::installed(LinuxFiles);
     let capabilities = Capabilities {
-        restore_nice: false,
+        restore_nice: elevator.is_some(),
         io_priority: true,
         affinity: true,
     };
@@ -99,7 +103,7 @@ fn orchestra(ledger: Ledger<DiskStorage>) -> Orchestra<DiskStorage> {
         .map(|topology| topology.last_core())
         .unwrap_or_default();
     Orchestra::new(Conductor::new(
-        LinuxExecutor::new(LinuxFiles),
+        LinuxExecutor::new(LinuxFiles, elevator),
         ledger,
         capabilities,
         spare,

@@ -3,18 +3,18 @@ use std::time::Instant;
 use crate::application::Observation;
 use crate::domain::{Activity, Authority};
 use crate::orchestration::{Conductor, Contention, Moment, protected};
-use crate::platform::{LinuxExecutor, LinuxFiles};
+use crate::platform::{LinuxFiles, SystemExecutor};
 use crate::ports::Storage;
 use crate::telemetry::consumers::Consumers;
 
 pub struct Orchestra<S> {
-    pub conductor: Conductor<LinuxExecutor<LinuxFiles>, S>,
+    pub conductor: Conductor<SystemExecutor, S>,
     consumers: Consumers,
     chosen: Vec<String>,
 }
 
 impl<S: Storage> Orchestra<S> {
-    pub fn new(conductor: Conductor<LinuxExecutor<LinuxFiles>, S>) -> Self {
+    pub fn new(conductor: Conductor<SystemExecutor, S>) -> Self {
         Self {
             conductor,
             consumers: Consumers::default(),

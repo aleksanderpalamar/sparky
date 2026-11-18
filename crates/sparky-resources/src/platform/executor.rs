@@ -5,21 +5,29 @@ use sparky_hardware::process::parse_stat;
 
 use super::syscalls;
 use crate::domain::{Change, ChangeKind, Identity, IoClass};
-use crate::ports::{ExecError, Executor, Files};
+use crate::ports::{Elevator, ExecError, Executor, Files};
 
 const MAX_CPUS: u32 = 1024;
 
-pub struct LinuxExecutor<F> {
+pub struct LinuxExecutor<F, E> {
     files: F,
+    elevator: E,
 }
 
-impl<F: Files> LinuxExecutor<F> {
-    pub fn new(files: F) -> Self {
-        Self { files }
+impl<F: Files, E: Elevator> LinuxExecutor<F, E> {
+    pub fn new(files: F, elevator: E) -> Self {
+        Self { files, elevator }
+    }
+
+    fn renice(&self, task: u32, value: i8) -> Result<(), ExecError> {
+        match syscalls::set_nice(task, value).map_err(failure) {
+            Err(ExecError::Denied) => self.elevator.renice(task, value),
+            result => result,
+        }
     }
 }
 
-impl<F: Files> Executor for LinuxExecutor<F> {
+impl<F: Files, E: Elevator> Executor for LinuxExecutor<F, E> {
     fn tasks(&self, target: Identity) -> Result<Vec<u32>, ExecError> {
         let stat = self
             .files
@@ -53,7 +61,7 @@ impl<F: Files> Executor for LinuxExecutor<F> {
 
     fn write(&self, task: u32, change: &Change) -> Result<(), ExecError> {
         let result = match change {
-            Change::Nice(value) => syscalls::set_nice(task, *value),
+            Change::Nice(value) => return self.renice(task, *value),
             Change::IoPriority(IoClass::None) => syscalls::set_io_priority(task, 0, 0),
             Change::IoPriority(IoClass::BestEffort(level)) => {
                 syscalls::set_io_priority(task, 2, *level)

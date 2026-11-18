@@ -9,6 +9,10 @@ license.workspace = true
 name = "sparky-resources"
 path = "src/main.rs"
 
+[[bin]]
+name = "sparky-resources-helper"
+path = "src/helper.rs"
+
 [lib]
 name = "sparky_resources"
 path = "src/lib.rs"

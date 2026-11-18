@@ -93,6 +93,8 @@ package_sparky() {
   install -Dm644 data/session/sparky-session.target -t "$pkgdir/usr/lib/systemd/user"
   install -Dm644 data/session/xdg-desktop-portal-sparky.service -t "$pkgdir/usr/lib/systemd/user"
   install -Dm644 data/session/sparky-resources.service -t "$pkgdir/usr/lib/systemd/user"
+  install -Dm755 target/release/sparky-resources-helper -t "$pkgdir/usr/lib/sparky"
+  install -Dm644 data/polkit/org.sparky.resources.policy -t "$pkgdir/usr/share/polkit-1/actions"
   install -Dm644 data/login/sparky-login.service "$pkgdir/usr/lib/systemd/system/sparky-login.service"
   install -Dm644 data/login/sparky-login.sysusers "$pkgdir/usr/lib/sysusers.d/sparky-login.conf"
   install -Dm644 data/login/sparky-login.tmpfiles "$pkgdir/usr/lib/tmpfiles.d/sparky-login.conf"

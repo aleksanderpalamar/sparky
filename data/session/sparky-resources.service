@@ -18,5 +18,4 @@ MemoryMax=64M
 MemorySwapMax=0
 CPUQuota=20%
 TasksMax=16
-NoNewPrivileges=yes
 RestrictAddressFamilies=AF_UNIX

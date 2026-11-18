@@ -227,7 +227,7 @@ validado**.
 | QG11 Jogo | não validado | depende de sessões do usuário |
 | QG12 Jogo + OBS | não validado | depende de sessões do usuário |
 | QG13 Utilidade neural | inconclusivo | 20 min de dados; GRU melhor em CPU, memória e GPU, pior perto de zero |
-| QG14 Autorizações | aprovado nos testes | política nunca encerra nem suspende processos; só nice, ioprio e afinidade |
+| QG14 Autorizações | aprovado nos testes | política nunca encerra nem suspende processos; só nice, ioprio e afinidade; helper root só aceita nice 0..19 em processos do usuário |
 | QG15 Rollback | aprovado nos testes | restauração real em processo descartável; registro em tmpfs desfaz após queda e SIGTERM |
 | QG16 Privacidade | aprovado | `RestrictAddressFamilies=AF_UNIX`; sem títulos de janela nem linha de comando |
 | QG17 Persistência | aprovado nos testes | checkpoints com checksum, anterior como reserva, escrita atômica 600 |
@@ -236,5 +236,28 @@ validado**.
 | QG20 Compatibilidade | parcialmente | GPU AMD validada; NVIDIA e Intel ficam como dado ausente |
 | QG21 Integração | parcialmente | testes de renderização do Monitor e do Settings; validação visual pendente |
 
-Pendências: helper root para restaurar nice (decidido, não implementado) e
-comparações A/B/C/D em jogos reais.
+Pendências: comparações A/B/C/D em jogos reais com modelo neural promovido.
+
+## Helper root e pausa após reversão
+
+O nice é aplicado sem privilégio, só no sentido de baixar a prioridade
+(`nice` anterior entre 0 e o valor novo; processos com nice negativo ficam
+de fora). Para restaurar, o daemon tenta direto e, com `EPERM`, chama
+`pkexec /usr/lib/sparky/sparky-resources-helper nice <tid> <início> <valor>`.
+
+| Camada | Regra |
+|---|---|
+| polkit | ação `org.sparky.resources.nice`: `allow_active=yes`, `allow_inactive=no`, `allow_any=no`; nunca pede senha |
+| helper | só o verbo `nice`, valor de 0 a 19, tarefa > 1, dono real e efetivo igual a `PKEXEC_UID` (≠ 0), início da tarefa igual ao informado; confere o valor depois de escrever |
+| daemon | só restaura valores que ele mesmo leu antes do ajuste; `pkexec` com limite de 5 s |
+
+O polkit 128 trata processos de `user@.service` como parte da sessão ativa,
+então `allow_active` vale para o serviço `--user`. Para o `pkexec` funcionar,
+a unit deixou de usar `NoNewPrivileges=yes`; o risco é baixo, porque o
+processo é do próprio usuário, que já pode chamar o `pkexec`.
+
+Na validação do 0.32.0-2, o mesmo ajuste de afinidade no `steamwebhelper`
+era aplicado e revertido a cada 2 a 4 minutos. Agora uma reversão por falta de
+melhora deixa o processo em pausa por 10 min, dobrando a cada nova reversão
+até 1 h; o planejador passa ao próximo consumidor ou não age. Um ajuste mantido
+perdoa as reversões, e a reaplicação aparece no registro de decisões.

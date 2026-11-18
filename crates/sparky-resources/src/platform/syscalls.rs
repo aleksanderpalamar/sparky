@@ -77,3 +77,15 @@ pub fn clock_ticks() -> f64 {
     let ticks = unsafe { libc::sysconf(libc::_SC_CLK_TCK) };
     if ticks <= 0 { 100.0 } else { ticks as f64 }
 }
+
+pub struct LinuxPriority;
+
+impl crate::ports::Priority for LinuxPriority {
+    fn nice(&self, task: u32) -> io::Result<i8> {
+        nice(task)
+    }
+
+    fn set_nice(&self, task: u32, value: i8) -> io::Result<()> {
+        set_nice(task, value)
+    }
+}
