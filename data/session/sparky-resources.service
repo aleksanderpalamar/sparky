@@ -1,0 +1,20 @@
+[Unit]
+Description=Gerenciador adaptativo de recursos do Sparky
+PartOf=sparky-session.target
+After=sparky-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/sparky-resources
+Restart=on-failure
+RestartSec=5
+Slice=background.slice
+Nice=10
+IOSchedulingClass=idle
+MemoryHigh=48M
+MemoryMax=64M
+MemorySwapMax=0
+CPUQuota=20%
+TasksMax=16
+NoNewPrivileges=yes
+RestrictAddressFamilies=AF_UNIX
