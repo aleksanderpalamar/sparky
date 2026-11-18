@@ -6,6 +6,9 @@ pub mod collector;
 mod collector_tests;
 #[cfg(test)]
 pub(crate) mod fake_files;
+pub mod processes;
+#[cfg(test)]
+mod processes_tests;
 pub mod sample;
 pub mod topology;
 #[cfg(test)]

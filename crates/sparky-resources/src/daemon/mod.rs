@@ -1,3 +1,5 @@
+pub mod compositor;
+pub mod sampling;
 pub mod server;
 #[cfg(test)]
 mod server_tests;
@@ -6,6 +8,8 @@ pub mod service;
 mod service_tests;
 pub mod signals;
 
+pub use compositor::{Windows, follow};
+pub use sampling::sample_forever;
 pub use server::Server;
 pub use service::Service;
 pub use signals::Stop;

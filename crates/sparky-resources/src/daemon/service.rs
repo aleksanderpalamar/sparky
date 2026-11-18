@@ -1,4 +1,4 @@
-use crate::application::{Lifecycle, Signal, training};
+use crate::application::{Lifecycle, Link, Signal, training};
 use crate::domain::{Activities, ServiceState, Switch};
 use crate::protocol::{Refusal, Reply, Request, Status};
 
@@ -12,6 +12,11 @@ pub struct Service {
 impl Service {
     pub fn ready(&mut self) {
         self.lifecycle.receive(Signal::Ready);
+    }
+
+    pub fn observe(&mut self, activities: Activities, link: Link) {
+        self.activities = activities;
+        self.lifecycle.receive(Signal::Context(link));
     }
 
     pub fn state(&self) -> ServiceState {

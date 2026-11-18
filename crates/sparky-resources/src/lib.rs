@@ -1,4 +1,5 @@
 pub mod application;
+pub mod context;
 pub mod daemon;
 pub mod domain;
 pub mod platform;

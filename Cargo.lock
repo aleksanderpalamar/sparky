@@ -5199,6 +5199,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sparky-hardware",
+ "sparky-ipc",
  "tempfile",
 ]
 

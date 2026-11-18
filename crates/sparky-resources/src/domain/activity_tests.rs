@@ -16,12 +16,11 @@ fn reconhece_atividades_simultaneas() {
 }
 
 #[test]
-fn jogo_gravacao_compilacao_e_chamada_sao_sensiveis() {
+fn jogo_gravacao_compilacao_e_pressao_sao_sensiveis() {
     for activity in [
         Activity::Gaming,
         Activity::Recording,
         Activity::Compiling,
-        Activity::Communication,
         Activity::CriticalPressure,
     ] {
         assert!(activity.is_sensitive(), "{activity:?}");
@@ -30,6 +29,7 @@ fn jogo_gravacao_compilacao_e_chamada_sao_sensiveis() {
         Activity::Idle,
         Activity::Desktop,
         Activity::Development,
+        Activity::Communication,
         Activity::Unknown,
     ] {
         assert!(!activity.is_sensitive(), "{activity:?}");

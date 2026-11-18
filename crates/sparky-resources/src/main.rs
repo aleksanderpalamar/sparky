@@ -3,8 +3,11 @@ use std::process::ExitCode;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-use sparky_resources::daemon::{Server, Service, Stop};
+use sparky_resources::application::Observer;
+use sparky_resources::daemon::{Server, Service, Stop, Windows, follow, sample_forever};
+use sparky_resources::platform::LinuxFiles;
 use sparky_resources::protocol::socket;
+use sparky_resources::telemetry::Collector;
 
 fn main() -> ExitCode {
     let Some(path) = socket::from_env() else {
@@ -22,6 +25,15 @@ fn main() -> ExitCode {
     let mut service = Service::default();
     service.ready();
     let service = Arc::new(Mutex::new(service));
+    let windows = Windows::default();
+    if let Some(compositor) = sparky_ipc::socket::from_env() {
+        follow(compositor, windows.clone());
+    }
+    sample_forever(
+        Observer::new(Collector::new(LinuxFiles)),
+        windows,
+        Arc::clone(&service),
+    );
     let shared = Arc::clone(&service);
     let socket_path = server.path().to_owned();
     thread::spawn(move || server.serve(&shared));

@@ -34,11 +34,7 @@ impl Activity {
     pub fn is_sensitive(self) -> bool {
         matches!(
             self,
-            Self::Compiling
-                | Self::Gaming
-                | Self::Recording
-                | Self::Communication
-                | Self::CriticalPressure
+            Self::Compiling | Self::Gaming | Self::Recording | Self::CriticalPressure
         )
     }
 }
