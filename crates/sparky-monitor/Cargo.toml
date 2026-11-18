@@ -16,8 +16,11 @@ path = "src/lib.rs"
 [dependencies]
 sparky-hardware.workspace = true
 sparky-i18n.workspace = true
+sparky-resources.workspace = true
 fluent-bundle = "0.16"
 iced = { version = "0.14", features = ["canvas", "image", "svg", "tokio"] }
+serde.workspace = true
+serde_json.workspace = true
 rustix = { version = "1", features = ["fs", "param", "process"] }
 tokio = { version = "1", features = ["rt"] }
 sparky-theme.workspace = true

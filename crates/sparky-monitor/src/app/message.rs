@@ -4,6 +4,7 @@ use sparky_theme::Palette;
 use super::page::Page;
 use super::state::Focus;
 use crate::domain::apps::AppEntry;
+use crate::domain::intelligence::Advice;
 use crate::domain::snapshot::Snapshot;
 use crate::domain::table::Column;
 use crate::ports::Stop;
@@ -29,6 +30,7 @@ pub enum Message {
     Tick,
     Sampled(Box<Snapshot>),
     Catalog(Vec<AppEntry>),
+    Advised(Box<Advice>),
     Open(Page),
     SortBy(Column),
     Select(Selection),

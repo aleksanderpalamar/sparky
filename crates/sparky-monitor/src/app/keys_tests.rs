@@ -29,7 +29,11 @@ fn numeros_abrem_paginas_e_letras_ordenam() {
         descreve(letra("8")),
         descreve(Some(Message::Open(Page::Gpu)))
     );
-    assert!(letra("9").is_none() && letra("0").is_none());
+    assert_eq!(
+        descreve(letra("9")),
+        descreve(Some(Message::Open(Page::Intelligence)))
+    );
+    assert!(letra("0").is_none());
     assert_eq!(
         descreve(letra("c")),
         descreve(Some(Message::SortBy(Column::Cpu)))

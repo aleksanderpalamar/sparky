@@ -1,3 +1,4 @@
+pub mod advisor;
 pub mod catalog;
 pub mod root_fs;
 pub mod signals;

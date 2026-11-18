@@ -110,3 +110,55 @@ fn todas_as_paginas_renderizam_com_seu_conteudo() {
         contem(&textos, &[texto]);
     }
 }
+
+#[test]
+fn pagina_de_inteligencia_mostra_indisponivel_e_dados_ausentes() {
+    use crate::domain::intelligence::{Advice, Briefing};
+    use sparky_resources::application::Insight;
+    use sparky_resources::domain::{
+        Activities, Activity, Metric, Mode, ServiceState, Switch, TrainingState,
+    };
+    use sparky_resources::protocol::Status;
+    let mut monitor = monitor(Arc::new(Sinais::default()));
+    let _ = update(&mut monitor, Message::Open(Page::Intelligence));
+    monitor.advice = Some(Advice::Unavailable);
+    let textos = renderizar(&monitor, "inteligencia-fora");
+    contem(
+        &textos,
+        &["O gerenciador de recursos não está respondendo."],
+    );
+    let status = Status {
+        service: "0.32.0".to_owned(),
+        state: ServiceState::Observing,
+        enabled: Switch::On,
+        mode: Mode::Observation,
+        learning: Switch::On,
+        training: TrainingState::Allowed,
+        activities: Activities::default().with(Activity::Gaming),
+    };
+    let insight = Insight {
+        metric: Metric::GpuBusy,
+        current: Some(37.0),
+        estimate_short: None,
+        estimate_long: None,
+        anomaly: None,
+        neural_short: None,
+        neural_long: None,
+    };
+    monitor.advice = Some(Advice::Ready(Box::new(Briefing {
+        status,
+        metrics: vec![insight],
+        decisions: Vec::new(),
+    })));
+    let textos = renderizar(&monitor, "inteligencia");
+    contem(
+        &textos,
+        &[
+            "Observando",
+            "Jogo",
+            "37.0%",
+            "—",
+            "Nenhuma decisão registrada.",
+        ],
+    );
+}

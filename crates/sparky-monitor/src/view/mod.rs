@@ -5,6 +5,7 @@ pub mod dashboard;
 pub mod details;
 pub mod header;
 pub mod icon;
+pub mod intelligence;
 pub mod lists;
 pub mod parts;
 pub mod scale;
@@ -45,6 +46,7 @@ fn content(monitor: &Monitor) -> Element<'_, Message> {
         Page::Disk => details::disk::view(monitor),
         Page::Network => details::network::view(monitor),
         Page::Gpu => details::gpu::view(monitor),
+        Page::Intelligence => intelligence::view(monitor),
     };
     container(page)
         .width(Length::Fill)

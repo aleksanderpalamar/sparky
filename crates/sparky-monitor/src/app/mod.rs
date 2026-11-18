@@ -1,5 +1,6 @@
 pub mod actions;
 pub mod events;
+pub mod intelligence;
 pub mod keys;
 pub mod message;
 pub mod page;
@@ -22,6 +23,7 @@ use std::sync::Arc;
 use iced::Task;
 use sparky_theme::Skin;
 
+use crate::adapters::advisor::ResourcesAdvisor;
 use crate::adapters::catalog::DesktopCatalog;
 use crate::adapters::root_fs::RootFs;
 use crate::adapters::signals::ProcessSignals;
@@ -50,6 +52,7 @@ fn boot() -> (Monitor, Task<Message>) {
         sampler: Arc::new(Sampler::new(Arc::new(RootFs), Arc::new(Statvfs), page_size)),
         catalog: Arc::new(DesktopCatalog),
         signals: Arc::new(ProcessSignals),
+        advisor: Arc::new(ResourcesAdvisor::from_env()),
         user: rustix::process::getuid().as_raw(),
     };
     let mut monitor = Monitor::new(

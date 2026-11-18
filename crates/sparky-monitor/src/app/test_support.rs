@@ -8,7 +8,8 @@ use super::message::Message;
 use super::state::{Monitor, Services};
 use super::update::update;
 use crate::domain::apps::AppEntry;
-use crate::ports::{Catalog, Claim, Identity, SignalError, Signals, Stop};
+use crate::domain::intelligence::Advice;
+use crate::ports::{Advisor, Catalog, Claim, Identity, SignalError, Signals, Stop};
 use crate::sampler::Sampler;
 use crate::sampler::fake_system::{Arvore, Discos};
 
@@ -66,6 +67,14 @@ fn morto(mortos: &Mutex<Vec<u32>>, pid: u32) -> bool {
 
 pub struct Aplicativos;
 
+struct Conselheiro;
+
+impl Advisor for Conselheiro {
+    fn advise(&self) -> Advice {
+        Advice::Unavailable
+    }
+}
+
 impl Catalog for Aplicativos {
     fn apps(&self) -> Vec<AppEntry> {
         vec![AppEntry {
@@ -119,6 +128,7 @@ pub fn monitor(sinais: Arc<Sinais>) -> Monitor {
         )),
         catalog: Arc::new(Aplicativos),
         signals: sinais,
+        advisor: Arc::new(Conselheiro),
         user: 1000,
     };
     let mut monitor = Monitor::new(services, Skin::default(), JANELA);

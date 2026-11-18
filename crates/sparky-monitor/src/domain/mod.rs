@@ -4,6 +4,7 @@ pub mod disk;
 pub mod gpu;
 pub mod histories;
 pub mod history;
+pub mod intelligence;
 pub mod measure;
 pub mod memory;
 pub mod network;
@@ -25,6 +26,8 @@ mod gpu_tests;
 mod histories_tests;
 #[cfg(test)]
 mod history_tests;
+#[cfg(test)]
+mod intelligence_tests;
 #[cfg(test)]
 mod measure_tests;
 #[cfg(test)]
