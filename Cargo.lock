@@ -5195,6 +5195,7 @@ dependencies = [
 name = "sparky-resources"
 version = "0.32.0"
 dependencies = [
+ "libc",
  "nix",
  "serde",
  "serde_json",

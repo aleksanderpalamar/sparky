@@ -14,6 +14,7 @@ name = "sparky_resources"
 path = "src/lib.rs"
 
 [dependencies]
+libc = "0.2"
 nix = { version = "0.31", features = ["signal"] }
 serde.workspace = true
 sparky-hardware.workspace = true
