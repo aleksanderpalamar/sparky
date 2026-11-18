@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+pub const PROTOCOL: u32 = 2;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SessionKind {
@@ -21,4 +23,6 @@ pub struct SessionInfo {
     pub accent: String,
     #[serde(default)]
     pub swatches: Vec<String>,
+    #[serde(default)]
+    pub protocol: u32,
 }

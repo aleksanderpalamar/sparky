@@ -134,6 +134,7 @@ fn a_resposta_de_informacoes_volta_inteira() {
             theme: Some("tokyo-night".to_owned()),
             accent: "#7aa2f7".to_owned(),
             swatches: vec!["#1a1b26".to_owned(), "#f7768e".to_owned()],
+            protocol: crate::info::PROTOCOL,
         },
     };
     let json = serde_json::to_string(&reply).unwrap_or_default();
@@ -162,6 +163,7 @@ fn informacoes_sem_os_campos_novos_ainda_sao_lidas() {
             theme: None,
             accent: String::new(),
             swatches: Vec::new(),
+            protocol: 0,
         }
     );
 }
