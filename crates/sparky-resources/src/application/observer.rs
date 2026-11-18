@@ -1,15 +1,17 @@
 use std::time::Instant;
 
-use sparky_hardware::stat::{CpuTimes, usage};
+use sparky_hardware::stat::CpuTimes;
 
+use super::features::features;
 use crate::context::{Load, Scene, Window, recognize};
-use crate::domain::Activities;
+use crate::domain::{Activities, Features, Metric};
 use crate::ports::Files;
 use crate::telemetry::processes::ProcessTable;
 use crate::telemetry::{Collector, SystemSample};
 
 pub struct Observation {
     pub activities: Activities,
+    pub features: Features,
     pub sample: SystemSample,
 }
 
@@ -30,31 +32,25 @@ impl<F: Files> Observer<F> {
 
     pub fn observe(&mut self, now: Instant, windows: Option<Vec<Window>>) -> Observation {
         let sample = self.collector.system();
+        let features = features(self.previous_cpu, &sample);
+        self.previous_cpu = sample.cpu.measured().copied().or(self.previous_cpu);
         let scene = Scene {
             processes: self.processes.update(self.collector.files(), now),
             windows,
-            load: self.load(&sample),
+            load: load(&features, &sample),
         };
         Observation {
             activities: recognize(&scene),
+            features,
             sample,
         }
     }
+}
 
-    fn load(&mut self, sample: &SystemSample) -> Load {
-        let current = sample.cpu.measured().copied();
-        let busy = self
-            .previous_cpu
-            .zip(current)
-            .map(|(before, after)| usage(before, after));
-        self.previous_cpu = current.or(self.previous_cpu);
-        let memory = sample.memory.measured();
-        Load {
-            cpu_busy_percent: busy,
-            memory_available_percent: memory
-                .filter(|memory| memory.total_kib > 0)
-                .map(|memory| memory.available_kib as f32 / memory.total_kib as f32 * 100.0),
-            memory_stall_avg10: sample.pressure.memory.measured().map(|psi| psi.some.avg10),
-        }
+fn load(features: &Features, sample: &SystemSample) -> Load {
+    Load {
+        cpu_busy_percent: features.get(Metric::CpuBusy),
+        memory_available_percent: features.get(Metric::MemoryUsed).map(|used| 100.0 - used),
+        memory_stall_avg10: sample.pressure.memory.measured().map(|psi| psi.some.avg10),
     }
 }

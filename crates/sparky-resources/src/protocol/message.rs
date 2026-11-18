@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::application::Insight;
 use crate::domain::{Activities, Mode, ServiceState, Switch, TrainingState};
 
 pub const VERSION: u16 = 1;
@@ -24,16 +25,18 @@ impl<T> Envelope<T> {
 #[serde(tag = "request", rename_all = "snake_case")]
 pub enum Request {
     Status,
+    Insight,
     SetMode { mode: Mode },
     SetEnabled { switch: Switch },
     SetLearning { switch: Switch },
     ClearSafeMode,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "reply", rename_all = "snake_case")]
 pub enum Reply {
     Status(Status),
+    Insight { metrics: Vec<Insight> },
     Done,
     Refused { reason: Refusal },
 }

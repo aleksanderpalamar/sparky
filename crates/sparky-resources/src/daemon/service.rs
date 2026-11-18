@@ -1,4 +1,4 @@
-use crate::application::{Lifecycle, Link, Signal, training};
+use crate::application::{Insight, Lifecycle, Link, Signal, training};
 use crate::domain::{Activities, ServiceState, Switch};
 use crate::protocol::{Refusal, Reply, Request, Status};
 
@@ -7,6 +7,7 @@ pub struct Service {
     lifecycle: Lifecycle,
     learning: Switch,
     activities: Activities,
+    insights: Vec<Insight>,
 }
 
 impl Service {
@@ -14,8 +15,9 @@ impl Service {
         self.lifecycle.receive(Signal::Ready);
     }
 
-    pub fn observe(&mut self, activities: Activities, link: Link) {
+    pub fn observe(&mut self, activities: Activities, link: Link, insights: Vec<Insight>) {
         self.activities = activities;
+        self.insights = insights;
         self.lifecycle.receive(Signal::Context(link));
     }
 
@@ -26,6 +28,9 @@ impl Service {
     pub fn answer(&mut self, request: Request) -> Reply {
         match request {
             Request::Status => Reply::Status(self.status()),
+            Request::Insight => Reply::Insight {
+                metrics: self.insights.clone(),
+            },
             Request::SetMode { mode } => self.apply(Signal::Chose(mode)),
             Request::SetEnabled { switch } => self.apply(Signal::Turned(switch)),
             Request::SetLearning { switch } => {
