@@ -20,6 +20,15 @@ pub struct Contention {
     pub io_stall: Option<f32>,
 }
 
+impl Contention {
+    pub fn stall(&self, purpose: Purpose) -> Option<f32> {
+        match purpose {
+            Purpose::EaseCpu => self.cpu_stall,
+            Purpose::EaseIo => self.io_stall,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Candidate {
     pub purpose: Purpose,

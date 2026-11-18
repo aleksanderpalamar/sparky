@@ -1,4 +1,4 @@
-use super::conductor::{Active, Conductor, Moment, stall};
+use super::conductor::{Active, Conductor, Moment};
 use super::evaluation::{Judgement, judge};
 use super::log::Verdict;
 use crate::domain::Activity;
@@ -27,16 +27,18 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
         }
         match judge(
             active.before,
-            stall(active.purpose, moment.contention),
+            moment.contention.stall(active.purpose),
             moment.at.duration_since(active.since),
         ) {
             Judgement::Waiting => Some(active),
             Judgement::Keep => {
                 active.kept = true;
+                self.backoff.worked(&active.process);
                 self.record(moment, &active, Verdict::Kept);
                 Some(active)
             }
             Judgement::Revert => {
+                self.backoff.failed(&active.process, moment.at);
                 let outcome = self.finish(&active);
                 self.record(moment, &active, Verdict::Reverted(outcome));
                 None

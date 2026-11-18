@@ -1,5 +1,6 @@
 use std::time::Instant;
 
+use super::backoff::Backoff;
 use super::log::{Decision, Log, Verdict};
 use super::planner::{Candidate, Contention, Purpose, plan};
 use crate::domain::{Activities, Authority, Change};
@@ -33,6 +34,7 @@ pub struct Conductor<E, S> {
     pub(super) executor: E,
     pub(super) ledger: Ledger<S>,
     pub(super) policy: Policy,
+    pub(super) backoff: Backoff,
     pub(super) capabilities: Capabilities,
     pub(super) spare: Vec<u32>,
     pub(super) active: Option<Active>,
@@ -52,6 +54,7 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
             executor,
             ledger,
             policy: Policy::default(),
+            backoff: Backoff::default(),
             capabilities,
             spare,
             active: None,
@@ -74,10 +77,11 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
             self.active = self.follow(active, moment);
             return;
         }
+        let eligible = self.backoff.eligible(moment.consumers, moment.at);
         let Some(candidate) = plan(
             moment.activities,
             moment.contention,
-            moment.consumers,
+            &eligible,
             moment.protected,
             &self.spare,
         ) else {
@@ -129,11 +133,13 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
         if let Err(error) = self.ledger.record(applied.clone()) {
             eprintln!("sparky-resources: ajuste fora do registro: {error}");
         }
-        let before = stall(candidate.purpose, moment.contention).unwrap_or(0.0);
-        self.note(
+        let before = moment.contention.stall(candidate.purpose).unwrap_or(0.0);
+        self.last = None;
+        self.push(
             moment,
-            candidate,
-            Some(option.change.clone()),
+            candidate.purpose,
+            candidate.name.clone(),
+            option.change.clone(),
             Verdict::Applied,
         );
         self.active = Some(Active {
@@ -174,7 +180,7 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
         change: Change,
         verdict: Verdict,
     ) {
-        let stall = stall(purpose, moment.contention);
+        let stall = moment.contention.stall(purpose);
         self.log.push(Decision {
             at_seconds: moment.seconds,
             activities: moment.activities,
@@ -184,12 +190,5 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
             stall,
             verdict,
         });
-    }
-}
-
-pub(super) fn stall(purpose: Purpose, contention: Contention) -> Option<f32> {
-    match purpose {
-        Purpose::EaseCpu => contention.cpu_stall,
-        Purpose::EaseIo => contention.io_stall,
     }
 }
