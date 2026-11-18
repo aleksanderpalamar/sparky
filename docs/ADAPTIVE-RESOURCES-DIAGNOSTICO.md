@@ -209,3 +209,32 @@ métricas próximas de zero. Com 20 min de dados não há base para a promoção
 validação incremental exige vencer o baseline na média geral, então este
 modelo seria recusado e o serviço continuaria no baseline. QG13 segue **não
 validado**.
+
+## Quality Gates em 2026-11-18
+
+| Gate | Resultado | Evidência |
+|---|---|---|
+| QG01 Compilação | aprovado | `cargo test --workspace` compilou todos os crates |
+| QG02 Qualidade | aprovado nos arquivos da branch | `cargo clippy --workspace --all-targets -D warnings` sem avisos; o `cargo fmt --check` acusa só arquivos do `sparky-bar` que a branch não toca |
+| QG03 Regressão | aprovado | 2613 testes aprovados, 0 falhas, no workspace inteiro |
+| QG04 Cobertura | aprovado | 164 testes no `sparky-resources`, além dos novos no IPC, config, monitor e settings |
+| QG05 RAM normal | aprovado em repouso | RSS 3,1 MiB (meta 20 MiB) |
+| QG06 RAM máxima | parcialmente | `MemoryMax=64M` na unit; pico em treino real não medido |
+| QG07 CPU em jogo | não validado | 0,030% em repouso; falta sessão de jogo |
+| QG08 GPU | aprovado | o modelo só usa CPU, sem dependência de GPU |
+| QG09 Modelo | aprovado | 6.792 parâmetros (limite 100 mil) |
+| QG10 Inferência | aprovado | p95 36 µs (meta 1 ms) |
+| QG11 Jogo | não validado | depende de sessões do usuário |
+| QG12 Jogo + OBS | não validado | depende de sessões do usuário |
+| QG13 Utilidade neural | inconclusivo | 20 min de dados; GRU melhor em CPU, memória e GPU, pior perto de zero |
+| QG14 Autorizações | aprovado nos testes | política nunca encerra nem suspende processos; só nice, ioprio e afinidade |
+| QG15 Rollback | aprovado nos testes | restauração real em processo descartável; registro em tmpfs desfaz após queda e SIGTERM |
+| QG16 Privacidade | aprovado | `RestrictAddressFamilies=AF_UNIX`; sem títulos de janela nem linha de comando |
+| QG17 Persistência | aprovado nos testes | checkpoints com checksum, anterior como reserva, escrita atômica 600 |
+| QG18 Robustez | aprovado nos testes | filas, histórico, registro de decisões e payload limitados |
+| QG19 Isolamento | aprovado | o compositor só responde a pedidos; o daemon pode cair sem afetá-lo |
+| QG20 Compatibilidade | parcialmente | GPU AMD validada; NVIDIA e Intel ficam como dado ausente |
+| QG21 Integração | parcialmente | testes de renderização do Monitor e do Settings; validação visual pendente |
+
+Pendências: helper root para restaurar nice (decidido, não implementado) e
+comparações A/B/C/D em jogos reais.
