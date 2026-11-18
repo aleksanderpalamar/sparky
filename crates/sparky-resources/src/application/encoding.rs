@@ -46,18 +46,22 @@ pub fn decode(outputs: &[f32]) -> Vec<f32> {
 
 pub fn examples(rows: &[(f64, Features)]) -> Vec<Example> {
     (WINDOW..rows.len())
-        .filter_map(|end| {
-            let (at, _) = rows[end - 1];
-            let targets: Vec<Option<f32>> = HORIZONS
-                .iter()
-                .flat_map(|horizon| target(&rows[end..], at + horizon, horizon * 0.5))
-                .collect();
-            targets
-                .iter()
-                .any(Option::is_some)
-                .then(|| (window(&rows[end - WINDOW..end]), targets))
-        })
+        .filter_map(|end| example_at(rows, end))
         .collect()
+}
+
+pub fn example_at(rows: &[(f64, Features)], end: usize) -> Option<Example> {
+    let start = end.checked_sub(WINDOW)?;
+    let (at, _) = *rows.get(end - 1)?;
+    let future = rows.get(end..)?;
+    let targets: Vec<Option<f32>> = HORIZONS
+        .iter()
+        .flat_map(|horizon| target(future, at + horizon, horizon * 0.5))
+        .collect();
+    targets
+        .iter()
+        .any(Option::is_some)
+        .then(|| (window(&rows[start..end]), targets))
 }
 
 fn target(future: &[(f64, Features)], when: f64, tolerance: f64) -> Vec<Option<f32>> {

@@ -5,6 +5,9 @@ pub mod encoding;
 #[cfg(test)]
 mod encoding_tests;
 pub mod features;
+pub mod learning;
+#[cfg(test)]
+mod learning_tests;
 pub mod lifecycle;
 #[cfg(test)]
 mod lifecycle_tests;
@@ -14,6 +17,7 @@ mod observer_tests;
 pub mod training;
 #[cfg(test)]
 mod training_tests;
+pub mod validation;
 
 pub use baseline::{Baseline, Insight};
 pub use features::features;

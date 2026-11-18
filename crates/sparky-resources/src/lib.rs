@@ -3,6 +3,7 @@ pub mod context;
 pub mod daemon;
 pub mod domain;
 pub mod neural;
+pub mod persistence;
 pub mod platform;
 pub mod ports;
 pub mod predict;
