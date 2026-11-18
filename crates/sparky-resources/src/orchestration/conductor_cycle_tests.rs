@@ -117,3 +117,38 @@ fn encerrar_o_servico_desfaz_o_ajuste_ativo() {
     );
     assert!(!conductor.unconfirmed());
 }
+
+#[test]
+fn desligar_ou_voltar_a_observacao_desfaz_o_ajuste_na_hora() {
+    let (storage, executor, start, consumers) = (
+        FakeStorage::default(),
+        FakeExecutor::with_tasks(&[900]),
+        Instant::now(),
+        hog(),
+    );
+    let mut conductor = Conductor::new(&executor, Ledger::open(&storage), NO_NICE, vec![3]);
+    conductor.tick(&moment(
+        start,
+        0,
+        gaming(),
+        40.0,
+        Authority::Adaptive,
+        &consumers,
+    ));
+    conductor.tick(&moment(
+        start,
+        5,
+        gaming(),
+        40.0,
+        Authority::None,
+        &consumers,
+    ));
+    assert_eq!(
+        verdicts(&conductor),
+        vec![Verdict::Applied, Verdict::Finished(Outcome::Restored)]
+    );
+    assert_eq!(
+        affinity(&executor),
+        Some(Change::Affinity(vec![0, 1, 2, 3]))
+    );
+}

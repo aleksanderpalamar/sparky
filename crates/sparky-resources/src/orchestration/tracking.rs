@@ -16,7 +16,8 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
     pub(super) fn follow(&mut self, mut active: Active, moment: &Moment) -> Option<Active> {
         let sensitive = moment.activities.contains(Activity::Gaming)
             || moment.activities.contains(Activity::Recording);
-        if !sensitive {
+        let withdrawn = moment.authority == crate::domain::Authority::None;
+        if !sensitive || withdrawn {
             let outcome = self.finish(&active);
             self.record(moment, &active, Verdict::Finished(outcome));
             return None;
