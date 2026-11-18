@@ -141,3 +141,30 @@ na Fase 4.
 ## Quality Gates
 
 Todos os gates (QG01–QG21): **não executados**.
+
+## Fases 1 e 2: resultados medidos
+
+Medido em 2026-11-18 com o binário release, sem jogo aberto e sem o compositor
+novo (o contexto gráfico ficou indisponível durante a medição).
+
+| Medida | Resultado |
+|---|---|
+| Testes do crate `sparky-resources` | 75 aprovados |
+| RSS do daemon | 3,1 MiB, pico 3,1 MiB |
+| CPU do daemon em repouso (ciclo de 5 s, 300 s) | 0,030% de um núcleo |
+| Amostra do sistema (p50 / p95) | 103 µs / 488 µs |
+| Tabela incremental de processos (p50 / p95) | 186 µs / 208 µs |
+| Varredura completa de processos (p50 / p95) | 3,5 ms / 3,6 ms |
+| Reconhecimento de contexto (p50 / p95) | 9,6 µs / 10,3 µs |
+
+Reprodução: `cargo run -p sparky-resources --release --example telemetry_cost`.
+
+A primeira medição deu 0,100% por causa de varreduras completas a cada ciclo.
+A tabela incremental lê só os processos novos e relê todos a cada 60 s.
+
+Pendências: CPU no ciclo de 2 s durante jogos (QG07) e a precisão do
+reconhecimento de contexto em sessões reais. As duas continuam **não validadas**.
+
+Desvio registrado: "comunicação" é reconhecida, mas sozinha não suspende o
+treinamento. Sem detectar uma chamada de voz, o Discord aberto o dia todo
+impediria qualquer aprendizado.
