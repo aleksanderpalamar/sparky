@@ -24,6 +24,8 @@ fn observation(value: f32) -> Observation {
             },
             gpu: Reading::Missing,
         },
+        processes: None,
+        windows: None,
     }
 }
 

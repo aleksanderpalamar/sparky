@@ -4,6 +4,9 @@ mod cadence_tests;
 pub mod collector;
 #[cfg(test)]
 mod collector_tests;
+pub mod consumers;
+#[cfg(test)]
+mod consumers_tests;
 #[cfg(test)]
 pub(crate) mod fake_files;
 pub mod processes;

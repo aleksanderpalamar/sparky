@@ -37,6 +37,20 @@ impl Topology {
         self.cpus.iter().any(|cpu| cpu.siblings.len() > 1)
     }
 
+    pub fn last_core(&self) -> Vec<u32> {
+        let Some(last) = self.cpus.iter().max_by_key(|cpu| (cpu.package, cpu.core)) else {
+            return Vec::new();
+        };
+        let mut cpus: Vec<u32> = self
+            .cpus
+            .iter()
+            .filter(|cpu| (cpu.package, cpu.core) == (last.package, last.core))
+            .map(|cpu| cpu.id)
+            .collect();
+        cpus.sort_unstable();
+        cpus
+    }
+
     pub fn siblings(&self, id: u32) -> &[u32] {
         self.cpus
             .iter()

@@ -7,13 +7,16 @@ use sparky_resources::application::Fault;
 use sparky_resources::application::Observer;
 use sparky_resources::application::hardware::fingerprint;
 use sparky_resources::daemon::brain::Brain;
+use sparky_resources::daemon::conduct::Orchestra;
 use sparky_resources::daemon::notify::notify;
 use sparky_resources::daemon::{Server, Service, Stop, Windows, follow, sample_forever};
+use sparky_resources::orchestration::Conductor;
 use sparky_resources::persistence::Knowledge;
 use sparky_resources::platform::{DiskStorage, LinuxExecutor, LinuxFiles};
+use sparky_resources::policy::Capabilities;
 use sparky_resources::protocol::socket;
 use sparky_resources::safety::{Ledger, Outcome};
-use sparky_resources::telemetry::Collector;
+use sparky_resources::telemetry::{Collector, read_topology};
 
 fn main() -> ExitCode {
     let Some(path) = socket::from_env() else {
@@ -27,6 +30,10 @@ fn main() -> ExitCode {
     let server = match Server::bind(&path) {
         Ok(server) => server,
         Err(error) => return failed("abrir o socket", error),
+    };
+    let ledger = match runtime(&path) {
+        Ok(storage) => Ledger::open(storage),
+        Err(error) => return failed("abrir o registro de ajustes", error),
     };
     let mut service = Service::default();
     if !recover(&path) {
@@ -46,6 +53,7 @@ fn main() -> ExitCode {
     sample_forever(
         Observer::new(collector),
         Brain::new(knowledge, hardware),
+        orchestra(ledger),
         windows,
         Arc::clone(&service),
     );
@@ -54,6 +62,7 @@ fn main() -> ExitCode {
     thread::spawn(move || server.serve(&shared));
     notify("READY=1");
     let outcome = stop.wait();
+    recover(&socket_path);
     let _ = fs::remove_file(&socket_path);
     match outcome {
         Ok(_) => ExitCode::SUCCESS,
@@ -67,15 +76,31 @@ fn failed(action: &str, error: impl std::fmt::Display) -> ExitCode {
 }
 
 fn recover(socket: &std::path::Path) -> bool {
-    let Some(directory) = socket
-        .parent()
-        .map(|runtime| runtime.join("sparky-resources"))
-    else {
-        return true;
-    };
-    let Ok(storage) = DiskStorage::open(directory) else {
+    let Ok(storage) = runtime(socket) else {
         return true;
     };
     let outcomes = Ledger::open(storage).recover(&LinuxExecutor::new(LinuxFiles));
     !outcomes.contains(&Outcome::Unconfirmed)
+}
+
+fn runtime(socket: &std::path::Path) -> std::io::Result<DiskStorage> {
+    let parent = socket.parent().ok_or(std::io::ErrorKind::NotFound)?;
+    DiskStorage::open(parent.join("sparky-resources"))
+}
+
+fn orchestra(ledger: Ledger<DiskStorage>) -> Orchestra<DiskStorage> {
+    let capabilities = Capabilities {
+        restore_nice: false,
+        io_priority: true,
+        affinity: true,
+    };
+    let spare = read_topology(&LinuxFiles)
+        .map(|topology| topology.last_core())
+        .unwrap_or_default();
+    Orchestra::new(Conductor::new(
+        LinuxExecutor::new(LinuxFiles),
+        ledger,
+        capabilities,
+        spare,
+    ))
 }

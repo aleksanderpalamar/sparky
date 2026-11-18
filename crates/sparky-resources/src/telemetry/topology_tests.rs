@@ -67,3 +67,12 @@ fn topologia_incompleta_nao_e_inventada() {
     let files = FakeFiles::default().with("/sys/devices/system/cpu/online", "0-1\n");
     assert_eq!(read_topology(&cpu(files, 0, 0, "0\n")), None);
 }
+
+#[test]
+fn o_ultimo_nucleo_fisico_leva_as_duas_threads() {
+    let topology = read_topology(&ryzen_like());
+    assert_eq!(
+        topology.map(|topology| topology.last_core()),
+        Some(vec![1, 3])
+    );
+}

@@ -4,10 +4,11 @@ use std::time::{Duration, Instant};
 
 use super::brain::Brain;
 use super::compositor::Windows;
+use super::conduct::Orchestra;
 use super::notify::notify;
 use super::service::Service;
 use crate::application::budget::{Usage, assess, usage};
-use crate::application::{Link, Observer};
+use crate::application::{Fault, Link, Observer};
 use crate::domain::ServiceState;
 use crate::platform::{LinuxFiles, clock_ticks};
 use crate::ports::{Files, Storage};
@@ -15,14 +16,16 @@ use crate::telemetry::cadence::interval;
 
 const BUDGET_WINDOW: Duration = Duration::from_secs(60);
 
-pub fn sample_forever<F, S>(
+pub fn sample_forever<F, S, L>(
     mut observer: Observer<F>,
     mut brain: Brain<S>,
+    mut orchestra: Orchestra<L>,
     windows: Windows,
     service: Arc<Mutex<Service>>,
 ) where
     F: Files + Send + 'static,
     S: Storage + Send + 'static,
+    L: Storage + Send + 'static,
 {
     thread::spawn(move || {
         let started = Instant::now();
@@ -38,11 +41,23 @@ pub fn sample_forever<F, S>(
             };
             let observation = observer.observe(Instant::now(), current);
             let insights = brain.insights(started.elapsed().as_secs_f64(), &observation);
-            let (training, forget) = {
+            let (training, forget, authority) = {
                 let mut service = lock();
                 service.observe(observation.activities, link, insights);
-                (service.training(), service.take_forget())
+                (
+                    service.training(),
+                    service.take_forget(),
+                    service.state().authority(),
+                )
             };
+            orchestra.tick(&observation, authority, started.elapsed().as_secs());
+            {
+                let mut service = lock();
+                service.decided(orchestra.conductor.decisions());
+                if orchestra.conductor.unconfirmed() {
+                    service.failed(Fault::RestoreUnconfirmed);
+                }
+            }
             if forget {
                 brain.forget();
             }

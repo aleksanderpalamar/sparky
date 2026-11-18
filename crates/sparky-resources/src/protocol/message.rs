@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::application::Insight;
 use crate::domain::{Activities, Mode, ServiceState, Switch, TrainingState};
+use crate::orchestration::Decision;
 
 pub const VERSION: u16 = 1;
 
@@ -26,6 +27,7 @@ impl<T> Envelope<T> {
 pub enum Request {
     Status,
     Insight,
+    Decisions,
     SetMode { mode: Mode },
     SetEnabled { switch: Switch },
     SetLearning { switch: Switch },
@@ -38,6 +40,7 @@ pub enum Request {
 pub enum Reply {
     Status(Status),
     Insight { metrics: Vec<Insight> },
+    Decisions { entries: Vec<Decision> },
     Done,
     Refused { reason: Refusal },
 }

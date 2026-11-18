@@ -10,6 +10,7 @@ pub struct Service {
     insights: Vec<Insight>,
     training_active: bool,
     forget_requested: bool,
+    decisions: Vec<crate::orchestration::Decision>,
 }
 
 impl Service {
@@ -25,6 +26,10 @@ impl Service {
 
     pub fn learned(&mut self, knowledge: Knowledge) {
         self.lifecycle.receive(Signal::Learned(knowledge));
+    }
+
+    pub fn decided(&mut self, decisions: Vec<crate::orchestration::Decision>) {
+        self.decisions = decisions;
     }
 
     pub fn spending(&mut self, budget: Budget) {
@@ -61,6 +66,9 @@ impl Service {
     pub fn answer(&mut self, request: Request) -> Reply {
         match request {
             Request::Status => Reply::Status(self.status()),
+            Request::Decisions => Reply::Decisions {
+                entries: self.decisions.clone(),
+            },
             Request::Insight => Reply::Insight {
                 metrics: self.insights.clone(),
             },

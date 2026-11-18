@@ -23,6 +23,10 @@ impl FakeExecutor {
                 (*task, ChangeKind::IoPriority),
                 Change::IoPriority(IoClass::None),
             );
+            fake.values.borrow_mut().insert(
+                (*task, ChangeKind::Affinity),
+                Change::Affinity(vec![0, 1, 2, 3]),
+            );
         }
         *fake.tasks.borrow_mut() = tasks.to_vec();
         fake
@@ -56,5 +60,19 @@ impl Executor for FakeExecutor {
                 .insert((task, change.kind()), change.clone());
         }
         Ok(())
+    }
+}
+
+impl Executor for &FakeExecutor {
+    fn tasks(&self, target: Identity) -> Result<Vec<u32>, ExecError> {
+        (*self).tasks(target)
+    }
+
+    fn read(&self, task: u32, kind: ChangeKind) -> Result<Change, ExecError> {
+        (*self).read(task, kind)
+    }
+
+    fn write(&self, task: u32, change: &Change) -> Result<(), ExecError> {
+        (*self).write(task, change)
     }
 }

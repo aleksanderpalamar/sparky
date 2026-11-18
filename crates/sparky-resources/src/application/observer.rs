@@ -3,7 +3,7 @@ use std::time::Instant;
 use sparky_hardware::stat::CpuTimes;
 
 use super::features::features;
-use crate::context::{Load, Scene, Window, recognize};
+use crate::context::{Load, Process, Scene, Window, recognize};
 use crate::domain::{Activities, Features, Metric};
 use crate::ports::Files;
 use crate::telemetry::processes::ProcessTable;
@@ -13,6 +13,8 @@ pub struct Observation {
     pub activities: Activities,
     pub features: Features,
     pub sample: SystemSample,
+    pub processes: Option<Vec<Process>>,
+    pub windows: Option<Vec<Window>>,
 }
 
 pub struct Observer<F> {
@@ -43,6 +45,8 @@ impl<F: Files> Observer<F> {
             activities: recognize(&scene),
             features,
             sample,
+            processes: scene.processes,
+            windows: scene.windows,
         }
     }
 }
