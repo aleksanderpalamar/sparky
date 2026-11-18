@@ -34,6 +34,12 @@ pub fn apply(executor: &impl Executor, adjustment: &Adjustment) -> Result<Applie
         .map(|task| executor.read(*task, kind).map(|change| (*task, change)))
         .collect::<Result<Vec<_>, _>>()
         .map_err(Failure::Refused)?;
+    if !previous
+        .iter()
+        .all(|(_, before)| eases(before, &adjustment.change))
+    {
+        return Err(Failure::Refused(ExecError::Unsupported));
+    }
     let applied = Applied {
         adjustment: adjustment.clone(),
         previous,
@@ -82,4 +88,11 @@ pub fn restore(executor: &impl Executor, applied: &Applied) -> Outcome {
         }
     }
     outcome
+}
+
+fn eases(before: &Change, change: &Change) -> bool {
+    match (before, change) {
+        (Change::Nice(before), Change::Nice(value)) => (0..*value).contains(before),
+        _ => true,
+    }
 }

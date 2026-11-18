@@ -91,3 +91,32 @@ fn restauracao_sem_confirmacao_e_informada() {
     *executor.ignore_writes.borrow_mut() = true;
     assert_eq!(restore(&executor, &applied), Outcome::Unconfirmed);
 }
+
+fn nice(value: i8) -> Adjustment {
+    Adjustment {
+        change: Change::Nice(value),
+        ..idle_io()
+    }
+}
+
+#[test]
+fn nice_so_baixa_a_prioridade_e_nunca_toca_em_nice_negativo() {
+    for previous in [10, 15, -5] {
+        let executor = FakeExecutor::with_tasks(&[900]);
+        executor
+            .values
+            .borrow_mut()
+            .insert((900, ChangeKind::Nice), Change::Nice(previous));
+        assert_eq!(
+            apply(&executor, &nice(10)),
+            Err(Failure::Refused(ExecError::Unsupported)),
+            "nice anterior {previous}"
+        );
+        assert_eq!(
+            executor.values.borrow().get(&(900, ChangeKind::Nice)),
+            Some(&Change::Nice(previous))
+        );
+    }
+    let executor = FakeExecutor::with_tasks(&[900]);
+    assert!(apply(&executor, &nice(10)).is_ok());
+}
