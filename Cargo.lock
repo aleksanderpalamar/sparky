@@ -5191,6 +5191,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "sparky-resources"
+version = "0.32.0"
+dependencies = [
+ "nix",
+ "serde",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
 name = "sparky-settings"
 version = "0.32.0"
 dependencies = [
