@@ -1,6 +1,9 @@
 pub mod baseline;
 #[cfg(test)]
 mod baseline_tests;
+pub mod encoding;
+#[cfg(test)]
+mod encoding_tests;
 pub mod features;
 pub mod lifecycle;
 #[cfg(test)]
