@@ -73,6 +73,7 @@ impl Field {
             | Section::Shortcuts
             | Section::Monitors
             | Section::Network
+            | Section::Performance
             | Section::Power
             | Section::DateTime
             | Section::Region

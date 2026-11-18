@@ -82,6 +82,7 @@ pub fn painel_com(
         compositor: Box::new(sparky),
         commands: Box::new(comandos),
         themes: Box::new(Rc::new(FakeThemes::default())),
+        resources: Box::new(Gerenciador::default()),
     };
     let context = Context {
         home: PathBuf::from("/h"),
@@ -131,4 +132,35 @@ pub fn painel_com_fundos() -> (Settings, Arquivo, Rc<FakeThemes>) {
     settings.reload_system();
     settings.go(Section::Themes);
     (settings, arquivo, store)
+}
+
+#[derive(Clone, Default)]
+pub struct Gerenciador {
+    pub pedidos: Rc<RefCell<Vec<sparky_resources::protocol::Request>>>,
+    pub fora_do_ar: bool,
+}
+
+impl crate::ports::resources::ResourceService for Gerenciador {
+    fn status(&self) -> Result<sparky_resources::protocol::Status, String> {
+        use sparky_resources::domain::{
+            Activities, Activity, Mode, ServiceState, Switch, TrainingState,
+        };
+        if self.fora_do_ar {
+            return Err("sem socket".to_owned());
+        }
+        Ok(sparky_resources::protocol::Status {
+            service: "0.32.0".to_owned(),
+            state: ServiceState::Observing,
+            enabled: Switch::On,
+            mode: Mode::Observation,
+            learning: Switch::On,
+            training: TrainingState::Allowed,
+            activities: Activities::default().with(Activity::Desktop),
+        })
+    }
+
+    fn send(&self, request: sparky_resources::protocol::Request) -> Result<(), String> {
+        self.pedidos.borrow_mut().push(request);
+        Ok(())
+    }
 }

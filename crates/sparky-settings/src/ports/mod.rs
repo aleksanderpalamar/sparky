@@ -3,6 +3,7 @@ pub mod commands;
 pub mod fake;
 #[cfg(test)]
 pub mod fake_themes;
+pub mod resources;
 pub mod themes;
 
 use std::fmt;

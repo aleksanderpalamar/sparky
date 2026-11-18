@@ -5220,6 +5220,7 @@ dependencies = [
  "sparky-hardware",
  "sparky-i18n",
  "sparky-ipc",
+ "sparky-resources",
  "sparky-storage",
  "sparky-theme",
  "sparky-tiling",

@@ -5,6 +5,7 @@ pub mod field;
 pub mod hardware;
 pub mod labels;
 pub mod network;
+pub mod performance;
 pub mod screens;
 pub mod section;
 pub mod system;
