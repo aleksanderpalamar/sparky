@@ -4,7 +4,9 @@ PartOf=sparky-session.target
 After=sparky-session.target
 
 [Service]
-Type=simple
+Type=notify
+NotifyAccess=main
+WatchdogSec=30
 ExecStart=/usr/bin/sparky-resources
 Restart=on-failure
 RestartSec=5

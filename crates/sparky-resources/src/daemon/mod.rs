@@ -2,6 +2,7 @@ pub mod brain;
 #[cfg(test)]
 mod brain_tests;
 pub mod compositor;
+pub mod notify;
 pub mod sampling;
 pub mod server;
 #[cfg(test)]

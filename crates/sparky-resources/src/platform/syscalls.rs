@@ -72,3 +72,8 @@ pub fn set_affinity(task: u32, cpus: &[u32]) -> io::Result<()> {
     }
     Ok(())
 }
+
+pub fn clock_ticks() -> f64 {
+    let ticks = unsafe { libc::sysconf(libc::_SC_CLK_TCK) };
+    if ticks <= 0 { 100.0 } else { ticks as f64 }
+}

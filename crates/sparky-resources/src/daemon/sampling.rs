@@ -1,13 +1,19 @@
-use std::sync::{Arc, Mutex, PoisonError};
+use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::thread;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use super::brain::Brain;
 use super::compositor::Windows;
+use super::notify::notify;
 use super::service::Service;
+use crate::application::budget::{Usage, assess, usage};
 use crate::application::{Link, Observer};
+use crate::domain::ServiceState;
+use crate::platform::{LinuxFiles, clock_ticks};
 use crate::ports::{Files, Storage};
 use crate::telemetry::cadence::interval;
+
+const BUDGET_WINDOW: Duration = Duration::from_secs(60);
 
 pub fn sample_forever<F, S>(
     mut observer: Observer<F>,
@@ -22,6 +28,7 @@ pub fn sample_forever<F, S>(
         let started = Instant::now();
         let lock = || service.lock().unwrap_or_else(PoisonError::into_inner);
         lock().learned(brain.validity());
+        let mut spending = Spending::start();
         loop {
             let current = windows.snapshot();
             let link = if current.is_some() {
@@ -40,11 +47,59 @@ pub fn sample_forever<F, S>(
                 brain.forget();
             }
             let active = brain.train(training);
-            let mut service = lock();
-            service.set_training_active(active);
-            service.learned(brain.validity());
-            drop(service);
-            thread::sleep(interval(observation.activities));
+            let pause = settle(lock(), &mut spending, &brain, active);
+            notify("WATCHDOG=1");
+            thread::sleep(pause);
         }
     });
+}
+
+fn settle<S: Storage>(
+    mut service: MutexGuard<Service>,
+    spending: &mut Spending,
+    brain: &Brain<S>,
+    active: bool,
+) -> Duration {
+    service.set_training_active(active);
+    service.learned(brain.validity());
+    if let Some(budget) = spending.check(service.activities().is_sensitive()) {
+        service.spending(budget);
+    }
+    let pause = interval(service.activities());
+    match service.state() {
+        ServiceState::Degraded => pause * 2,
+        _ => pause,
+    }
+}
+
+struct Spending {
+    since: Instant,
+    usage: Option<Usage>,
+    ticks: f64,
+}
+
+impl Spending {
+    fn start() -> Self {
+        let ticks = clock_ticks();
+        Self {
+            since: Instant::now(),
+            usage: usage(&LinuxFiles, ticks),
+            ticks,
+        }
+    }
+
+    fn check(&mut self, sensitive: bool) -> Option<crate::application::Budget> {
+        let elapsed = self.since.elapsed();
+        if elapsed < BUDGET_WINDOW {
+            return None;
+        }
+        let now = usage(&LinuxFiles, self.ticks);
+        let budget = self
+            .usage
+            .zip(now)
+            .map(|(before, after)| assess(before, after, elapsed.as_secs_f64(), sensitive));
+        self.since = Instant::now();
+        self.usage = now;
+        budget
+    }
 }

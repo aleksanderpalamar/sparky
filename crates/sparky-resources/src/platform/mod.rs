@@ -12,3 +12,4 @@ mod syscalls;
 pub use executor::LinuxExecutor;
 pub use files::LinuxFiles;
 pub use storage::DiskStorage;
+pub use syscalls::clock_ticks;

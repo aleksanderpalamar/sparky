@@ -1,4 +1,4 @@
-use crate::application::{Insight, Knowledge, Lifecycle, Link, Signal, training};
+use crate::application::{Budget, Fault, Insight, Knowledge, Lifecycle, Link, Signal, training};
 use crate::domain::{Activities, ServiceState, Switch, TrainingState};
 use crate::protocol::{Refusal, Reply, Request, Status};
 
@@ -25,6 +25,18 @@ impl Service {
 
     pub fn learned(&mut self, knowledge: Knowledge) {
         self.lifecycle.receive(Signal::Learned(knowledge));
+    }
+
+    pub fn spending(&mut self, budget: Budget) {
+        self.lifecycle.receive(Signal::Spending(budget));
+    }
+
+    pub fn failed(&mut self, fault: Fault) {
+        self.lifecycle.receive(Signal::Failed(fault));
+    }
+
+    pub fn activities(&self) -> crate::domain::Activities {
+        self.activities
     }
 
     pub fn set_training_active(&mut self, active: bool) {

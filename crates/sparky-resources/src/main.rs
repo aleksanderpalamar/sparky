@@ -3,13 +3,16 @@ use std::process::ExitCode;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
+use sparky_resources::application::Fault;
 use sparky_resources::application::Observer;
 use sparky_resources::application::hardware::fingerprint;
 use sparky_resources::daemon::brain::Brain;
+use sparky_resources::daemon::notify::notify;
 use sparky_resources::daemon::{Server, Service, Stop, Windows, follow, sample_forever};
 use sparky_resources::persistence::Knowledge;
-use sparky_resources::platform::{DiskStorage, LinuxFiles};
+use sparky_resources::platform::{DiskStorage, LinuxExecutor, LinuxFiles};
 use sparky_resources::protocol::socket;
+use sparky_resources::safety::{Ledger, Outcome};
 use sparky_resources::telemetry::Collector;
 
 fn main() -> ExitCode {
@@ -26,6 +29,9 @@ fn main() -> ExitCode {
         Err(error) => return failed("abrir o socket", error),
     };
     let mut service = Service::default();
+    if !recover(&path) {
+        service.failed(Fault::RestoreUnconfirmed);
+    }
     service.ready();
     let service = Arc::new(Mutex::new(service));
     let windows = Windows::default();
@@ -46,6 +52,7 @@ fn main() -> ExitCode {
     let shared = Arc::clone(&service);
     let socket_path = server.path().to_owned();
     thread::spawn(move || server.serve(&shared));
+    notify("READY=1");
     let outcome = stop.wait();
     let _ = fs::remove_file(&socket_path);
     match outcome {
@@ -57,4 +64,18 @@ fn main() -> ExitCode {
 fn failed(action: &str, error: impl std::fmt::Display) -> ExitCode {
     eprintln!("sparky-resources: falha ao {action}: {error}");
     ExitCode::FAILURE
+}
+
+fn recover(socket: &std::path::Path) -> bool {
+    let Some(directory) = socket
+        .parent()
+        .map(|runtime| runtime.join("sparky-resources"))
+    else {
+        return true;
+    };
+    let Ok(storage) = DiskStorage::open(directory) else {
+        return true;
+    };
+    let outcomes = Ledger::open(storage).recover(&LinuxExecutor::new(LinuxFiles));
+    !outcomes.contains(&Outcome::Unconfirmed)
 }

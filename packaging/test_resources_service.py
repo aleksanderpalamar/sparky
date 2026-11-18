@@ -27,6 +27,8 @@ class ResourcesServiceTest(unittest.TestCase):
         service = self.unit["Service"]
         self.assertEqual(service["ExecStart"], "/usr/bin/sparky-resources")
         self.assertEqual(service["Restart"], "on-failure")
+        self.assertEqual(service["Type"], "notify")
+        self.assertEqual(service["WatchdogSec"], "30")
         self.assertEqual(service["MemoryMax"], "64M")
         self.assertEqual(service["MemorySwapMax"], "0")
         self.assertEqual(service["Slice"], "background.slice")
