@@ -51,7 +51,7 @@ fn atende_status_e_configuracao_pelo_socket() {
         panic!("sem status")
     };
     assert_eq!(status.mode, Mode::Adaptive);
-    assert_eq!(status.state, ServiceState::Observing);
+    assert_eq!(status.state, ServiceState::Adaptive);
 }
 
 #[test]

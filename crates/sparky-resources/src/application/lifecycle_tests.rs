@@ -26,12 +26,14 @@ fn comeca_inicializando_e_depois_observa() {
 }
 
 #[test]
-fn sem_conhecimento_validado_o_modo_adaptativo_so_observa() {
+fn modo_adaptativo_age_com_estatistica_mesmo_sem_modelo_neural() {
     assert_eq!(
         running(&[Signal::Chose(Mode::Adaptive)]),
-        ServiceState::Observing
+        ServiceState::Adaptive
     );
-    assert_eq!(running(&adaptive()), ServiceState::Adaptive);
+    let mut lifecycle = Lifecycle::default();
+    lifecycle.receive(Signal::Learned(Knowledge::Validated));
+    assert_eq!(lifecycle.knowledge(), Knowledge::Validated);
 }
 
 #[test]

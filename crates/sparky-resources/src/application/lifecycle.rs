@@ -67,6 +67,10 @@ impl Lifecycle {
         self.mode
     }
 
+    pub fn knowledge(&self) -> Knowledge {
+        self.knowledge
+    }
+
     pub fn switch(&self) -> Switch {
         self.switch
     }
@@ -88,7 +92,7 @@ impl Lifecycle {
     }
 
     fn chosen_state(&self) -> ServiceState {
-        if self.mode == Mode::Observation || self.knowledge == Knowledge::Unvalidated {
+        if self.mode == Mode::Observation {
             return ServiceState::Observing;
         }
         if self.mode == Mode::Conservative || self.context == Link::Lost {
