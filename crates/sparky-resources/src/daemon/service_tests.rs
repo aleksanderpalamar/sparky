@@ -96,3 +96,48 @@ fn so_libera_o_modo_seguro_quando_esta_nele() {
         }
     );
 }
+
+#[test]
+fn aplicativos_protegidos_tem_limite_e_validacao() {
+    let mut service = ready();
+    let names = vec!["obs".to_owned(), " rustc ".to_owned()];
+    assert_eq!(service.answer(Request::SetProtected { names }), Reply::Done);
+    assert_eq!(service.protected(), ["obs".to_owned(), "rustc".to_owned()]);
+    let many = vec!["x".to_owned(); 65];
+    assert_eq!(
+        service.answer(Request::SetProtected { names: many }),
+        Reply::Refused {
+            reason: Refusal::InvalidNames
+        }
+    );
+    let blank = vec!["  ".to_owned()];
+    assert_eq!(
+        service.answer(Request::SetProtected { names: blank }),
+        Reply::Refused {
+            reason: Refusal::InvalidNames
+        }
+    );
+}
+
+#[test]
+fn a_configuracao_do_usuario_define_o_comeco() {
+    let mut service = ready();
+    let settings = sparky_config::Resources {
+        enabled: false,
+        mode: sparky_config::ResourceMode::Conservative,
+        learning: false,
+        protected: vec!["obs".to_owned()],
+    };
+    service.configure(&settings);
+    let status = status(&mut service);
+    assert_eq!(
+        status.as_ref().map(|status| status.state),
+        Some(ServiceState::Disabled)
+    );
+    assert_eq!(
+        status.as_ref().map(|status| status.mode),
+        Some(Mode::Conservative)
+    );
+    assert_eq!(status.map(|status| status.learning), Some(Switch::Off));
+    assert_eq!(service.protected(), ["obs".to_owned()]);
+}

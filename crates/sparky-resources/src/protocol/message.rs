@@ -22,7 +22,7 @@ impl<T> Envelope<T> {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "request", rename_all = "snake_case")]
 pub enum Request {
     Status,
@@ -33,6 +33,7 @@ pub enum Request {
     SetLearning { switch: Switch },
     ClearSafeMode,
     ForgetKnowledge,
+    SetProtected { names: Vec<String> },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -63,4 +64,5 @@ pub enum Refusal {
     Malformed,
     TooLarge,
     NotInSafeMode,
+    InvalidNames,
 }

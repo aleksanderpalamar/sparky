@@ -11,6 +11,7 @@ pub struct Service {
     training_active: bool,
     forget_requested: bool,
     decisions: Vec<crate::orchestration::Decision>,
+    protected: Vec<String>,
 }
 
 impl Service {
@@ -26,6 +27,30 @@ impl Service {
 
     pub fn learned(&mut self, knowledge: Knowledge) {
         self.lifecycle.receive(Signal::Learned(knowledge));
+    }
+
+    pub fn configure(&mut self, settings: &sparky_config::Resources) {
+        let mode = match settings.mode {
+            sparky_config::ResourceMode::Adaptive => crate::domain::Mode::Adaptive,
+            sparky_config::ResourceMode::Observation => crate::domain::Mode::Observation,
+            sparky_config::ResourceMode::Conservative => crate::domain::Mode::Conservative,
+        };
+        self.lifecycle.receive(Signal::Chose(mode));
+        self.lifecycle.receive(Signal::Turned(if settings.enabled {
+            Switch::On
+        } else {
+            Switch::Off
+        }));
+        self.learning = if settings.learning {
+            Switch::On
+        } else {
+            Switch::Off
+        };
+        self.protected = names(&settings.protected).unwrap_or_default();
+    }
+
+    pub fn protected(&self) -> &[String] {
+        &self.protected
     }
 
     pub fn decided(&mut self, decisions: Vec<crate::orchestration::Decision>) {
@@ -79,6 +104,15 @@ impl Service {
                 Reply::Done
             }
             Request::ClearSafeMode => self.clear_safe_mode(),
+            Request::SetProtected { names: list } => match names(&list) {
+                Some(valid) => {
+                    self.protected = valid;
+                    Reply::Done
+                }
+                None => Reply::Refused {
+                    reason: Refusal::InvalidNames,
+                },
+            },
             Request::ForgetKnowledge => {
                 self.forget_requested = true;
                 Reply::Done
@@ -112,4 +146,15 @@ impl Service {
             activities: self.activities,
         }
     }
+}
+
+const MAX_NAMES: usize = 64;
+const MAX_NAME: usize = 64;
+
+fn names(list: &[String]) -> Option<Vec<String>> {
+    let valid = list.len() <= MAX_NAMES
+        && list
+            .iter()
+            .all(|name| !name.trim().is_empty() && name.len() <= MAX_NAME && !name.contains('\0'));
+    valid.then(|| list.iter().map(|name| name.trim().to_owned()).collect())
 }

@@ -44,6 +44,7 @@ pub fn sample_forever<F, S, L>(
             let (training, forget, authority) = {
                 let mut service = lock();
                 service.observe(observation.activities, link, insights);
+                orchestra.protect(service.protected());
                 (
                     service.training(),
                     service.take_forget(),

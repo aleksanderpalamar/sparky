@@ -39,6 +39,7 @@ fn main() -> ExitCode {
     if !recover(&path) {
         service.failed(Fault::RestoreUnconfirmed);
     }
+    service.configure(&settings());
     service.ready();
     let service = Arc::new(Mutex::new(service));
     let windows = Windows::default();
@@ -103,4 +104,21 @@ fn orchestra(ledger: Ledger<DiskStorage>) -> Orchestra<DiskStorage> {
         capabilities,
         spare,
     ))
+}
+
+fn settings() -> sparky_config::Resources {
+    let Ok(home) = std::env::var("HOME") else {
+        return sparky_config::Resources::default();
+    };
+    let path = sparky_config::path(std::env::var("XDG_CONFIG_HOME").ok().as_deref(), &home);
+    let Ok(text) = fs::read_to_string(path) else {
+        return sparky_config::Resources::default();
+    };
+    match sparky_config::parse(&text) {
+        Ok(config) => config.resources,
+        Err(error) => {
+            eprintln!("sparky-resources: {error}; usando o padrão seguro");
+            sparky_config::Resources::default()
+        }
+    }
 }

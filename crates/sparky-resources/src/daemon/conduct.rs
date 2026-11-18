@@ -22,6 +22,12 @@ impl<S: Storage> Orchestra<S> {
         }
     }
 
+    pub fn protect(&mut self, names: &[String]) {
+        if self.chosen != names {
+            self.chosen = names.to_vec();
+        }
+    }
+
     pub fn tick(&mut self, observation: &Observation, authority: Authority, seconds: u64) {
         let contention = Contention {
             cpu_stall: observation
