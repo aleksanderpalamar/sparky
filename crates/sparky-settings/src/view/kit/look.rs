@@ -1,4 +1,4 @@
-use iced::widget::{button, container, overlay::menu, slider, text_input, toggler};
+use iced::widget::{button, container, overlay::menu, pick_list, slider, text_input, toggler};
 use iced::{Border, Color, Theme};
 use sparky_theme::Skin;
 
@@ -136,6 +136,22 @@ pub fn switch(skin: Skin) -> impl Fn(&Theme, toggler::Status) -> toggler::Style 
             border_radius: Some(RADIUS.into()),
             padding_ratio: 0.14,
             text_color: None,
+        }
+    }
+}
+
+pub fn dropdown(skin: Skin) -> impl Fn(&Theme, pick_list::Status) -> pick_list::Style {
+    move |_, status| {
+        let (fill, edge) = match status {
+            pick_list::Status::Active => (alpha::NORMAL_FILL, alpha::HOVER_BORDER),
+            _ => (alpha::HOVER_FILL, alpha::NORMAL_BORDER),
+        };
+        pick_list::Style {
+            text_color: skin.foreground,
+            placeholder_color: skin.dark_foreground,
+            handle_color: skin.dark_foreground,
+            background: skin.fill(fill).into(),
+            border: border(skin.fill(edge), 1.0),
         }
     }
 }

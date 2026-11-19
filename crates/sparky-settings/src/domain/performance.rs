@@ -15,6 +15,7 @@ pub struct Performance {
     pub status: Option<Status>,
     pub error: Option<String>,
     pub confirming: bool,
+    pub advanced: bool,
 }
 
 impl Performance {
@@ -23,12 +24,12 @@ impl Performance {
             Ok(status) => Self {
                 status: Some(status),
                 error: None,
-                confirming: false,
+                ..Self::default()
             },
             Err(error) => Self {
                 status: None,
                 error: Some(error),
-                confirming: false,
+                ..Self::default()
             },
         }
     }

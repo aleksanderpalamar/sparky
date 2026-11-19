@@ -32,6 +32,8 @@ mod network_view_tests;
 #[cfg(test)]
 mod performance_tests;
 #[cfg(test)]
+mod performance_view_tests;
+#[cfg(test)]
 mod power_tests;
 #[cfg(test)]
 mod region_tests;

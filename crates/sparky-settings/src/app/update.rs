@@ -42,6 +42,7 @@ fn apply(settings: &mut Settings, message: Message) {
         Message::PerformanceMode(mode) => settings.choose_performance_mode(mode),
         Message::PerformanceForget(confirmed) => settings.forget_performance(confirmed),
         Message::PerformanceCancel => settings.cancel_performance(),
+        Message::PerformanceAdvanced => settings.unfold_performance(),
         Message::PerformanceTick => settings.refresh_performance(),
         Message::NetworkSelect(index) => settings.network.select(index),
         Message::NetworkMethod(method) => settings.network.switch(method),

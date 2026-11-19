@@ -9,9 +9,10 @@ const TABLE: &str = "resources";
 
 impl Settings {
     pub fn refresh_performance(&mut self) {
-        let confirming = self.performance.confirming;
+        let (confirming, advanced) = (self.performance.confirming, self.performance.advanced);
         self.performance = Performance::load(self.services.resources.as_ref());
         self.performance.confirming = confirming;
+        self.performance.advanced = advanced;
     }
 
     pub fn toggle_performance(&mut self, knob: Knob) {
@@ -49,6 +50,10 @@ impl Settings {
                 &reason,
             )),
         }
+    }
+
+    pub fn unfold_performance(&mut self) {
+        self.performance.advanced = !self.performance.advanced;
     }
 
     pub fn cancel_performance(&mut self) {

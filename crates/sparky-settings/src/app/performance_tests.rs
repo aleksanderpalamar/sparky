@@ -88,3 +88,15 @@ fn servico_fora_do_ar_aparece_como_erro_e_a_configuracao_ainda_e_gravada() {
     let _ = update(&mut settings, Message::PerformanceToggle(Knob::Learning));
     assert!(salvo(&arquivo).contains("learning = false"));
 }
+
+#[test]
+fn configuracoes_avancadas_abrem_e_continuam_abertas_na_atualizacao() {
+    let (mut settings, _) = aberto(&Gerenciador::default());
+    assert!(!settings.performance.advanced);
+    let _ = update(&mut settings, Message::PerformanceAdvanced);
+    assert!(settings.performance.advanced);
+    let _ = update(&mut settings, Message::PerformanceTick);
+    assert!(settings.performance.advanced);
+    let _ = update(&mut settings, Message::PerformanceAdvanced);
+    assert!(!settings.performance.advanced);
+}

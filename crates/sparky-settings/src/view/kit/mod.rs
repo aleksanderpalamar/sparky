@@ -1,3 +1,4 @@
+pub mod card;
 pub mod chrome;
 pub mod controls;
 pub mod inputs;

@@ -24,6 +24,7 @@ pub enum Message {
     PerformanceMode(sparky_config::ResourceMode),
     PerformanceForget(bool),
     PerformanceCancel,
+    PerformanceAdvanced,
     PerformanceTick,
     Point(usize),
     Nudge(usize, Step),
