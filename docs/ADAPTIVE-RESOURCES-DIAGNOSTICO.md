@@ -200,8 +200,11 @@ temporal, 40 linhas de folga contra vazamento, semente fixa.
 | PSI de I/O | 0,219 | 0,223 | 0,519 |
 | VRAM | 0,044 | 0,047 | 0,789 |
 
-- Parâmetros: GRU 5.166 + MLP 1.626 = 6.792 (limite 100 mil).
-- Inferência GRU + MLP: p50 35 µs, p95 36 µs, p99 39 µs (meta 1 ms).
+- Parâmetros: o serviço usa só a GRU, com 5.166 parâmetros (limite 100 mil).
+  A avaliação também treinou um MLP de 1.626 parâmetros para comparação, que
+  não entra no serviço.
+- Inferência medida com GRU + MLP juntos: p50 35 µs, p95 36 µs, p99 39 µs
+  (meta 1 ms). Como o serviço roda só a GRU, esse valor é um teto.
 - Treino: 32 ms por época com 366 exemplos.
 
 Conclusão: **inconclusivo**. A GRU ganhou em CPU, memória e GPU e perdeu nas
@@ -222,8 +225,8 @@ validado**.
 | QG06 RAM máxima | parcialmente | `MemoryMax=64M` na unit; pico em treino real não medido |
 | QG07 CPU em jogo | não validado | 0,030% em repouso; falta sessão de jogo |
 | QG08 GPU | aprovado | o modelo só usa CPU, sem dependência de GPU |
-| QG09 Modelo | aprovado | 6.792 parâmetros (limite 100 mil) |
-| QG10 Inferência | aprovado | p95 36 µs (meta 1 ms) |
+| QG09 Modelo | aprovado | 5.166 parâmetros na GRU usada pelo serviço (limite 100 mil) |
+| QG10 Inferência | aprovado | p95 36 µs com GRU + MLP, teto para a GRU sozinha (meta 1 ms) |
 | QG11 Jogo | não validado | depende de sessões do usuário |
 | QG12 Jogo + OBS | não validado | depende de sessões do usuário |
 | QG13 Utilidade neural | inconclusivo | 20 min de dados; GRU melhor em CPU, memória e GPU, pior perto de zero |
