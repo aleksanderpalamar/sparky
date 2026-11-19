@@ -22,6 +22,11 @@ impl Dense {
         }
     }
 
+    pub fn clear(&self, params: &mut Parameters) {
+        params.values[self.weights.range()].fill(0.0);
+        params.values[self.bias.range()].fill(0.0);
+    }
+
     pub fn forward(&self, params: &Parameters, input: &[f32], output: &mut [f32]) {
         let weights = &params.values[self.weights.range()];
         let bias = &params.values[self.bias.range()];

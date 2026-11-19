@@ -10,6 +10,7 @@ use super::{metrics, rounds};
 use crate::app::message::Message;
 use crate::domain::intelligence::{clock, errors, fraction, key};
 use crate::i18n::text as tr;
+use crate::view::cards_text::translated;
 
 const CHART: f32 = 180.0;
 const ARCHITECTURE: &str = "GRU";
@@ -53,7 +54,7 @@ fn facts<'a>(skin: Skin, status: &Status, progress: &Progress) -> Element<'a, Me
         ("training", tr(&key("training", &status.training))),
         ("parameters", progress.parameters.to_string()),
         ("rounds", progress.rounds.to_string()),
-        ("collected", fraction(progress.collected, progress.needed)),
+        ("collected", collection(progress)),
         ("epoch", fraction(progress.epoch, progress.epochs)),
         ("last-round", last),
         ("round-errors", failures),
@@ -73,6 +74,20 @@ fn facts<'a>(skin: Skin, status: &Status, progress: &Progress) -> Element<'a, Me
         Row::with_children(cells).spacing(SPACING).into()
     });
     Column::with_children(lines).spacing(SPACING * 1.5).into()
+}
+
+fn collection(progress: &Progress) -> String {
+    if progress.window == 0 {
+        return fraction(progress.collected, progress.needed);
+    }
+    translated(
+        "collected-value",
+        &[
+            ("collected", progress.collected.to_string()),
+            ("window", progress.window.to_string()),
+            ("needed", progress.needed.to_string()),
+        ],
+    )
 }
 
 fn history<'a>(skin: Skin, progress: &Progress) -> Element<'a, Message> {

@@ -1,8 +1,9 @@
 use std::time::{Duration, Instant};
 
-use super::encoding::{WINDOW, example_at};
+use super::encoding::{OUTPUTS, STEP_INPUTS, Sample, WINDOW, example_at};
 use super::learning::{Learner, Plan, Verdict, lesson};
-use crate::domain::{Features, Metric};
+use crate::domain::{Activities, Features, Metric};
+use crate::neural::SequenceModel;
 
 fn small() -> Plan {
     Plan {
@@ -17,11 +18,19 @@ fn small() -> Plan {
     }
 }
 
+fn sample(at: f64, value: f32) -> Sample {
+    Sample {
+        at,
+        features: Features::default().with(Metric::CpuBusy, Some(value)),
+        activities: Activities::default(),
+    }
+}
+
 fn wave(learner: &mut Learner, count: usize) {
     for index in 0..count {
         let at = index as f64 * 2.0;
         let value = 50.0 + 30.0 * ((at / 40.0) * std::f64::consts::TAU).sin() as f32;
-        learner.record(at, Features::default().with(Metric::CpuBusy, Some(value)));
+        learner.record(sample(at, value));
     }
 }
 
@@ -118,14 +127,8 @@ fn cancelar_descarta_a_sessao_em_andamento() {
 #[test]
 fn o_treino_nunca_usa_alvos_da_parte_de_validacao() {
     let split = 420;
-    let rows: Vec<(f64, Features)> = (0..600)
-        .map(|index| {
-            let value = if index < split { 10.0 } else { 90.0 };
-            (
-                index as f64 * 0.25,
-                Features::default().with(Metric::CpuBusy, Some(value)),
-            )
-        })
+    let rows: Vec<Sample> = (0..600)
+        .map(|index| sample(index as f64 * 0.25, if index < split { 10.0 } else { 90.0 }))
         .collect();
     let leaks = |targets: &[Option<f32>]| targets.iter().flatten().any(|target| *target > 0.5);
     assert!(example_at(&rows, 300).is_some_and(|(_, targets)| leaks(&targets)));
@@ -135,4 +138,45 @@ fn o_treino_nunca_usa_alvos_da_parte_de_validacao() {
             "exemplo {end}"
         );
     }
+}
+
+fn fresh(plan: Plan) -> SequenceModel {
+    SequenceModel::still(STEP_INPUTS, plan.hidden, OUTPUTS, plan.seed)
+}
+
+fn stubborn() -> Plan {
+    Plan {
+        margin: 1.0,
+        epochs: 2,
+        ..small()
+    }
+}
+
+#[test]
+fn rodada_recusada_continua_de_onde_parou() {
+    let mut learner = Learner::new(stubborn());
+    wave(&mut learner, 400);
+    assert!(matches!(finish(&mut learner), Verdict::Rejected(..)));
+    assert_eq!(learner.step(None, Instant::now()), Verdict::Training);
+    assert!(
+        learner
+            .starting_point()
+            .is_some_and(|model| *model != fresh(stubborn()))
+    );
+}
+
+#[test]
+fn cancelar_tambem_descarta_o_candidato_guardado() {
+    let mut learner = Learner::new(stubborn());
+    wave(&mut learner, 400);
+    assert!(matches!(finish(&mut learner), Verdict::Rejected(..)));
+    learner.cancel();
+    assert_eq!(learner.step(None, Instant::now()), Verdict::Training);
+    assert_eq!(learner.starting_point(), Some(&fresh(stubborn())));
+}
+
+#[test]
+fn o_progresso_informa_a_janela_de_coleta() {
+    let learner = Learner::new(small());
+    assert_eq!(learner.progress().window, 400);
 }

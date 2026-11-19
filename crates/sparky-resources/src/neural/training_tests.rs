@@ -55,3 +55,17 @@ fn a_gru_aprende_a_continuar_uma_rampa() {
     assert!(last < 1e-3, "erro final {last}");
     assert!(model.params.is_finite());
 }
+
+#[test]
+fn modelo_parado_comeca_prevendo_zero_e_ainda_aprende() {
+    let mut model = SequenceModel::still(1, 8, 1, 9);
+    assert_eq!(model.predict(&[vec![0.7], vec![0.3]]), vec![0.0]);
+    let mut adam = Adam::new(0.01, model.params.len());
+    let sequence = [vec![0.2], vec![0.4]];
+    let before = model.loss(&sequence, &[Some(0.5)]);
+    for _ in 0..50 {
+        model.accumulate(&sequence, &[Some(0.5)]);
+        adam.step(&mut model.params);
+    }
+    assert!(model.loss(&sequence, &[Some(0.5)]) < before * 0.1);
+}

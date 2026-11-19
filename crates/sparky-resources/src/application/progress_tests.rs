@@ -62,6 +62,7 @@ fn rodada_guarda_os_erros_e_o_progresso_vai_e_volta_pelo_protocolo() {
     let progress = Progress {
         collected: 600,
         needed: 600,
+        window: 7200,
         epoch: 3,
         epochs: 20,
         rounds: 2,

@@ -225,7 +225,7 @@ validado**.
 | QG06 RAM máxima | parcialmente | `MemoryMax=64M` na unit; pico em treino real não medido |
 | QG07 CPU em jogo | não validado | 0,030% em repouso; falta sessão de jogo |
 | QG08 GPU | aprovado | o modelo só usa CPU, sem dependência de GPU |
-| QG09 Modelo | aprovado | 5.166 parâmetros na GRU usada pelo serviço (limite 100 mil) |
+| QG09 Modelo | aprovado | 6.030 parâmetros na GRU usada pelo serviço desde a entrada com contexto (antes 5.166; limite 100 mil) |
 | QG10 Inferência | aprovado | p95 36 µs com GRU + MLP, teto para a GRU sozinha (meta 1 ms) |
 | QG11 Jogo | não validado | depende de sessões do usuário |
 | QG12 Jogo + OBS | não validado | depende de sessões do usuário |
@@ -264,3 +264,46 @@ era aplicado e revertido a cada 2 a 4 minutos. Agora uma reversão por falta de
 melhora deixa o processo em pausa por 10 min, dobrando a cada nova reversão
 até 1 h; o planejador passa ao próximo consumidor ou não age. Um ajuste mantido
 perdoa as reversões, e a reaplicação aparece no registro de decisões.
+
+## Rede neural: variação, contexto e continuidade
+
+No 0.32.0-5 instalado, as 21 primeiras rodadas de treino foram todas recusadas.
+A rede errava de 2 a 4 vezes mais que a estatística, e a curva por rodada
+ficava plana. Causas encontradas no código:
+
+- toda rodada recusada era descartada, e a seguinte recomeçava dos mesmos
+  pesos iniciais;
+- a rede previa o valor absoluto, então precisava aprender sozinha que o
+  próximo valor é quase igual ao atual;
+- o contexto reconhecido (jogo, compilação, gravação) não entrava no modelo.
+
+Mudanças:
+
+| Ponto | Antes | Agora |
+|---|---|---|
+| Alvo | valor absoluto | variação em relação ao valor atual |
+| Modelo inicial | saída aleatória | camada de saída zerada, que prevê "nada muda" |
+| Entrada por passo | 15 valores | 24 valores, com as 9 atividades reconhecidas |
+| Rodada recusada | descartada | a próxima rodada continua dela; apagar o aprendizado também a descarta |
+| Parâmetros | 5.166 | 6.030 |
+| Tela de coleta | "coletadas / mínimo" | "coletadas / janela · mín. 600"; a janela é de 7.200 amostras e a coleta continua nela |
+
+O critério de promoção não mudou: o modelo só entra se errar pelo menos 5%
+menos que a estatística nos 30% mais recentes.
+
+Traço novo de 20 min (600 linhas a cada 2 s), com compilação no começo e o
+resto quase ocioso. Erro médio absoluto (`--example neural_eval`), média das
+14 previsões (7 métricas × 10 s e 60 s):
+
+| Versão | GRU | Holt | Persistência |
+|---|---|---|---|
+| Valor absoluto, saída aleatória | 0,968 | 0,099 | 0,101 |
+| Variação, saída aleatória | 0,813 | 0,099 | 0,101 |
+| Variação, saída zerada | 0,477 | 0,099 | 0,101 |
+
+O erro da GRU caiu pela metade, mas ela continua atrás da estatística neste
+traço. Ela venceu na pressão de I/O em 10 s em uma das medições, e perde
+principalmente onde a parte de treino tinha a carga da compilação e o teste
+foi ocioso. Com 20 min e uma única mudança de regime, ainda não há base para
+concluir a utilidade neural. QG13 continua **inconclusivo** e depende das
+rodadas reais, com a janela de até 4 horas.

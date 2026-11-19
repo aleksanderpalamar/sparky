@@ -118,6 +118,7 @@ verdict-kept = mantido
 verdict-reverted = revertido
 verdict-finished = encerrado
 collected = Coleta
+collected-value = { $collected } / { $window } · mín. { $needed }
 epoch = Passada
 rounds = Treinos
 last-round = Último treino

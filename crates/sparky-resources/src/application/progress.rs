@@ -26,6 +26,8 @@ pub const REMEMBERED: usize = 16;
 pub struct Progress {
     pub collected: usize,
     pub needed: usize,
+    #[serde(default)]
+    pub window: usize,
     pub epoch: usize,
     pub epochs: usize,
     pub rounds: u32,

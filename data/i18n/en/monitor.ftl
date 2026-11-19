@@ -118,6 +118,7 @@ verdict-kept = kept
 verdict-reverted = reverted
 verdict-finished = finished
 collected = Collected
+collected-value = { $collected } / { $window } · min. { $needed }
 epoch = Pass
 rounds = Rounds
 last-round = Last training

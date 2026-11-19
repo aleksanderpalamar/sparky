@@ -1,5 +1,5 @@
-use super::encoding::{HORIZONS, WINDOW, decode, example_at};
-use crate::domain::{Features, METRICS};
+use super::encoding::{HORIZONS, Sample, WINDOW, absolute, decode, example_at};
+use crate::domain::METRICS;
 use crate::neural::SequenceModel;
 use crate::predict::Holt;
 
@@ -13,14 +13,14 @@ pub struct Errors {
     pub count: usize,
 }
 
-pub fn validate(rows: &[(f64, Features)], from: usize, model: Option<&SequenceModel>) -> Errors {
+pub fn validate(rows: &[Sample], from: usize, model: Option<&SequenceModel>) -> Errors {
     let mut holts = [Holt::new(ALPHA, BETA); METRICS.len()];
     let (mut statistical, mut neural, mut count) = (0.0_f64, 0.0_f64, 0_usize);
     for end in 1..=rows.len() {
-        let (at, features) = &rows[end - 1];
+        let now = &rows[end - 1];
         for (slot, metric) in METRICS.iter().enumerate() {
-            if let Some(value) = features.get(*metric) {
-                holts[slot].update(*at, value);
+            if let Some(value) = now.features.get(*metric) {
+                holts[slot].update(now.at, value);
             }
         }
         if end < from.max(WINDOW) {
@@ -29,9 +29,9 @@ pub fn validate(rows: &[(f64, Features)], from: usize, model: Option<&SequenceMo
         let Some((window, targets)) = example_at(rows, end) else {
             continue;
         };
-        let predicted = model.map(|model| decode(&model.predict(&window)));
-        for (output, target) in targets.iter().enumerate() {
-            let Some(target) = target.map(|value| value * 100.0) else {
+        let predicted = model.map(|model| decode(&model.predict(&window), &now.features));
+        for (output, target) in absolute(&targets, &now.features).iter().enumerate() {
+            let Some(target) = *target else {
                 continue;
             };
             let (slot, horizon) = (output % METRICS.len(), HORIZONS[output / METRICS.len()]);

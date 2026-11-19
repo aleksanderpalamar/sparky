@@ -1,11 +1,13 @@
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
 
-use crate::application::encoding::{HORIZONS, OUTPUTS, STEP_INPUTS, WINDOW, decode, window};
+use crate::application::encoding::{
+    HORIZONS, OUTPUTS, STEP_INPUTS, Sample, WINDOW, decode, window,
+};
 use crate::application::learning::{Learner, Plan, Verdict};
 use crate::application::progress::{Outcome, REMEMBERED};
 use crate::application::{Baseline, Insight, Knowledge as Validity, Observation, Progress, Round};
-use crate::domain::{Features, TrainingState};
+use crate::domain::TrainingState;
 use crate::neural::SequenceModel;
 use crate::persistence::{Checkpoint, Kind, Knowledge, Restored};
 use crate::ports::Storage;
@@ -18,7 +20,7 @@ pub struct Brain<S> {
     knowledge: Option<Knowledge<S>>,
     hardware: u64,
     active: Option<SequenceModel>,
-    recent: Vec<(f64, Features)>,
+    recent: Vec<Sample>,
     rounds: u32,
     history: VecDeque<Round>,
 }
@@ -53,8 +55,13 @@ impl<S: Storage> Brain<S> {
     }
 
     pub fn insights(&mut self, at: f64, observation: &Observation) -> Vec<Insight> {
-        self.learner.record(at, observation.features);
-        self.recent.push((at, observation.features));
+        let sample = Sample {
+            at,
+            features: observation.features,
+            activities: observation.activities,
+        };
+        self.learner.record(sample);
+        self.recent.push(sample);
         if self.recent.len() > WINDOW {
             self.recent.remove(0);
         }
@@ -63,7 +70,7 @@ impl<S: Storage> Brain<S> {
             .active
             .as_ref()
             .filter(|_| self.recent.len() == WINDOW)
-            .map(|model| decode(&model.predict(&window(&self.recent))));
+            .map(|model| decode(&model.predict(&window(&self.recent)), &observation.features));
         if let Some(values) = neural {
             for (slot, insight) in insights.iter_mut().enumerate() {
                 insight.neural_short = values.get(slot).copied();

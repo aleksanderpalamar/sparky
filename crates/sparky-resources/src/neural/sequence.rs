@@ -19,6 +19,12 @@ impl SequenceModel {
         Self { params, gru, head }
     }
 
+    pub fn still(inputs: usize, hidden: usize, outputs: usize, seed: u64) -> Self {
+        let mut model = Self::new(inputs, hidden, outputs, seed);
+        model.head.clear(&mut model.params);
+        model
+    }
+
     pub fn predict(&self, sequence: &[Vec<f32>]) -> Vec<f32> {
         let steps = self.unroll(sequence);
         self.project(&steps)

@@ -25,7 +25,7 @@ fn o_status_explica_estado_modo_e_atividades() {
     let text = json(&Envelope::current(Reply::Status(status.clone())));
     assert_eq!(
         text,
-        r#"{"version":1,"reply":"status","service":"0.32.0","state":"observing","enabled":"on","mode":"observation","learning":"on","training":{"training":"allowed"},"activities":["gaming"],"progress":{"collected":0,"needed":0,"epoch":0,"epochs":0,"rounds":0,"parameters":0,"history":[]},"footprint":null,"guarded":[],"adjusting":false,"notifications":"off"}"#
+        r#"{"version":1,"reply":"status","service":"0.32.0","state":"observing","enabled":"on","mode":"observation","learning":"on","training":{"training":"allowed"},"activities":["gaming"],"progress":{"collected":0,"needed":0,"window":0,"epoch":0,"epochs":0,"rounds":0,"parameters":0,"history":[]},"footprint":null,"guarded":[],"adjusting":false,"notifications":"off"}"#
     );
     let back: Option<Envelope<Reply>> = serde_json::from_str(&text).ok();
     assert_eq!(

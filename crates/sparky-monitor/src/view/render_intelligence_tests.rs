@@ -39,6 +39,7 @@ fn briefing() -> Briefing {
         progress: Progress {
             collected: 312,
             needed: 600,
+            window: 7200,
             epoch: 3,
             epochs: 20,
             rounds: 2,
@@ -126,7 +127,7 @@ fn as_tres_abas_mostram_dados_reais_do_servico() {
         &[
             "GRU",
             "6792",
-            "312 / 600",
+            "312 / 7200 · mín. 600",
             "00:01:30 · descartado, pior que a estatística",
             "4.10 / 3.80",
             "37.0%",

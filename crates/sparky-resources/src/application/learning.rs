@@ -1,10 +1,9 @@
 use std::collections::VecDeque;
 use std::time::Instant;
 
-use super::encoding::{Example, OUTPUTS, STEP_INPUTS, WINDOW, example_at};
+use super::encoding::{Example, OUTPUTS, STEP_INPUTS, Sample, WINDOW, example_at};
 use super::progress::{Outcome, Progress, outcome};
 use super::validation::{Errors, validate};
-use crate::domain::Features;
 use crate::neural::{Adam, SequenceModel};
 
 const LEAK_GUARD: usize = 40;
@@ -47,7 +46,7 @@ pub enum Verdict {
 struct Session {
     model: SequenceModel,
     adam: Adam,
-    rows: Vec<(f64, Features)>,
+    rows: Vec<Sample>,
     cursor: usize,
     epoch: usize,
 }
@@ -55,8 +54,9 @@ struct Session {
 pub struct Learner {
     plan: Plan,
     parameters: usize,
-    history: VecDeque<(f64, Features)>,
+    history: VecDeque<Sample>,
     session: Option<Session>,
+    incumbent: Option<SequenceModel>,
 }
 
 impl Learner {
@@ -69,20 +69,22 @@ impl Learner {
             parameters,
             history: VecDeque::with_capacity(plan.capacity),
             session: None,
+            incumbent: None,
         }
     }
 
-    pub fn record(&mut self, at: f64, features: Features) {
+    pub fn record(&mut self, sample: Sample) {
         if self.history.len() == self.plan.capacity {
             self.history.pop_front();
         }
-        self.history.push_back((at, features));
+        self.history.push_back(sample);
     }
 
     pub fn progress(&self) -> Progress {
         Progress {
             collected: self.history.len(),
             needed: self.plan.minimum,
+            window: self.plan.capacity,
             epoch: self.session.as_ref().map_or(0, |session| session.epoch),
             epochs: self.plan.epochs,
             parameters: self.parameters,
@@ -97,7 +99,7 @@ impl Learner {
         let plan = self.plan;
         let session = self
             .session
-            .get_or_insert_with(|| start(plan, &self.history, active));
+            .get_or_insert_with(|| start(plan, &self.history, self.incumbent.as_ref().or(active)));
         let split = session.rows.len() * 7 / 10;
         let last = split.saturating_sub(LEAK_GUARD).max(WINDOW);
         while Instant::now() < deadline && session.epoch < plan.epochs {
@@ -119,26 +121,30 @@ impl Learner {
         let Some(session) = self.session.take() else {
             return Verdict::Waiting;
         };
-        judge(plan, session, split, active)
+        let (verdict, incumbent) = judge(plan, session, split, active);
+        self.incumbent = incumbent;
+        verdict
+    }
+
+    #[cfg(test)]
+    pub fn starting_point(&self) -> Option<&SequenceModel> {
+        self.session.as_ref().map(|session| &session.model)
     }
 
     pub fn cancel(&mut self) {
         self.session = None;
+        self.incumbent = None;
     }
 }
 
-pub fn lesson(rows: &[(f64, Features)], split: usize, end: usize) -> Option<Example> {
+pub fn lesson(rows: &[Sample], split: usize, end: usize) -> Option<Example> {
     example_at(rows.get(..split)?, end)
 }
 
-fn start(
-    plan: Plan,
-    history: &VecDeque<(f64, Features)>,
-    active: Option<&SequenceModel>,
-) -> Session {
-    let model = active
+fn start(plan: Plan, history: &VecDeque<Sample>, origin: Option<&SequenceModel>) -> Session {
+    let model = origin
         .cloned()
-        .unwrap_or_else(|| SequenceModel::new(STEP_INPUTS, plan.hidden, OUTPUTS, plan.seed));
+        .unwrap_or_else(|| SequenceModel::still(STEP_INPUTS, plan.hidden, OUTPUTS, plan.seed));
     let adam = Adam::new(plan.rate, model.params.len());
     Session {
         model,
@@ -149,12 +155,18 @@ fn start(
     }
 }
 
-fn judge(plan: Plan, session: Session, split: usize, active: Option<&SequenceModel>) -> Verdict {
+fn judge(
+    plan: Plan,
+    session: Session,
+    split: usize,
+    active: Option<&SequenceModel>,
+) -> (Verdict, Option<SequenceModel>) {
     let candidate = validate(&session.rows, split, Some(&session.model));
     let current = active.and_then(|model| validate(&session.rows, split, Some(model)).neural);
     let finite = session.model.params.is_finite();
     match outcome(plan.margin, &candidate, current, finite) {
-        Outcome::Promoted => Verdict::Promoted(Box::new(session.model), candidate),
-        rejected => Verdict::Rejected(candidate, rejected),
+        Outcome::Promoted => (Verdict::Promoted(Box::new(session.model), candidate), None),
+        Outcome::Unstable => (Verdict::Rejected(candidate, Outcome::Unstable), None),
+        rejected => (Verdict::Rejected(candidate, rejected), Some(session.model)),
     }
 }

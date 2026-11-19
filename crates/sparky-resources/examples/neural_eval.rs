@@ -1,9 +1,9 @@
 use std::time::Instant;
 
 use sparky_resources::application::encoding::{
-    Example, HORIZONS, OUTPUTS, STEP_INPUTS, WINDOW, decode, examples,
+    Example, HORIZONS, OUTPUTS, STEP_INPUTS, Sample, WINDOW, absolute, decode, examples,
 };
-use sparky_resources::domain::{Features, METRICS};
+use sparky_resources::domain::{Activities, METRICS};
 use sparky_resources::neural::{Adam, Mlp, SequenceModel};
 use sparky_resources::predict::trace::parse;
 use sparky_resources::predict::{Forecaster, Holt, Persistence};
@@ -18,13 +18,22 @@ fn main() -> std::io::Result<()> {
     let mut rows = Vec::new();
     for path in std::env::args().skip(1) {
         let text = std::fs::read_to_string(&path)?;
-        rows.extend(text.lines().skip(1).filter_map(parse));
+        rows.extend(
+            text.lines()
+                .skip(1)
+                .filter_map(parse)
+                .map(|(at, features)| Sample {
+                    at,
+                    features,
+                    activities: Activities::default(),
+                }),
+        );
     }
     let all = examples(&rows);
     let split = all.len() * 7 / 10;
     let (train, test) = all.split_at(split);
     let train = &train[..train.len().saturating_sub(LEAK_GUARD)];
-    let mut model = SequenceModel::new(STEP_INPUTS, HIDDEN, OUTPUTS, SEED);
+    let mut model = SequenceModel::still(STEP_INPUTS, HIDDEN, OUTPUTS, SEED);
     let mlp = Mlp::new(&[28, 32, 16, 10], SEED);
     println!(
         "amostras={} exemplos treino={} teste={}",
@@ -58,17 +67,17 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 
-fn compare(rows: &[(f64, Features)], split: usize, model: &SequenceModel) {
+fn compare(rows: &[Sample], split: usize, model: &SequenceModel) {
     let mut errors = vec![[0.0_f64; 3]; OUTPUTS];
     let mut counts = [0_usize; OUTPUTS];
     let mut holts = [Holt::new(0.2, 0.0); METRICS.len()];
     let mut naive = [Persistence::default(); METRICS.len()];
     for (index, end) in (WINDOW..rows.len()).enumerate() {
-        let (at, features) = &rows[end - 1];
+        let now = &rows[end - 1];
         for (slot, metric) in METRICS.iter().enumerate() {
-            if let Some(value) = features.get(*metric) {
-                holts[slot].update(*at, value);
-                naive[slot].update(*at, value);
+            if let Some(value) = now.features.get(*metric) {
+                holts[slot].update(now.at, value);
+                naive[slot].update(now.at, value);
             }
         }
         let Some((window, targets)) = examples(&rows[end - WINDOW..rows.len().min(end + 40)])
@@ -80,9 +89,9 @@ fn compare(rows: &[(f64, Features)], split: usize, model: &SequenceModel) {
         if index < split {
             continue;
         }
-        let neural = decode(&model.predict(&window));
-        for (output, target) in targets.iter().enumerate() {
-            let Some(target) = target.map(|value| value * 100.0) else {
+        let neural = decode(&model.predict(&window), &now.features);
+        for (output, target) in absolute(&targets, &now.features).iter().enumerate() {
+            let Some(target) = *target else {
                 continue;
             };
             let (slot, horizon) = (output % METRICS.len(), HORIZONS[output / METRICS.len()]);
