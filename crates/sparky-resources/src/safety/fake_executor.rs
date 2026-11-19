@@ -10,6 +10,7 @@ pub struct FakeExecutor {
     pub tasks: RefCell<Vec<u32>>,
     pub deny: RefCell<bool>,
     pub ignore_writes: RefCell<bool>,
+    pub writes_left: RefCell<Option<usize>>,
 }
 
 impl FakeExecutor {
@@ -31,6 +32,17 @@ impl FakeExecutor {
         *fake.tasks.borrow_mut() = tasks.to_vec();
         fake
     }
+
+    fn exhausted(&self) -> bool {
+        match self.writes_left.borrow_mut().as_mut() {
+            Some(0) => true,
+            Some(left) => {
+                *left -= 1;
+                false
+            }
+            None => false,
+        }
+    }
 }
 
 impl Executor for FakeExecutor {
@@ -51,7 +63,7 @@ impl Executor for FakeExecutor {
     }
 
     fn write(&self, task: u32, change: &Change) -> Result<(), ExecError> {
-        if *self.deny.borrow() {
+        if *self.deny.borrow() || self.exhausted() {
             return Err(ExecError::Denied);
         }
         if !*self.ignore_writes.borrow() {

@@ -1,6 +1,7 @@
 use std::time::{Duration, Instant};
 
-use super::learning::{Learner, Plan, Verdict};
+use super::encoding::{WINDOW, example_at};
+use super::learning::{Learner, Plan, Verdict, lesson};
 use crate::domain::{Features, Metric};
 
 fn small() -> Plan {
@@ -98,4 +99,40 @@ fn o_progresso_mostra_a_coleta_e_a_passada_atual() {
         );
     }
     assert_eq!(learner.progress().collected, 400);
+}
+
+#[test]
+fn cancelar_descarta_a_sessao_em_andamento() {
+    let mut learner = Learner::new(small());
+    wave(&mut learner, 400);
+    while learner.progress().epoch == 0 {
+        assert_eq!(
+            learner.step(None, Instant::now() + Duration::from_millis(5)),
+            Verdict::Training
+        );
+    }
+    learner.cancel();
+    assert_eq!(learner.progress().epoch, 0);
+}
+
+#[test]
+fn o_treino_nunca_usa_alvos_da_parte_de_validacao() {
+    let split = 420;
+    let rows: Vec<(f64, Features)> = (0..600)
+        .map(|index| {
+            let value = if index < split { 10.0 } else { 90.0 };
+            (
+                index as f64 * 0.25,
+                Features::default().with(Metric::CpuBusy, Some(value)),
+            )
+        })
+        .collect();
+    let leaks = |targets: &[Option<f32>]| targets.iter().flatten().any(|target| *target > 0.5);
+    assert!(example_at(&rows, 300).is_some_and(|(_, targets)| leaks(&targets)));
+    for end in WINDOW..=split {
+        assert!(
+            !lesson(&rows, split, end).is_some_and(|(_, targets)| leaks(&targets)),
+            "exemplo {end}"
+        );
+    }
 }

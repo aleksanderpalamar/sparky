@@ -114,17 +114,11 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
         candidate: &Candidate,
         option: &crate::domain::Adjustment,
     ) {
-        let Ok(applied) = apply(&self.executor, option) else {
-            return self.note(
-                moment,
-                candidate,
-                Some(option.change.clone()),
-                Verdict::Failed,
-            );
+        let applied = match apply(&self.executor, option) {
+            Ok(applied) => applied,
+            Err(failure) => return self.failed(moment, candidate, option.change.clone(), failure),
         };
-        if let Err(error) = self.ledger.record(applied.clone()) {
-            eprintln!("sparky-resources: ajuste fora do registro: {error}");
-        }
+        self.remember(applied.clone());
         let before = moment.contention.stall(candidate.purpose).unwrap_or(0.0);
         self.last = None;
         self.push(
@@ -144,7 +138,13 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
         });
     }
 
-    fn note(
+    pub(super) fn remember(&mut self, applied: Applied) {
+        if let Err(error) = self.ledger.record(applied) {
+            eprintln!("sparky-resources: ajuste fora do registro: {error}");
+        }
+    }
+
+    pub(super) fn note(
         &mut self,
         moment: &Moment,
         candidate: &Candidate,

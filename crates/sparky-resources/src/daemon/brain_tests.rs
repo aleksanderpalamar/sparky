@@ -111,3 +111,19 @@ fn o_progresso_comeca_sem_rodadas_e_conta_a_coleta() {
     assert!(progress.history.is_empty());
     assert!(progress.parameters > 0);
 }
+
+#[test]
+fn esquecer_durante_o_treino_descarta_a_rodada_em_andamento() {
+    let storage = FakeStorage::default();
+    let mut brain = Brain::new(Some(Knowledge::new(&storage)), HARDWARE);
+    for step in 0..700 {
+        brain.insights(f64::from(step) * 2.0, &observation(30.0));
+    }
+    while brain.progress().epoch == 0 {
+        assert!(brain.train(TrainingState::Allowed, 0));
+    }
+    brain.forget();
+    assert_eq!(brain.progress().epoch, 0);
+    assert_eq!(brain.validity(), Validity::Unvalidated);
+    assert!(storage.files.borrow().is_empty());
+}

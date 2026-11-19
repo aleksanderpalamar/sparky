@@ -119,6 +119,7 @@ impl<S: Storage> Brain<S> {
 
     pub fn forget(&mut self) {
         self.active = None;
+        self.learner.cancel();
         if let Some(Err(error)) = self.knowledge.as_mut().map(Knowledge::forget) {
             eprintln!("sparky-resources: conhecimento não apagado: {error}");
         }

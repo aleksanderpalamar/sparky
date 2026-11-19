@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 use std::time::Instant;
 
-use super::encoding::{OUTPUTS, STEP_INPUTS, WINDOW, example_at};
+use super::encoding::{Example, OUTPUTS, STEP_INPUTS, WINDOW, example_at};
 use super::progress::{Outcome, Progress, outcome};
 use super::validation::{Errors, validate};
 use crate::domain::Features;
@@ -102,7 +102,7 @@ impl Learner {
         let last = split.saturating_sub(LEAK_GUARD).max(WINDOW);
         while Instant::now() < deadline && session.epoch < plan.epochs {
             for end in session.cursor..(session.cursor + plan.batch).min(last) {
-                if let Some((window, targets)) = example_at(&session.rows, end) {
+                if let Some((window, targets)) = lesson(&session.rows, split, end) {
                     session.model.accumulate(&window, &targets);
                 }
             }
@@ -121,6 +121,14 @@ impl Learner {
         };
         judge(plan, session, split, active)
     }
+
+    pub fn cancel(&mut self) {
+        self.session = None;
+    }
+}
+
+pub fn lesson(rows: &[(f64, Features)], split: usize, end: usize) -> Option<Example> {
+    example_at(rows.get(..split)?, end)
 }
 
 fn start(

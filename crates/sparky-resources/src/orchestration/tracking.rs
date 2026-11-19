@@ -1,9 +1,10 @@
 use super::conductor::{Active, Conductor, Moment};
 use super::evaluation::{Judgement, judge};
 use super::log::Verdict;
-use crate::domain::Activity;
+use super::planner::Candidate;
+use crate::domain::{Activity, Change};
 use crate::ports::{Executor, Storage};
-use crate::safety::{Outcome, restore};
+use crate::safety::{Failure, Outcome, restore};
 
 impl<E: Executor, S: Storage> Conductor<E, S> {
     pub fn release(&mut self) -> bool {
@@ -17,7 +18,10 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
         let sensitive = moment.activities.contains(Activity::Gaming)
             || moment.activities.contains(Activity::Recording);
         let withdrawn = moment.authority == crate::domain::Authority::None;
-        if !sensitive || withdrawn {
+        let shielded = moment
+            .protected
+            .contains(&active.applied.adjustment.target.pid);
+        if !sensitive || withdrawn || shielded {
             let outcome = self.finish(&active);
             self.record(moment, &active, Verdict::Finished(outcome));
             return None;
@@ -55,6 +59,20 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
             eprintln!("sparky-resources: registro de ajustes não atualizado: {error}");
         }
         outcome
+    }
+
+    pub(super) fn failed(
+        &mut self,
+        moment: &Moment,
+        candidate: &Candidate,
+        change: Change,
+        failure: Failure,
+    ) {
+        if let Failure::Unverified(Outcome::Unconfirmed, applied) = failure {
+            self.unconfirmed = true;
+            self.remember(*applied);
+        }
+        self.note(moment, candidate, Some(change), Verdict::Failed);
     }
 
     fn record(&mut self, moment: &Moment, active: &Active, verdict: Verdict) {

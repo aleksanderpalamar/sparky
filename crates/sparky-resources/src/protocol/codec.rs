@@ -7,6 +7,7 @@ use serde_json::Value;
 use super::message::{Envelope, Refusal, VERSION};
 
 pub const MAX_LINE: usize = 16 * 1024;
+pub const MAX_REPLY: usize = 256 * 1024;
 
 #[derive(Debug)]
 pub enum LineError {

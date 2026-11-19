@@ -18,10 +18,22 @@ pub enum Outcome {
     Unconfirmed,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Failure {
     Refused(ExecError),
-    Unverified(Outcome),
+    Unverified(Outcome, Box<Applied>),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Origin {
+    Known,
+    Born,
+}
+
+enum Step {
+    Done,
+    Elsewhere,
+    Unconfirmed,
 }
 
 pub fn apply(executor: &impl Executor, adjustment: &Adjustment) -> Result<Applied, Failure> {
@@ -60,34 +72,73 @@ pub fn apply(executor: &impl Executor, adjustment: &Adjustment) -> Result<Applie
         Outcome::Restored | Outcome::Gone => {
             Err(Failure::Refused(written.err().unwrap_or(ExecError::Failed)))
         }
-        outcome => Err(Failure::Unverified(outcome)),
+        outcome => Err(Failure::Unverified(outcome, Box::new(applied))),
     }
 }
 
 pub fn restore(executor: &impl Executor, applied: &Applied) -> Outcome {
-    if executor.tasks(applied.adjustment.target).is_err() {
+    let Ok(tasks) = executor.tasks(applied.adjustment.target) else {
         return Outcome::Gone;
-    }
-    let kind = applied.adjustment.change.kind();
+    };
     let mut outcome = Outcome::Restored;
-    for (task, previous) in &applied.previous {
-        match executor.read(*task, kind) {
-            Err(ExecError::Gone) => continue,
-            Ok(current) if current == *previous => continue,
-            Ok(current) if current != applied.adjustment.change => {
-                outcome = Outcome::ChangedElsewhere
-            }
-            Ok(_) => {
-                let back = executor.write(*task, previous).is_ok()
-                    && executor.read(*task, kind).is_ok_and(|now| now == *previous);
-                if !back {
-                    return Outcome::Unconfirmed;
-                }
-            }
-            Err(_) => return Outcome::Unconfirmed,
+    for (task, previous, origin) in pending(applied, &tasks) {
+        match rewind(executor, applied, task, &previous, origin) {
+            Step::Done => {}
+            Step::Elsewhere => outcome = Outcome::ChangedElsewhere,
+            Step::Unconfirmed => return Outcome::Unconfirmed,
         }
     }
     outcome
+}
+
+fn pending(applied: &Applied, tasks: &[u32]) -> Vec<(u32, Change, Origin)> {
+    let known = applied
+        .previous
+        .iter()
+        .map(|(task, previous)| (*task, previous.clone(), Origin::Known));
+    let born = baseline(applied).into_iter().flat_map(|base| {
+        tasks
+            .iter()
+            .filter(|task| !applied.previous.iter().any(|(known, _)| known == *task))
+            .map(move |task| (*task, base.clone(), Origin::Born))
+    });
+    known.chain(born).collect()
+}
+
+fn baseline(applied: &Applied) -> Option<&Change> {
+    let main = applied.adjustment.target.pid;
+    applied
+        .previous
+        .iter()
+        .find(|(task, _)| *task == main)
+        .or_else(|| applied.previous.first())
+        .map(|(_, previous)| previous)
+}
+
+fn rewind(
+    executor: &impl Executor,
+    applied: &Applied,
+    task: u32,
+    previous: &Change,
+    origin: Origin,
+) -> Step {
+    match executor.read(task, previous.kind()) {
+        Err(ExecError::Gone) => Step::Done,
+        Ok(current) if current == *previous => Step::Done,
+        Ok(current) if current != applied.adjustment.change => match origin {
+            Origin::Known => Step::Elsewhere,
+            Origin::Born => Step::Done,
+        },
+        Ok(_) if wrote_back(executor, task, previous) => Step::Done,
+        _ => Step::Unconfirmed,
+    }
+}
+
+fn wrote_back(executor: &impl Executor, task: u32, previous: &Change) -> bool {
+    executor.write(task, previous).is_ok()
+        && executor
+            .read(task, previous.kind())
+            .is_ok_and(|now| now == *previous)
 }
 
 fn eases(before: &Change, change: &Change) -> bool {
