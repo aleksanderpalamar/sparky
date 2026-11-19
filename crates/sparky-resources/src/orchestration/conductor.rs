@@ -68,6 +68,10 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
         self.log.entries()
     }
 
+    pub fn adjusting(&self) -> bool {
+        self.active.is_some()
+    }
+
     pub fn unconfirmed(&self) -> bool {
         self.unconfirmed
     }

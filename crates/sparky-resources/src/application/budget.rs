@@ -28,8 +28,12 @@ pub fn usage(files: &impl Files, ticks_per_second: f64) -> Option<Usage> {
     })
 }
 
+pub fn cpu_percent(before: Usage, after: Usage, elapsed_seconds: f64) -> f64 {
+    (after.cpu_seconds - before.cpu_seconds).max(0.0) / elapsed_seconds.max(1e-3) * 100.0
+}
+
 pub fn assess(before: Usage, after: Usage, elapsed_seconds: f64, sensitive: bool) -> Budget {
-    let cpu = (after.cpu_seconds - before.cpu_seconds).max(0.0) / elapsed_seconds.max(1e-3) * 100.0;
+    let cpu = cpu_percent(before, after, elapsed_seconds);
     let ceiling = if sensitive {
         SENSITIVE_CPU_PERCENT
     } else {

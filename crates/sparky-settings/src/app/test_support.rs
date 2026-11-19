@@ -156,7 +156,17 @@ impl crate::ports::resources::ResourceService for Gerenciador {
             learning: Switch::On,
             training: TrainingState::Allowed,
             activities: Activities::default().with(Activity::Desktop),
-            progress: sparky_resources::application::Progress::default(),
+            progress: sparky_resources::application::Progress {
+                parameters: 6792,
+                ..sparky_resources::application::Progress::default()
+            },
+            footprint: Some(sparky_resources::application::Footprint {
+                cpu_percent: 0.04,
+                rss_kib: 3124,
+                limit_kib: Some(65_536),
+            }),
+            guarded: vec!["obs".to_owned()],
+            adjusting: false,
         })
     }
 

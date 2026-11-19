@@ -1,5 +1,5 @@
 use crate::application::{
-    Budget, Fault, Insight, Knowledge, Lifecycle, Link, Progress, Signal, training,
+    Budget, Fault, Footprint, Insight, Knowledge, Lifecycle, Link, Progress, Signal, training,
 };
 use crate::domain::{Activities, ServiceState, Switch, TrainingState};
 use crate::protocol::{Refusal, Reply, Request, Status};
@@ -15,6 +15,9 @@ pub struct Service {
     decisions: Vec<crate::orchestration::Decision>,
     protected: Vec<String>,
     progress: Progress,
+    footprint: Option<Footprint>,
+    guarded: Vec<String>,
+    adjusting: bool,
 }
 
 impl Service {
@@ -26,6 +29,15 @@ impl Service {
         self.activities = activities;
         self.insights = insights;
         self.lifecycle.receive(Signal::Context(link));
+    }
+
+    pub fn measured(&mut self, footprint: Footprint) {
+        self.footprint = Some(footprint);
+    }
+
+    pub fn shielded(&mut self, guarded: &[String], adjusting: bool) {
+        self.guarded = guarded.to_vec();
+        self.adjusting = adjusting;
     }
 
     pub fn progressed(&mut self, progress: Progress) {
@@ -151,7 +163,10 @@ impl Service {
             learning: self.learning,
             training: self.training(),
             activities: self.activities,
-            progress: self.progress,
+            progress: self.progress.clone(),
+            footprint: self.footprint,
+            guarded: self.guarded.clone(),
+            adjusting: self.adjusting,
         }
     }
 }

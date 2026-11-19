@@ -1,7 +1,8 @@
 use iced::Task;
 use sparky_theme::Skin;
 
-use super::message::Message;
+use super::message::{Message, Turn};
+use super::page::Page;
 use super::state::Monitor;
 
 pub fn update(monitor: &mut Monitor, message: Message) -> Task<Message> {
@@ -23,6 +24,14 @@ pub fn update(monitor: &mut Monitor, message: Message) -> Task<Message> {
             monitor.open(page);
             return monitor.advise();
         }
+        Message::Look(lens) => monitor.lens = lens,
+        Message::Turn(turn) if monitor.page == Page::Intelligence => {
+            monitor.lens = match turn {
+                Turn::Back => monitor.lens.previous(),
+                Turn::Forward => monitor.lens.next(),
+            }
+        }
+        Message::Turn(_) => {}
         Message::SortBy(column) => monitor.sort_by(column),
         Message::Select(selection) => monitor.select(selection),
         Message::Move(movement) => monitor.step(movement),

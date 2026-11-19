@@ -14,6 +14,8 @@ pub mod style;
 pub mod table;
 
 #[cfg(test)]
+mod render_intelligence_tests;
+#[cfg(test)]
 mod render_tests;
 
 use iced::widget::{column, container};

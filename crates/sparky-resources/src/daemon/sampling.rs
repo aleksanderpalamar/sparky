@@ -7,7 +7,8 @@ use super::compositor::Windows;
 use super::conduct::Orchestra;
 use super::notify::notify;
 use super::service::Service;
-use crate::application::budget::{Usage, assess, usage};
+use crate::application::budget::{Usage, assess, cpu_percent, usage};
+use crate::application::footprint::{Footprint, memory_limit};
 use crate::application::{Fault, Link, Observer};
 use crate::domain::ServiceState;
 use crate::platform::{LinuxFiles, clock_ticks};
@@ -55,6 +56,7 @@ pub fn sample_forever<F, S, L>(
             {
                 let mut service = lock();
                 service.decided(orchestra.conductor.decisions());
+                service.shielded(orchestra.guarded(), orchestra.conductor.adjusting());
                 if orchestra.conductor.unconfirmed() {
                     service.failed(Fault::RestoreUnconfirmed);
                 }
@@ -79,8 +81,9 @@ fn settle<S: Storage>(
     service.set_training_active(active);
     service.learned(brain.validity());
     service.progressed(brain.progress());
-    if let Some(budget) = spending.check(service.activities().is_sensitive()) {
+    if let Some((budget, footprint)) = spending.check(service.activities().is_sensitive()) {
         service.spending(budget);
+        service.measured(footprint);
     }
     let pause = interval(service.activities());
     match service.state() {
@@ -93,6 +96,7 @@ struct Spending {
     since: Instant,
     usage: Option<Usage>,
     ticks: f64,
+    limit: Option<u64>,
 }
 
 impl Spending {
@@ -102,21 +106,27 @@ impl Spending {
             since: Instant::now(),
             usage: usage(&LinuxFiles, ticks),
             ticks,
+            limit: memory_limit(&LinuxFiles),
         }
     }
 
-    fn check(&mut self, sensitive: bool) -> Option<crate::application::Budget> {
+    fn check(&mut self, sensitive: bool) -> Option<(crate::application::Budget, Footprint)> {
         let elapsed = self.since.elapsed();
         if elapsed < BUDGET_WINDOW {
             return None;
         }
         let now = usage(&LinuxFiles, self.ticks);
-        let budget = self
-            .usage
-            .zip(now)
-            .map(|(before, after)| assess(before, after, elapsed.as_secs_f64(), sensitive));
+        let seconds = elapsed.as_secs_f64();
+        let result = self.usage.zip(now).map(|(before, after)| {
+            let footprint = Footprint {
+                cpu_percent: cpu_percent(before, after, seconds),
+                rss_kib: after.rss_kib,
+                limit_kib: self.limit,
+            };
+            (assess(before, after, seconds, sensitive), footprint)
+        });
         self.since = Instant::now();
         self.usage = now;
-        budget
+        result
     }
 }

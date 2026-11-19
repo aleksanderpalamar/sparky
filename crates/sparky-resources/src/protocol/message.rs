@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::application::{Insight, Progress};
+use crate::application::{Footprint, Insight, Progress};
 use crate::domain::{Activities, Mode, ServiceState, Switch, TrainingState};
 use crate::orchestration::Decision;
 
@@ -57,6 +57,12 @@ pub struct Status {
     pub activities: Activities,
     #[serde(default)]
     pub progress: Progress,
+    #[serde(default)]
+    pub footprint: Option<Footprint>,
+    #[serde(default)]
+    pub guarded: Vec<String>,
+    #[serde(default)]
+    pub adjusting: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

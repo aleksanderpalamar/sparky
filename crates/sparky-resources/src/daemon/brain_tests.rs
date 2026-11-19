@@ -107,5 +107,7 @@ fn o_progresso_comeca_sem_rodadas_e_conta_a_coleta() {
     }
     let progress = brain.progress();
     assert_eq!((progress.collected, progress.needed), (50, 600));
-    assert_eq!((progress.rounds, progress.last), (0, None));
+    assert_eq!(progress.rounds, 0);
+    assert!(progress.history.is_empty());
+    assert!(progress.parameters > 0);
 }

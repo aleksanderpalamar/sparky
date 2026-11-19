@@ -20,14 +20,23 @@ pub struct Round {
     pub statistical: f64,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
+pub const REMEMBERED: usize = 16;
+
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct Progress {
     pub collected: usize,
     pub needed: usize,
     pub epoch: usize,
     pub epochs: usize,
     pub rounds: u32,
-    pub last: Option<Round>,
+    pub parameters: usize,
+    pub history: Vec<Round>,
+}
+
+impl Progress {
+    pub fn last(&self) -> Option<&Round> {
+        self.history.last()
+    }
 }
 
 pub fn outcome(margin: f64, errors: &Errors, current: Option<f64>, finite: bool) -> Outcome {

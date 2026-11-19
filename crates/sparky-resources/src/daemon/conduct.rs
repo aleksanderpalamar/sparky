@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use crate::application::Observation;
 use crate::domain::{Activity, Authority};
-use crate::orchestration::{Conductor, Contention, Moment, protected};
+use crate::orchestration::{Conductor, Contention, Moment, guarded, protected};
 use crate::platform::{LinuxFiles, SystemExecutor};
 use crate::ports::Storage;
 use crate::telemetry::consumers::Consumers;
@@ -11,6 +11,7 @@ pub struct Orchestra<S> {
     pub conductor: Conductor<SystemExecutor, S>,
     consumers: Consumers,
     chosen: Vec<String>,
+    guarded: Vec<String>,
 }
 
 impl<S: Storage> Orchestra<S> {
@@ -19,6 +20,7 @@ impl<S: Storage> Orchestra<S> {
             conductor,
             consumers: Consumers::default(),
             chosen: Vec::new(),
+            guarded: Vec::new(),
         }
     }
 
@@ -26,6 +28,10 @@ impl<S: Storage> Orchestra<S> {
         if self.chosen != names {
             self.chosen = names.to_vec();
         }
+    }
+
+    pub fn guarded(&self) -> &[String] {
+        &self.guarded
     }
 
     pub fn tick(&mut self, observation: &Observation, authority: Authority, seconds: u64) {
@@ -60,13 +66,19 @@ impl<S: Storage> Orchestra<S> {
             ),
             false => Vec::new(),
         };
-        let focused: Vec<u32> = observation
+        let foreground: Vec<_> = observation
             .windows
             .iter()
             .flatten()
             .filter(|window| window.focused || window.fullscreen)
-            .filter_map(|window| window.pid)
             .collect();
+        let focused: Vec<u32> = foreground.iter().filter_map(|window| window.pid).collect();
+        let apps: Vec<String> = foreground
+            .iter()
+            .map(|window| window.app_id.clone())
+            .filter(|app| !app.is_empty())
+            .collect();
+        self.guarded = guarded(processes, &self.chosen, &apps);
         let shielded = protected(processes, std::process::id(), &self.chosen, &focused);
         let confidence = if observation.processes.is_some() {
             1.0

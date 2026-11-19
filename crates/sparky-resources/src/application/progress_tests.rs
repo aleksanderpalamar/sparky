@@ -65,8 +65,10 @@ fn rodada_guarda_os_erros_e_o_progresso_vai_e_volta_pelo_protocolo() {
         epoch: 3,
         epochs: 20,
         rounds: 2,
-        last: Some(round),
+        parameters: 6792,
+        history: vec![round],
     };
+    assert_eq!(progress.last(), Some(&round));
     let text = serde_json::to_string(&progress).unwrap_or_default();
     assert!(text.contains(r#""outcome":"behind_statistics""#), "{text}");
     assert_eq!(serde_json::from_str::<Progress>(&text).ok(), Some(progress));

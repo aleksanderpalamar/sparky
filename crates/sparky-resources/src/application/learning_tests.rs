@@ -89,6 +89,7 @@ fn o_progresso_mostra_a_coleta_e_a_passada_atual() {
     let progress = learner.progress();
     assert_eq!((progress.collected, progress.needed), (120, 300));
     assert_eq!((progress.epoch, progress.epochs), (0, 30));
+    assert!(progress.parameters > 0);
     wave(&mut learner, 400);
     while learner.progress().epoch == 0 {
         assert_eq!(

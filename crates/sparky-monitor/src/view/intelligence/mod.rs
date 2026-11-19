@@ -1,17 +1,21 @@
+mod card;
 mod decisions;
 mod learning;
 mod metrics;
+mod overview;
+mod rounds;
+mod tabs;
 
 use iced::Element;
 use iced::widget::text;
-use sparky_resources::protocol::Status;
-use sparky_ui::style::TEXT_SIZE;
+use sparky_ui::style::{SMALL_TEXT, TEXT_SIZE};
 
 use super::details::titled;
-use super::parts::{page, stats, waiting};
+use super::parts::{page, waiting};
 use crate::app::message::Message;
 use crate::app::state::Monitor;
-use crate::domain::intelligence::{Advice, key};
+use crate::domain::decision::Lens;
+use crate::domain::intelligence::Advice;
 use crate::i18n::text as tr;
 
 pub fn view(monitor: &Monitor) -> Element<'_, Message> {
@@ -30,52 +34,18 @@ pub fn view(monitor: &Monitor) -> Element<'_, Message> {
             vec![titled(skin, tr("overview"), notice.into())],
         );
     };
-    let content = vec![
-        titled(skin, tr("overview"), overview(monitor, &briefing.status)),
-        titled(
-            skin,
-            tr("predictions"),
-            metrics::table(skin, &briefing.metrics),
-        ),
-        titled(
-            skin,
-            tr("neural-network"),
-            learning::summary(skin, &briefing.status.progress),
-        ),
-        titled(
-            skin,
-            tr("decisions"),
-            decisions::list(skin, &briefing.decisions),
-        ),
-    ];
+    let body = match monitor.lens {
+        Lens::Overview => overview::view(skin, briefing),
+        Lens::Decisions => decisions::view(skin, &briefing.decisions),
+        Lens::Learning => learning::view(skin, &briefing.status, &briefing.metrics),
+    };
+    let footer = text(tr("local-processing"))
+        .size(SMALL_TEXT)
+        .color(skin.dark_foreground);
     page(
         skin,
         tr("intelligence"),
         Some(tr("intelligence-legend")),
-        content,
-    )
-}
-
-fn overview<'a>(monitor: &Monitor, status: &Status) -> Element<'a, Message> {
-    let activities: Vec<String> = status
-        .activities
-        .iter()
-        .map(|activity| tr(&key("activity", &activity)))
-        .collect();
-    stats(
-        monitor.skin,
-        vec![
-            ("service-state", tr(&key("state", &status.state))),
-            ("service-mode", tr(&key("mode", &status.mode))),
-            ("training", tr(&key("training", &status.training))),
-            (
-                "activities",
-                if activities.is_empty() {
-                    tr("no-data")
-                } else {
-                    activities.join(", ")
-                },
-            ),
-        ],
+        vec![tabs::tabs(skin, monitor.lens), body, footer.into()],
     )
 }

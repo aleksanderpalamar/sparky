@@ -64,3 +64,17 @@ fn delete_encerra_e_shift_delete_forca() {
         descreve(Some(Message::SwitchFocus))
     );
 }
+
+#[test]
+fn setas_laterais_giram_as_abas() {
+    use super::message::Turn;
+    let seta = |named| message(&Key::Named(named), Modifiers::empty());
+    assert_eq!(
+        descreve(seta(Named::ArrowLeft)),
+        descreve(Some(Message::Turn(Turn::Back)))
+    );
+    assert_eq!(
+        descreve(seta(Named::ArrowRight)),
+        descreve(Some(Message::Turn(Turn::Forward)))
+    );
+}

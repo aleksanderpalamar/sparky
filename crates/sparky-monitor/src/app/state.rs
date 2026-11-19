@@ -49,6 +49,7 @@ pub struct Confirm {
 
 pub struct Monitor {
     pub page: Page,
+    pub lens: crate::domain::decision::Lens,
     pub reading: Option<Reading>,
     pub processes: Vec<ProcessRow>,
     pub apps: Vec<AppRow>,
@@ -73,6 +74,7 @@ impl Monitor {
     pub fn new(services: Services, skin: Skin, size: Size) -> Self {
         Self {
             page: Page::Dashboard,
+            lens: crate::domain::decision::Lens::default(),
             reading: None,
             processes: Vec::new(),
             apps: Vec::new(),

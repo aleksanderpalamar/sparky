@@ -1,42 +1,80 @@
-use iced::Element;
-use iced::widget::{Column, text};
-use sparky_resources::domain::Change;
-use sparky_resources::orchestration::Decision;
+use iced::alignment::Vertical;
+use iced::widget::{Column, column, row, text};
+use iced::{Element, Font, Length, font};
+use sparky_resources::orchestration::{Decision, Verdict};
 use sparky_theme::Skin;
-use sparky_ui::style::TEXT_SIZE;
+use sparky_ui::style::{FONT, SMALL_TEXT, SPACING, TEXT_SIZE};
 
+use super::card::{card, shade};
 use crate::app::message::Message;
+use crate::domain::decision::{detail, title, tone};
 use crate::domain::intelligence::{clock, key};
 use crate::i18n::text as tr;
 
-pub fn list<'a>(skin: Skin, decisions: &[Decision]) -> Element<'a, Message> {
+const SHOWN: usize = 30;
+const BOLD: Font = Font {
+    weight: font::Weight::Bold,
+    ..FONT
+};
+
+pub fn view<'a>(skin: Skin, decisions: &[Decision]) -> Element<'a, Message> {
+    let caption = text(tr("recent-optimizations"))
+        .size(SMALL_TEXT)
+        .color(skin.dark_foreground);
     if decisions.is_empty() {
-        return text(tr("no-decisions"))
+        let empty = text(tr("no-decisions"))
             .size(TEXT_SIZE)
-            .color(skin.dark_foreground)
-            .into();
+            .color(skin.dark_foreground);
+        return column![caption, empty].spacing(SPACING).into();
     }
-    let lines = decisions.iter().rev().map(|decision| {
-        let line = format!(
-            "{}  {}  {}  {}  {}",
-            clock(decision.at_seconds),
-            decision.process,
-            change(&decision.change),
-            tr(&key("purpose", &decision.purpose)),
-            tr(&key("verdict", &decision.verdict)),
-        );
-        text(line)
-            .size(TEXT_SIZE)
-            .color(skin.bright_foreground)
-            .into()
-    });
-    Column::with_children(lines).spacing(4).into()
+    let cards = decisions
+        .iter()
+        .rev()
+        .take(SHOWN)
+        .map(|decision| entry(skin, decision));
+    column![caption, Column::with_children(cards).spacing(SPACING)]
+        .spacing(SPACING)
+        .into()
 }
 
-fn change(change: &Change) -> String {
-    match change {
-        Change::Nice(value) => format!("nice {value}"),
-        Change::IoPriority(class) => format!("ioprio {}", tr(&key("io", class))),
-        Change::Affinity(cpus) => format!("cpus {cpus:?}"),
+fn entry<'a>(skin: Skin, decision: &Decision) -> Element<'a, Message> {
+    let color = shade(skin, tone(&decision.verdict));
+    let subtitle = format!(
+        "{} · {} · {} · {}",
+        decision.process,
+        detail(&decision.change),
+        tr(&key("purpose", &decision.purpose)),
+        clock(decision.at_seconds),
+    );
+    let body = row![
+        text(glyph(&decision.verdict).to_string())
+            .size(TEXT_SIZE)
+            .color(color),
+        column![
+            text(tr(title(&decision.change)))
+                .size(TEXT_SIZE)
+                .font(BOLD)
+                .color(skin.bright_foreground),
+            text(subtitle).size(SMALL_TEXT).color(skin.dark_foreground),
+        ]
+        .spacing(4)
+        .width(Length::Fill),
+        text(tr(&key("verdict", &decision.verdict)))
+            .size(SMALL_TEXT)
+            .color(color),
+    ]
+    .spacing(SPACING)
+    .align_y(Vertical::Top);
+    card(skin, body)
+}
+
+fn glyph(verdict: &Verdict) -> char {
+    match verdict {
+        Verdict::Applied | Verdict::Kept => '\u{f05e1}',
+        Verdict::Simulated => '\u{f06d0}',
+        Verdict::Blocked(_) => '\u{f0499}',
+        Verdict::Reverted(_) => '\u{f054c}',
+        Verdict::Failed => '\u{f05d6}',
+        Verdict::Finished(_) => '\u{f0667}',
     }
 }

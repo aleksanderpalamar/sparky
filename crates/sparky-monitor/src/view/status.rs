@@ -48,7 +48,8 @@ pub fn summary(monitor: &Monitor) -> String {
 fn hints(page: Page) -> &'static str {
     match page {
         Page::Dashboard => "dashboard-hints",
-        Page::Network | Page::Intelligence => "read-only-hints",
+        Page::Network => "read-only-hints",
+        Page::Intelligence => "intelligence-hints",
         Page::Applications
         | Page::Processes
         | Page::Cpu

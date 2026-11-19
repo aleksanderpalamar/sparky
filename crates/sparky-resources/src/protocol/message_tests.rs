@@ -17,11 +17,14 @@ fn o_status_explica_estado_modo_e_atividades() {
         training: TrainingState::Allowed,
         activities: Activities::default().with(Activity::Gaming),
         progress: Progress::default(),
+        footprint: None,
+        guarded: Vec::new(),
+        adjusting: false,
     };
     let text = json(&Envelope::current(Reply::Status(status.clone())));
     assert_eq!(
         text,
-        r#"{"version":1,"reply":"status","service":"0.32.0","state":"observing","enabled":"on","mode":"observation","learning":"on","training":{"training":"allowed"},"activities":["gaming"],"progress":{"collected":0,"needed":0,"epoch":0,"epochs":0,"rounds":0,"last":null}}"#
+        r#"{"version":1,"reply":"status","service":"0.32.0","state":"observing","enabled":"on","mode":"observation","learning":"on","training":{"training":"allowed"},"activities":["gaming"],"progress":{"collected":0,"needed":0,"epoch":0,"epochs":0,"rounds":0,"parameters":0,"history":[]},"footprint":null,"guarded":[],"adjusting":false}"#
     );
     let back: Option<Envelope<Reply>> = serde_json::from_str(&text).ok();
     assert_eq!(

@@ -54,14 +54,19 @@ struct Session {
 
 pub struct Learner {
     plan: Plan,
+    parameters: usize,
     history: VecDeque<(f64, Features)>,
     session: Option<Session>,
 }
 
 impl Learner {
     pub fn new(plan: Plan) -> Self {
+        let parameters = SequenceModel::new(STEP_INPUTS, plan.hidden, OUTPUTS, plan.seed)
+            .params
+            .len();
         Self {
             plan,
+            parameters,
             history: VecDeque::with_capacity(plan.capacity),
             session: None,
         }
@@ -80,6 +85,7 @@ impl Learner {
             needed: self.plan.minimum,
             epoch: self.session.as_ref().map_or(0, |session| session.epoch),
             epochs: self.plan.epochs,
+            parameters: self.parameters,
             ..Progress::default()
         }
     }

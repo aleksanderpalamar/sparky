@@ -1,5 +1,6 @@
 pub mod apps;
 pub mod cpu;
+pub mod decision;
 pub mod disk;
 pub mod gpu;
 pub mod histories;
@@ -18,6 +19,8 @@ pub mod usage;
 mod apps_tests;
 #[cfg(test)]
 mod cpu_tests;
+#[cfg(test)]
+mod decision_tests;
 #[cfg(test)]
 mod disk_tests;
 #[cfg(test)]

@@ -141,3 +141,24 @@ fn a_configuracao_do_usuario_define_o_comeco() {
     assert_eq!(status.map(|status| status.learning), Some(Switch::Off));
     assert_eq!(service.protected(), ["obs".to_owned()]);
 }
+
+#[test]
+fn o_status_traz_consumo_protegidos_e_ajuste_ativo() {
+    let mut service = Service::default();
+    service.ready();
+    service.measured(crate::application::Footprint {
+        cpu_percent: 0.04,
+        rss_kib: 3124,
+        limit_kib: Some(65_536),
+    });
+    service.shielded(&["obs".to_owned()], true);
+    let Some(status) = status(&mut service) else {
+        panic!("sem status")
+    };
+    assert_eq!(
+        status.footprint.map(|footprint| footprint.rss_kib),
+        Some(3124)
+    );
+    assert_eq!(status.guarded, ["obs"]);
+    assert!(status.adjusting);
+}

@@ -8,6 +8,9 @@ pub mod encoding;
 #[cfg(test)]
 mod encoding_tests;
 pub mod features;
+pub mod footprint;
+#[cfg(test)]
+mod footprint_tests;
 pub mod hardware;
 #[cfg(test)]
 mod hardware_tests;
@@ -30,6 +33,7 @@ pub mod validation;
 
 pub use baseline::{Baseline, Insight};
 pub use features::features;
+pub use footprint::Footprint;
 pub use lifecycle::{Budget, Fault, Knowledge, Lifecycle, Link, Signal};
 pub use observer::{Observation, Observer};
 pub use progress::{Outcome, Progress, Round};

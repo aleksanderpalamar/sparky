@@ -62,3 +62,17 @@ pub fn errors(round: &Round) -> String {
         .map_or_else(|| "—".to_owned(), |value| format!("{value:.2}"));
     format!("{neural} / {:.2}", round.statistical)
 }
+
+pub fn ceiling(values: impl IntoIterator<Item = f64>) -> f64 {
+    let peak = values
+        .into_iter()
+        .filter(|value| value.is_finite())
+        .fold(0.0_f64, f64::max)
+        .max(1.0);
+    let magnitude = 10f64.powf(peak.log10().floor());
+    let step = [1.0, 2.0, 5.0, 10.0]
+        .into_iter()
+        .find(|step| peak <= step * magnitude)
+        .unwrap_or(10.0);
+    step * magnitude
+}

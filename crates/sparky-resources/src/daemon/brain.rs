@@ -1,8 +1,9 @@
+use std::collections::VecDeque;
 use std::time::{Duration, Instant};
 
 use crate::application::encoding::{HORIZONS, OUTPUTS, STEP_INPUTS, WINDOW, decode, window};
 use crate::application::learning::{Learner, Plan, Verdict};
-use crate::application::progress::Outcome;
+use crate::application::progress::{Outcome, REMEMBERED};
 use crate::application::{Baseline, Insight, Knowledge as Validity, Observation, Progress, Round};
 use crate::domain::{Features, TrainingState};
 use crate::neural::SequenceModel;
@@ -19,7 +20,7 @@ pub struct Brain<S> {
     active: Option<SequenceModel>,
     recent: Vec<(f64, Features)>,
     rounds: u32,
-    last: Option<Round>,
+    history: VecDeque<Round>,
 }
 
 impl<S: Storage> Brain<S> {
@@ -36,7 +37,7 @@ impl<S: Storage> Brain<S> {
             active,
             recent: Vec::new(),
             rounds: 0,
-            last: None,
+            history: VecDeque::with_capacity(REMEMBERED),
         }
     }
 
@@ -75,7 +76,7 @@ impl<S: Storage> Brain<S> {
     pub fn progress(&self) -> Progress {
         Progress {
             rounds: self.rounds,
-            last: self.last,
+            history: self.history.iter().copied().collect(),
             ..self.learner.progress()
         }
     }
@@ -103,7 +104,10 @@ impl<S: Storage> Brain<S> {
 
     fn finished(&mut self, round: Round) {
         self.rounds = self.rounds.saturating_add(1);
-        self.last = Some(round);
+        if self.history.len() == REMEMBERED {
+            self.history.pop_front();
+        }
+        self.history.push_back(round);
         let neural = round
             .neural
             .map_or_else(|| "-".to_owned(), |error| format!("{error:.2}"));

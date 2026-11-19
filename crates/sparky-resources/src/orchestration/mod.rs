@@ -18,9 +18,11 @@ pub mod planner;
 #[cfg(test)]
 mod planner_tests;
 pub mod protection;
+#[cfg(test)]
+mod protection_tests;
 mod tracking;
 
 pub use conductor::{Conductor, Moment};
 pub use log::{Decision, Log, Verdict};
 pub use planner::{Candidate, Contention, Purpose, plan};
-pub use protection::protected;
+pub use protection::{guarded, protected};

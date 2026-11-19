@@ -51,3 +51,13 @@ fn progresso_do_treino_vira_texto_curto() {
     assert_eq!(errors(&empty), "— / 3.80");
     assert_eq!(key("outcome", &round.outcome), "outcome-behind-statistics");
 }
+
+#[test]
+fn teto_do_grafico_de_erro_arredonda_para_1_2_ou_5() {
+    use super::intelligence::ceiling;
+    assert_eq!(ceiling([]), 1.0);
+    assert_eq!(ceiling([0.3]), 1.0);
+    assert_eq!(ceiling([4.1, 3.8]), 5.0);
+    assert_eq!(ceiling([12.0, f64::NAN]), 20.0);
+    assert_eq!(ceiling([28.0]), 50.0);
+}

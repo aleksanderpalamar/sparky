@@ -3,6 +3,8 @@ use std::collections::{HashMap, HashSet};
 use crate::context::Process;
 use crate::context::names::{CALLS, GAME_HOSTS, GAME_LAUNCHERS, RECORDERS, listed};
 
+const SHOWN: usize = 8;
+
 const ESSENTIAL: [&str; 12] = [
     "systemd",
     "sparky",
@@ -51,6 +53,24 @@ pub fn protected(processes: &[Process], own: u32, chosen: &[String], focused: &[
     let mut kept: Vec<u32> = kept.into_iter().collect();
     kept.sort_unstable();
     kept
+}
+
+pub fn guarded(processes: &[Process], chosen: &[String], focused: &[String]) -> Vec<String> {
+    let mut names: Vec<String> = processes
+        .iter()
+        .map(|process| process.name.as_str())
+        .filter(|name| {
+            listed(&RECORDERS, name)
+                || listed(&CALLS, name)
+                || chosen.iter().any(|chosen| chosen == name)
+        })
+        .map(str::to_owned)
+        .chain(focused.iter().cloned())
+        .collect();
+    names.sort_unstable();
+    names.dedup();
+    names.truncate(SHOWN);
+    names
 }
 
 fn activity(name: &str) -> bool {
