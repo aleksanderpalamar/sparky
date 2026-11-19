@@ -20,6 +20,9 @@ mod lifecycle_tests;
 pub mod observer;
 #[cfg(test)]
 mod observer_tests;
+pub mod progress;
+#[cfg(test)]
+mod progress_tests;
 pub mod training;
 #[cfg(test)]
 mod training_tests;
@@ -29,4 +32,5 @@ pub use baseline::{Baseline, Insight};
 pub use features::features;
 pub use lifecycle::{Budget, Fault, Knowledge, Lifecycle, Link, Signal};
 pub use observer::{Observation, Observer};
+pub use progress::{Outcome, Progress, Round};
 pub use training::training;

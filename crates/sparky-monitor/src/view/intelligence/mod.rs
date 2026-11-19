@@ -1,4 +1,5 @@
 mod decisions;
+mod learning;
 mod metrics;
 
 use iced::Element;
@@ -35,6 +36,11 @@ pub fn view(monitor: &Monitor) -> Element<'_, Message> {
             skin,
             tr("predictions"),
             metrics::table(skin, &briefing.metrics),
+        ),
+        titled(
+            skin,
+            tr("neural-network"),
+            learning::summary(skin, &briefing.status.progress),
         ),
         titled(
             skin,

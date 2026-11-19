@@ -1,5 +1,5 @@
 use serde::Serialize;
-use sparky_resources::application::Insight;
+use sparky_resources::application::{Insight, Round};
 use sparky_resources::orchestration::Decision;
 use sparky_resources::protocol::Status;
 
@@ -49,4 +49,16 @@ pub fn key(prefix: &str, value: &impl Serialize) -> String {
         _ => String::new(),
     };
     format!("{prefix}-{}", name.replace('_', "-"))
+}
+
+pub fn fraction(done: impl std::fmt::Display, total: impl std::fmt::Display) -> String {
+    format!("{done} / {total}")
+}
+
+pub fn errors(round: &Round) -> String {
+    let neural = round
+        .neural
+        .filter(|value| value.is_finite())
+        .map_or_else(|| "—".to_owned(), |value| format!("{value:.2}"));
+    format!("{neural} / {:.2}", round.statistical)
 }

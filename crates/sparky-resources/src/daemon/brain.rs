@@ -2,7 +2,8 @@ use std::time::{Duration, Instant};
 
 use crate::application::encoding::{HORIZONS, OUTPUTS, STEP_INPUTS, WINDOW, decode, window};
 use crate::application::learning::{Learner, Plan, Verdict};
-use crate::application::{Baseline, Insight, Knowledge as Validity, Observation};
+use crate::application::progress::Outcome;
+use crate::application::{Baseline, Insight, Knowledge as Validity, Observation, Progress, Round};
 use crate::domain::{Features, TrainingState};
 use crate::neural::SequenceModel;
 use crate::persistence::{Checkpoint, Kind, Knowledge, Restored};
@@ -17,6 +18,8 @@ pub struct Brain<S> {
     hardware: u64,
     active: Option<SequenceModel>,
     recent: Vec<(f64, Features)>,
+    rounds: u32,
+    last: Option<Round>,
 }
 
 impl<S: Storage> Brain<S> {
@@ -32,6 +35,8 @@ impl<S: Storage> Brain<S> {
             hardware,
             active,
             recent: Vec::new(),
+            rounds: 0,
+            last: None,
         }
     }
 
@@ -67,7 +72,15 @@ impl<S: Storage> Brain<S> {
         insights
     }
 
-    pub fn train(&mut self, training: TrainingState) -> bool {
+    pub fn progress(&self) -> Progress {
+        Progress {
+            rounds: self.rounds,
+            last: self.last,
+            ..self.learner.progress()
+        }
+    }
+
+    pub fn train(&mut self, training: TrainingState, at_seconds: u64) -> bool {
         if training != TrainingState::Allowed && training != TrainingState::Active {
             return false;
         }
@@ -75,11 +88,29 @@ impl<S: Storage> Brain<S> {
             .learner
             .step(self.active.as_ref(), Instant::now() + SLICE)
         {
-            Verdict::Promoted(model, _) => self.promote(*model),
+            Verdict::Promoted(model, errors) => {
+                self.finished(Round::new(at_seconds, Outcome::Promoted, &errors));
+                self.promote(*model);
+            }
+            Verdict::Rejected(errors, outcome) => {
+                self.finished(Round::new(at_seconds, outcome, &errors))
+            }
             Verdict::Training => return true,
-            Verdict::Waiting | Verdict::Rejected(_) => {}
+            Verdict::Waiting => {}
         }
         false
+    }
+
+    fn finished(&mut self, round: Round) {
+        self.rounds = self.rounds.saturating_add(1);
+        self.last = Some(round);
+        let neural = round
+            .neural
+            .map_or_else(|| "-".to_owned(), |error| format!("{error:.2}"));
+        eprintln!(
+            "sparky-resources: treino {} terminou ({:?}): erro da rede {neural}, da estatística {:.2}",
+            self.rounds, round.outcome, round.statistical
+        );
     }
 
     pub fn forget(&mut self) {

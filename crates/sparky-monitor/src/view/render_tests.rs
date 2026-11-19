@@ -135,6 +135,19 @@ fn pagina_de_inteligencia_mostra_indisponivel_e_dados_ausentes() {
         learning: Switch::On,
         training: TrainingState::Allowed,
         activities: Activities::default().with(Activity::Gaming),
+        progress: sparky_resources::application::Progress {
+            collected: 312,
+            needed: 600,
+            epoch: 3,
+            epochs: 20,
+            rounds: 2,
+            last: Some(sparky_resources::application::Round {
+                at_seconds: 90,
+                outcome: sparky_resources::application::Outcome::BehindStatistics,
+                neural: Some(4.1),
+                statistical: 3.8,
+            }),
+        },
     };
     let insight = Insight {
         metric: Metric::GpuBusy,
@@ -159,6 +172,10 @@ fn pagina_de_inteligencia_mostra_indisponivel_e_dados_ausentes() {
             "37.0%",
             "—",
             "Nenhuma decisão registrada.",
+            "Rede neural",
+            "312 / 600",
+            "00:01:30 · descartado, pior que a estatística",
+            "4.10 / 3.80",
         ],
     );
 }

@@ -62,7 +62,7 @@ pub fn sample_forever<F, S, L>(
             if forget {
                 brain.forget();
             }
-            let active = brain.train(training);
+            let active = brain.train(training, started.elapsed().as_secs());
             let pause = settle(lock(), &mut spending, &brain, active);
             notify("WATCHDOG=1");
             thread::sleep(pause);
@@ -78,6 +78,7 @@ fn settle<S: Storage>(
 ) -> Duration {
     service.set_training_active(active);
     service.learned(brain.validity());
+    service.progressed(brain.progress());
     if let Some(budget) = spending.check(service.activities().is_sensitive()) {
         service.spending(budget);
     }

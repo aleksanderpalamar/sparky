@@ -81,3 +81,20 @@ fn o_historico_e_limitado() {
     wave(&mut learner, 50);
     assert_eq!(learner.step(None, Instant::now()), Verdict::Training);
 }
+
+#[test]
+fn o_progresso_mostra_a_coleta_e_a_passada_atual() {
+    let mut learner = Learner::new(small());
+    wave(&mut learner, 120);
+    let progress = learner.progress();
+    assert_eq!((progress.collected, progress.needed), (120, 300));
+    assert_eq!((progress.epoch, progress.epochs), (0, 30));
+    wave(&mut learner, 400);
+    while learner.progress().epoch == 0 {
+        assert_eq!(
+            learner.step(None, Instant::now() + Duration::from_millis(5)),
+            Verdict::Training
+        );
+    }
+    assert_eq!(learner.progress().collected, 400);
+}

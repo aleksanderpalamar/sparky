@@ -156,6 +156,7 @@ impl crate::ports::resources::ResourceService for Gerenciador {
             learning: Switch::On,
             training: TrainingState::Allowed,
             activities: Activities::default().with(Activity::Desktop),
+            progress: sparky_resources::application::Progress::default(),
         })
     }
 

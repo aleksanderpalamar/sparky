@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::application::Insight;
+use crate::application::{Insight, Progress};
 use crate::domain::{Activities, Mode, ServiceState, Switch, TrainingState};
 use crate::orchestration::Decision;
 
@@ -46,7 +46,7 @@ pub enum Reply {
     Refused { reason: Refusal },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Status {
     pub service: String,
     pub state: ServiceState,
@@ -55,6 +55,8 @@ pub struct Status {
     pub learning: Switch,
     pub training: TrainingState,
     pub activities: Activities,
+    #[serde(default)]
+    pub progress: Progress,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

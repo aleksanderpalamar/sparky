@@ -2,7 +2,7 @@ use sparky_resources::domain::{
     Activity, IoClass, Metric, ServiceState, Suspension, TrainingState,
 };
 
-use super::intelligence::{clock, key, percent, score};
+use super::intelligence::{clock, errors, fraction, key, percent, score};
 
 #[test]
 fn ausencia_de_dado_nao_vira_zero() {
@@ -31,4 +31,23 @@ fn estados_viram_chaves_de_traducao() {
     );
     assert_eq!(key("io", &IoClass::BestEffort(7)), "io-best-effort");
     assert_eq!(key("io", &IoClass::Idle), "io-idle");
+}
+
+#[test]
+fn progresso_do_treino_vira_texto_curto() {
+    use sparky_resources::application::{Outcome, Round};
+    assert_eq!(fraction(312, 600), "312 / 600");
+    let round = Round {
+        at_seconds: 90,
+        outcome: Outcome::BehindStatistics,
+        neural: Some(4.104),
+        statistical: 3.8,
+    };
+    assert_eq!(errors(&round), "4.10 / 3.80");
+    let empty = Round {
+        neural: None,
+        ..round
+    };
+    assert_eq!(errors(&empty), "— / 3.80");
+    assert_eq!(key("outcome", &round.outcome), "outcome-behind-statistics");
 }

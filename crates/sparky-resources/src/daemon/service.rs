@@ -1,4 +1,6 @@
-use crate::application::{Budget, Fault, Insight, Knowledge, Lifecycle, Link, Signal, training};
+use crate::application::{
+    Budget, Fault, Insight, Knowledge, Lifecycle, Link, Progress, Signal, training,
+};
 use crate::domain::{Activities, ServiceState, Switch, TrainingState};
 use crate::protocol::{Refusal, Reply, Request, Status};
 
@@ -12,6 +14,7 @@ pub struct Service {
     forget_requested: bool,
     decisions: Vec<crate::orchestration::Decision>,
     protected: Vec<String>,
+    progress: Progress,
 }
 
 impl Service {
@@ -23,6 +26,10 @@ impl Service {
         self.activities = activities;
         self.insights = insights;
         self.lifecycle.receive(Signal::Context(link));
+    }
+
+    pub fn progressed(&mut self, progress: Progress) {
+        self.progress = progress;
     }
 
     pub fn learned(&mut self, knowledge: Knowledge) {
@@ -144,6 +151,7 @@ impl Service {
             learning: self.learning,
             training: self.training(),
             activities: self.activities,
+            progress: self.progress,
         }
     }
 }

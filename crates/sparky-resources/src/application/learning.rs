@@ -2,6 +2,7 @@ use std::collections::VecDeque;
 use std::time::Instant;
 
 use super::encoding::{OUTPUTS, STEP_INPUTS, WINDOW, example_at};
+use super::progress::{Outcome, Progress, outcome};
 use super::validation::{Errors, validate};
 use crate::domain::Features;
 use crate::neural::{Adam, SequenceModel};
@@ -40,7 +41,7 @@ pub enum Verdict {
     Waiting,
     Training,
     Promoted(Box<SequenceModel>, Errors),
-    Rejected(Errors),
+    Rejected(Errors, Outcome),
 }
 
 struct Session {
@@ -71,6 +72,16 @@ impl Learner {
             self.history.pop_front();
         }
         self.history.push_back((at, features));
+    }
+
+    pub fn progress(&self) -> Progress {
+        Progress {
+            collected: self.history.len(),
+            needed: self.plan.minimum,
+            epoch: self.session.as_ref().map_or(0, |session| session.epoch),
+            epochs: self.plan.epochs,
+            ..Progress::default()
+        }
     }
 
     pub fn step(&mut self, active: Option<&SequenceModel>, deadline: Instant) -> Verdict {
@@ -127,15 +138,9 @@ fn start(
 fn judge(plan: Plan, session: Session, split: usize, active: Option<&SequenceModel>) -> Verdict {
     let candidate = validate(&session.rows, split, Some(&session.model));
     let current = active.and_then(|model| validate(&session.rows, split, Some(model)).neural);
-    let score = candidate.neural.unwrap_or(f64::MAX);
-    let beats_statistics = score < candidate.statistical * (1.0 - plan.margin);
-    let beats_active = current.is_none_or(|current| score < current);
-    match beats_statistics
-        && beats_active
-        && session.model.params.is_finite()
-        && candidate.count > 0
-    {
-        true => Verdict::Promoted(Box::new(session.model), candidate),
-        false => Verdict::Rejected(candidate),
+    let finite = session.model.params.is_finite();
+    match outcome(plan.margin, &candidate, current, finite) {
+        Outcome::Promoted => Verdict::Promoted(Box::new(session.model), candidate),
+        rejected => Verdict::Rejected(candidate, rejected),
     }
 }

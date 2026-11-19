@@ -94,7 +94,18 @@ fn treino_suspenso_nao_roda() {
     for step in 0..700 {
         brain.insights(f64::from(step) * 2.0, &observation(30.0));
     }
-    assert!(!brain.train(TrainingState::Suspended(Suspension::SensitiveActivity)));
-    assert!(!brain.train(TrainingState::Unavailable));
-    assert!(brain.train(TrainingState::Allowed));
+    assert!(!brain.train(TrainingState::Suspended(Suspension::SensitiveActivity), 0));
+    assert!(!brain.train(TrainingState::Unavailable, 0));
+    assert!(brain.train(TrainingState::Allowed, 0));
+}
+
+#[test]
+fn o_progresso_comeca_sem_rodadas_e_conta_a_coleta() {
+    let mut brain: Brain<&FakeStorage> = Brain::new(None, HARDWARE);
+    for step in 0..50 {
+        brain.insights(f64::from(step) * 2.0, &observation(30.0));
+    }
+    let progress = brain.progress();
+    assert_eq!((progress.collected, progress.needed), (50, 600));
+    assert_eq!((progress.rounds, progress.last), (0, None));
 }
