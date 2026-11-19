@@ -7,7 +7,7 @@ use sparky_ui::style::{FONT, SMALL_TEXT, SPACING, TEXT_SIZE};
 
 use super::card::{card, shade};
 use crate::app::message::Message;
-use crate::domain::decision::{detail, title, tone};
+use crate::domain::decision::{title, tone};
 use crate::domain::intelligence::{clock, key};
 use crate::i18n::text as tr;
 
@@ -42,7 +42,7 @@ fn entry<'a>(skin: Skin, decision: &Decision) -> Element<'a, Message> {
     let subtitle = format!(
         "{} · {} · {} · {}",
         decision.process,
-        detail(&decision.change),
+        decision.change.summary(),
         tr(&key("purpose", &decision.purpose)),
         clock(decision.at_seconds),
     );

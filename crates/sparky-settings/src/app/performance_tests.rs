@@ -100,3 +100,16 @@ fn configuracoes_avancadas_abrem_e_continuam_abertas_na_atualizacao() {
     let _ = update(&mut settings, Message::PerformanceAdvanced);
     assert!(!settings.performance.advanced);
 }
+
+#[test]
+fn notificacoes_ligam_gravam_e_avisam_o_servico() {
+    let gerenciador = Gerenciador::default();
+    let (mut settings, arquivo) = aberto(&gerenciador);
+    assert!(!settings.config.resources.notify);
+    let _ = update(&mut settings, Message::PerformanceToggle(Knob::Notify));
+    assert!(salvo(&arquivo).contains("notify = true"));
+    assert_eq!(
+        gerenciador.pedidos.borrow().last(),
+        Some(&Request::SetNotify { switch: Switch::On })
+    );
+}

@@ -20,6 +20,7 @@ mod planner_tests;
 pub mod protection;
 #[cfg(test)]
 mod protection_tests;
+mod reporting;
 mod tracking;
 
 pub use conductor::{Conductor, Moment};

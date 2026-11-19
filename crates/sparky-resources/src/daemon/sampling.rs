@@ -5,13 +5,14 @@ use std::time::{Duration, Instant};
 use super::brain::Brain;
 use super::compositor::Windows;
 use super::conduct::Orchestra;
+use super::herald::Herald;
 use super::notify::notify;
 use super::service::Service;
 use crate::application::budget::{Usage, assess, cpu_percent, usage};
 use crate::application::footprint::{Footprint, memory_limit};
 use crate::application::{Fault, Link, Observer};
 use crate::domain::ServiceState;
-use crate::platform::{LinuxFiles, clock_ticks};
+use crate::platform::{DesktopNotifier, LinuxFiles, clock_ticks};
 use crate::ports::{Files, Storage};
 use crate::telemetry::cadence::interval;
 
@@ -33,6 +34,9 @@ pub fn sample_forever<F, S, L>(
         let lock = || service.lock().unwrap_or_else(PoisonError::into_inner);
         lock().learned(brain.validity());
         let mut spending = Spending::start();
+        let mut herald = Herald::new(DesktopNotifier {
+            application: crate::i18n::text("notice-app"),
+        });
         loop {
             let current = windows.snapshot();
             let link = if current.is_some() {
@@ -55,7 +59,10 @@ pub fn sample_forever<F, S, L>(
             orchestra.tick(&observation, authority, started.elapsed().as_secs());
             {
                 let mut service = lock();
-                service.decided(orchestra.conductor.decisions());
+                let decisions = orchestra.conductor.decisions();
+                let recorded = orchestra.conductor.recorded();
+                herald.hear(&decisions, recorded, service.notifying());
+                service.decided(decisions);
                 service.shielded(orchestra.guarded(), orchestra.conductor.adjusting());
                 if orchestra.conductor.unconfirmed() {
                     service.failed(Fault::RestoreUnconfirmed);

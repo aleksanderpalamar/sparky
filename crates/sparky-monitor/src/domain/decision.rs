@@ -1,4 +1,4 @@
-use sparky_resources::domain::{Change, IoClass};
+use sparky_resources::domain::Change;
 use sparky_resources::orchestration::{Decision, Verdict};
 use sparky_resources::safety::Outcome;
 
@@ -57,19 +57,6 @@ pub fn title(change: &Change) -> &'static str {
         Change::Nice(_) => "change-nice",
         Change::Affinity(_) => "change-affinity",
         Change::IoPriority(_) => "change-io",
-    }
-}
-
-pub fn detail(change: &Change) -> String {
-    match change {
-        Change::Nice(value) => format!("nice {value}"),
-        Change::Affinity(cpus) => {
-            let list: Vec<String> = cpus.iter().map(u32::to_string).collect();
-            format!("CPU {}", list.join(", "))
-        }
-        Change::IoPriority(IoClass::None) => "io none".to_owned(),
-        Change::IoPriority(IoClass::BestEffort(level)) => format!("io best-effort {level}"),
-        Change::IoPriority(IoClass::Idle) => "io idle".to_owned(),
     }
 }
 

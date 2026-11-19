@@ -52,6 +52,7 @@ fn briefing() -> Briefing {
         }),
         guarded: vec!["obs".to_owned()],
         adjusting: true,
+        notifications: Switch::On,
     };
     let insight = Insight {
         metric: Metric::GpuBusy,

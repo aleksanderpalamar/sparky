@@ -1,0 +1,12 @@
+notice-app = Sparky
+notice-applied-title = Otimização aplicada
+notice-applied = { $change } em { $process } ({ $detail }) para { $purpose }.
+notice-reverted-title = Ajuste revertido
+notice-reverted = O ajuste em { $process } ({ $detail }) não reduziu a disputa e foi desfeito.
+notice-unconfirmed-title = Restauração não confirmada
+notice-unconfirmed = Não foi possível confirmar que { $process } voltou ao estado original. O gerenciador entrou em modo seguro.
+change-nice = Prioridade de CPU ajustada
+change-affinity = Afinidade de CPU ajustada
+change-io = Prioridade de disco ajustada
+purpose-ease-cpu = aliviar a CPU
+purpose-ease-io = aliviar o disco

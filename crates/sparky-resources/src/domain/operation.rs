@@ -30,6 +30,19 @@ impl Change {
             Self::Affinity(_) => ChangeKind::Affinity,
         }
     }
+
+    pub fn summary(&self) -> String {
+        match self {
+            Self::Nice(value) => format!("nice {value}"),
+            Self::Affinity(cpus) => {
+                let list: Vec<String> = cpus.iter().map(u32::to_string).collect();
+                format!("CPU {}", list.join(", "))
+            }
+            Self::IoPriority(IoClass::None) => "io none".to_owned(),
+            Self::IoPriority(IoClass::BestEffort(level)) => format!("io best-effort {level}"),
+            Self::IoPriority(IoClass::Idle) => "io idle".to_owned(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]

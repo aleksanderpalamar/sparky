@@ -5198,12 +5198,14 @@ dependencies = [
 name = "sparky-resources"
 version = "0.32.0"
 dependencies = [
+ "fluent-bundle",
  "libc",
  "nix",
  "serde",
  "serde_json",
  "sparky-config",
  "sparky-hardware",
+ "sparky-i18n",
  "sparky-ipc",
  "tempfile",
 ]

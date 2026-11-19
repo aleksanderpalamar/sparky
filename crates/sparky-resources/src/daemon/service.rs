@@ -18,6 +18,7 @@ pub struct Service {
     footprint: Option<Footprint>,
     guarded: Vec<String>,
     adjusting: bool,
+    notify: bool,
 }
 
 impl Service {
@@ -38,6 +39,10 @@ impl Service {
     pub fn shielded(&mut self, guarded: &[String], adjusting: bool) {
         self.guarded = guarded.to_vec();
         self.adjusting = adjusting;
+    }
+
+    pub fn notifying(&self) -> bool {
+        self.notify
     }
 
     pub fn progressed(&mut self, progress: Progress) {
@@ -65,6 +70,7 @@ impl Service {
         } else {
             Switch::Off
         };
+        self.notify = settings.notify;
         self.protected = names(&settings.protected).unwrap_or_default();
     }
 
@@ -118,6 +124,10 @@ impl Service {
             },
             Request::SetMode { mode } => self.apply(Signal::Chose(mode)),
             Request::SetEnabled { switch } => self.apply(Signal::Turned(switch)),
+            Request::SetNotify { switch } => {
+                self.notify = switch == Switch::On;
+                Reply::Done
+            }
             Request::SetLearning { switch } => {
                 self.learning = switch;
                 Reply::Done
@@ -167,6 +177,7 @@ impl Service {
             footprint: self.footprint,
             guarded: self.guarded.clone(),
             adjusting: self.adjusting,
+            notifications: if self.notify { Switch::On } else { Switch::Off },
         }
     }
 }

@@ -28,6 +28,16 @@ pub fn view(settings: &Settings) -> Element<'_, Message> {
     let protection = Line::new(text("performance-protection"), locked_switch(skin, true))
         .note(text("performance-protection-note"))
         .view(skin);
+    let notify = Line::new(
+        text("performance-notify"),
+        switch(
+            skin,
+            settings.config.resources.notify,
+            Message::PerformanceToggle(Knob::Notify),
+        ),
+    )
+    .note(text("performance-notify-note"))
+    .view(skin);
     let guarded = settings
         .performance
         .status
@@ -38,7 +48,7 @@ pub fn view(settings: &Settings) -> Element<'_, Message> {
     let now = Line::new(text("performance-guarded"), reading(skin, guarded)).view(skin);
     column![
         title(skin, text("performance-intelligence")),
-        group(skin, vec![learning, games, protection, now]),
+        group(skin, vec![learning, games, protection, notify, now]),
     ]
     .spacing(space::SM)
     .into()

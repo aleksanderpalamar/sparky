@@ -31,6 +31,7 @@ pub enum Request {
     SetMode { mode: Mode },
     SetEnabled { switch: Switch },
     SetLearning { switch: Switch },
+    SetNotify { switch: Switch },
     ClearSafeMode,
     ForgetKnowledge,
     SetProtected { names: Vec<String> },
@@ -63,6 +64,12 @@ pub struct Status {
     pub guarded: Vec<String>,
     #[serde(default)]
     pub adjusting: bool,
+    #[serde(default = "silent")]
+    pub notifications: Switch,
+}
+
+fn silent() -> Switch {
+    Switch::Off
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

@@ -48,6 +48,7 @@ fn cartoes_mostram_gerenciador_modo_inteligencia_e_situacao() {
             "Aprendizado contínuo",
             "Otimização em jogos",
             "Proteção de aplicativos ativos",
+            "Notificações de otimização",
             "obs",
             "Configurações avançadas",
             "Serviço adaptativo ativo · Observando",

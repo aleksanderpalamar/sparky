@@ -64,18 +64,6 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
         }
     }
 
-    pub fn decisions(&self) -> Vec<Decision> {
-        self.log.entries()
-    }
-
-    pub fn adjusting(&self) -> bool {
-        self.active.is_some()
-    }
-
-    pub fn unconfirmed(&self) -> bool {
-        self.unconfirmed
-    }
-
     pub fn tick(&mut self, moment: &Moment) {
         if let Some(active) = self.active.take() {
             self.active = self.follow(active, moment);

@@ -23,6 +23,9 @@ impl Settings {
             Knob::Learning => ("learning", !self.config.resources.learning, |switch| {
                 Request::SetLearning { switch }
             }),
+            Knob::Notify => ("notify", !self.config.resources.notify, |switch| {
+                Request::SetNotify { switch }
+            }),
         };
         let label = crate::i18n::text(&format!("performance-{key}"));
         self.edit(&label, |editor| editor.set_flag(TABLE, key, on));

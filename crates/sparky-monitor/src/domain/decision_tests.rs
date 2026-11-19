@@ -3,7 +3,7 @@ use sparky_resources::orchestration::{Decision, Purpose, Verdict};
 use sparky_resources::policy::Block;
 use sparky_resources::safety::Outcome;
 
-use super::decision::{Lens, Tone, detail, regressions, title, tone};
+use super::decision::{Lens, Tone, regressions, title, tone};
 
 fn decision(verdict: Verdict) -> Decision {
     Decision {
@@ -33,17 +33,10 @@ fn cada_veredito_tem_um_tom() {
 }
 
 #[test]
-fn titulo_e_detalhe_descrevem_o_ajuste() {
+fn titulo_descreve_o_tipo_de_ajuste() {
     assert_eq!(title(&Change::Nice(10)), "change-nice");
     assert_eq!(title(&Change::Affinity(vec![5, 11])), "change-affinity");
     assert_eq!(title(&Change::IoPriority(IoClass::Idle)), "change-io");
-    assert_eq!(detail(&Change::Nice(10)), "nice 10");
-    assert_eq!(detail(&Change::Affinity(vec![5, 11])), "CPU 5, 11");
-    assert_eq!(
-        detail(&Change::IoPriority(IoClass::BestEffort(7))),
-        "io best-effort 7"
-    );
-    assert_eq!(detail(&Change::IoPriority(IoClass::Idle)), "io idle");
 }
 
 #[test]

@@ -54,3 +54,7 @@ impl<E: Elevator> Elevator for &E {
         (*self).renice(task, value)
     }
 }
+
+pub trait Notifier {
+    fn notify(&self, title: &str, body: &str);
+}

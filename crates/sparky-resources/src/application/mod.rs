@@ -20,6 +20,9 @@ mod learning_tests;
 pub mod lifecycle;
 #[cfg(test)]
 mod lifecycle_tests;
+pub mod notice;
+#[cfg(test)]
+mod notice_tests;
 pub mod observer;
 #[cfg(test)]
 mod observer_tests;

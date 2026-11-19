@@ -3,6 +3,9 @@ pub mod brain;
 mod brain_tests;
 pub mod compositor;
 pub mod conduct;
+pub mod herald;
+#[cfg(test)]
+mod herald_tests;
 pub mod notify;
 pub mod sampling;
 pub mod server;

@@ -167,6 +167,7 @@ impl crate::ports::resources::ResourceService for Gerenciador {
             }),
             guarded: vec!["obs".to_owned()],
             adjusting: false,
+            notifications: Switch::Off,
         })
     }
 

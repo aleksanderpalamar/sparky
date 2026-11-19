@@ -126,6 +126,7 @@ fn a_configuracao_do_usuario_define_o_comeco() {
         enabled: false,
         mode: sparky_config::ResourceMode::Conservative,
         learning: false,
+        notify: true,
         protected: vec!["obs".to_owned()],
     };
     service.configure(&settings);
@@ -138,8 +139,13 @@ fn a_configuracao_do_usuario_define_o_comeco() {
         status.as_ref().map(|status| status.mode),
         Some(Mode::Conservative)
     );
+    assert_eq!(
+        status.as_ref().map(|status| status.notifications),
+        Some(Switch::On)
+    );
     assert_eq!(status.map(|status| status.learning), Some(Switch::Off));
     assert_eq!(service.protected(), ["obs".to_owned()]);
+    assert!(service.notifying());
 }
 
 #[test]
@@ -161,4 +167,19 @@ fn o_status_traz_consumo_protegidos_e_ajuste_ativo() {
     );
     assert_eq!(status.guarded, ["obs"]);
     assert!(status.adjusting);
+}
+
+#[test]
+fn notificacoes_comecam_desligadas_e_mudam_pelo_pedido() {
+    let mut service = ready();
+    assert!(!service.notifying());
+    assert_eq!(
+        service.answer(Request::SetNotify { switch: Switch::On }),
+        Reply::Done
+    );
+    assert!(service.notifying());
+    assert_eq!(
+        status(&mut service).map(|status| status.notifications),
+        Some(Switch::On)
+    );
 }

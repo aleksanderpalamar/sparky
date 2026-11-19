@@ -8,6 +8,7 @@ use crate::ports::resources::ResourceService;
 pub enum Knob {
     Enabled,
     Learning,
+    Notify,
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]

@@ -20,11 +20,12 @@ fn o_status_explica_estado_modo_e_atividades() {
         footprint: None,
         guarded: Vec::new(),
         adjusting: false,
+        notifications: Switch::Off,
     };
     let text = json(&Envelope::current(Reply::Status(status.clone())));
     assert_eq!(
         text,
-        r#"{"version":1,"reply":"status","service":"0.32.0","state":"observing","enabled":"on","mode":"observation","learning":"on","training":{"training":"allowed"},"activities":["gaming"],"progress":{"collected":0,"needed":0,"epoch":0,"epochs":0,"rounds":0,"parameters":0,"history":[]},"footprint":null,"guarded":[],"adjusting":false}"#
+        r#"{"version":1,"reply":"status","service":"0.32.0","state":"observing","enabled":"on","mode":"observation","learning":"on","training":{"training":"allowed"},"activities":["gaming"],"progress":{"collected":0,"needed":0,"epoch":0,"epochs":0,"rounds":0,"parameters":0,"history":[]},"footprint":null,"guarded":[],"adjusting":false,"notifications":"off"}"#
     );
     let back: Option<Envelope<Reply>> = serde_json::from_str(&text).ok();
     assert_eq!(
@@ -69,4 +70,5 @@ fn status_sem_progresso_de_versao_anterior_continua_valido() {
         panic!("status antigo deveria ser aceito")
     };
     assert_eq!(status.progress, Progress::default());
+    assert_eq!(status.notifications, Switch::Off);
 }

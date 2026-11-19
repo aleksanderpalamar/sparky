@@ -29,3 +29,12 @@ fn campo_ou_modo_desconhecido_e_recusado() {
     assert!(parse("[resources]\nturbo = true\n").is_err());
     assert!(parse("[resources]\nmode = \"agressivo\"\n").is_err());
 }
+
+#[test]
+fn notificacoes_comecam_desligadas_e_podem_ser_ligadas() {
+    assert!(!Resources::default().notify);
+    let Ok(config) = parse("[resources]\nnotify = true\n") else {
+        panic!("configuração válida")
+    };
+    assert!(config.resources.notify);
+}

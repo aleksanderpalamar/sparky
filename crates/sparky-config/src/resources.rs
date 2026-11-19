@@ -15,6 +15,7 @@ pub struct Resources {
     pub enabled: bool,
     pub mode: ResourceMode,
     pub learning: bool,
+    pub notify: bool,
     pub protected: Vec<String>,
 }
 
@@ -24,6 +25,7 @@ impl Default for Resources {
             enabled: true,
             mode: ResourceMode::Observation,
             learning: true,
+            notify: false,
             protected: Vec::new(),
         }
     }

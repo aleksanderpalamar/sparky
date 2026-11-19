@@ -35,6 +35,7 @@ pub struct Decision {
 #[derive(Debug, Clone, Default)]
 pub struct Log {
     entries: VecDeque<Decision>,
+    recorded: u64,
 }
 
 impl Log {
@@ -43,6 +44,11 @@ impl Log {
             self.entries.pop_front();
         }
         self.entries.push_back(decision);
+        self.recorded += 1;
+    }
+
+    pub fn recorded(&self) -> u64 {
+        self.recorded
     }
 
     pub fn entries(&self) -> Vec<Decision> {
