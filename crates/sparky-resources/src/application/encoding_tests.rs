@@ -1,5 +1,6 @@
 use super::encoding::{
-    OUTPUTS, STEP_INPUTS, Sample, WINDOW, absolute, decode, example_at, examples, step_input,
+    CONTEXT_INPUTS, OUTPUTS, STEP_INPUTS, Sample, WINDOW, absolute, context, decode, example_at,
+    examples, step_input,
 };
 use crate::domain::{Activities, Activity, Features, Metric};
 
@@ -23,15 +24,12 @@ fn rows(count: usize) -> Vec<Sample> {
 }
 
 #[test]
-fn cada_passo_leva_valores_mascaras_intervalo_e_contexto() {
+fn cada_passo_leva_valores_mascaras_e_intervalo() {
     let input = step_input(
-        &Sample {
-            activities: [Activity::Idle, Activity::Gaming].into_iter().collect(),
-            ..sample(
-                0.0,
-                Features::default().with(Metric::MemoryUsed, Some(50.0)),
-            )
-        },
+        &sample(
+            0.0,
+            Features::default().with(Metric::MemoryUsed, Some(50.0)),
+        ),
         2.0,
     );
     assert_eq!(input.len(), STEP_INPUTS);
@@ -39,24 +37,39 @@ fn cada_passo_leva_valores_mascaras_intervalo_e_contexto() {
     assert_eq!(input[8], 1.0);
     assert_eq!(input[0], 0.0);
     assert_eq!(input[7], 0.0);
-    assert_eq!(input[14], 0.2);
-    let context = &input[15..];
-    assert_eq!(context.iter().sum::<f32>(), 2.0);
-    assert_eq!(context[0], 1.0);
-    assert_eq!(context[4], 1.0);
+    assert_eq!(input[STEP_INPUTS - 1], 0.2);
+}
+
+#[test]
+fn o_contexto_marca_as_atividades_reconhecidas() {
+    let flags = context([Activity::Idle, Activity::Gaming].into_iter().collect());
+    assert_eq!(flags.len(), CONTEXT_INPUTS);
+    assert_eq!(flags.iter().sum::<f32>(), 2.0);
+    assert_eq!((flags[0], flags[4]), (1.0, 1.0));
+}
+
+#[test]
+fn o_exemplo_leva_o_contexto_do_instante_atual() {
+    let mut rows = rows(60);
+    rows[WINDOW - 1].activities = [Activity::Compiling].into_iter().collect();
+    let found = example_at(&rows, WINDOW);
+    assert_eq!(
+        found.map(|example| example.context),
+        Some(context([Activity::Compiling].into_iter().collect()))
+    );
 }
 
 #[test]
 fn os_alvos_sao_a_variacao_em_relacao_ao_valor_atual() {
     let found = examples(&rows(60));
-    let Some((window, targets)) = found.first() else {
+    let Some(example) = found.first() else {
         panic!("deveria haver exemplos");
     };
-    assert_eq!(window.len(), WINDOW);
-    assert_eq!(targets.len(), OUTPUTS);
-    assert_eq!(targets[0], Some(5.0 / 100.0));
-    assert_eq!(targets[7], Some(30.0 / 100.0));
-    assert_eq!(targets[1], None);
+    assert_eq!(example.window.len(), WINDOW);
+    assert_eq!(example.targets.len(), OUTPUTS);
+    assert_eq!(example.targets[0], Some(5.0 / 100.0));
+    assert_eq!(example.targets[7], Some(30.0 / 100.0));
+    assert_eq!(example.targets[1], None);
 }
 
 #[test]

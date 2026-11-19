@@ -225,8 +225,8 @@ validado**.
 | QG06 RAM máxima | parcialmente | `MemoryMax=64M` na unit; pico em treino real não medido |
 | QG07 CPU em jogo | não validado | 0,030% em repouso; falta sessão de jogo |
 | QG08 GPU | aprovado | o modelo só usa CPU, sem dependência de GPU |
-| QG09 Modelo | aprovado | 6.030 parâmetros na GRU usada pelo serviço desde a entrada com contexto (antes 5.166; limite 100 mil) |
-| QG10 Inferência | aprovado | p95 36 µs com GRU + MLP, teto para a GRU sozinha (meta 1 ms) |
+| QG09 Modelo | aprovado | 6.510 parâmetros no híbrido MLP + GRU usado pelo serviço (antes 5.166 só na GRU; limite 100 mil) |
+| QG10 Inferência | aprovado | p95 39 µs no híbrido MLP + GRU usado pelo serviço (meta 1 ms) |
 | QG11 Jogo | não validado | depende de sessões do usuário |
 | QG12 Jogo + OBS | não validado | depende de sessões do usuário |
 | QG13 Utilidade neural | inconclusivo | 20 min de dados; GRU melhor em CPU, memória e GPU, pior perto de zero |
@@ -283,9 +283,9 @@ Mudanças:
 |---|---|---|
 | Alvo | valor absoluto | variação em relação ao valor atual |
 | Modelo inicial | saída aleatória | camada de saída zerada, que prevê "nada muda" |
-| Entrada por passo | 15 valores | 24 valores, com as 9 atividades reconhecidas |
+| Arquitetura | GRU com uma camada linear de saída | híbrido MLP + GRU: a GRU lê a janela de métricas e o MLP (camada oculta ReLU de 32) combina o resumo dela com as 9 atividades do instante atual |
 | Rodada recusada | descartada | a próxima rodada continua dela; apagar o aprendizado também a descarta |
-| Parâmetros | 5.166 | 6.030 |
+| Parâmetros | 5.166 | 6.510 |
 | Tela de coleta | "coletadas / mínimo" | "coletadas / janela · mín. 600"; a janela é de 7.200 amostras e a coleta continua nela |
 
 O critério de promoção não mudou: o modelo só entra se errar pelo menos 5%
@@ -299,11 +299,13 @@ resto quase ocioso. Erro médio absoluto (`--example neural_eval`), média das
 |---|---|---|---|
 | Valor absoluto, saída aleatória | 0,968 | 0,099 | 0,101 |
 | Variação, saída aleatória | 0,813 | 0,099 | 0,101 |
-| Variação, saída zerada | 0,477 | 0,099 | 0,101 |
+| Variação, saída zerada, só GRU com contexto na entrada | 0,477 | 0,099 | 0,101 |
+| Híbrido MLP + GRU (versão do serviço) | 0,174 | 0,099 | 0,101 |
 
-O erro da GRU caiu pela metade, mas ela continua atrás da estatística neste
-traço. Ela venceu na pressão de I/O em 10 s em uma das medições, e perde
-principalmente onde a parte de treino tinha a carga da compilação e o teste
-foi ocioso. Com 20 min e uma única mudança de regime, ainda não há base para
+O erro caiu de 0,968 para 0,174, mas a rede continua atrás da estatística
+neste traço, que tem treino com a carga da compilação e teste ocioso. O
+híbrido passou a seguir o planejamento (decisão 3, MLP + GRU). O MLP
+classificador usado só na avaliação da fase 4 foi removido, porque o MLP
+agora faz parte do modelo do serviço. Com 20 min e uma única mudança de regime, ainda não há base para
 concluir a utilidade neural. QG13 continua **inconclusivo** e depende das
 rodadas reais, com a janela de até 4 horas.

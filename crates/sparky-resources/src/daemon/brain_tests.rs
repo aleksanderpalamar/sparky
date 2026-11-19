@@ -1,8 +1,9 @@
 use super::brain::Brain;
-use crate::application::encoding::{OUTPUTS, STEP_INPUTS, WINDOW};
+use crate::application::encoding::WINDOW;
+use crate::application::learning::{Plan, shape};
 use crate::application::{Knowledge as Validity, Observation};
 use crate::domain::{Activities, Features, Metric, Reading, Suspension, TrainingState};
-use crate::neural::SequenceModel;
+use crate::neural::Hybrid;
 use crate::persistence::fake_storage::FakeStorage;
 use crate::persistence::{Checkpoint, Kind, Knowledge};
 use crate::telemetry::{Pressures, SystemSample};
@@ -30,7 +31,7 @@ fn observation(value: f32) -> Observation {
 }
 
 fn saved(storage: &FakeStorage, hardware: u64) {
-    let model = SequenceModel::new(STEP_INPUTS, 32, OUTPUTS, 3);
+    let model = Hybrid::new(shape(&Plan::default()), 3);
     let checkpoint = Checkpoint {
         kind: Kind::Sequence,
         hardware,

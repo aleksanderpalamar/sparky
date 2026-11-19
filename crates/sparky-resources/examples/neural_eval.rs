@@ -1,14 +1,14 @@
 use std::time::Instant;
 
 use sparky_resources::application::encoding::{
-    Example, HORIZONS, OUTPUTS, STEP_INPUTS, Sample, WINDOW, absolute, decode, examples,
+    Example, HORIZONS, OUTPUTS, Sample, WINDOW, absolute, decode, examples,
 };
+use sparky_resources::application::learning::{Plan, shape};
 use sparky_resources::domain::{Activities, METRICS};
-use sparky_resources::neural::{Adam, Mlp, SequenceModel};
+use sparky_resources::neural::{Adam, Hybrid};
 use sparky_resources::predict::trace::parse;
 use sparky_resources::predict::{Forecaster, Holt, Persistence};
 
-const HIDDEN: usize = 32;
 const EPOCHS: usize = 40;
 const BATCH: usize = 16;
 const SEED: u64 = 20261118;
@@ -33,26 +33,20 @@ fn main() -> std::io::Result<()> {
     let split = all.len() * 7 / 10;
     let (train, test) = all.split_at(split);
     let train = &train[..train.len().saturating_sub(LEAK_GUARD)];
-    let mut model = SequenceModel::still(STEP_INPUTS, HIDDEN, OUTPUTS, SEED);
-    let mlp = Mlp::new(&[28, 32, 16, 10], SEED);
+    let mut model = Hybrid::still(shape(&Plan::default()), SEED);
     println!(
         "amostras={} exemplos treino={} teste={}",
         rows.len(),
         train.len(),
         test.len()
     );
-    println!(
-        "parametros: gru={} mlp={} total={}",
-        model.params.len(),
-        mlp.params.len(),
-        model.params.len() + mlp.params.len()
-    );
+    println!("parametros: gru+mlp={}", model.params.len());
     let started = Instant::now();
     let mut adam = Adam::new(0.003, model.params.len());
     for _ in 0..EPOCHS {
         for batch in train.chunks(BATCH) {
-            for (window, targets) in batch {
-                model.accumulate(window, targets);
+            for example in batch {
+                model.accumulate(&example.window, &example.context, &example.targets);
             }
             adam.step(&mut model.params);
         }
@@ -63,11 +57,11 @@ fn main() -> std::io::Result<()> {
         EPOCHS * train.len().div_ceil(BATCH)
     );
     compare(&rows, split, &model);
-    latency(&model, &mlp, test);
+    latency(&model, test);
     Ok(())
 }
 
-fn compare(rows: &[Sample], split: usize, model: &SequenceModel) {
+fn compare(rows: &[Sample], split: usize, model: &Hybrid) {
     let mut errors = vec![[0.0_f64; 3]; OUTPUTS];
     let mut counts = [0_usize; OUTPUTS];
     let mut holts = [Holt::new(0.2, 0.0); METRICS.len()];
@@ -80,7 +74,7 @@ fn compare(rows: &[Sample], split: usize, model: &SequenceModel) {
                 naive[slot].update(now.at, value);
             }
         }
-        let Some((window, targets)) = examples(&rows[end - WINDOW..rows.len().min(end + 40)])
+        let Some(example) = examples(&rows[end - WINDOW..rows.len().min(end + 40)])
             .into_iter()
             .next()
         else {
@@ -89,8 +83,11 @@ fn compare(rows: &[Sample], split: usize, model: &SequenceModel) {
         if index < split {
             continue;
         }
-        let neural = decode(&model.predict(&window), &now.features);
-        for (output, target) in absolute(&targets, &now.features).iter().enumerate() {
+        let neural = decode(
+            &model.predict(&example.window, &example.context),
+            &now.features,
+        );
+        for (output, target) in absolute(&example.targets, &now.features).iter().enumerate() {
             let Some(target) = *target else {
                 continue;
             };
@@ -125,16 +122,14 @@ fn compare(rows: &[Sample], split: usize, model: &SequenceModel) {
     }
 }
 
-fn latency(model: &SequenceModel, mlp: &Mlp, test: &[Example]) {
-    let Some((window, _)) = test.first() else {
+fn latency(model: &Hybrid, test: &[Example]) {
+    let Some(example) = test.first() else {
         return;
     };
-    let input = vec![0.1; 28];
     let mut samples: Vec<u128> = (0..2000)
         .map(|_| {
             let start = Instant::now();
-            std::hint::black_box(model.predict(window));
-            std::hint::black_box(mlp.predict(&input));
+            std::hint::black_box(model.predict(&example.window, &example.context));
             start.elapsed().as_nanos()
         })
         .collect();

@@ -74,7 +74,7 @@ fn configuracoes_avancadas_mostram_so_fatos_do_servico() {
             "Limite de memória",
             "64 MiB",
             "Não usa, só CPU",
-            "GRU · 6792 parâmetros",
+            "MLP + GRU · 6792 parâmetros",
             "Ativada",
             "Somente local",
             "Apagar o que foi aprendido",

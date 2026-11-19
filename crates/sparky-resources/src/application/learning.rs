@@ -1,10 +1,10 @@
 use std::collections::VecDeque;
 use std::time::Instant;
 
-use super::encoding::{Example, OUTPUTS, STEP_INPUTS, Sample, WINDOW, example_at};
+use super::encoding::{CONTEXT_INPUTS, Example, OUTPUTS, STEP_INPUTS, Sample, WINDOW, example_at};
 use super::progress::{Outcome, Progress, outcome};
 use super::validation::{Errors, validate};
-use crate::neural::{Adam, SequenceModel};
+use crate::neural::{Adam, Hybrid, Shape};
 
 const LEAK_GUARD: usize = 40;
 
@@ -17,6 +17,7 @@ pub struct Plan {
     pub rate: f32,
     pub margin: f64,
     pub hidden: usize,
+    pub blend: usize,
     pub seed: u64,
 }
 
@@ -30,6 +31,7 @@ impl Default for Plan {
             rate: 0.003,
             margin: 0.05,
             hidden: 32,
+            blend: 32,
             seed: 20261118,
         }
     }
@@ -39,12 +41,12 @@ impl Default for Plan {
 pub enum Verdict {
     Waiting,
     Training,
-    Promoted(Box<SequenceModel>, Errors),
+    Promoted(Box<Hybrid>, Errors),
     Rejected(Errors, Outcome),
 }
 
 struct Session {
-    model: SequenceModel,
+    model: Hybrid,
     adam: Adam,
     rows: Vec<Sample>,
     cursor: usize,
@@ -56,14 +58,12 @@ pub struct Learner {
     parameters: usize,
     history: VecDeque<Sample>,
     session: Option<Session>,
-    incumbent: Option<SequenceModel>,
+    incumbent: Option<Hybrid>,
 }
 
 impl Learner {
     pub fn new(plan: Plan) -> Self {
-        let parameters = SequenceModel::new(STEP_INPUTS, plan.hidden, OUTPUTS, plan.seed)
-            .params
-            .len();
+        let parameters = Hybrid::new(shape(&plan), plan.seed).params.len();
         Self {
             plan,
             parameters,
@@ -92,7 +92,7 @@ impl Learner {
         }
     }
 
-    pub fn step(&mut self, active: Option<&SequenceModel>, deadline: Instant) -> Verdict {
+    pub fn step(&mut self, active: Option<&Hybrid>, deadline: Instant) -> Verdict {
         if self.session.is_none() && self.history.len() < self.plan.minimum {
             return Verdict::Waiting;
         }
@@ -104,8 +104,10 @@ impl Learner {
         let last = split.saturating_sub(LEAK_GUARD).max(WINDOW);
         while Instant::now() < deadline && session.epoch < plan.epochs {
             for end in session.cursor..(session.cursor + plan.batch).min(last) {
-                if let Some((window, targets)) = lesson(&session.rows, split, end) {
-                    session.model.accumulate(&window, &targets);
+                if let Some(example) = lesson(&session.rows, split, end) {
+                    session
+                        .model
+                        .accumulate(&example.window, &example.context, &example.targets);
                 }
             }
             session.adam.step(&mut session.model.params);
@@ -127,7 +129,7 @@ impl Learner {
     }
 
     #[cfg(test)]
-    pub fn starting_point(&self) -> Option<&SequenceModel> {
+    pub fn starting_point(&self) -> Option<&Hybrid> {
         self.session.as_ref().map(|session| &session.model)
     }
 
@@ -137,14 +139,24 @@ impl Learner {
     }
 }
 
+pub fn shape(plan: &Plan) -> Shape {
+    Shape {
+        steps: STEP_INPUTS,
+        context: CONTEXT_INPUTS,
+        memory: plan.hidden,
+        hidden: plan.blend,
+        outputs: OUTPUTS,
+    }
+}
+
 pub fn lesson(rows: &[Sample], split: usize, end: usize) -> Option<Example> {
     example_at(rows.get(..split)?, end)
 }
 
-fn start(plan: Plan, history: &VecDeque<Sample>, origin: Option<&SequenceModel>) -> Session {
+fn start(plan: Plan, history: &VecDeque<Sample>, origin: Option<&Hybrid>) -> Session {
     let model = origin
         .cloned()
-        .unwrap_or_else(|| SequenceModel::still(STEP_INPUTS, plan.hidden, OUTPUTS, plan.seed));
+        .unwrap_or_else(|| Hybrid::still(shape(&plan), plan.seed));
     let adam = Adam::new(plan.rate, model.params.len());
     Session {
         model,
@@ -159,8 +171,8 @@ fn judge(
     plan: Plan,
     session: Session,
     split: usize,
-    active: Option<&SequenceModel>,
-) -> (Verdict, Option<SequenceModel>) {
+    active: Option<&Hybrid>,
+) -> (Verdict, Option<Hybrid>) {
     let candidate = validate(&session.rows, split, Some(&session.model));
     let current = active.and_then(|model| validate(&session.rows, split, Some(model)).neural);
     let finite = session.model.params.is_finite();

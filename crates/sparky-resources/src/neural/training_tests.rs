@@ -1,51 +1,37 @@
 use super::adam::Adam;
-use super::mlp::Mlp;
-use super::sequence::SequenceModel;
+use super::hybrid::{Hybrid, Shape};
+
+fn shape(context: usize) -> Shape {
+    Shape {
+        steps: 1,
+        context,
+        memory: 8,
+        hidden: 8,
+        outputs: 1,
+    }
+}
+
+fn ramp(start: f32) -> Vec<Vec<f32>> {
+    (0..6)
+        .map(|step| vec![start + 0.05 * step as f32])
+        .collect()
+}
 
 #[test]
 fn a_mesma_semente_gera_o_mesmo_modelo() {
-    assert_eq!(Mlp::new(&[4, 8, 2], 3), Mlp::new(&[4, 8, 2], 3));
-    assert_ne!(Mlp::new(&[4, 8, 2], 3), Mlp::new(&[4, 8, 2], 4));
+    assert_eq!(Hybrid::new(shape(2), 3), Hybrid::new(shape(2), 3));
+    assert_ne!(Hybrid::new(shape(2), 3), Hybrid::new(shape(2), 4));
 }
 
 #[test]
-fn a_mlp_aprende_rotulos_simultaneos() {
-    let examples = [
-        ([0.0, 0.0], [0.0, 0.0]),
-        ([1.0, 0.0], [1.0, 0.0]),
-        ([0.0, 1.0], [0.0, 1.0]),
-        ([1.0, 1.0], [1.0, 1.0]),
-    ];
-    let mut model = Mlp::new(&[2, 8, 2], 5);
-    let mut adam = Adam::new(0.05, model.params.len());
-    for _ in 0..400 {
-        for (input, target) in &examples {
-            model.accumulate(input, target);
-        }
-        adam.step(&mut model.params);
-    }
-    for (input, target) in &examples {
-        let predicted = model.predict(input);
-        for (value, wanted) in predicted.iter().zip(target) {
-            assert!((value - wanted).abs() < 0.2, "{input:?}: {predicted:?}");
-        }
-    }
-}
-
-#[test]
-fn a_gru_aprende_a_continuar_uma_rampa() {
-    let mut model = SequenceModel::new(1, 8, 1, 9);
+fn o_hibrido_aprende_a_continuar_uma_rampa() {
+    let mut model = Hybrid::new(shape(0), 9);
     let mut adam = Adam::new(0.02, model.params.len());
-    let window = |start: f32| {
-        (0..6)
-            .map(|step| vec![start + 0.05 * step as f32])
-            .collect::<Vec<_>>()
-    };
     let mut last = f32::MAX;
     for epoch in 0..300 {
         let mut total = 0.0;
         for start in [0.0, 0.1, 0.2, 0.3, 0.4] {
-            total += model.accumulate(&window(start), &[Some(start + 0.05 * 8.0)]);
+            total += model.accumulate(&ramp(start), &[], &[Some(start + 0.05 * 8.0)]);
         }
         adam.step(&mut model.params);
         if epoch == 299 {
@@ -57,15 +43,36 @@ fn a_gru_aprende_a_continuar_uma_rampa() {
 }
 
 #[test]
-fn modelo_parado_comeca_prevendo_zero_e_ainda_aprende() {
-    let mut model = SequenceModel::still(1, 8, 1, 9);
-    assert_eq!(model.predict(&[vec![0.7], vec![0.3]]), vec![0.0]);
-    let mut adam = Adam::new(0.01, model.params.len());
-    let sequence = [vec![0.2], vec![0.4]];
-    let before = model.loss(&sequence, &[Some(0.5)]);
-    for _ in 0..50 {
-        model.accumulate(&sequence, &[Some(0.5)]);
+fn o_contexto_muda_a_previsao_para_a_mesma_serie() {
+    let mut model = Hybrid::new(shape(2), 5);
+    let mut adam = Adam::new(0.02, model.params.len());
+    let series = ramp(0.2);
+    let cases = [([1.0, 0.0], 0.1), ([0.0, 1.0], -0.3)];
+    for _ in 0..400 {
+        for (context, wanted) in &cases {
+            model.accumulate(&series, context, &[Some(*wanted)]);
+        }
         adam.step(&mut model.params);
     }
-    assert!(model.loss(&sequence, &[Some(0.5)]) < before * 0.1);
+    for (context, wanted) in &cases {
+        let predicted = model.predict(&series, context)[0];
+        assert!(
+            (predicted - wanted).abs() < 0.05,
+            "{context:?}: {predicted}"
+        );
+    }
+}
+
+#[test]
+fn modelo_parado_comeca_prevendo_zero_e_ainda_aprende() {
+    let mut model = Hybrid::still(shape(1), 9);
+    let sequence = [vec![0.2], vec![0.4]];
+    assert_eq!(model.predict(&sequence, &[1.0]), vec![0.0]);
+    let mut adam = Adam::new(0.01, model.params.len());
+    let before = model.loss(&sequence, &[1.0], &[Some(0.5)]);
+    for _ in 0..50 {
+        model.accumulate(&sequence, &[1.0], &[Some(0.5)]);
+        adam.step(&mut model.params);
+    }
+    assert!(model.loss(&sequence, &[1.0], &[Some(0.5)]) < before * 0.1);
 }

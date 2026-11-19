@@ -13,7 +13,7 @@ use crate::i18n::text as tr;
 use crate::view::cards_text::translated;
 
 const CHART: f32 = 180.0;
-const ARCHITECTURE: &str = "GRU";
+const ARCHITECTURE: &str = "MLP + GRU";
 
 pub fn view<'a>(skin: Skin, status: &Status, metrics: &[Insight]) -> Element<'a, Message> {
     let progress = &status.progress;

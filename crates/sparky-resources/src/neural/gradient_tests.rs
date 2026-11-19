@@ -1,6 +1,5 @@
-use super::mlp::Mlp;
+use super::hybrid::{Hybrid, Shape};
 use super::params::Parameters;
-use super::sequence::SequenceModel;
 
 const STEP: f32 = 1e-3;
 const TOLERANCE: f32 = 2e-2;
@@ -23,40 +22,31 @@ fn nudged(params: &Parameters, index: usize, delta: f32) -> Parameters {
 }
 
 #[test]
-fn gradiente_da_mlp_bate_com_diferencas_finitas() {
-    let mut model = Mlp::new(&[3, 5, 4, 2], 7);
-    let (input, target) = ([0.3, -0.8, 0.5], [1.0, 0.0]);
-    model.params.zero_grads();
-    model.accumulate(&input, &target);
-    let analytic = model.params.grads.clone();
-    compare(&analytic, |index| {
-        let probe = |delta| {
-            let mut copy = model.clone();
-            copy.params = nudged(&model.params, index, delta);
-            copy.loss(&input, &target)
-        };
-        (probe(STEP) - probe(-STEP)) / (2.0 * STEP)
-    });
-}
-
-#[test]
-fn gradiente_da_gru_atravessa_o_tempo_corretamente() {
-    let mut model = SequenceModel::new(2, 3, 2, 11);
+fn gradiente_do_hibrido_atravessa_o_mlp_e_o_tempo() {
+    let shape = Shape {
+        steps: 2,
+        context: 2,
+        memory: 3,
+        hidden: 4,
+        outputs: 2,
+    };
+    let mut model = Hybrid::new(shape, 11);
     let sequence = vec![
         vec![0.5, -0.2],
         vec![0.1, 0.9],
         vec![-0.7, 0.3],
         vec![0.4, 0.4],
     ];
+    let context = [1.0, 0.0];
     let target = [Some(0.25), None];
     model.params.zero_grads();
-    model.accumulate(&sequence, &target);
+    model.accumulate(&sequence, &context, &target);
     let analytic = model.params.grads.clone();
     compare(&analytic, |index| {
         let probe = |delta| {
             let mut copy = model.clone();
             copy.params = nudged(&model.params, index, delta);
-            copy.loss(&sequence, &target)
+            copy.loss(&sequence, &context, &target)
         };
         (probe(STEP) - probe(-STEP)) / (2.0 * STEP)
     });

@@ -36,7 +36,7 @@ fn facts<'a>(skin: Skin, status: Option<&Status>) -> Element<'a, Message> {
         .map_or_else(|| missing.clone(), |kib| format!("{} MiB", kib / 1024));
     let parameters = status.map_or(0, |status| status.progress.parameters);
     let model = match parameters {
-        0 => "GRU".to_owned(),
+        0 => "MLP + GRU".to_owned(),
         count => crate::i18n::with("performance-model-value", "count", &count.to_string()),
     };
     let pairs = [

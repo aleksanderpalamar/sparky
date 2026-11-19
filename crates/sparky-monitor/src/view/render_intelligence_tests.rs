@@ -125,7 +125,7 @@ fn as_tres_abas_mostram_dados_reais_do_servico() {
     contem(
         &aprendizado,
         &[
-            "GRU",
+            "MLP + GRU",
             "6792",
             "312 / 7200 · mín. 600",
             "00:01:30 · descartado, pior que a estatística",

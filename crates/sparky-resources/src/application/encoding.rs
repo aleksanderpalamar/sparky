@@ -3,12 +3,18 @@ use crate::domain::{Activities, Features, METRICS};
 
 pub const WINDOW: usize = 16;
 pub const HORIZONS: [f64; 2] = [10.0, 60.0];
-pub const STEP_INPUTS: usize = METRICS.len() * 2 + 1 + ACTIVITIES.len();
+pub const STEP_INPUTS: usize = METRICS.len() * 2 + 1;
+pub const CONTEXT_INPUTS: usize = ACTIVITIES.len();
 pub const OUTPUTS: usize = METRICS.len() * HORIZONS.len();
 const SCALE: f32 = 100.0;
 const TIME_SCALE: f64 = 10.0;
 
-pub type Example = (Vec<Vec<f32>>, Vec<Option<f32>>);
+#[derive(Debug, Clone, PartialEq)]
+pub struct Example {
+    pub window: Vec<Vec<f32>>,
+    pub context: Vec<f32>,
+    pub targets: Vec<Option<f32>>,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Sample {
@@ -27,13 +33,16 @@ pub fn step_input(sample: &Sample, elapsed: f64) -> Vec<f32> {
     let masks = METRICS
         .iter()
         .map(|metric| flag(sample.features.get(*metric).is_some()));
-    let context = ACTIVITIES
-        .iter()
-        .map(|activity| flag(sample.activities.contains(*activity)));
     values
         .chain(masks)
         .chain(std::iter::once((elapsed / TIME_SCALE).min(10.0) as f32))
-        .chain(context)
+        .collect()
+}
+
+pub fn context(activities: Activities) -> Vec<f32> {
+    ACTIVITIES
+        .iter()
+        .map(|activity| flag(activities.contains(*activity)))
         .collect()
 }
 
@@ -81,10 +90,11 @@ pub fn example_at(rows: &[Sample], end: usize) -> Option<Example> {
         .iter()
         .flat_map(|horizon| target(future, &now, now.at + horizon, horizon * 0.5))
         .collect();
-    targets
-        .iter()
-        .any(Option::is_some)
-        .then(|| (window(&rows[start..end]), targets))
+    targets.iter().any(Option::is_some).then(|| Example {
+        window: window(&rows[start..end]),
+        context: context(now.activities),
+        targets,
+    })
 }
 
 fn target(future: &[Sample], now: &Sample, when: f64, tolerance: f64) -> Vec<Option<f32>> {

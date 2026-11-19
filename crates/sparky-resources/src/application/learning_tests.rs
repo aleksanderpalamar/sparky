@@ -1,9 +1,9 @@
 use std::time::{Duration, Instant};
 
-use super::encoding::{OUTPUTS, STEP_INPUTS, Sample, WINDOW, example_at};
-use super::learning::{Learner, Plan, Verdict, lesson};
+use super::encoding::{Sample, WINDOW, example_at};
+use super::learning::{Learner, Plan, Verdict, lesson, shape};
 use crate::domain::{Activities, Features, Metric};
-use crate::neural::SequenceModel;
+use crate::neural::Hybrid;
 
 fn small() -> Plan {
     Plan {
@@ -14,6 +14,7 @@ fn small() -> Plan {
         rate: 0.01,
         margin: 0.05,
         hidden: 8,
+        blend: 8,
         seed: 1,
     }
 }
@@ -131,17 +132,17 @@ fn o_treino_nunca_usa_alvos_da_parte_de_validacao() {
         .map(|index| sample(index as f64 * 0.25, if index < split { 10.0 } else { 90.0 }))
         .collect();
     let leaks = |targets: &[Option<f32>]| targets.iter().flatten().any(|target| *target > 0.5);
-    assert!(example_at(&rows, 300).is_some_and(|(_, targets)| leaks(&targets)));
+    assert!(example_at(&rows, 300).is_some_and(|example| leaks(&example.targets)));
     for end in WINDOW..=split {
         assert!(
-            !lesson(&rows, split, end).is_some_and(|(_, targets)| leaks(&targets)),
+            !lesson(&rows, split, end).is_some_and(|example| leaks(&example.targets)),
             "exemplo {end}"
         );
     }
 }
 
-fn fresh(plan: Plan) -> SequenceModel {
-    SequenceModel::still(STEP_INPUTS, plan.hidden, OUTPUTS, plan.seed)
+fn fresh(plan: Plan) -> Hybrid {
+    Hybrid::still(shape(&plan), plan.seed)
 }
 
 fn stubborn() -> Plan {

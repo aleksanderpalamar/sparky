@@ -1,14 +1,12 @@
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
 
-use crate::application::encoding::{
-    HORIZONS, OUTPUTS, STEP_INPUTS, Sample, WINDOW, decode, window,
-};
-use crate::application::learning::{Learner, Plan, Verdict};
+use crate::application::encoding::{HORIZONS, OUTPUTS, Sample, WINDOW, context, decode, window};
+use crate::application::learning::{Learner, Plan, Verdict, shape};
 use crate::application::progress::{Outcome, REMEMBERED};
 use crate::application::{Baseline, Insight, Knowledge as Validity, Observation, Progress, Round};
 use crate::domain::TrainingState;
-use crate::neural::SequenceModel;
+use crate::neural::Hybrid;
 use crate::persistence::{Checkpoint, Kind, Knowledge, Restored};
 use crate::ports::Storage;
 
@@ -19,7 +17,7 @@ pub struct Brain<S> {
     learner: Learner,
     knowledge: Option<Knowledge<S>>,
     hardware: u64,
-    active: Option<SequenceModel>,
+    active: Option<Hybrid>,
     recent: Vec<Sample>,
     rounds: u32,
     history: VecDeque<Round>,
@@ -30,7 +28,7 @@ impl<S: Storage> Brain<S> {
         let plan = Plan::default();
         let active = knowledge
             .as_ref()
-            .and_then(|knowledge| restore(knowledge, hardware, plan.hidden));
+            .and_then(|knowledge| restore(knowledge, hardware, &plan));
         Self {
             baseline: Baseline::default(),
             learner: Learner::new(plan),
@@ -70,7 +68,11 @@ impl<S: Storage> Brain<S> {
             .active
             .as_ref()
             .filter(|_| self.recent.len() == WINDOW)
-            .map(|model| decode(&model.predict(&window(&self.recent)), &observation.features));
+            .map(|model| {
+                let outputs =
+                    model.predict(&window(&self.recent), &context(observation.activities));
+                decode(&outputs, &observation.features)
+            });
         if let Some(values) = neural {
             for (slot, insight) in insights.iter_mut().enumerate() {
                 insight.neural_short = values.get(slot).copied();
@@ -132,7 +134,7 @@ impl<S: Storage> Brain<S> {
         }
     }
 
-    fn promote(&mut self, model: SequenceModel) {
+    fn promote(&mut self, model: Hybrid) {
         let checkpoint = Checkpoint {
             kind: Kind::Sequence,
             hardware: self.hardware,
@@ -149,15 +151,11 @@ impl<S: Storage> Brain<S> {
     }
 }
 
-fn restore<S: Storage>(
-    knowledge: &Knowledge<S>,
-    hardware: u64,
-    hidden: usize,
-) -> Option<SequenceModel> {
+fn restore<S: Storage>(knowledge: &Knowledge<S>, hardware: u64, plan: &Plan) -> Option<Hybrid> {
     let Restored::Model(checkpoint) = knowledge.restore(Kind::Sequence, hardware) else {
         return None;
     };
-    let mut model = SequenceModel::new(STEP_INPUTS, hidden, OUTPUTS, 0);
+    let mut model = Hybrid::new(shape(plan), 0);
     (checkpoint.values.len() == model.params.len()).then(|| {
         model.params.values = checkpoint.values;
         model
