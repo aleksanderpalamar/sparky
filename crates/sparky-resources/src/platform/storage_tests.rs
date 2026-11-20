@@ -50,7 +50,7 @@ fn o_conhecimento_sobrevive_a_um_novo_processo() {
         values: vec![1.0, 2.0],
     };
     if let Ok(storage) = DiskStorage::open(root.path().to_owned()) {
-        assert!(Knowledge::new(storage).promote(&model).is_ok());
+        assert!(Knowledge::new(storage).store(&model).is_ok());
     }
     let Ok(storage) = DiskStorage::open(root.path().to_owned()) else {
         panic!("diretório não reaberto")

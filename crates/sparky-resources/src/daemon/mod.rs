@@ -7,6 +7,7 @@ pub mod herald;
 #[cfg(test)]
 mod herald_tests;
 pub mod notify;
+pub mod recall;
 pub mod sampling;
 pub mod server;
 #[cfg(test)]

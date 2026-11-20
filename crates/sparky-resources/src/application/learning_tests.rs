@@ -1,49 +1,8 @@
 use std::time::{Duration, Instant};
 
 use super::encoding::{Sample, WINDOW, example_at};
-use super::learning::{Learner, Plan, Verdict, lesson, shape};
-use crate::domain::{Activities, Features, Metric};
-use crate::neural::Hybrid;
-
-fn small() -> Plan {
-    Plan {
-        capacity: 400,
-        minimum: 300,
-        epochs: 30,
-        batch: 16,
-        rate: 0.01,
-        margin: 0.05,
-        hidden: 8,
-        blend: 8,
-        seed: 1,
-    }
-}
-
-fn sample(at: f64, value: f32) -> Sample {
-    Sample {
-        at,
-        features: Features::default().with(Metric::CpuBusy, Some(value)),
-        activities: Activities::default(),
-    }
-}
-
-fn wave(learner: &mut Learner, count: usize) {
-    for index in 0..count {
-        let at = index as f64 * 2.0;
-        let value = 50.0 + 30.0 * ((at / 40.0) * std::f64::consts::TAU).sin() as f32;
-        learner.record(sample(at, value));
-    }
-}
-
-fn finish(learner: &mut Learner) -> Verdict {
-    for _ in 0..10_000 {
-        match learner.step(None, Instant::now() + Duration::from_millis(50)) {
-            Verdict::Training => continue,
-            other => return other,
-        }
-    }
-    Verdict::Training
-}
+use super::learning::{Learner, Plan, Verdict, lesson};
+use super::learning_support::{finish, fresh, sample, small, stubborn, wave};
 
 #[test]
 fn espera_historico_suficiente_antes_de_treinar() {
@@ -138,18 +97,6 @@ fn o_treino_nunca_usa_alvos_da_parte_de_validacao() {
             !lesson(&rows, split, end).is_some_and(|example| leaks(&example.targets)),
             "exemplo {end}"
         );
-    }
-}
-
-fn fresh(plan: Plan) -> Hybrid {
-    Hybrid::still(shape(&plan), plan.seed)
-}
-
-fn stubborn() -> Plan {
-    Plan {
-        margin: 1.0,
-        epochs: 2,
-        ..small()
     }
 }
 

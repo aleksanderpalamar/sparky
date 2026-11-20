@@ -1,41 +1,14 @@
 use std::collections::VecDeque;
 use std::time::Instant;
 
-use super::encoding::{CONTEXT_INPUTS, Example, OUTPUTS, STEP_INPUTS, Sample, WINDOW, example_at};
+use super::diagnosis::Tally;
+use super::encoding::{Example, Sample, WINDOW, example_at};
+pub use super::plan::{Plan, shape};
 use super::progress::{Outcome, Progress, outcome};
-use super::validation::{Errors, validate};
-use crate::neural::{Adam, Hybrid, Shape};
+use super::validation::{Errors, tally, validate};
+use crate::neural::{Adam, Hybrid};
 
 const LEAK_GUARD: usize = 40;
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Plan {
-    pub capacity: usize,
-    pub minimum: usize,
-    pub epochs: usize,
-    pub batch: usize,
-    pub rate: f32,
-    pub margin: f64,
-    pub hidden: usize,
-    pub blend: usize,
-    pub seed: u64,
-}
-
-impl Default for Plan {
-    fn default() -> Self {
-        Self {
-            capacity: 7200,
-            minimum: 600,
-            epochs: 20,
-            batch: 16,
-            rate: 0.003,
-            margin: 0.05,
-            hidden: 32,
-            blend: 32,
-            seed: 20261118,
-        }
-    }
-}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Verdict {
@@ -59,6 +32,7 @@ pub struct Learner {
     history: VecDeque<Sample>,
     session: Option<Session>,
     incumbent: Option<Hybrid>,
+    diagnosis: Option<Tally>,
 }
 
 impl Learner {
@@ -70,7 +44,26 @@ impl Learner {
             history: VecDeque::with_capacity(plan.capacity),
             session: None,
             incumbent: None,
+            diagnosis: None,
         }
+    }
+
+    pub fn samples(&self) -> impl Iterator<Item = &Sample> {
+        self.history.iter()
+    }
+
+    pub fn incumbent(&self) -> Option<&Hybrid> {
+        self.incumbent.as_ref()
+    }
+
+    pub fn diagnosis(&self) -> Option<&Tally> {
+        self.diagnosis.as_ref()
+    }
+
+    pub fn resume(&mut self, samples: Vec<Sample>, incumbent: Option<Hybrid>) {
+        let skip = samples.len().saturating_sub(self.plan.capacity);
+        self.history = samples.into_iter().skip(skip).collect();
+        self.incumbent = incumbent.filter(|model| model.params.len() == self.parameters);
     }
 
     pub fn record(&mut self, sample: Sample) {
@@ -123,8 +116,10 @@ impl Learner {
         let Some(session) = self.session.take() else {
             return Verdict::Waiting;
         };
-        let (verdict, incumbent) = judge(plan, session, split, active);
+        let diagnosis = tally(&session.rows, split, Some(&session.model));
+        let (verdict, incumbent) = judge(plan, session, split, active, diagnosis.errors(true));
         self.incumbent = incumbent;
+        self.diagnosis = Some(diagnosis);
         verdict
     }
 
@@ -137,15 +132,11 @@ impl Learner {
         self.session = None;
         self.incumbent = None;
     }
-}
 
-pub fn shape(plan: &Plan) -> Shape {
-    Shape {
-        steps: STEP_INPUTS,
-        context: CONTEXT_INPUTS,
-        memory: plan.hidden,
-        hidden: plan.blend,
-        outputs: OUTPUTS,
+    pub fn forget(&mut self) {
+        self.cancel();
+        self.history.clear();
+        self.diagnosis = None;
     }
 }
 
@@ -172,8 +163,8 @@ fn judge(
     session: Session,
     split: usize,
     active: Option<&Hybrid>,
+    candidate: Errors,
 ) -> (Verdict, Option<Hybrid>) {
-    let candidate = validate(&session.rows, split, Some(&session.model));
     let current = active.and_then(|model| validate(&session.rows, split, Some(model)).neural);
     let finite = session.model.params.is_finite();
     match outcome(plan.margin, &candidate, current, finite) {

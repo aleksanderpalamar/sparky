@@ -7,6 +7,19 @@ const HEADER: usize = 4 + 2 + 1 + 8 + 4;
 pub enum Kind {
     Sequence = 1,
     Context = 2,
+    Candidate = 3,
+    History = 4,
+    Rounds = 5,
+}
+
+impl Kind {
+    pub const ALL: [Kind; 5] = [
+        Kind::Sequence,
+        Kind::Context,
+        Kind::Candidate,
+        Kind::History,
+        Kind::Rounds,
+    ];
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -59,11 +72,10 @@ pub fn decode(bytes: &[u8]) -> Result<Checkpoint, CheckpointError> {
     if checksum(&bytes[..body]) != u64::from_le_bytes(array(&bytes[body..])) {
         return Err(CheckpointError::Checksum);
     }
-    let kind = match bytes[6] {
-        1 => Kind::Sequence,
-        2 => Kind::Context,
-        _ => return Err(CheckpointError::Kind),
-    };
+    let kind = Kind::ALL
+        .into_iter()
+        .find(|kind| *kind as u8 == bytes[6])
+        .ok_or(CheckpointError::Kind)?;
     let count = u32::from_le_bytes(array(&bytes[15..19])) as usize;
     if HEADER + count * 4 != body {
         return Err(CheckpointError::Truncated);

@@ -1,43 +1,48 @@
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
 
+use super::recall::Recall;
+use crate::application::archive::{pack_rounds, pack_samples};
 use crate::application::encoding::{HORIZONS, OUTPUTS, Sample, WINDOW, context, decode, window};
-use crate::application::learning::{Learner, Plan, Verdict, shape};
+use crate::application::learning::{Learner, Plan, Verdict};
 use crate::application::progress::{Outcome, REMEMBERED};
 use crate::application::{Baseline, Insight, Knowledge as Validity, Observation, Progress, Round};
 use crate::domain::TrainingState;
 use crate::neural::Hybrid;
-use crate::persistence::{Checkpoint, Kind, Knowledge, Restored};
+use crate::persistence::{Kind, Knowledge};
 use crate::ports::Storage;
 
 const SLICE: Duration = Duration::from_millis(40);
+const KEEP_EVERY: f64 = 300.0;
 
 pub struct Brain<S> {
     baseline: Baseline,
     learner: Learner,
-    knowledge: Option<Knowledge<S>>,
-    hardware: u64,
+    recall: Recall<S>,
     active: Option<Hybrid>,
     recent: Vec<Sample>,
     rounds: u32,
     history: VecDeque<Round>,
+    kept_at: Option<f64>,
 }
 
 impl<S: Storage> Brain<S> {
     pub fn new(knowledge: Option<Knowledge<S>>, hardware: u64) -> Self {
         let plan = Plan::default();
-        let active = knowledge
-            .as_ref()
-            .and_then(|knowledge| restore(knowledge, hardware, &plan));
+        let recall = Recall::new(knowledge, hardware);
+        let mut learner = Learner::new(plan);
+        learner.resume(recall.samples(0.0), recall.model(Kind::Candidate, &plan));
+        let (rounds, history) = recall.rounds().unwrap_or_default();
+        let skip = history.len().saturating_sub(REMEMBERED);
         Self {
             baseline: Baseline::default(),
-            learner: Learner::new(plan),
-            knowledge,
-            hardware,
-            active,
+            learner,
+            active: recall.model(Kind::Sequence, &plan),
+            recall,
             recent: Vec::new(),
-            rounds: 0,
-            history: VecDeque::with_capacity(REMEMBERED),
+            rounds,
+            history: history.into_iter().skip(skip).collect(),
+            kept_at: None,
         }
     }
 
@@ -49,7 +54,7 @@ impl<S: Storage> Brain<S> {
     }
 
     pub fn written(&self) -> u64 {
-        self.knowledge.as_ref().map_or(0, Knowledge::written)
+        self.recall.written()
     }
 
     pub fn insights(&mut self, at: f64, observation: &Observation) -> Vec<Insight> {
@@ -59,6 +64,7 @@ impl<S: Storage> Brain<S> {
             activities: observation.activities,
         };
         self.learner.record(sample);
+        self.keep_collection(at);
         self.recent.push(sample);
         if self.recent.len() > WINDOW {
             self.recent.remove(0);
@@ -100,7 +106,9 @@ impl<S: Storage> Brain<S> {
         {
             Verdict::Promoted(model, errors) => {
                 self.finished(Round::new(at_seconds, Outcome::Promoted, &errors));
-                self.promote(*model);
+                self.recall
+                    .keep(Kind::Sequence, model.params.values.clone());
+                self.active = Some(*model);
             }
             Verdict::Rejected(errors, outcome) => {
                 self.finished(Round::new(at_seconds, outcome, &errors))
@@ -111,12 +119,34 @@ impl<S: Storage> Brain<S> {
         false
     }
 
+    pub fn forget(&mut self) {
+        self.active = None;
+        self.learner.forget();
+        self.rounds = 0;
+        self.history.clear();
+        self.recall.forget();
+    }
+
     fn finished(&mut self, round: Round) {
         self.rounds = self.rounds.saturating_add(1);
         if self.history.len() == REMEMBERED {
             self.history.pop_front();
         }
         self.history.push_back(round);
+        self.report(round);
+        let history: Vec<Round> = self.history.iter().copied().collect();
+        self.recall
+            .keep(Kind::Rounds, pack_rounds(self.rounds, &history));
+        match self.learner.incumbent() {
+            Some(model) => {
+                let values = model.params.values.clone();
+                self.recall.keep(Kind::Candidate, values);
+            }
+            None => self.recall.discard(Kind::Candidate),
+        }
+    }
+
+    fn report(&self, round: Round) {
         let neural = round
             .neural
             .map_or_else(|| "-".to_owned(), |error| format!("{error:.2}"));
@@ -124,40 +154,26 @@ impl<S: Storage> Brain<S> {
             "sparky-resources: treino {} terminou ({:?}): erro da rede {neural}, da estatística {:.2}",
             self.rounds, round.outcome, round.statistical
         );
-    }
-
-    pub fn forget(&mut self) {
-        self.active = None;
-        self.learner.cancel();
-        if let Some(Err(error)) = self.knowledge.as_mut().map(Knowledge::forget) {
-            eprintln!("sparky-resources: conhecimento não apagado: {error}");
-        }
-    }
-
-    fn promote(&mut self, model: Hybrid) {
-        let checkpoint = Checkpoint {
-            kind: Kind::Sequence,
-            hardware: self.hardware,
-            values: model.params.values.clone(),
-        };
-        if let Some(Err(error)) = self
-            .knowledge
-            .as_mut()
-            .map(|knowledge| knowledge.promote(&checkpoint))
+        for line in self
+            .learner
+            .diagnosis()
+            .map(|tally| tally.lines())
+            .unwrap_or_default()
         {
-            eprintln!("sparky-resources: checkpoint não gravado: {error}");
+            eprintln!(
+                "sparky-resources: diagnóstico treino {}: {line}",
+                self.rounds
+            );
         }
-        self.active = Some(model);
     }
-}
 
-fn restore<S: Storage>(knowledge: &Knowledge<S>, hardware: u64, plan: &Plan) -> Option<Hybrid> {
-    let Restored::Model(checkpoint) = knowledge.restore(Kind::Sequence, hardware) else {
-        return None;
-    };
-    let mut model = Hybrid::new(shape(plan), 0);
-    (checkpoint.values.len() == model.params.len()).then(|| {
-        model.params.values = checkpoint.values;
-        model
-    })
+    fn keep_collection(&mut self, at: f64) {
+        let due = self.kept_at.get_or_insert(at);
+        if at - *due < KEEP_EVERY {
+            return;
+        }
+        *due = at;
+        let values = pack_samples(self.learner.samples());
+        self.recall.keep(Kind::History, values);
+    }
 }

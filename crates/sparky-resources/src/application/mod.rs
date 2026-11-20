@@ -1,9 +1,15 @@
+pub mod archive;
+#[cfg(test)]
+mod archive_tests;
 pub mod baseline;
 #[cfg(test)]
 mod baseline_tests;
 pub mod budget;
 #[cfg(test)]
 mod budget_tests;
+pub mod diagnosis;
+#[cfg(test)]
+mod diagnosis_tests;
 pub mod encoding;
 #[cfg(test)]
 mod encoding_tests;
@@ -16,6 +22,10 @@ pub mod hardware;
 mod hardware_tests;
 pub mod learning;
 #[cfg(test)]
+mod learning_memory_tests;
+#[cfg(test)]
+mod learning_support;
+#[cfg(test)]
 mod learning_tests;
 pub mod lifecycle;
 #[cfg(test)]
@@ -26,6 +36,7 @@ mod notice_tests;
 pub mod observer;
 #[cfg(test)]
 mod observer_tests;
+pub mod plan;
 pub mod progress;
 #[cfg(test)]
 mod progress_tests;

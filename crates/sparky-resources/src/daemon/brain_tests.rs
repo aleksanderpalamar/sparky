@@ -37,7 +37,7 @@ fn saved(storage: &FakeStorage, hardware: u64) {
         hardware,
         values: model.params.values,
     };
-    assert!(Knowledge::new(storage).promote(&checkpoint).is_ok());
+    assert!(Knowledge::new(storage).store(&checkpoint).is_ok());
 }
 
 #[test]
@@ -127,4 +127,54 @@ fn esquecer_durante_o_treino_descarta_a_rodada_em_andamento() {
     assert_eq!(brain.progress().epoch, 0);
     assert_eq!(brain.validity(), Validity::Unvalidated);
     assert!(storage.files.borrow().is_empty());
+}
+
+fn round_done(brain: &mut Brain<&FakeStorage>) {
+    for step in 0..700 {
+        brain.insights(f64::from(step) * 2.0, &observation(30.0));
+    }
+    while brain.progress().rounds == 0 {
+        brain.train(TrainingState::Allowed, 600);
+    }
+}
+
+#[test]
+fn reiniciar_mantem_coleta_candidato_e_rodadas() {
+    let storage = FakeStorage::default();
+    let mut brain = Brain::new(Some(Knowledge::new(&storage)), HARDWARE);
+    round_done(&mut brain);
+    let names: Vec<String> = storage.files.borrow().keys().cloned().collect();
+    for name in ["history.ckpt", "rounds.ckpt", "candidate.ckpt"] {
+        assert!(
+            names.iter().any(|known| known == name),
+            "{name} em {names:?}"
+        );
+    }
+    let restarted = Brain::new(Some(Knowledge::new(&storage)), HARDWARE);
+    let progress = restarted.progress();
+    assert!(progress.collected >= 600, "{}", progress.collected);
+    assert_eq!(progress.rounds, 1);
+    assert_eq!(progress.history, brain.progress().history);
+}
+
+#[test]
+fn coleta_de_outra_maquina_nao_e_aproveitada() {
+    let storage = FakeStorage::default();
+    let mut brain = Brain::new(Some(Knowledge::new(&storage)), HARDWARE);
+    round_done(&mut brain);
+    let other = Brain::new(Some(Knowledge::new(&storage)), HARDWARE + 1);
+    assert_eq!(other.progress().collected, 0);
+    assert_eq!(other.progress().rounds, 0);
+}
+
+#[test]
+fn esquecer_apaga_coleta_candidato_e_rodadas() {
+    let storage = FakeStorage::default();
+    let mut brain = Brain::new(Some(Knowledge::new(&storage)), HARDWARE);
+    round_done(&mut brain);
+    brain.forget();
+    assert!(storage.files.borrow().is_empty());
+    let progress = brain.progress();
+    assert_eq!((progress.collected, progress.rounds), (0, 0));
+    assert!(progress.history.is_empty());
 }

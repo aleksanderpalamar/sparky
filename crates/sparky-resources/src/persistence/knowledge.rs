@@ -38,7 +38,7 @@ impl<S: Storage> Knowledge<S> {
         }
     }
 
-    pub fn promote(&mut self, checkpoint: &Checkpoint) -> io::Result<()> {
+    pub fn store(&mut self, checkpoint: &Checkpoint) -> io::Result<()> {
         let bytes = encode(checkpoint);
         match self
             .storage
@@ -57,12 +57,16 @@ impl<S: Storage> Knowledge<S> {
     }
 
     pub fn forget(&mut self) -> io::Result<()> {
-        for kind in [Kind::Sequence, Kind::Context] {
-            for name in [active(kind), previous(kind)] {
-                match self.storage.remove(&name) {
-                    Err(error) if error.kind() != io::ErrorKind::NotFound => return Err(error),
-                    _ => {}
-                }
+        Kind::ALL
+            .into_iter()
+            .try_for_each(|kind| self.discard(kind))
+    }
+
+    pub fn discard(&mut self, kind: Kind) -> io::Result<()> {
+        for name in [active(kind), previous(kind)] {
+            match self.storage.remove(&name) {
+                Err(error) if error.kind() != io::ErrorKind::NotFound => return Err(error),
+                _ => {}
             }
         }
         Ok(())
@@ -94,5 +98,8 @@ fn name(kind: Kind) -> &'static str {
     match kind {
         Kind::Sequence => "sequence",
         Kind::Context => "context",
+        Kind::Candidate => "candidate",
+        Kind::History => "history",
+        Kind::Rounds => "rounds",
     }
 }

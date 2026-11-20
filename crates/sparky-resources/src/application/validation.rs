@@ -1,3 +1,4 @@
+use super::diagnosis::{Phase, Tally};
 use super::encoding::{HORIZONS, Sample, WINDOW, absolute, decode, example_at};
 use crate::domain::METRICS;
 use crate::neural::Hybrid;
@@ -14,8 +15,13 @@ pub struct Errors {
 }
 
 pub fn validate(rows: &[Sample], from: usize, model: Option<&Hybrid>) -> Errors {
+    tally(rows, from, model).errors(model.is_some())
+}
+
+pub fn tally(rows: &[Sample], from: usize, model: Option<&Hybrid>) -> Tally {
     let mut holts = [Holt::new(ALPHA, BETA); METRICS.len()];
-    let (mut statistical, mut neural, mut count) = (0.0_f64, 0.0_f64, 0_usize);
+    let mut phase = Phase::default();
+    let mut tally = Tally::default();
     for end in 1..=rows.len() {
         let now = &rows[end - 1];
         for (slot, metric) in METRICS.iter().enumerate() {
@@ -23,6 +29,7 @@ pub fn validate(rows: &[Sample], from: usize, model: Option<&Hybrid>) -> Errors 
                 holts[slot].update(now.at, value);
             }
         }
+        let segment = phase.segment(now);
         if end < from.max(WINDOW) {
             continue;
         }
@@ -44,17 +51,17 @@ pub fn validate(rows: &[Sample], from: usize, model: Option<&Hybrid>) -> Errors 
                 .forecast(horizon)
                 .unwrap_or(0.0)
                 .clamp(0.0, 100.0);
-            statistical += f64::from((estimate - target).abs());
-            neural += predicted
+            let neural = predicted
                 .as_ref()
-                .map_or(0.0, |values| f64::from((values[output] - target).abs()));
-            count += 1;
+                .and_then(|values| values.get(output))
+                .map_or(0.0, |value| f64::from((value - target).abs()));
+            tally.add(
+                segment,
+                output,
+                neural,
+                f64::from((estimate - target).abs()),
+            );
         }
     }
-    let mean = |total: f64| total / count.max(1) as f64;
-    Errors {
-        statistical: mean(statistical),
-        neural: model.map(|_| mean(neural)),
-        count,
-    }
+    tally
 }

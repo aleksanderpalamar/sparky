@@ -47,6 +47,17 @@ impl Activities {
         Self(self.0 | activity.bit())
     }
 
+    pub fn bits(self) -> u16 {
+        self.0
+    }
+
+    pub fn from_bits(bits: u16) -> Self {
+        ACTIVITIES
+            .into_iter()
+            .filter(|activity| bits & activity.bit() != 0)
+            .collect()
+    }
+
     pub fn contains(self, activity: Activity) -> bool {
         self.0 & activity.bit() != 0
     }

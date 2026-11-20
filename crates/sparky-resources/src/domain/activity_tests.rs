@@ -63,3 +63,15 @@ fn o_conjunto_vira_lista_de_nomes_e_volta() {
         Some(activities)
     );
 }
+
+#[test]
+fn os_bits_guardam_e_recuperam_as_atividades() {
+    let activities: Activities = [Activity::Gaming, Activity::Recording]
+        .into_iter()
+        .collect();
+    assert_eq!(Activities::from_bits(activities.bits()), activities);
+    assert_eq!(
+        Activities::from_bits(u16::MAX).iter().count(),
+        ACTIVITIES.len()
+    );
+}

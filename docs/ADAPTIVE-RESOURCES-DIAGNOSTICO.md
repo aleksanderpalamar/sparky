@@ -309,3 +309,43 @@ classificador usado só na avaliação da fase 4 foi removido, porque o MLP
 agora faz parte do modelo do serviço. Com 20 min e uma única mudança de regime, ainda não há base para
 concluir a utilidade neural. QG13 continua **inconclusivo** e depende das
 rodadas reais, com a janela de até 4 horas.
+
+## Persistência do aprendizado e diagnóstico por contexto
+
+No 0.32.0-6, reiniciar o PC apagava o aprendizado: só um modelo aprovado ia
+para o disco, e nenhum tinha sido aprovado. O candidato em andamento, a coleta
+e o histórico de rodadas ficavam só na memória (fase 5 incompleta).
+
+Agora vão para `~/.local/state/sparky/resources`, no mesmo formato de
+checkpoint (checksum, escrita atômica, cópia anterior como reserva e vínculo
+com o hardware):
+
+| Arquivo | Conteúdo | Quando grava |
+|---|---|---|
+| `candidate.ckpt` | candidato recusado de onde a próxima rodada continua | fim de cada rodada; apagado quando um modelo é aprovado |
+| `rounds.ckpt` | número de rodadas e as últimas 16 do gráfico | fim de cada rodada |
+| `history.ckpt` | coleta: até 7.200 amostras de métricas agregadas e contexto, cerca de 260 KB, sem nomes de processos | a cada 5 min |
+
+Um reinício perde no máximo 5 min de coleta. Ao voltar, a coleta antiga é
+encaixada 10 min antes da nova, para que nenhum exemplo de treino ligue dados
+de antes e depois do reinício. "Apagar o que foi aprendido" remove os três
+arquivos, além do modelo aprovado.
+
+A média de uma rodada mistura desktop parado com os minutos de jogo, então
+uma vantagem da rede no jogo pode sumir na média. Cada rodada agora grava no
+journal o erro da rede e da estatística por grupo, métrica e horizonte, com a
+contagem de previsões:
+
+| Grupo | Regra |
+|---|---|
+| desktop | sem jogo, compilação, gravação ou pressão crítica |
+| entrada | primeiros 60 s com o contexto de jogo |
+| jogo | jogo depois dos 60 s |
+| outros | compilação, gravação ou pressão crítica sem jogo |
+
+```sh
+journalctl --user -u sparky-resources | grep diagnóstico
+```
+
+O cálculo usa a mesma passada da validação, sem custo extra. A margem de
+promoção continua em 5% sobre a média geral.
