@@ -24,11 +24,17 @@ fn o_pkgbuild_instala_os_mesmos_binarios() {
                 .map(str::to_owned)
         })
         .unwrap_or_default();
-    let instalados: BTreeSet<String> = linha
+    let mut instalados: BTreeSet<String> = linha
         .trim_end_matches("; do")
         .split_whitespace()
         .map(str::to_owned)
         .collect();
+    instalados.extend(pkgbuild().lines().filter_map(|linha| {
+        let resto = linha
+            .trim()
+            .strip_prefix("install -Dm755 target/release/")?;
+        resto.split_whitespace().next().map(str::to_owned)
+    }));
     assert_eq!(instalados, binarios_do_workspace());
 }
 

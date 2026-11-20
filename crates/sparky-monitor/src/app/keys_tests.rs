@@ -29,7 +29,11 @@ fn numeros_abrem_paginas_e_letras_ordenam() {
         descreve(letra("8")),
         descreve(Some(Message::Open(Page::Gpu)))
     );
-    assert!(letra("9").is_none() && letra("0").is_none());
+    assert_eq!(
+        descreve(letra("9")),
+        descreve(Some(Message::Open(Page::Intelligence)))
+    );
+    assert!(letra("0").is_none());
     assert_eq!(
         descreve(letra("c")),
         descreve(Some(Message::SortBy(Column::Cpu)))
@@ -58,5 +62,19 @@ fn delete_encerra_e_shift_delete_forca() {
     assert_eq!(
         descreve(message(&Key::Named(Named::Tab), Modifiers::empty())),
         descreve(Some(Message::SwitchFocus))
+    );
+}
+
+#[test]
+fn setas_laterais_giram_as_abas() {
+    use super::message::Turn;
+    let seta = |named| message(&Key::Named(named), Modifiers::empty());
+    assert_eq!(
+        descreve(seta(Named::ArrowLeft)),
+        descreve(Some(Message::Turn(Turn::Back)))
+    );
+    assert_eq!(
+        descreve(seta(Named::ArrowRight)),
+        descreve(Some(Message::Turn(Turn::Forward)))
     );
 }

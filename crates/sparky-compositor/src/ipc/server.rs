@@ -4,9 +4,10 @@ use std::io::ErrorKind;
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::PathBuf;
 
+use smithay::reexports::calloop::RegistrationToken;
 use smithay::reexports::calloop::generic::Generic;
 use smithay::reexports::calloop::{Interest, Mode, PostAction};
-use sparky_ipc::{WorkspaceInfo, socket};
+use sparky_ipc::{WindowInfo, WorkspaceInfo, socket};
 
 use crate::state::Sparky;
 
@@ -14,6 +15,9 @@ pub struct IpcServer {
     pub path: PathBuf,
     pub subscribers: Vec<UnixStream>,
     pub last: Vec<WorkspaceInfo>,
+    pub window_watchers: Vec<UnixStream>,
+    pub last_windows: Vec<WindowInfo>,
+    pub window_timer: Option<RegistrationToken>,
 }
 
 impl Drop for IpcServer {
@@ -36,27 +40,33 @@ impl Sparky {
         if path.exists() && fs::remove_file(&path).is_err() {
             tracing::warn!("socket antigo do sparky não removido: {}", path.display());
         }
-        let listener = match UnixListener::bind(&path).and_then(|listener| listener.set_nonblocking(true).map(|()| listener)) {
+        let listener = match UnixListener::bind(&path)
+            .and_then(|listener| listener.set_nonblocking(true).map(|()| listener))
+        {
             Ok(listener) => listener,
             Err(error) => {
                 tracing::warn!("IPC do sparky não abriu: {error}");
                 return;
             }
         };
-        let inserted = self
-            .loop_handle
-            .insert_source(Generic::new(listener, Interest::READ, Mode::Level), |_, listener, state| {
+        let inserted = self.loop_handle.insert_source(
+            Generic::new(listener, Interest::READ, Mode::Level),
+            |_, listener, state| {
                 while let Ok((stream, _)) = listener.accept() {
                     state.watch_connection(stream);
                 }
                 Ok(PostAction::Continue)
-            });
+            },
+        );
         match inserted {
             Ok(_) => {
                 self.ipc = Some(IpcServer {
                     path,
                     subscribers: Vec::new(),
                     last: Vec::new(),
+                    window_watchers: Vec::new(),
+                    last_windows: Vec::new(),
+                    window_timer: None,
                 })
             }
             Err(error) => tracing::warn!("IPC do sparky sem fonte de eventos: {error}"),

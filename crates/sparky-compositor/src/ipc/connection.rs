@@ -6,7 +6,7 @@ use smithay::reexports::calloop::{Interest, Mode, PostAction};
 use sparky_ipc::codec::{decode, encode};
 use sparky_ipc::{IdleHold, Reply, Request};
 
-use crate::ipc::lines::take_lines;
+use crate::ipc::lines::{overflows, take_lines};
 use crate::state::Sparky;
 
 const CHUNK: usize = 4096;
@@ -39,7 +39,7 @@ impl Sparky {
     }
 
     fn serve(&mut self, stream: &UnixStream, peer: &mut Peer) -> PostAction {
-        if !read_available(stream, &mut peer.pending) {
+        if !read_available(stream, &mut peer.pending) || overflows(&peer.pending) {
             return PostAction::Remove;
         }
         for line in take_lines(&mut peer.pending) {
@@ -61,6 +61,11 @@ impl Sparky {
             && let (Some(server), Ok(copy)) = (self.ipc.as_mut(), stream.try_clone())
         {
             server.subscribers.push(copy);
+        }
+        if request == Request::WatchWindows
+            && let Ok(copy) = stream.try_clone()
+        {
+            self.watch_windows(copy);
         }
         self.answer(request, hold)
     }

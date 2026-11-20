@@ -1,0 +1,12 @@
+notice-app = Sparky
+notice-applied-title = Optimization applied
+notice-applied = { $change } on { $process } ({ $detail }) to { $purpose }.
+notice-reverted-title = Adjustment reverted
+notice-reverted = The adjustment on { $process } ({ $detail }) did not reduce contention and was undone.
+notice-unconfirmed-title = Restore not confirmed
+notice-unconfirmed = Could not confirm that { $process } went back to its original state. The manager entered safe mode.
+change-nice = CPU priority adjusted
+change-affinity = CPU affinity adjusted
+change-io = Disk priority adjusted
+purpose-ease-cpu = ease the CPU
+purpose-ease-io = ease the disk

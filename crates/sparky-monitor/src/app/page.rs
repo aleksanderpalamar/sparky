@@ -10,10 +10,11 @@ pub enum Page {
     Disk,
     Network,
     Gpu,
+    Intelligence,
 }
 
 impl Page {
-    pub const ALL: [Page; 8] = [
+    pub const ALL: [Page; 9] = [
         Page::Dashboard,
         Page::Applications,
         Page::Processes,
@@ -22,6 +23,7 @@ impl Page {
         Page::Disk,
         Page::Network,
         Page::Gpu,
+        Page::Intelligence,
     ];
 
     pub fn nth(index: usize) -> Option<Page> {
@@ -38,6 +40,7 @@ impl Page {
             Page::Disk => "disk",
             Page::Network => "network",
             Page::Gpu => "gpu",
+            Page::Intelligence => "intelligence",
         })
     }
 
@@ -47,7 +50,11 @@ impl Page {
             Page::Memory => Some(Column::Memory),
             Page::Disk => Some(Column::Disk),
             Page::Gpu => Some(Column::Gpu),
-            Page::Dashboard | Page::Applications | Page::Processes | Page::Network => None,
+            Page::Dashboard
+            | Page::Applications
+            | Page::Processes
+            | Page::Network
+            | Page::Intelligence => None,
         }
     }
 }

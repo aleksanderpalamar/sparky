@@ -12,9 +12,13 @@ pub mod message;
 mod message_tests;
 pub mod output;
 pub mod socket;
+pub mod window;
+#[cfg(test)]
+mod window_tests;
 
 pub use client::{Client, Events};
 pub use error::IpcError;
-pub use info::{SessionInfo, SessionKind};
+pub use info::{PROTOCOL, SessionInfo, SessionKind};
 pub use message::{CaptureArea, Event, IdleHold, Reply, Request, SessionAction, WorkspaceInfo};
 pub use output::{Hdr, OutputInfo, Vrr};
+pub use window::WindowInfo;

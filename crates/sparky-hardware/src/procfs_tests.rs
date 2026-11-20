@@ -71,3 +71,10 @@ fn memoria_disponivel_aceita_zero_mas_exige_a_unidade() {
     assert_eq!(available_memory_kib("MemAvailable: 12 MB\n"), None);
     assert_eq!(available_memory_kib("MemTotal: 16 kB\n"), None);
 }
+
+#[test]
+fn swap_total_e_livre() {
+    let meminfo = "SwapTotal:       4194300 kB\nSwapFree:        4194000 kB\n";
+    assert_eq!(super::swap_kib(meminfo), Some((4_194_300, 4_194_000)));
+    assert_eq!(super::swap_kib("SwapTotal: 1 kB\n"), None);
+}

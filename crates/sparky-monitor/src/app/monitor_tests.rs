@@ -78,3 +78,27 @@ fn roda_do_mouse_move_a_tabela_sob_o_ponteiro() {
     assert_eq!(monitor.selected_process, Some(100));
     assert_eq!(monitor.focus, Focus::Processes);
 }
+
+#[test]
+fn setas_trocam_as_abas_so_na_pagina_inteligencia() {
+    use super::message::Turn;
+    use crate::domain::decision::Lens;
+    let mut monitor = monitor(Arc::new(Sinais::default()));
+    enviar(&mut monitor, vec![Message::Turn(Turn::Forward)]);
+    assert_eq!(monitor.lens, Lens::Overview);
+    enviar(
+        &mut monitor,
+        vec![
+            Message::Open(Page::Intelligence),
+            Message::Turn(Turn::Forward),
+        ],
+    );
+    assert_eq!(monitor.lens, Lens::Decisions);
+    enviar(
+        &mut monitor,
+        vec![Message::Turn(Turn::Back), Message::Turn(Turn::Back)],
+    );
+    assert_eq!(monitor.lens, Lens::Learning);
+    enviar(&mut monitor, vec![Message::Look(Lens::Overview)]);
+    assert_eq!(monitor.lens, Lens::Overview);
+}

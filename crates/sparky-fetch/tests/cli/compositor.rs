@@ -65,6 +65,7 @@ fn info() -> SessionInfo {
             "#f7768e".to_owned(),
             "#449dab".to_owned(),
         ],
+        protocol: 0,
     }
 }
 

@@ -1,0 +1,32 @@
+[package]
+name = "sparky-resources"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "sparky-resources"
+path = "src/main.rs"
+
+[[bin]]
+name = "sparky-resources-helper"
+path = "src/helper.rs"
+
+[lib]
+name = "sparky_resources"
+path = "src/lib.rs"
+
+[dependencies]
+fluent-bundle = "0.16"
+libc = "0.2"
+nix = { version = "0.31", features = ["signal"] }
+serde.workspace = true
+sparky-config.workspace = true
+sparky-hardware.workspace = true
+sparky-i18n.workspace = true
+sparky-ipc.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

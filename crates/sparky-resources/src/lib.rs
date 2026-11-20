@@ -1,0 +1,16 @@
+pub mod application;
+pub mod context;
+pub mod daemon;
+pub mod domain;
+pub mod elevation;
+mod i18n;
+pub mod neural;
+pub mod orchestration;
+pub mod persistence;
+pub mod platform;
+pub mod policy;
+pub mod ports;
+pub mod predict;
+pub mod protocol;
+pub mod safety;
+pub mod telemetry;

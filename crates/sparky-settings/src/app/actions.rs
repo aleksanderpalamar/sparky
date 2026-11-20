@@ -18,7 +18,7 @@ impl Settings {
             Section::Autostart => self.config.autostart.len() + 1,
             Section::Shortcuts => self.binds().len(),
             Section::Monitors => self.outputs.as_ref().map_or(0, Vec::len),
-            Section::Network => 0,
+            Section::Network | Section::Performance => 0,
             Section::Power
             | Section::DateTime
             | Section::Region
@@ -33,6 +33,9 @@ impl Settings {
         self.section = section;
         if section == Section::Network {
             self.network = crate::domain::network::Network::load(self.services.commands.as_ref());
+        }
+        if section == Section::Performance {
+            self.refresh_performance();
         }
         self.focus = 0;
         self.mode = Mode::Browse;

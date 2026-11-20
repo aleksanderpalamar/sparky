@@ -4,6 +4,7 @@ use sparky_tiling::{Gaps, Style};
 use crate::action::Bind;
 use crate::lock::Lock;
 use crate::output::OutputRule;
+use crate::resources::Resources;
 use crate::terminal::Terminal;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -18,6 +19,7 @@ pub struct Config {
     pub autostart: Vec<String>,
     pub bind: Vec<Bind>,
     pub output: Vec<OutputRule>,
+    pub resources: Resources,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

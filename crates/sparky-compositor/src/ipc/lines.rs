@@ -1,3 +1,9 @@
+pub const LIMIT: usize = 64 * 1024;
+
+pub fn overflows(pending: &[u8]) -> bool {
+    pending.len() > LIMIT
+}
+
 pub fn take_lines(pending: &mut Vec<u8>) -> Vec<String> {
     let mut lines = Vec::new();
     while let Some(position) = pending.iter().position(|byte| *byte == b'\n') {
@@ -10,7 +16,7 @@ pub fn take_lines(pending: &mut Vec<u8>) -> Vec<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::take_lines;
+    use super::{LIMIT, overflows, take_lines};
 
     #[test]
     fn separa_as_linhas_completas() {
@@ -24,6 +30,12 @@ mod tests {
         let mut pending = b"{\"a\":1}\n{\"b\"".to_vec();
         assert_eq!(take_lines(&mut pending), vec!["{\"a\":1}"]);
         assert_eq!(pending, b"{\"b\"".to_vec());
+    }
+
+    #[test]
+    fn pedaco_sem_quebra_acima_do_limite_transborda() {
+        assert!(!overflows(&vec![b'a'; LIMIT]));
+        assert!(overflows(&vec![b'a'; LIMIT + 1]));
     }
 
     #[test]
