@@ -2,7 +2,8 @@ use super::encoding::{
     CONTEXT_INPUTS, OUTPUTS, STEP_INPUTS, Sample, WINDOW, absolute, context, decode, example_at,
     examples, step_input,
 };
-use crate::domain::{Activities, Activity, Features, Metric};
+use super::reference::{Base, bases};
+use crate::domain::{Activities, Activity, Features, METRICS, Metric};
 
 fn sample(at: f64, features: Features) -> Sample {
     Sample {
@@ -23,6 +24,12 @@ fn rows(count: usize) -> Vec<Sample> {
         .collect()
 }
 
+fn base_with(cpu_short: f32) -> Base {
+    let mut base = [None; OUTPUTS];
+    base[0] = Some(cpu_short);
+    base
+}
+
 #[test]
 fn cada_passo_leva_valores_mascaras_e_intervalo() {
     let input = step_input(
@@ -41,43 +48,45 @@ fn cada_passo_leva_valores_mascaras_e_intervalo() {
 }
 
 #[test]
-fn o_contexto_marca_as_atividades_reconhecidas() {
-    let flags = context([Activity::Idle, Activity::Gaming].into_iter().collect());
-    assert_eq!(flags.len(), CONTEXT_INPUTS);
-    assert_eq!(flags.iter().sum::<f32>(), 2.0);
-    assert_eq!((flags[0], flags[4]), (1.0, 1.0));
-}
-
-#[test]
-fn o_exemplo_leva_o_contexto_do_instante_atual() {
-    let mut rows = rows(60);
-    rows[WINDOW - 1].activities = [Activity::Compiling].into_iter().collect();
-    let found = example_at(&rows, WINDOW);
-    assert_eq!(
-        found.map(|example| example.context),
-        Some(context([Activity::Compiling].into_iter().collect()))
+fn o_contexto_leva_atividades_e_o_que_a_estatistica_espera() {
+    let current = Features::default().with(Metric::CpuBusy, Some(20.0));
+    let flags = context(
+        [Activity::Idle, Activity::Gaming].into_iter().collect(),
+        &base_with(35.0),
+        &current,
     );
+    assert_eq!(flags.len(), CONTEXT_INPUTS);
+    let (activities, expected) = flags.split_at(CONTEXT_INPUTS - OUTPUTS);
+    assert_eq!(activities.iter().sum::<f32>(), 2.0);
+    assert_eq!((activities[0], activities[4]), (1.0, 1.0));
+    assert_eq!(expected[0], 0.15);
+    assert!(expected[1..].iter().all(|value| *value == 0.0));
 }
 
 #[test]
-fn os_alvos_sao_a_variacao_em_relacao_ao_valor_atual() {
-    let found = examples(&rows(60));
-    let Some(example) = found.first() else {
-        panic!("deveria haver exemplos");
+fn o_alvo_e_o_erro_da_estatistica() {
+    let rows = rows(60);
+    let bases = bases(&rows);
+    let Some(example) = example_at(&rows, &bases, WINDOW) else {
+        panic!("deveria haver exemplo");
     };
     assert_eq!(example.window.len(), WINDOW);
     assert_eq!(example.targets.len(), OUTPUTS);
-    assert_eq!(example.targets[0], Some(5.0 / 100.0));
-    assert_eq!(example.targets[7], Some(30.0 / 100.0));
+    let reference = bases[WINDOW - 1];
+    let later = (WINDOW - 1 + 5) as f32;
+    assert_eq!(
+        example.targets[0],
+        reference[0].map(|value| (later - value) / 100.0)
+    );
     assert_eq!(example.targets[1], None);
+    assert_eq!(absolute(&example.targets, &reference)[0], Some(later));
 }
 
 #[test]
-fn sem_valor_atual_nao_ha_alvo() {
-    let mut rows = rows(60);
-    rows[WINDOW - 1].features = Features::default();
-    assert!(example_at(&rows, WINDOW).is_none());
-    assert!(example_at(&rows, WINDOW + 1).is_some());
+fn sem_referencia_nao_ha_alvo() {
+    let rows = rows(60);
+    let empty = vec![[None; OUTPUTS]; rows.len()];
+    assert!(example_at(&rows, &empty, WINDOW).is_none());
 }
 
 #[test]
@@ -86,25 +95,37 @@ fn sem_futuro_suficiente_nao_ha_exemplo() {
 }
 
 #[test]
-fn a_saida_soma_a_variacao_ao_valor_atual_na_faixa() {
+fn a_saida_corrige_a_previsao_da_estatistica() {
     let current = Features::default()
         .with(Metric::CpuBusy, Some(40.0))
         .with(Metric::MemoryUsed, Some(95.0));
-    let decoded = decode(&[0.1, 0.1, -0.2], &current);
-    assert_eq!(decoded, vec![50.0, 100.0, 0.0]);
+    let mut base = base_with(45.0);
+    base[1] = Some(96.0);
+    let decoded = decode(&[0.1, 0.1, -0.2], &base, &current);
+    assert_eq!(decoded, vec![55.0, 100.0, 0.0]);
 }
 
 #[test]
-fn saida_zero_repete_o_valor_atual() {
-    let current = Features::default().with(Metric::CpuBusy, Some(37.0));
-    assert_eq!(decode(&[0.0; OUTPUTS], &current)[0], 37.0);
+fn saida_zero_repete_a_estatistica_ou_o_valor_atual() {
+    let current = Features::default()
+        .with(Metric::CpuBusy, Some(37.0))
+        .with(Metric::MemoryUsed, Some(20.0));
+    let decoded = decode(&[0.0; OUTPUTS], &base_with(41.0), &current);
+    assert_eq!((decoded[0], decoded[1]), (41.0, 20.0));
+    assert_eq!(decoded.len(), OUTPUTS);
+    assert_eq!(METRICS.len() * 2, OUTPUTS);
 }
 
 #[test]
-fn o_alvo_absoluto_volta_a_partir_da_variacao() {
-    let current = Features::default().with(Metric::CpuBusy, Some(40.0));
-    assert_eq!(
-        absolute(&[Some(0.25), Some(0.1)], &current),
-        vec![Some(65.0), None]
+fn o_exemplo_leva_o_contexto_do_instante_atual() {
+    let mut rows = rows(60);
+    rows[WINDOW - 1].activities = [Activity::Compiling].into_iter().collect();
+    let bases = bases(&rows);
+    let found = example_at(&rows, &bases, WINDOW).map(|example| example.context);
+    let expected = context(
+        [Activity::Compiling].into_iter().collect(),
+        &bases[WINDOW - 1],
+        &rows[WINDOW - 1].features,
     );
+    assert_eq!(found, Some(expected));
 }

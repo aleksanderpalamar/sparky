@@ -387,3 +387,45 @@ ganhar da estatística em várias rodadas: no jogo da rodada 3 (1,87 contra
 compilação sem jogo, ela ainda perde (1,80 contra 0,54), mas o erro caiu
 pela metade. A média geral continua de 4% a 8% acima da estatística, abaixo
 dos 5% de vantagem que a promoção exige. QG13 segue inconclusivo.
+
+## Plano B: a rede corrige a estatística
+
+No 0.32.0-8, a rede funcionava, mas ficava de 15% a 25% acima da estatística:
+ela competia com a estatística sem enxergá-la. No plano B, a rede aprende com
+os erros da estatística:
+
+| Ponto | Antes | Agora |
+|---|---|---|
+| Alvo do treino | variação em relação ao valor atual | erro da estatística (valor real menos a previsão do Holt) |
+| Previsão final | valor atual + saída da rede | previsão da estatística + correção da rede |
+| Ponto de partida | "nada muda" | igual à estatística (saída zerada) |
+| Entrada do MLP | 9 atividades | 9 atividades e as 14 previsões da estatística em relação ao valor atual |
+| Parâmetros | 6.510 | 6.958 |
+| Regularização da saída | 5% por passo | 10% por passo |
+| Revisão dos modelos salvos | 2 | 3 |
+
+O cálculo do Holt do treino e da validação fica num único módulo
+(`application/reference.rs`). Um teste garante que ele produz os mesmos
+números do `Baseline` que o serviço usa ao vivo.
+
+Medição com `--example rounds_eval` sobre a coleta real do serviço (5.388
+amostras, sendo metade no início e o resto chegando em 6 rodadas):
+
+| Rodada | 0.32.0-8 | Plano B | Estatística | CPU 10 s: plano B / estatística |
+|---|---|---|---|---|
+| 1 | 0,95 | 0,81 | 0,80 | 2,76 / 2,68 |
+| 2 | 0,98 | 0,81 | 0,79 | 4,37 / 4,23 |
+| 3 | 0,91 | 0,78 | 0,78 | 2,19 / 2,30 |
+| 4 | 0,59 | 0,50 | 0,50 | 0,84 / 0,88 |
+| 5 | 0,42 | 0,36 | 0,36 | 0,65 / 0,67 |
+| 6 | 0,33 | 0,29 | 0,30 | 0,60 / 0,63 |
+
+Da rodada 3 em diante, a rede ganha da estatística na CPU em 10 s em todos os
+grupos (desktop, entrada no jogo e compilação) e empata na média geral. Um
+piso que usava a estatística pura como candidato mínimo foi testado e
+descartado: deixava a rede sempre igual à estatística e impedia o aprendizado
+de se acumular entre rodadas.
+
+A configuração D passa a ser "estatística + correção neural". O ganho de D
+sobre C é exatamente o que a correção acrescenta. A promoção continua
+exigindo 5% de vantagem na média geral, e QG13 segue inconclusivo.

@@ -6,7 +6,7 @@ use crate::neural::Hybrid;
 use crate::persistence::{Checkpoint, Kind, Knowledge, Restored};
 use crate::ports::Storage;
 
-pub const REVISION: u64 = 2;
+pub const REVISION: u64 = 3;
 
 pub fn owner(kind: Kind, hardware: u64) -> u64 {
     match kind {

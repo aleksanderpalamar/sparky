@@ -1,9 +1,10 @@
 use std::time::Instant;
 
 use sparky_resources::application::encoding::{
-    Example, HORIZONS, OUTPUTS, Sample, WINDOW, absolute, decode, examples,
+    Example, HORIZONS, OUTPUTS, Sample, WINDOW, absolute, decode, example_at, examples,
 };
 use sparky_resources::application::learning::{Plan, shape};
+use sparky_resources::application::reference::bases;
 use sparky_resources::domain::{Activities, METRICS};
 use sparky_resources::neural::{Adam, Hybrid};
 use sparky_resources::predict::trace::parse;
@@ -66,6 +67,7 @@ fn compare(rows: &[Sample], split: usize, model: &Hybrid) {
     let mut counts = [0_usize; OUTPUTS];
     let mut holts = [Holt::new(0.2, 0.0); METRICS.len()];
     let mut naive = [Persistence::default(); METRICS.len()];
+    let bases = bases(rows);
     for (index, end) in (WINDOW..rows.len()).enumerate() {
         let now = &rows[end - 1];
         for (slot, metric) in METRICS.iter().enumerate() {
@@ -74,9 +76,7 @@ fn compare(rows: &[Sample], split: usize, model: &Hybrid) {
                 naive[slot].update(now.at, value);
             }
         }
-        let Some(example) = examples(&rows[end - WINDOW..rows.len().min(end + 40)])
-            .into_iter()
-            .next()
+        let (Some(example), Some(base)) = (example_at(rows, &bases, end), bases.get(end - 1))
         else {
             continue;
         };
@@ -85,9 +85,10 @@ fn compare(rows: &[Sample], split: usize, model: &Hybrid) {
         }
         let neural = decode(
             &model.predict(&example.window, &example.context),
+            base,
             &now.features,
         );
-        for (output, target) in absolute(&example.targets, &now.features).iter().enumerate() {
+        for (output, target) in absolute(&example.targets, base).iter().enumerate() {
             let Some(target) = *target else {
                 continue;
             };

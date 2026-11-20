@@ -23,7 +23,7 @@ impl Default for Plan {
             epochs: 20,
             batch: 16,
             rate: 0.001,
-            decay: 0.05,
+            decay: 0.1,
             margin: 0.05,
             hidden: 32,
             blend: 32,

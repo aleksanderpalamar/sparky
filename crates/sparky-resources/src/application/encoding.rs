@@ -1,10 +1,11 @@
+use super::reference::{Base, bases};
 use crate::domain::activity::ACTIVITIES;
 use crate::domain::{Activities, Features, METRICS};
 
 pub const WINDOW: usize = 16;
 pub const HORIZONS: [f64; 2] = [10.0, 60.0];
 pub const STEP_INPUTS: usize = METRICS.len() * 2 + 1;
-pub const CONTEXT_INPUTS: usize = ACTIVITIES.len();
+pub const CONTEXT_INPUTS: usize = ACTIVITIES.len() + OUTPUTS;
 pub const OUTPUTS: usize = METRICS.len() * HORIZONS.len();
 const SCALE: f32 = 100.0;
 const TIME_SCALE: f64 = 10.0;
@@ -39,11 +40,19 @@ pub fn step_input(sample: &Sample, elapsed: f64) -> Vec<f32> {
         .collect()
 }
 
-pub fn context(activities: Activities) -> Vec<f32> {
-    ACTIVITIES
+pub fn context(activities: Activities, base: &Base, current: &Features) -> Vec<f32> {
+    let flags = ACTIVITIES
         .iter()
-        .map(|activity| flag(activities.contains(*activity)))
-        .collect()
+        .map(|activity| flag(activities.contains(*activity)));
+    let expected = base
+        .iter()
+        .zip(METRICS.iter().cycle())
+        .map(|(reference, metric)| {
+            reference
+                .zip(current.get(*metric))
+                .map_or(0.0, |(reference, now)| (reference - now) / SCALE)
+        });
+    flags.chain(expected).collect()
 }
 
 pub fn window(rows: &[Sample]) -> Vec<Vec<f32>> {
@@ -57,59 +66,62 @@ pub fn window(rows: &[Sample]) -> Vec<Vec<f32>> {
         .collect()
 }
 
-pub fn decode(outputs: &[f32], current: &Features) -> Vec<f32> {
+pub fn decode(outputs: &[f32], base: &Base, current: &Features) -> Vec<f32> {
     outputs
         .iter()
+        .zip(base)
         .zip(METRICS.iter().cycle())
-        .map(|(change, metric)| {
-            let base = current.get(*metric).unwrap_or(0.0);
-            (base + change * SCALE).clamp(0.0, 100.0)
+        .map(|((correction, reference), metric)| {
+            let start = reference.or(current.get(*metric)).unwrap_or(0.0);
+            (start + correction * SCALE).clamp(0.0, 100.0)
         })
         .collect()
 }
 
-pub fn absolute(targets: &[Option<f32>], current: &Features) -> Vec<Option<f32>> {
+pub fn absolute(targets: &[Option<f32>], base: &Base) -> Vec<Option<f32>> {
     targets
         .iter()
-        .zip(METRICS.iter().cycle())
-        .map(|(change, metric)| Some(current.get(*metric)? + (*change)? * SCALE))
+        .zip(base)
+        .map(|(error, reference)| Some((*reference)? + (*error)? * SCALE))
         .collect()
 }
 
 pub fn examples(rows: &[Sample]) -> Vec<Example> {
+    let bases = bases(rows);
     (WINDOW..rows.len())
-        .filter_map(|end| example_at(rows, end))
+        .filter_map(|end| example_at(rows, &bases, end))
         .collect()
 }
 
-pub fn example_at(rows: &[Sample], end: usize) -> Option<Example> {
+pub fn example_at(rows: &[Sample], bases: &[Base], end: usize) -> Option<Example> {
     let start = end.checked_sub(WINDOW)?;
-    let now = *rows.get(end - 1)?;
+    let now = rows.get(end - 1)?;
+    let base = bases.get(end - 1)?;
     let future = rows.get(end..)?;
     let targets: Vec<Option<f32>> = HORIZONS
         .iter()
-        .flat_map(|horizon| target(future, &now, now.at + horizon, horizon * 0.5))
+        .enumerate()
+        .flat_map(|(step, horizon)| {
+            let found = arrival(future, now.at + horizon, horizon * 0.5);
+            METRICS.iter().enumerate().map(move |(slot, metric)| {
+                let later = found?.features.get(*metric)?;
+                let reference = (*base.get(step * METRICS.len() + slot)?)?;
+                Some((later - reference) / SCALE)
+            })
+        })
         .collect();
     targets.iter().any(Option::is_some).then(|| Example {
         window: window(&rows[start..end]),
-        context: context(now.activities),
+        context: context(now.activities, base, &now.features),
         targets,
     })
 }
 
-fn target(future: &[Sample], now: &Sample, when: f64, tolerance: f64) -> Vec<Option<f32>> {
-    let found = future
+fn arrival(future: &[Sample], when: f64, tolerance: f64) -> Option<&Sample> {
+    future
         .iter()
         .find(|sample| sample.at >= when)
-        .filter(|sample| sample.at <= when + tolerance);
-    METRICS
-        .iter()
-        .map(|metric| {
-            let later = found?.features.get(*metric)?;
-            let current = now.features.get(*metric)?;
-            Some((later - current) / SCALE)
-        })
-        .collect()
+        .filter(|sample| sample.at <= when + tolerance)
 }
 
 fn flag(on: bool) -> f32 {

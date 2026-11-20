@@ -5,8 +5,8 @@ use crate::predict::{Deviation, Holt};
 
 pub const SHORT: f64 = 10.0;
 pub const LONG: f64 = 60.0;
-const ALPHA: f32 = 0.2;
-const BETA: f32 = 0.0;
+pub const ALPHA: f32 = 0.2;
+pub const BETA: f32 = 0.0;
 const DEVIATION_WEIGHT: f32 = 0.05;
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]

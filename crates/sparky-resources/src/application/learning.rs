@@ -5,6 +5,7 @@ use super::diagnosis::Tally;
 use super::encoding::{Example, Sample, WINDOW, example_at};
 pub use super::plan::{Plan, shape};
 use super::progress::{Outcome, Progress};
+use super::reference::{Base, bases};
 use super::selection::{Judged, best, judge};
 use super::validation::Errors;
 use crate::neural::{Adam, Hybrid};
@@ -23,6 +24,7 @@ struct Session {
     model: Hybrid,
     adam: Adam,
     rows: Vec<Sample>,
+    bases: Vec<Base>,
     cursor: usize,
     epoch: usize,
 }
@@ -98,7 +100,7 @@ impl Learner {
         let last = split.saturating_sub(LEAK_GUARD).max(WINDOW);
         while Instant::now() < deadline && session.epoch < plan.epochs {
             for end in session.cursor..(session.cursor + plan.batch).min(last) {
-                if let Some(example) = lesson(&session.rows, split, end) {
+                if let Some(example) = lesson(&session.rows, &session.bases, split, end) {
                     session
                         .model
                         .accumulate(&example.window, &example.context, &example.targets);
@@ -147,8 +149,8 @@ impl Learner {
     }
 }
 
-pub fn lesson(rows: &[Sample], split: usize, end: usize) -> Option<Example> {
-    example_at(rows.get(..split)?, end)
+pub fn lesson(rows: &[Sample], bases: &[Base], split: usize, end: usize) -> Option<Example> {
+    example_at(rows.get(..split)?, bases.get(..split)?, end)
 }
 
 fn start(plan: Plan, history: &VecDeque<Sample>, origin: Option<&Hybrid>) -> Session {
@@ -156,10 +158,12 @@ fn start(plan: Plan, history: &VecDeque<Sample>, origin: Option<&Hybrid>) -> Ses
         .cloned()
         .unwrap_or_else(|| Hybrid::still(shape(&plan), plan.seed));
     let adam = Adam::new(plan.rate, model.params.len());
+    let rows: Vec<Sample> = history.iter().copied().collect();
     Session {
         model,
         adam,
-        rows: history.iter().copied().collect(),
+        bases: bases(&rows),
+        rows,
         cursor: WINDOW,
         epoch: 0,
     }

@@ -40,6 +40,9 @@ pub mod plan;
 pub mod progress;
 #[cfg(test)]
 mod progress_tests;
+pub mod reference;
+#[cfg(test)]
+mod reference_tests;
 pub mod selection;
 #[cfg(test)]
 mod selection_tests;

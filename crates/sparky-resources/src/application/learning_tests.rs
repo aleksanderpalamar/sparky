@@ -3,6 +3,7 @@ use std::time::{Duration, Instant};
 use super::encoding::{Sample, WINDOW, example_at};
 use super::learning::{Learner, Plan, Verdict, lesson};
 use super::learning_support::{finish, fresh, sample, small, stubborn, wave};
+use super::reference::bases;
 
 #[test]
 fn espera_historico_suficiente_antes_de_treinar() {
@@ -91,10 +92,11 @@ fn o_treino_nunca_usa_alvos_da_parte_de_validacao() {
         .map(|index| sample(index as f64 * 0.25, if index < split { 10.0 } else { 90.0 }))
         .collect();
     let leaks = |targets: &[Option<f32>]| targets.iter().flatten().any(|target| *target > 0.5);
-    assert!(example_at(&rows, 300).is_some_and(|example| leaks(&example.targets)));
+    let bases = bases(&rows);
+    assert!(example_at(&rows, &bases, 300).is_some_and(|example| leaks(&example.targets)));
     for end in WINDOW..=split {
         assert!(
-            !lesson(&rows, split, end).is_some_and(|example| leaks(&example.targets)),
+            !lesson(&rows, &bases, split, end).is_some_and(|example| leaks(&example.targets)),
             "exemplo {end}"
         );
     }

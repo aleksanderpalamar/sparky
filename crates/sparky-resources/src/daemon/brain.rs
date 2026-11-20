@@ -6,6 +6,7 @@ use crate::application::archive::{pack_rounds, pack_samples};
 use crate::application::encoding::{HORIZONS, OUTPUTS, Sample, WINDOW, context, decode, window};
 use crate::application::learning::{Learner, Plan, Verdict};
 use crate::application::progress::{Outcome, REMEMBERED};
+use crate::application::reference::base;
 use crate::application::{Baseline, Insight, Knowledge as Validity, Observation, Progress, Round};
 use crate::domain::TrainingState;
 use crate::neural::Hybrid;
@@ -70,14 +71,15 @@ impl<S: Storage> Brain<S> {
             self.recent.remove(0);
         }
         let mut insights = self.baseline.observe(at, &observation.features);
+        let base = base(&insights);
         let neural = self
             .active
             .as_ref()
             .filter(|_| self.recent.len() == WINDOW)
             .map(|model| {
-                let outputs =
-                    model.predict(&window(&self.recent), &context(observation.activities));
-                decode(&outputs, &observation.features)
+                let hints = context(observation.activities, &base, &observation.features);
+                let outputs = model.predict(&window(&self.recent), &hints);
+                decode(&outputs, &base, &observation.features)
             });
         if let Some(values) = neural {
             for (slot, insight) in insights.iter_mut().enumerate() {
