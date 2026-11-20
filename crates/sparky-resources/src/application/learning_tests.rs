@@ -128,3 +128,23 @@ fn o_progresso_informa_a_janela_de_coleta() {
     let learner = Learner::new(small());
     assert_eq!(learner.progress().window, 400);
 }
+
+#[test]
+fn rodadas_seguidas_ainda_mexem_alem_dos_vieses_de_saida() {
+    let mut learner = Learner::new(Plan {
+        rate: 0.05,
+        ..stubborn()
+    });
+    wave(&mut learner, 400);
+    finish(&mut learner);
+    let before = learner.incumbent().map(|model| model.params.values.clone());
+    finish(&mut learner);
+    let after = learner.incumbent().map(|model| model.params.values.clone());
+    let moved = before
+        .iter()
+        .flatten()
+        .zip(after.iter().flatten())
+        .filter(|(old, new)| old != new)
+        .count();
+    assert!(moved > 100, "só {moved} parâmetros mudaram");
+}

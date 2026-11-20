@@ -12,6 +12,7 @@ pub fn small() -> Plan {
         epochs: 30,
         batch: 16,
         rate: 0.01,
+        decay: 0.0,
         margin: 0.05,
         hidden: 8,
         blend: 8,

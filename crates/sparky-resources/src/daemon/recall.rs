@@ -6,6 +6,15 @@ use crate::neural::Hybrid;
 use crate::persistence::{Checkpoint, Kind, Knowledge, Restored};
 use crate::ports::Storage;
 
+pub const REVISION: u64 = 2;
+
+pub fn owner(kind: Kind, hardware: u64) -> u64 {
+    match kind {
+        Kind::Sequence | Kind::Candidate => hardware ^ (REVISION << 56),
+        _ => hardware,
+    }
+}
+
 pub struct Recall<S> {
     knowledge: Option<Knowledge<S>>,
     hardware: u64,
@@ -44,7 +53,7 @@ impl<S: Storage> Recall<S> {
     pub fn keep(&mut self, kind: Kind, values: Vec<f32>) {
         let checkpoint = Checkpoint {
             kind,
-            hardware: self.hardware,
+            hardware: owner(kind, self.hardware),
             values,
         };
         if let Some(Err(error)) = self
@@ -73,7 +82,11 @@ impl<S: Storage> Recall<S> {
     }
 
     fn values(&self, kind: Kind) -> Option<Vec<f32>> {
-        match self.knowledge.as_ref()?.restore(kind, self.hardware) {
+        match self
+            .knowledge
+            .as_ref()?
+            .restore(kind, owner(kind, self.hardware))
+        {
             Restored::Model(checkpoint) => Some(checkpoint.values),
             _ => None,
         }

@@ -4,8 +4,9 @@ use std::time::Instant;
 use super::diagnosis::Tally;
 use super::encoding::{Example, Sample, WINDOW, example_at};
 pub use super::plan::{Plan, shape};
-use super::progress::{Outcome, Progress, outcome};
-use super::validation::{Errors, tally, validate};
+use super::progress::{Outcome, Progress};
+use super::selection::{Judged, best, judge};
+use super::validation::Errors;
 use crate::neural::{Adam, Hybrid};
 
 const LEAK_GUARD: usize = 40;
@@ -104,6 +105,7 @@ impl Learner {
                 }
             }
             session.adam.step(&mut session.model.params);
+            session.model.settle(plan.decay);
             session.cursor += plan.batch;
             if session.cursor >= last {
                 session.cursor = WINDOW;
@@ -116,11 +118,16 @@ impl Learner {
         let Some(session) = self.session.take() else {
             return Verdict::Waiting;
         };
-        let diagnosis = tally(&session.rows, split, Some(&session.model));
-        let (verdict, incumbent) = judge(plan, session, split, active, diagnosis.errors(true));
-        self.incumbent = incumbent;
+        let (model, diagnosis) = best(self.incumbent.take(), session.model, &session.rows, split);
+        let errors = diagnosis.errors(true);
         self.diagnosis = Some(diagnosis);
-        verdict
+        match judge(&plan, model, &session.rows, split, active, errors) {
+            Judged::Promoted(model, errors) => Verdict::Promoted(Box::new(model), errors),
+            Judged::Rejected(errors, outcome, incumbent) => {
+                self.incumbent = incumbent;
+                Verdict::Rejected(errors, outcome)
+            }
+        }
     }
 
     #[cfg(test)]
@@ -155,21 +162,5 @@ fn start(plan: Plan, history: &VecDeque<Sample>, origin: Option<&Hybrid>) -> Ses
         rows: history.iter().copied().collect(),
         cursor: WINDOW,
         epoch: 0,
-    }
-}
-
-fn judge(
-    plan: Plan,
-    session: Session,
-    split: usize,
-    active: Option<&Hybrid>,
-    candidate: Errors,
-) -> (Verdict, Option<Hybrid>) {
-    let current = active.and_then(|model| validate(&session.rows, split, Some(model)).neural);
-    let finite = session.model.params.is_finite();
-    match outcome(plan.margin, &candidate, current, finite) {
-        Outcome::Promoted => (Verdict::Promoted(Box::new(session.model), candidate), None),
-        Outcome::Unstable => (Verdict::Rejected(candidate, Outcome::Unstable), None),
-        rejected => (Verdict::Rejected(candidate, rejected), Some(session.model)),
     }
 }

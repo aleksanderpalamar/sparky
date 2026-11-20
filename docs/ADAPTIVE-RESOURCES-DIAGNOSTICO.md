@@ -349,3 +349,41 @@ journalctl --user -u sparky-resources | grep diagnóstico
 
 O cálculo usa a mesma passada da validação, sem custo extra. A margem de
 promoção continua em 5% sobre a média geral.
+
+## Unidades mortas, melhor candidato e regularização
+
+O diagnóstico por contexto do 0.32.0-7 mostrou a rede prevendo saltos de GPU
+e VRAM que não aconteciam durante a compilação (erro 15,67 contra 1,20) e
+variações onde a métrica era sempre zero. A causa estava no híbrido: depois da
+primeira rodada, só os 14 vieses da saída mudavam. As 32 unidades ReLU do MLP
+tinham morrido, e a rede virou uma constante por métrica.
+
+Mudanças:
+
+| Ponto | Antes | Agora |
+|---|---|---|
+| Camada oculta do MLP | ReLU | tanh, sem região sem gradiente |
+| Candidato guardado | o último | o que erra menos nos mesmos dados, entre o novo e o anterior |
+| Saída | livre | encolhida 5% a cada passo, voltando para "nada muda" onde não há padrão |
+| Taxa de aprendizado | 0,003 | 0,001 |
+| Modelos salvos | vinculados ao hardware | vinculados ao hardware e à revisão 2 da rede; o candidato com unidades mortas é ignorado |
+
+Medição com `--example rounds_eval` sobre a coleta real do serviço (2.400
+amostras com contexto, incluindo jogo e compilação). Metade da coleta no
+início e o resto chegando em 6 rodadas, como na janela do serviço:
+
+| Rodada | Rede antes (tanh, sem regularização) | Rede agora | Estatística |
+|---|---|---|---|
+| 1 | 2,54 | 2,38 | 2,29 |
+| 2 | 3,28 | 2,58 | 2,45 |
+| 3 | 2,85 | 2,19 | 2,07 |
+| 4 | 1,66 | 1,06 | 0,80 |
+| 5 | 1,24 | 0,74 | 0,64 |
+| 6 | 1,08 | 0,54 | 0,50 |
+
+Na CPU em 10 s, que é a métrica em que o gerenciador age, a rede passou a
+ganhar da estatística em várias rodadas: no jogo da rodada 3 (1,87 contra
+2,11) e no desktop das rodadas 3 a 6 (por exemplo, 1,94 contra 2,16). Na
+compilação sem jogo, ela ainda perde (1,80 contra 0,54), mas o erro caiu
+pela metade. A média geral continua de 4% a 8% acima da estatística, abaixo
+dos 5% de vantagem que a promoção exige. QG13 segue inconclusivo.

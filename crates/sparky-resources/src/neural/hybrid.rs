@@ -23,7 +23,6 @@ pub struct Hybrid {
 struct Pass {
     steps: Vec<Step>,
     joined: Vec<f32>,
-    sums: Vec<f32>,
     active: Vec<f32>,
     output: Vec<f32>,
 }
@@ -54,6 +53,11 @@ impl Hybrid {
         model
     }
 
+    pub fn settle(&mut self, decay: f32) {
+        self.head
+            .shrink(&mut self.params, 1.0 - decay.clamp(0.0, 1.0));
+    }
+
     pub fn predict(&self, sequence: &[Vec<f32>], context: &[f32]) -> Vec<f32> {
         self.pass(sequence, context).output
     }
@@ -73,8 +77,8 @@ impl Hybrid {
         let mut active = vec![0.0; self.blend.outputs];
         self.head
             .backward(&mut self.params, &pass.active, &gradient, Some(&mut active));
-        for (delta, sum) in active.iter_mut().zip(&pass.sums) {
-            *delta *= if *sum > 0.0 { 1.0 } else { 0.0 };
+        for (delta, value) in active.iter_mut().zip(&pass.active) {
+            *delta *= slope(*value);
         }
         let mut joined = vec![0.0; self.blend.inputs];
         self.blend
@@ -98,17 +102,24 @@ impl Hybrid {
         let joined: Vec<f32> = state.into_iter().chain(context.iter().copied()).collect();
         let mut sums = vec![0.0; self.blend.outputs];
         self.blend.forward(&self.params, &joined, &mut sums);
-        let active: Vec<f32> = sums.iter().map(|sum| sum.max(0.0)).collect();
+        let active: Vec<f32> = sums.iter().map(|sum| activate(*sum)).collect();
         let mut output = vec![0.0; self.head.outputs];
         self.head.forward(&self.params, &active, &mut output);
         Pass {
             steps,
             joined,
-            sums,
             active,
             output,
         }
     }
+}
+
+pub(super) fn activate(sum: f32) -> f32 {
+    sum.tanh()
+}
+
+pub(super) fn slope(active: f32) -> f32 {
+    1.0 - active * active
 }
 
 fn squared(predicted: &[f32], target: &[Option<f32>]) -> (f32, Vec<f32>) {

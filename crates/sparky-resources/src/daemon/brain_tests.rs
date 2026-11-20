@@ -1,4 +1,5 @@
 use super::brain::Brain;
+use super::recall::owner;
 use crate::application::encoding::WINDOW;
 use crate::application::learning::{Plan, shape};
 use crate::application::{Knowledge as Validity, Observation};
@@ -34,7 +35,7 @@ fn saved(storage: &FakeStorage, hardware: u64) {
     let model = Hybrid::new(shape(&Plan::default()), 3);
     let checkpoint = Checkpoint {
         kind: Kind::Sequence,
-        hardware,
+        hardware: owner(Kind::Sequence, hardware),
         values: model.params.values,
     };
     assert!(Knowledge::new(storage).store(&checkpoint).is_ok());
@@ -177,4 +178,20 @@ fn esquecer_apaga_coleta_candidato_e_rodadas() {
     let progress = brain.progress();
     assert_eq!((progress.collected, progress.rounds), (0, 0));
     assert!(progress.history.is_empty());
+}
+
+#[test]
+fn modelo_de_revisao_anterior_da_rede_e_ignorado() {
+    let storage = FakeStorage::default();
+    let model = Hybrid::new(shape(&Plan::default()), 3);
+    for kind in [Kind::Sequence, Kind::Candidate] {
+        let checkpoint = Checkpoint {
+            kind,
+            hardware: HARDWARE,
+            values: model.params.values.clone(),
+        };
+        assert!(Knowledge::new(&storage).store(&checkpoint).is_ok());
+    }
+    let brain = Brain::new(Some(Knowledge::new(&storage)), HARDWARE);
+    assert_eq!(brain.validity(), Validity::Unvalidated);
 }

@@ -1,5 +1,5 @@
 use super::adam::Adam;
-use super::hybrid::{Hybrid, Shape};
+use super::hybrid::{Hybrid, Shape, activate, slope};
 
 fn shape(context: usize) -> Shape {
     Shape {
@@ -75,4 +75,31 @@ fn modelo_parado_comeca_prevendo_zero_e_ainda_aprende() {
         adam.step(&mut model.params);
     }
     assert!(model.loss(&sequence, &[1.0], &[Some(0.5)]) < before * 0.1);
+}
+
+#[test]
+fn a_camada_oculta_nao_tem_regiao_sem_gradiente() {
+    for sum in [-3.0, -1.0, -0.1, 0.0, 0.1, 1.0, 3.0] {
+        assert!(slope(activate(sum)) > 0.0, "soma {sum}");
+    }
+}
+
+#[test]
+fn acomodar_puxa_a_saida_de_volta_para_zero() {
+    let mut model = Hybrid::still(shape(1), 9);
+    let mut adam = Adam::new(0.05, model.params.len());
+    let sequence = [vec![0.2], vec![0.4]];
+    for _ in 0..50 {
+        model.accumulate(&sequence, &[1.0], &[Some(0.5)]);
+        adam.step(&mut model.params);
+    }
+    let learned = model.predict(&sequence, &[1.0])[0];
+    let mut kept = model.clone();
+    kept.settle(0.0);
+    assert_eq!(kept.predict(&sequence, &[1.0])[0], learned);
+    model.settle(0.5);
+    let halved = model.predict(&sequence, &[1.0])[0];
+    assert!((halved - learned * 0.5).abs() < 1e-6, "{halved} {learned}");
+    model.settle(1.0);
+    assert_eq!(model.predict(&sequence, &[1.0]), vec![0.0]);
 }

@@ -23,8 +23,15 @@ impl Dense {
     }
 
     pub fn clear(&self, params: &mut Parameters) {
-        params.values[self.weights.range()].fill(0.0);
-        params.values[self.bias.range()].fill(0.0);
+        self.shrink(params, 0.0);
+    }
+
+    pub fn shrink(&self, params: &mut Parameters, keep: f32) {
+        for slot in [self.weights, self.bias] {
+            for value in &mut params.values[slot.range()] {
+                *value *= keep;
+            }
+        }
     }
 
     pub fn forward(&self, params: &Parameters, input: &[f32], output: &mut [f32]) {
