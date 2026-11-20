@@ -3,9 +3,10 @@ use std::time::{Duration, Instant};
 
 use super::recall::Recall;
 use crate::application::archive::{pack_rounds, pack_samples};
-use crate::application::encoding::{HORIZONS, OUTPUTS, Sample, WINDOW, context, decode, window};
+use crate::application::encoding::{HORIZONS, OUTPUTS, Sample, context, decode};
 use crate::application::learning::{Learner, Plan, Verdict};
 use crate::application::progress::{Outcome, REMEMBERED};
+use crate::application::recent::Recent;
 use crate::application::reference::base;
 use crate::application::{Baseline, Insight, Knowledge as Validity, Observation, Progress, Round};
 use crate::domain::TrainingState;
@@ -21,7 +22,7 @@ pub struct Brain<S> {
     learner: Learner,
     recall: Recall<S>,
     active: Option<Hybrid>,
-    recent: Vec<Sample>,
+    recent: Recent,
     rounds: u32,
     history: VecDeque<Round>,
     kept_at: Option<f64>,
@@ -32,15 +33,20 @@ impl<S: Storage> Brain<S> {
         let plan = Plan::default();
         let recall = Recall::new(knowledge, hardware);
         let mut learner = Learner::new(plan);
-        learner.resume(recall.samples(0.0), recall.model(Kind::Candidate, &plan));
+        let candidate = recall
+            .model(Kind::Candidate, &plan)
+            .or_else(|| recall.inherited(Kind::Candidate, &plan));
+        learner.resume(recall.samples(0.0), candidate);
         let (rounds, history) = recall.rounds().unwrap_or_default();
         let skip = history.len().saturating_sub(REMEMBERED);
         Self {
             baseline: Baseline::default(),
             learner,
-            active: recall.model(Kind::Sequence, &plan),
+            active: recall
+                .model(Kind::Sequence, &plan)
+                .or_else(|| recall.inherited(Kind::Sequence, &plan)),
             recall,
-            recent: Vec::new(),
+            recent: Recent::default(),
             rounds,
             history: history.into_iter().skip(skip).collect(),
             kept_at: None,
@@ -66,20 +72,25 @@ impl<S: Storage> Brain<S> {
         };
         self.learner.record(sample);
         self.keep_collection(at);
-        self.recent.push(sample);
-        if self.recent.len() > WINDOW {
-            self.recent.remove(0);
-        }
         let mut insights = self.baseline.observe(at, &observation.features);
         let base = base(&insights);
+        self.recent.push(sample, base);
         let neural = self
             .active
             .as_ref()
-            .filter(|_| self.recent.len() == WINDOW)
-            .map(|model| {
-                let hints = context(observation.activities, &base, &observation.features);
-                let outputs = model.predict(&window(&self.recent), &hints);
-                decode(&outputs, &base, &observation.features)
+            .zip(self.recent.window())
+            .map(|(model, window)| {
+                let hints = context(
+                    observation.activities,
+                    &base,
+                    &observation.features,
+                    &self.recent.misses(),
+                );
+                decode(
+                    &model.predict(&window, &hints),
+                    &base,
+                    &observation.features,
+                )
             });
         if let Some(values) = neural {
             for (slot, insight) in insights.iter_mut().enumerate() {

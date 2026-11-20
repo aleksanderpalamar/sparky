@@ -38,6 +38,24 @@ impl Gru {
         }
     }
 
+    pub fn inputs(&self) -> usize {
+        self.update_input.inputs
+    }
+
+    pub fn transplant(&self, from: &Parameters, into: &Gru, to: &mut Parameters) {
+        let pairs = [
+            (&self.update_input, &into.update_input),
+            (&self.update_hidden, &into.update_hidden),
+            (&self.reset_input, &into.reset_input),
+            (&self.reset_hidden, &into.reset_hidden),
+            (&self.candidate_input, &into.candidate_input),
+            (&self.candidate_hidden, &into.candidate_hidden),
+        ];
+        for (source, target) in pairs {
+            source.transplant(from, target, to);
+        }
+    }
+
     pub fn step(&self, params: &Parameters, input: &[f32], previous: &[f32]) -> Step {
         let both = |from_input: &Dense, from_hidden: &Dense| {
             let (mut sum, mut recurrent) = (vec![0.0; self.hidden], vec![0.0; self.hidden]);

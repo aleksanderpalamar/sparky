@@ -1,13 +1,13 @@
-use super::reference::{Base, bases};
+use super::reference::{Base, Misses, bases, misses};
 use crate::domain::activity::ACTIVITIES;
 use crate::domain::{Activities, Features, METRICS};
 
 pub const WINDOW: usize = 16;
 pub const HORIZONS: [f64; 2] = [10.0, 60.0];
 pub const STEP_INPUTS: usize = METRICS.len() * 2 + 1;
-pub const CONTEXT_INPUTS: usize = ACTIVITIES.len() + OUTPUTS;
+pub const CONTEXT_INPUTS: usize = ACTIVITIES.len() + OUTPUTS * 2;
 pub const OUTPUTS: usize = METRICS.len() * HORIZONS.len();
-const SCALE: f32 = 100.0;
+pub(super) const SCALE: f32 = 100.0;
 const TIME_SCALE: f64 = 10.0;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -40,7 +40,12 @@ pub fn step_input(sample: &Sample, elapsed: f64) -> Vec<f32> {
         .collect()
 }
 
-pub fn context(activities: Activities, base: &Base, current: &Features) -> Vec<f32> {
+pub fn context(
+    activities: Activities,
+    base: &Base,
+    current: &Features,
+    missed: &Misses,
+) -> Vec<f32> {
     let flags = ACTIVITIES
         .iter()
         .map(|activity| flag(activities.contains(*activity)));
@@ -52,7 +57,8 @@ pub fn context(activities: Activities, base: &Base, current: &Features) -> Vec<f
                 .zip(current.get(*metric))
                 .map_or(0.0, |(reference, now)| (reference - now) / SCALE)
         });
-    flags.chain(expected).collect()
+    let missed = missed.iter().map(|miss| miss.unwrap_or(0.0));
+    flags.chain(expected).chain(missed).collect()
 }
 
 pub fn window(rows: &[Sample]) -> Vec<Vec<f32>> {
@@ -110,9 +116,10 @@ pub fn example_at(rows: &[Sample], bases: &[Base], end: usize) -> Option<Example
             })
         })
         .collect();
+    let missed = misses(rows.get(..end)?, bases.get(..end)?);
     targets.iter().any(Option::is_some).then(|| Example {
         window: window(&rows[start..end]),
-        context: context(now.activities, base, &now.features),
+        context: context(now.activities, base, &now.features, &missed),
         targets,
     })
 }

@@ -34,6 +34,17 @@ impl Dense {
         }
     }
 
+    pub fn transplant(&self, from: &Parameters, into: &Dense, to: &mut Parameters) {
+        into.clear(to);
+        for output in 0..self.outputs.min(into.outputs) {
+            for input in 0..self.inputs.min(into.inputs) {
+                to.values[into.weights.offset + output * into.inputs + input] =
+                    from.values[self.weights.offset + output * self.inputs + input];
+            }
+            to.values[into.bias.offset + output] = from.values[self.bias.offset + output];
+        }
+    }
+
     pub fn forward(&self, params: &Parameters, input: &[f32], output: &mut [f32]) {
         let weights = &params.values[self.weights.range()];
         let bias = &params.values[self.bias.range()];

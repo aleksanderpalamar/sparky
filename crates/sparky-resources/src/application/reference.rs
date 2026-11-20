@@ -1,9 +1,10 @@
 use super::baseline::{ALPHA, BETA, Insight};
-use super::encoding::{HORIZONS, OUTPUTS, Sample};
+use super::encoding::{HORIZONS, OUTPUTS, SCALE, Sample};
 use crate::domain::METRICS;
 use crate::predict::Holt;
 
 pub type Base = [Option<f32>; OUTPUTS];
+pub type Misses = [Option<f32>; OUTPUTS];
 
 pub fn bases(rows: &[Sample]) -> Vec<Base> {
     let mut holts = [Holt::new(ALPHA, BETA); METRICS.len()];
@@ -31,5 +32,25 @@ pub fn base(insights: &[Insight]) -> Base {
             0 => insight.estimate_short,
             _ => insight.estimate_long,
         }
+    })
+}
+
+pub fn misses(samples: &[Sample], bases: &[Base]) -> Misses {
+    let Some(now) = samples.last() else {
+        return [None; OUTPUTS];
+    };
+    std::array::from_fn(|output| {
+        let horizon = *HORIZONS.get(output / METRICS.len())?;
+        let metric = METRICS.get(output % METRICS.len())?;
+        let when = now.at - horizon;
+        let index = samples
+            .partition_point(|sample| sample.at <= when)
+            .checked_sub(1)?;
+        samples
+            .get(index)
+            .filter(|then| when - then.at <= horizon * 0.5)?;
+        let expected = bases.get(index)?.get(output).copied().flatten()?;
+        let actual = now.features.get(*metric)?;
+        Some((actual - expected) / SCALE)
     })
 }

@@ -103,3 +103,32 @@ fn acomodar_puxa_a_saida_de_volta_para_zero() {
     model.settle(1.0);
     assert_eq!(model.predict(&sequence, &[1.0]), vec![0.0]);
 }
+
+#[test]
+fn alargar_o_contexto_mantem_exatamente_o_que_a_rede_previa() {
+    let mut model = Hybrid::new(shape(2), 5);
+    let mut adam = Adam::new(0.02, model.params.len());
+    for _ in 0..30 {
+        model.accumulate(&ramp(0.1), &[1.0, 0.0], &[Some(0.3)]);
+        adam.step(&mut model.params);
+    }
+    let Some(wider) = model.widen(shape(5)) else {
+        panic!("deveria alargar")
+    };
+    for extra in [[0.0, 0.0, 0.0], [0.7, -0.4, 1.0]] {
+        let context = [1.0, 0.0, extra[0], extra[1], extra[2]];
+        assert_eq!(
+            wider.predict(&ramp(0.1), &context),
+            model.predict(&ramp(0.1), &[1.0, 0.0])
+        );
+    }
+    assert!(
+        model
+            .widen(Shape {
+                memory: 4,
+                ..shape(5)
+            })
+            .is_none()
+    );
+    assert!(model.widen(shape(1)).is_none());
+}

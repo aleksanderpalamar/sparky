@@ -8,6 +8,8 @@ pub mod herald;
 mod herald_tests;
 pub mod notify;
 pub mod recall;
+#[cfg(test)]
+mod recall_tests;
 pub mod sampling;
 pub mod server;
 #[cfg(test)]

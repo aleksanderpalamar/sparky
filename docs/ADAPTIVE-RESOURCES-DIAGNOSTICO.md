@@ -429,3 +429,42 @@ de se acumular entre rodadas.
 A configuração D passa a ser "estatística + correção neural". O ganho de D
 sobre C é exatamente o que a correção acrescenta. A promoção continua
 exigindo 5% de vantagem na média geral, e QG13 segue inconclusivo.
+
+## Erros recentes da estatística e migração do que foi aprendido
+
+O 0.32.0-9 descartava o candidato do 0.32.0-8, que guardava o que a rede tinha
+aprendido sobre o hardware do usuário. Ele não chegou a ser instalado. O
+0.32.0-10 mantém a fórmula do plano B:
+
+```
+previsão da rede = previsão da estatística + correção
+erro da rede     = previsão da rede − realidade
+```
+
+Os pesos continuam aprendendo com o erro da própria rede. As mudanças são:
+
+| Ponto | 0.32.0-9 | 0.32.0-10 |
+|---|---|---|
+| Entrada do MLP | 9 atividades e 14 previsões da estatística | as mesmas e mais os 14 erros recentes da estatística (previsão feita 10 s e 60 s atrás contra o valor de agora) |
+| Candidato do 0.32.0-8 (revisão 2) | ignorado | migrado: GRU e MLP copiados como estão, ligações das entradas novas em zero, camada de saída recomeçando |
+| Parâmetros | 6.958 | 7.406 |
+| Revisão dos modelos salvos | 3 | 4 |
+
+A camada de saída recomeça porque mudou de significado: no 0.32.0-8 ela dava
+a variação em relação ao valor atual, e agora dá a correção da estatística.
+Os outros cerca de 6.500 parâmetros, onde fica o que a rede aprendeu sobre os
+padrões do hardware, são mantidos. O serviço ao vivo guarda os últimos 90 s
+de amostras e previsões para calcular os erros recentes, com a mesma função
+usada no treino.
+
+Medição com `--example rounds_eval` sobre a coleta real (7.200 amostras) e o
+candidato do 0.32.0-8 que estava no disco:
+
+| Ponto de partida | Rodada 1: rede / estatística | Rodadas 2 a 6 |
+|---|---|---|
+| Rede do zero | 1,02 / 0,63 | empata |
+| Candidato migrado inteiro | 0,72 / 0,63 | empata |
+| Candidato migrado, saída recomeçando (escolhido) | 0,63 / 0,63 | empata |
+
+Nesta janela, quase toda de uso calmo, a rede empata com a estatística em
+todas as rodadas. QG13 segue inconclusivo.

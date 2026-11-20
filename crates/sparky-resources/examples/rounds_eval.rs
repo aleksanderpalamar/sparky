@@ -3,13 +3,18 @@ use std::time::{Duration, Instant};
 use sparky_resources::application::archive::unpack_samples;
 use sparky_resources::application::diagnosis::{SEGMENTS, Segment, Tally};
 use sparky_resources::application::encoding::OUTPUTS;
+use sparky_resources::application::learning::shape;
 use sparky_resources::application::learning::{Learner, Plan, Verdict};
+use sparky_resources::domain::activity::ACTIVITIES;
+use sparky_resources::neural::{Hybrid, Shape};
 use sparky_resources::persistence::checkpoint::decode;
 
 fn main() -> std::io::Result<()> {
     let mut arguments = std::env::args().skip(1);
     let Some(path) = arguments.next() else {
-        eprintln!("uso: rounds_eval <history.ckpt> [rodadas] [decay] [rate]");
+        eprintln!(
+            "uso: rounds_eval <history.ckpt> [rodadas] [decay] [rate] [candidato.ckpt] [zerar]"
+        );
         std::process::exit(2);
     };
     let rounds: usize = arguments
@@ -42,8 +47,17 @@ fn main() -> std::io::Result<()> {
     let start = samples.len() / 2;
     let chunk = (samples.len() - start) / rounds.max(1);
     let mut arriving = samples.split_off(start).into_iter();
+    let inherited = arguments.next().and_then(|path| migrated(&path, &plan));
+    let inherited = match (inherited, arguments.next().as_deref()) {
+        (Some(mut model), Some("zerar")) => {
+            model.settle(1.0);
+            Some(model)
+        }
+        (model, _) => model,
+    };
+    println!("candidato herdado: {}", inherited.is_some());
     let mut learner = Learner::new(plan);
-    learner.resume(samples, None);
+    learner.resume(samples, inherited);
     for round in 1..=rounds {
         for sample in arriving.by_ref().take(chunk) {
             learner.record(sample);
@@ -100,4 +114,18 @@ fn totals(tally: &Tally, segment: Segment) -> (usize, f64, f64) {
             )
         },
     )
+}
+
+fn migrated(path: &str, plan: &Plan) -> Option<Hybrid> {
+    let checkpoint = decode(&std::fs::read(path).ok()?).ok()?;
+    let legacy = Shape {
+        context: ACTIVITIES.len(),
+        ..shape(plan)
+    };
+    let mut model = Hybrid::new(legacy, 0);
+    if model.params.len() != checkpoint.values.len() {
+        return None;
+    }
+    model.params.values = checkpoint.values;
+    model.widen(shape(plan))
 }

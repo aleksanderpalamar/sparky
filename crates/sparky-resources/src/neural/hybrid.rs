@@ -53,6 +53,25 @@ impl Hybrid {
         model
     }
 
+    pub fn widen(&self, shape: Shape) -> Option<Hybrid> {
+        let same = self.gru.inputs() == shape.steps
+            && self.gru.hidden == shape.memory
+            && self.blend.outputs == shape.hidden
+            && self.head.outputs == shape.outputs
+            && self.blend.inputs <= shape.memory + shape.context;
+        if !same {
+            return None;
+        }
+        let mut wider = Hybrid::new(shape, 0);
+        self.gru
+            .transplant(&self.params, &wider.gru, &mut wider.params);
+        self.blend
+            .transplant(&self.params, &wider.blend, &mut wider.params);
+        self.head
+            .transplant(&self.params, &wider.head, &mut wider.params);
+        Some(wider)
+    }
+
     pub fn settle(&mut self, decay: f32) {
         self.head
             .shrink(&mut self.params, 1.0 - decay.clamp(0.0, 1.0));

@@ -2,7 +2,7 @@ use super::encoding::{
     CONTEXT_INPUTS, OUTPUTS, STEP_INPUTS, Sample, WINDOW, absolute, context, decode, example_at,
     examples, step_input,
 };
-use super::reference::{Base, bases};
+use super::reference::{Base, bases, misses};
 use crate::domain::{Activities, Activity, Features, METRICS, Metric};
 
 fn sample(at: f64, features: Features) -> Sample {
@@ -48,19 +48,25 @@ fn cada_passo_leva_valores_mascaras_e_intervalo() {
 }
 
 #[test]
-fn o_contexto_leva_atividades_e_o_que_a_estatistica_espera() {
+fn o_contexto_leva_atividades_previsao_e_erro_recente_da_estatistica() {
     let current = Features::default().with(Metric::CpuBusy, Some(20.0));
+    let mut missed = [None; OUTPUTS];
+    missed[2] = Some(-0.25);
     let flags = context(
         [Activity::Idle, Activity::Gaming].into_iter().collect(),
         &base_with(35.0),
         &current,
+        &missed,
     );
     assert_eq!(flags.len(), CONTEXT_INPUTS);
-    let (activities, expected) = flags.split_at(CONTEXT_INPUTS - OUTPUTS);
+    let (activities, rest) = flags.split_at(CONTEXT_INPUTS - OUTPUTS * 2);
+    let (expected, errors) = rest.split_at(OUTPUTS);
     assert_eq!(activities.iter().sum::<f32>(), 2.0);
     assert_eq!((activities[0], activities[4]), (1.0, 1.0));
     assert_eq!(expected[0], 0.15);
     assert!(expected[1..].iter().all(|value| *value == 0.0));
+    assert_eq!(errors[2], -0.25);
+    assert_eq!(errors.iter().filter(|value| **value != 0.0).count(), 1);
 }
 
 #[test]
@@ -126,6 +132,7 @@ fn o_exemplo_leva_o_contexto_do_instante_atual() {
         [Activity::Compiling].into_iter().collect(),
         &bases[WINDOW - 1],
         &rows[WINDOW - 1].features,
+        &misses(&rows[..WINDOW], &bases[..WINDOW]),
     );
     assert_eq!(found, Some(expected));
 }
