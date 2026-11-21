@@ -5,8 +5,6 @@ use sparky_theme::Skin;
 use crate::domain::presence::Presence;
 
 const OUTLINE: f32 = 1.0;
-const DIM: f32 = 0.65;
-const SHADE: f32 = 0.35;
 const FRAME: f32 = 2.0;
 
 pub fn tray(skin: Skin) -> container::Style {
@@ -93,20 +91,6 @@ pub fn dot(color: Color, size: f32) -> container::Style {
 pub fn divider(skin: Skin) -> container::Style {
     container::Style {
         background: Some(Background::Color(skin.muted)),
-        ..container::Style::default()
-    }
-}
-
-pub fn backdrop(skin: Skin) -> container::Style {
-    let shade = |channel: f32| channel * SHADE;
-    let tone = opaque(skin.background);
-    container::Style {
-        background: Some(Background::Color(Color::from_rgba(
-            shade(tone.r),
-            shade(tone.g),
-            shade(tone.b),
-            DIM,
-        ))),
         ..container::Style::default()
     }
 }

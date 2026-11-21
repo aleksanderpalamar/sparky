@@ -32,12 +32,8 @@ const STRONG: Font = Font {
 };
 
 pub fn view<'a>(dock: &'a Dock, picker: &'a Picker) -> Element<'a, Message> {
-    let skin = dock.skin;
-    let backdrop = mouse_area(
-        container(Space::new().width(Length::Fill).height(Length::Fill))
-            .style(move |_| look::backdrop(skin)),
-    )
-    .on_press(Message::Cancel);
+    let backdrop =
+        mouse_area(Space::new().width(Length::Fill).height(Length::Fill)).on_press(Message::Cancel);
     let dialog = container(opaque(pane(dock, picker)))
         .width(Length::Fill)
         .height(Length::Fill)

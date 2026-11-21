@@ -4,7 +4,7 @@ use iced::{Background, Color};
 use sparky_theme::{Palette, Skin};
 
 use super::style::{
-    add, backdrop, badge, card, check, dialog, divider, mark, primary, secondary, slot, tray,
+    add, badge, card, check, dialog, divider, mark, primary, secondary, slot, tray,
 };
 use crate::domain::presence::Presence;
 
@@ -27,7 +27,6 @@ fn nenhuma_superficie_do_dock_tem_canto_arredondado() {
     assert_eq!(card(skin).border.radius, reto());
     assert_eq!(divider(skin).border.radius, reto());
     assert_eq!(badge(skin).border.radius, reto());
-    assert_eq!(backdrop(skin).border.radius, reto());
     for presence in [Presence::Closed, Presence::Running, Presence::Focused] {
         for status in [
             button::Status::Active,
