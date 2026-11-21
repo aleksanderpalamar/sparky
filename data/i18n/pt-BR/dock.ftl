@@ -10,3 +10,4 @@ picker-count = { $count ->
     [one] 1 aplicativo selecionado
    *[other] { $count } aplicativos selecionados
 }
+menu-remove = Remover do dock

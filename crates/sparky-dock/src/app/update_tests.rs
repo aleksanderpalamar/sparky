@@ -112,6 +112,7 @@ fn o_dock_mostra_so_os_fixados_instalados_com_o_estado_das_janelas() {
     let seen = crate::domain::presence::Seen {
         app_id: "sparky-files".to_owned(),
         focused: true,
+        visible: true,
     };
     let _ = update(&mut dock, Message::Windows(vec![seen]));
     let shown: Vec<(&str, crate::domain::presence::Presence)> = dock

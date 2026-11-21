@@ -4924,6 +4924,7 @@ dependencies = [
  "fluent-bundle",
  "iced",
  "iced_layershell",
+ "sparky-config",
  "sparky-i18n",
  "sparky-ipc",
  "sparky-launcher",

@@ -3,21 +3,41 @@ use sparky_theme::Skin;
 
 use super::message::Message;
 use super::state::{Dock, OpenPicker};
-use super::surfaces;
+use super::{surface, surfaces};
 use crate::adapters::{catalog, icons};
-use crate::domain::layout::size;
 use crate::domain::picker::Picker;
 
 pub fn update(dock: &mut Dock, message: Message) -> Task<Message> {
+    let task = handle(dock, message);
+    Task::batch([task, surface::sync(dock)])
+}
+
+fn handle(dock: &mut Dock, message: Message) -> Task<Message> {
     match message {
         Message::Catalog(apps) => {
             dock.apps = apps;
-            return Task::batch([resize(dock), load_icons(dock)]);
+            dock.catalogued = true;
+            return load_icons(dock);
         }
         Message::Icons(icons) => dock.icons = icons,
         Message::Windows(windows) => dock.windows = windows,
         Message::Palette(palette) => dock.skin = Skin::new(palette),
-        Message::Start(id) => dock.start(&id),
+        Message::Preferences(preferences) => dock.preferences = preferences,
+        Message::Hover(inside) => {
+            dock.hovering = inside;
+            if !inside {
+                dock.menu = None;
+            }
+        }
+        Message::Menu(id) => dock.menu = Some(id),
+        Message::Unpin(id) => {
+            dock.menu = None;
+            dock.unpin(&id);
+        }
+        Message::Start(id) => {
+            dock.menu = None;
+            dock.start(&id);
+        }
         Message::OpenPicker => return open_picker(dock),
         Message::Opened(window)
             if dock
@@ -51,22 +71,8 @@ fn load_icons(dock: &Dock) -> Task<Message> {
     )
 }
 
-fn resize(dock: &mut Dock) -> Task<Message> {
-    let count = dock.pinned.resolve(&dock.apps).len();
-    let id = dock.window;
-    if !std::mem::replace(&mut dock.shown, true) {
-        return Task::done(Message::NewLayerShell {
-            settings: surfaces::dock(count),
-            id,
-        });
-    }
-    Task::done(Message::SizeChange {
-        id,
-        size: size(count),
-    })
-}
-
 fn open_picker(dock: &mut Dock) -> Task<Message> {
+    dock.menu = None;
     if dock.picker.is_some() {
         return Task::none();
     }
@@ -98,12 +104,8 @@ fn confirm(dock: &mut Dock) -> Task<Message> {
         .as_ref()
         .map(|open| open.picker.chosen().to_vec())
         .unwrap_or_default();
-    let changed = dock.pin(&chosen);
-    let closing = close_picker(dock);
-    match changed {
-        true => Task::batch([closing, resize(dock)]),
-        false => closing,
-    }
+    dock.pin(&chosen);
+    close_picker(dock)
 }
 
 fn close_picker(dock: &mut Dock) -> Task<Message> {

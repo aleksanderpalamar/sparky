@@ -19,6 +19,9 @@ pub enum Field {
     SystemMenu,
     Wallpaper,
     LoginWallpaper,
+    DockEnabled,
+    DockSize,
+    DockAutohide,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -60,6 +63,8 @@ const APPS: [Field; 7] = [
     Field::SystemMenu,
 ];
 
+const DOCK: [Field; 3] = [Field::DockEnabled, Field::DockSize, Field::DockAutohide];
+
 const fn bounds(min: i32, max: i32, step: i32) -> Kind {
     Kind::Number(Bounds { min, max, step })
 }
@@ -69,6 +74,7 @@ impl Field {
         match section {
             Section::Appearance => &APPEARANCE,
             Section::Apps => &APPS,
+            Section::Dock => &DOCK,
             Section::Autostart
             | Section::Shortcuts
             | Section::Monitors
@@ -93,7 +99,12 @@ impl Field {
             Field::FloatHeight => bounds(150, 3000, 25),
             Field::RepeatRate => bounds(1, 100, 5),
             Field::RepeatDelay => bounds(100, 1000, 25),
-            Field::DefaultBinds => Kind::Flag,
+            Field::DockSize => bounds(
+                sparky_config::dock::MIN_SIZE,
+                sparky_config::dock::MAX_SIZE,
+                4,
+            ),
+            Field::DefaultBinds | Field::DockEnabled | Field::DockAutohide => Kind::Flag,
             Field::Terminal | Field::Wallpaper | Field::LoginWallpaper => {
                 Kind::Text(Blank::Allowed)
             }
@@ -125,6 +136,9 @@ impl Field {
             Field::SystemMenu => ("apps", "system_menu"),
             Field::Wallpaper => ("general", "wallpaper"),
             Field::LoginWallpaper => ("login", "wallpaper"),
+            Field::DockEnabled => ("dock", "enabled"),
+            Field::DockSize => ("dock", "size"),
+            Field::DockAutohide => ("dock", "autohide"),
         }
     }
 }
@@ -154,6 +168,23 @@ mod tests {
         assert!(Field::of(Section::Apps).contains(&Field::SystemMenu));
         assert_eq!(Field::SystemMenu.place(), ("apps", "system_menu"));
         assert_eq!(Field::SystemMenu.kind(), Kind::Text(Blank::Refused));
+    }
+
+    #[test]
+    fn a_secao_dock_liga_ajusta_o_tamanho_e_oculta() {
+        assert_eq!(
+            Field::of(Section::Dock),
+            [Field::DockEnabled, Field::DockSize, Field::DockAutohide]
+        );
+        assert_eq!(Field::DockEnabled.place(), ("dock", "enabled"));
+        assert_eq!(Field::DockSize.place(), ("dock", "size"));
+        assert_eq!(Field::DockAutohide.place(), ("dock", "autohide"));
+        assert_eq!(Field::DockEnabled.kind(), Kind::Flag);
+        assert_eq!(Field::DockAutohide.kind(), Kind::Flag);
+        let Kind::Number(bounds) = Field::DockSize.kind() else {
+            panic!("o tamanho é numérico");
+        };
+        assert_eq!((bounds.min, bounds.max), (40, 96));
     }
 
     #[test]

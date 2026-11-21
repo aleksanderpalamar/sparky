@@ -14,11 +14,12 @@ pub enum Section {
     Themes,
     Network,
     Performance,
+    Dock,
     About,
 }
 
 impl Section {
-    pub const ALL: [Section; 14] = [
+    pub const ALL: [Section; 15] = [
         Section::Appearance,
         Section::Apps,
         Section::Autostart,
@@ -32,6 +33,7 @@ impl Section {
         Section::Themes,
         Section::Network,
         Section::Performance,
+        Section::Dock,
         Section::About,
     ];
 
@@ -58,6 +60,7 @@ impl Section {
             Section::Themes => "themes",
             Section::Network => "network",
             Section::Performance => "performance",
+            Section::Dock => "dock",
             Section::About => "about",
         }
     }
@@ -105,8 +108,9 @@ mod tests {
         assert_eq!(Section::nth(10), Some(Section::Themes));
         assert_eq!(Section::nth(11), Some(Section::Network));
         assert_eq!(Section::nth(12), Some(Section::Performance));
-        assert_eq!(Section::nth(13), Some(Section::About));
-        assert_eq!(Section::nth(14), None);
+        assert_eq!(Section::nth(13), Some(Section::Dock));
+        assert_eq!(Section::nth(14), Some(Section::About));
+        assert_eq!(Section::nth(15), None);
         assert_eq!(Section::Monitors.index(), 4);
     }
 }

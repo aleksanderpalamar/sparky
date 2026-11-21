@@ -28,6 +28,9 @@ impl Field {
             Field::SystemMenu => "system-menu",
             Field::Wallpaper => "wallpaper",
             Field::LoginWallpaper => "login-wallpaper",
+            Field::DockEnabled => "dock-enabled",
+            Field::DockSize => "dock-size",
+            Field::DockAutohide => "dock-autohide",
         }
     }
 }

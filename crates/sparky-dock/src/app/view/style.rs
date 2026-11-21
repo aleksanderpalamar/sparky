@@ -95,6 +95,34 @@ pub fn divider(skin: Skin) -> container::Style {
     }
 }
 
+pub fn strip(skin: Skin) -> container::Style {
+    container::Style {
+        background: Some(Background::Color(skin.accent_fill(0.5))),
+        ..container::Style::default()
+    }
+}
+
+pub fn menu(skin: Skin) -> container::Style {
+    container::Style {
+        background: Some(Background::Color(opaque(skin.lighter_background))),
+        border: outline(skin.accent),
+        text_color: Some(skin.foreground),
+        ..container::Style::default()
+    }
+}
+
+pub fn menu_entry(skin: Skin, status: button::Status) -> button::Style {
+    let background = match status {
+        button::Status::Hovered | button::Status::Pressed => skin.selection,
+        _ => Color::TRANSPARENT,
+    };
+    button::Style {
+        background: Some(Background::Color(background)),
+        text_color: skin.bright_foreground,
+        ..button::Style::default()
+    }
+}
+
 pub fn dialog(skin: Skin) -> container::Style {
     container::Style {
         background: Some(Background::Color(opaque(skin.background))),

@@ -4,6 +4,7 @@ use super::app::App;
 pub struct Seen {
     pub app_id: String,
     pub focused: bool,
+    pub visible: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

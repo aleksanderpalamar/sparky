@@ -6,6 +6,7 @@ fn seen(app_id: &str, focused: bool) -> Seen {
     Seen {
         app_id: app_id.to_owned(),
         focused,
+        visible: true,
     }
 }
 

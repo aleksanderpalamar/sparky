@@ -40,6 +40,12 @@ impl Pinned {
             .collect()
     }
 
+    pub fn remove(&mut self, id: &str) -> bool {
+        let before = self.ids.len();
+        self.ids.retain(|pinned| pinned != id);
+        self.ids.len() != before
+    }
+
     pub fn add(&mut self, ids: impl IntoIterator<Item = String>) -> bool {
         let before = self.ids.len();
         for id in ids {

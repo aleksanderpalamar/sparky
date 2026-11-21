@@ -18,3 +18,6 @@ pub mod presence;
 mod presence_tests;
 #[cfg(test)]
 pub(crate) mod support;
+pub mod visibility;
+#[cfg(test)]
+mod visibility_tests;

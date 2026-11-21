@@ -76,3 +76,32 @@ fn os_valores_aparecem_em_portugues() {
     assert_eq!(shown(&Value::Text(String::new())), "automático");
     assert_eq!(shown(&Value::Number(5)), "5");
 }
+
+#[test]
+fn le_e_grava_as_opcoes_do_dock() {
+    let config = Config::default();
+    assert_eq!(read(Field::DockEnabled, &config), Value::Flag(true));
+    assert_eq!(read(Field::DockAutohide, &config), Value::Flag(false));
+    assert_eq!(read(Field::DockSize, &config), Value::Number(64));
+    let mut editor = Editor::default();
+    store(Field::DockAutohide, &Value::Flag(true), &mut editor);
+    store(Field::DockSize, &Value::Number(48), &mut editor);
+    let Ok(saved) = parse(&editor.contents()) else {
+        panic!("o arquivo gravado deveria ser válido");
+    };
+    assert_eq!(read(Field::DockAutohide, &saved), Value::Flag(true));
+    assert_eq!(read(Field::DockSize, &saved), Value::Number(48));
+    assert_eq!(read(Field::DefaultBinds, &saved), Value::Flag(true));
+}
+
+#[test]
+fn o_tamanho_do_dock_anda_de_quatro_em_quatro_dentro_da_faixa() {
+    assert_eq!(
+        stepped(Field::DockSize, &Value::Number(64), Step::More),
+        Some(Value::Number(68))
+    );
+    assert_eq!(
+        stepped(Field::DockSize, &Value::Number(96), Step::More),
+        Some(Value::Number(96))
+    );
+}

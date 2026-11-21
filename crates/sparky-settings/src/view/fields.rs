@@ -33,6 +33,7 @@ pub fn group(field: Field) -> String {
         Field::Wallpaper => "group-wallpaper",
         Field::LoginWallpaper => "group-login-screen",
         Field::RepeatRate | Field::RepeatDelay => "group-repeat",
+        Field::DockEnabled | Field::DockSize | Field::DockAutohide => "section-dock-label",
         Field::Terminal
         | Field::Launcher
         | Field::Files

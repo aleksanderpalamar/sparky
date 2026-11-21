@@ -1,5 +1,9 @@
+#[cfg(test)]
+mod dock_tests;
 pub mod message;
+mod restore;
 pub mod state;
+mod surface;
 pub mod surfaces;
 #[cfg(test)]
 mod test_support;
@@ -14,7 +18,7 @@ use sparky_theme::Skin;
 use sparky_ui::style::{FONT, TEXT_SIZE};
 use sparky_ui::surface::transparent;
 
-use crate::adapters::{pinned_file::PinnedFile, start::Spawner, windows};
+use crate::adapters::{pinned_file::PinnedFile, preferences, start::Spawner, windows};
 use message::Message;
 use state::Dock;
 
@@ -57,6 +61,7 @@ fn subscription(dock: &Dock) -> Subscription<Message> {
     Subscription::batch([
         sparky_ui::palette::subscription().map(Message::Palette),
         Subscription::run(windows::changes).map(Message::Windows),
+        Subscription::run(preferences::changes).map(Message::Preferences),
         picking,
     ])
 }

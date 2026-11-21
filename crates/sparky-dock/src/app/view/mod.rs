@@ -1,4 +1,5 @@
 mod dock;
+mod menu;
 mod picker;
 mod picture;
 pub mod style;

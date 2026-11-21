@@ -63,6 +63,7 @@ fn listed(client: &mut Client) -> Result<Vec<Seen>, IpcError> {
             .map(|info| Seen {
                 app_id: info.app_id,
                 focused: info.focused,
+                visible: info.visible,
             })
             .collect()),
         _ => Err(IpcError::Malformed(

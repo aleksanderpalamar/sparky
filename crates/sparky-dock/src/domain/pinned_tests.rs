@@ -58,3 +58,14 @@ fn aplicativo_desinstalado_some_do_dock_sem_sair_da_configuracao() {
     assert_eq!(shown, ["sparky-files", "sparky-store"]);
     assert_eq!(pinned.ids().len(), 4);
 }
+
+#[test]
+fn remover_tira_so_o_aplicativo_pedido_e_mantem_a_ordem() {
+    let mut pinned = Pinned::default();
+    assert!(pinned.remove("sparky-files"));
+    assert_eq!(
+        pinned.ids(),
+        ids(&["sparky-settings", "sparky-terminal", "sparky-store"])
+    );
+    assert!(!pinned.remove("sparky-files"));
+}
