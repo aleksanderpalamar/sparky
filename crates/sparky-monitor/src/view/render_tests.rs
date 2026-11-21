@@ -25,7 +25,7 @@ impl Operation for Textos {
     }
 }
 
-fn renderizar(monitor: &Monitor, nome: &str) -> Vec<String> {
+pub(super) fn renderizar(monitor: &Monitor, nome: &str) -> Vec<String> {
     let mut renderer = block_on(<Renderer as Headless>::new(
         sparky_ui::style::FONT,
         Pixels(14.0),
@@ -61,7 +61,7 @@ fn renderizar(monitor: &Monitor, nome: &str) -> Vec<String> {
     textos.0
 }
 
-fn contem(textos: &[String], esperados: &[&str]) {
+pub(super) fn contem(textos: &[String], esperados: &[&str]) {
     for esperado in esperados {
         assert!(
             textos.iter().any(|texto| texto == esperado),

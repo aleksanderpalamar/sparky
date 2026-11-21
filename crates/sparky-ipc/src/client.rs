@@ -45,8 +45,16 @@ impl Client {
         self.read_reply()
     }
 
-    pub fn subscribe(mut self) -> Result<Events, IpcError> {
-        match self.request(&Request::Subscribe)? {
+    pub fn subscribe(self) -> Result<Events, IpcError> {
+        self.listen(&Request::Subscribe)
+    }
+
+    pub fn watch_windows(self) -> Result<Events, IpcError> {
+        self.listen(&Request::WatchWindows)
+    }
+
+    fn listen(mut self, request: &Request) -> Result<Events, IpcError> {
+        match self.request(request)? {
             Reply::Done => Ok(Events { client: self }),
             Reply::Error { message } => Err(IpcError::Malformed(message)),
             _ => Err(IpcError::Malformed(

@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::info::SessionInfo;
 use crate::output::OutputInfo;
+use crate::window::WindowInfo;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "request", rename_all = "snake_case")]
@@ -16,6 +17,8 @@ pub enum Request {
     Idle { hold: IdleHold },
     Info,
     Drag { uris: Vec<String> },
+    Windows,
+    WatchWindows,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -74,6 +77,7 @@ pub enum Reply {
     Workspaces { workspaces: Vec<WorkspaceInfo> },
     Outputs { outputs: Vec<OutputInfo> },
     Info { info: SessionInfo },
+    Windows { windows: Vec<WindowInfo> },
     Event { event: Event },
     Error { message: String },
 }
@@ -84,6 +88,7 @@ pub enum Event {
     WorkspacesChanged,
     Locked,
     Unlocked,
+    WindowsChanged,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

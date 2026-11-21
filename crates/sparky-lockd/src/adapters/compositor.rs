@@ -94,6 +94,6 @@ fn input(notice: Notice) -> Option<Input> {
     match notice {
         Notice::Locked => Some(Input::Locked),
         Notice::Unlocked => Some(Input::Unlocked),
-        Notice::WorkspacesChanged => None,
+        Notice::WorkspacesChanged | Notice::WindowsChanged => None,
     }
 }

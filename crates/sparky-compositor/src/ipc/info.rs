@@ -18,6 +18,7 @@ impl Sparky {
             theme: theme_name(&palette, &installed_themes(&theme_roots_from_env())),
             accent: palette.accent.hex(),
             swatches: swatches(&palette),
+            protocol: sparky_ipc::PROTOCOL,
         }
     }
 }

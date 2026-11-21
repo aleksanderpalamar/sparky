@@ -1,6 +1,7 @@
 use std::fmt;
 
 use crate::domain::apps::AppEntry;
+use crate::domain::intelligence::Advice;
 
 pub trait SystemFiles: Send + Sync {
     fn read(&self, path: &str) -> Option<String>;
@@ -10,6 +11,10 @@ pub trait SystemFiles: Send + Sync {
 
 pub trait Filesystems: Send + Sync {
     fn usage(&self, mount: &str) -> Option<(u64, u64)>;
+}
+
+pub trait Advisor: Send + Sync {
+    fn advise(&self) -> Advice;
 }
 
 pub trait Catalog: Send + Sync {

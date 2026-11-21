@@ -15,7 +15,10 @@ impl Sparky {
                 self.relayout();
                 Reply::Done
             }
-            Request::Subscribe => Reply::Done,
+            Request::Subscribe | Request::WatchWindows => Reply::Done,
+            Request::Windows => Reply::Windows {
+                windows: self.window_infos(),
+            },
             Request::Outputs => Reply::Outputs {
                 outputs: self.output_infos(),
             },

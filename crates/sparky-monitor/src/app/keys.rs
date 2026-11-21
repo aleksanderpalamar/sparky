@@ -1,7 +1,7 @@
 use iced::keyboard::key::Named;
 use iced::keyboard::{Key, Modifiers};
 
-use super::message::{Message, Move};
+use super::message::{Message, Move, Turn};
 use super::page::Page;
 use crate::domain::table::Column;
 use crate::ports::Stop;
@@ -18,6 +18,8 @@ fn named_message(named: Named, modifiers: Modifiers) -> Option<Message> {
     match named {
         Named::ArrowDown => Some(Message::Move(Move::Down)),
         Named::ArrowUp => Some(Message::Move(Move::Up)),
+        Named::ArrowLeft => Some(Message::Turn(Turn::Back)),
+        Named::ArrowRight => Some(Message::Turn(Turn::Forward)),
         Named::Home => Some(Message::Move(Move::First)),
         Named::End => Some(Message::Move(Move::Last)),
         Named::Tab => Some(Message::SwitchFocus),

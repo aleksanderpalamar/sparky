@@ -7,6 +7,7 @@ pub mod load;
 pub mod lock;
 pub mod output;
 mod renamed;
+pub mod resources;
 pub mod schema;
 pub mod screen;
 pub mod terminal;
@@ -20,6 +21,8 @@ mod output_tests;
 #[cfg(test)]
 mod renamed_tests;
 #[cfg(test)]
+mod resources_tests;
+#[cfg(test)]
 mod schema_tests;
 #[cfg(test)]
 mod screen_tests;
@@ -30,6 +33,7 @@ pub use load::{ConfigError, parse, path};
 pub use lock::Lock;
 pub use output::{OutputRule, OutputScale, rule_for, scale_for};
 pub use renamed::migrate;
+pub use resources::{ResourceMode, Resources};
 pub use schema::{Apps, Config, General, Input, Login};
 pub use screen::{OutputMode, Rotation};
 pub use terminal::{Greeting, Terminal};

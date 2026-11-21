@@ -19,6 +19,7 @@ fn browsing(section: Section) -> String {
         Section::Shortcuts => "hint-shortcuts",
         Section::Monitors => "hint-monitors",
         Section::Network => "hint-network",
+        Section::Performance => "hint-performance",
         Section::Power => "hint-power",
         Section::DateTime => "hint-date-time",
         Section::Region => "hint-region",

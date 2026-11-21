@@ -5150,7 +5150,11 @@ dependencies = [
  "iced",
  "iced_runtime",
  "rustix 1.1.5",
+ "serde",
+ "serde_json",
+ "sparky-hardware",
  "sparky-i18n",
+ "sparky-resources",
  "sparky-theme",
  "sparky-ui",
  "sparky-xdg",
@@ -5191,6 +5195,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "sparky-resources"
+version = "0.32.0"
+dependencies = [
+ "fluent-bundle",
+ "libc",
+ "nix",
+ "serde",
+ "serde_json",
+ "sparky-config",
+ "sparky-hardware",
+ "sparky-i18n",
+ "sparky-ipc",
+ "tempfile",
+]
+
+[[package]]
 name = "sparky-settings"
 version = "0.32.0"
 dependencies = [
@@ -5202,6 +5222,7 @@ dependencies = [
  "sparky-hardware",
  "sparky-i18n",
  "sparky-ipc",
+ "sparky-resources",
  "sparky-storage",
  "sparky-theme",
  "sparky-tiling",

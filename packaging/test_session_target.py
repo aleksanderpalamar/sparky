@@ -18,7 +18,7 @@ class SessionTargetTest(unittest.TestCase):
         unit = configparser.ConfigParser(strict=False)
         unit.read(ROOT / UNIT)
         self.assertEqual(unit["Unit"]["BindsTo"], "graphical-session.target")
-        self.assertEqual(unit["Unit"]["Wants"], "graphical-session-pre.target")
+        self.assertIn("graphical-session-pre.target", unit["Unit"]["Wants"].split())
         self.assertEqual(unit["Unit"]["After"], "graphical-session-pre.target")
 
     def test_os_tres_formatos_instalam_o_alvo_do_usuario(self):

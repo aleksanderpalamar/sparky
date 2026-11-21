@@ -52,6 +52,7 @@ pub struct Services {
     pub compositor: Box<dyn Compositor>,
     pub commands: Box<dyn CommandRunner>,
     pub themes: Box<dyn ThemeStore>,
+    pub resources: Box<dyn crate::ports::resources::ResourceService>,
 }
 
 pub struct Context {
@@ -76,6 +77,7 @@ pub struct Settings {
     pub users: Vec<User>,
     pub media: Media,
     pub network: crate::domain::network::Network,
+    pub performance: crate::domain::performance::Performance,
     pub themes: Themes,
     pub pickers: Pickers,
     pub sliding: Option<(Target, i32)>,
@@ -101,6 +103,7 @@ impl Settings {
             users: Vec::new(),
             media: Media::default(),
             network: crate::domain::network::Network::default(),
+            performance: crate::domain::performance::Performance::default(),
             themes: Themes::default(),
             pickers: Pickers::default(),
             sliding: None,
@@ -118,6 +121,9 @@ impl Settings {
         self.reload_system();
         if self.section == Section::Network {
             self.network = crate::domain::network::Network::load(self.services.commands.as_ref());
+        }
+        if self.section == Section::Performance {
+            self.refresh_performance();
         }
         match self.services.store.load() {
             Ok(contents) => self.read(contents.as_deref().unwrap_or_default()),

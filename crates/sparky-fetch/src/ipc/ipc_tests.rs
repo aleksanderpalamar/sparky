@@ -15,6 +15,7 @@ fn info() -> SessionInfo {
         theme: Some("tokyo-night".to_owned()),
         accent: "#7aa2f7".to_owned(),
         swatches: vec!["#1a1b26".to_owned(), "#f7768e".to_owned()],
+        protocol: 0,
     }
 }
 

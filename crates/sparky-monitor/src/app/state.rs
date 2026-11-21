@@ -7,17 +7,19 @@ use sparky_ui::notice::Notice;
 use super::page::Page;
 use crate::domain::apps::AppEntry;
 use crate::domain::histories::Histories;
+use crate::domain::intelligence::Advice;
 use crate::domain::measure::Reading;
 use crate::domain::snapshot::Snapshot;
 use crate::domain::table::Sort;
 use crate::domain::usage::{AppRow, ProcessRow};
-use crate::ports::{Catalog, Claim, Signals, Stop};
+use crate::ports::{Advisor, Catalog, Claim, Signals, Stop};
 use crate::sampler::Sampler;
 
 pub struct Services {
     pub sampler: Arc<Sampler>,
     pub catalog: Arc<dyn Catalog>,
     pub signals: Arc<dyn Signals>,
+    pub advisor: Arc<dyn Advisor>,
     pub user: u32,
 }
 
@@ -47,6 +49,7 @@ pub struct Confirm {
 
 pub struct Monitor {
     pub page: Page,
+    pub lens: crate::domain::decision::Lens,
     pub reading: Option<Reading>,
     pub processes: Vec<ProcessRow>,
     pub apps: Vec<AppRow>,
@@ -62,6 +65,8 @@ pub struct Monitor {
     pub sampling: Sampling,
     pub previous: Option<Snapshot>,
     pub catalog: Vec<AppEntry>,
+    pub advice: Option<Advice>,
+    pub advising: Sampling,
     pub services: Services,
 }
 
@@ -69,6 +74,7 @@ impl Monitor {
     pub fn new(services: Services, skin: Skin, size: Size) -> Self {
         Self {
             page: Page::Dashboard,
+            lens: crate::domain::decision::Lens::default(),
             reading: None,
             processes: Vec::new(),
             apps: Vec::new(),
@@ -84,6 +90,8 @@ impl Monitor {
             sampling: Sampling::Idle,
             previous: None,
             catalog: Vec::new(),
+            advice: None,
+            advising: Sampling::Idle,
             services,
         }
     }
@@ -92,7 +100,7 @@ impl Monitor {
         match self.page {
             Page::Dashboard => Some(self.focus),
             Page::Applications => Some(Focus::Applications),
-            Page::Network => None,
+            Page::Network | Page::Intelligence => None,
             Page::Processes | Page::Cpu | Page::Memory | Page::Disk | Page::Gpu => {
                 Some(Focus::Processes)
             }

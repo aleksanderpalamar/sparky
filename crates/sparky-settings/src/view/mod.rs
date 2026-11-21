@@ -7,6 +7,7 @@ mod monitor_controls;
 pub mod monitors;
 pub mod network;
 mod network_fields;
+pub mod performance;
 mod screens;
 pub mod shortcuts;
 pub mod status;
@@ -82,6 +83,7 @@ fn section(settings: &Settings) -> Element<'_, Message> {
         Section::Shortcuts => shortcuts::view(settings),
         Section::Monitors => monitors::view(settings),
         Section::Network => network::view(settings),
+        Section::Performance => performance::view(settings),
         Section::Media => media::view(settings),
         Section::Power | Section::DateTime | Section::Region | Section::Themes => {
             system::view(settings)

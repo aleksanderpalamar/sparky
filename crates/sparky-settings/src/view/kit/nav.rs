@@ -58,6 +58,7 @@ pub const fn glyph(section: Section) -> char {
         Section::Media => '\u{f0553}',
         Section::Themes => '\u{f03d8}',
         Section::Network => '\u{f0317}',
+        Section::Performance => '\u{f04c5}',
         Section::About => '\u{f02fd}',
     }
 }

@@ -1,9 +1,11 @@
 pub mod apps;
 pub mod cpu;
+pub mod decision;
 pub mod disk;
 pub mod gpu;
 pub mod histories;
 pub mod history;
+pub mod intelligence;
 pub mod measure;
 pub mod memory;
 pub mod network;
@@ -18,6 +20,8 @@ mod apps_tests;
 #[cfg(test)]
 mod cpu_tests;
 #[cfg(test)]
+mod decision_tests;
+#[cfg(test)]
 mod disk_tests;
 #[cfg(test)]
 mod gpu_tests;
@@ -25,6 +29,8 @@ mod gpu_tests;
 mod histories_tests;
 #[cfg(test)]
 mod history_tests;
+#[cfg(test)]
+mod intelligence_tests;
 #[cfg(test)]
 mod measure_tests;
 #[cfg(test)]

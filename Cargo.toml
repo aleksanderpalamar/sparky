@@ -19,6 +19,7 @@ sparky-ipc = { path = "crates/sparky-ipc" }
 sparky-login-core = { path = "crates/sparky-login-core" }
 sparky-login-look = { path = "crates/sparky-login-look" }
 sparky-pam = { path = "crates/sparky-pam" }
+sparky-resources = { path = "crates/sparky-resources" }
 sparky-notifications = { path = "crates/sparky-notifications" }
 sparky-theme = { path = "crates/sparky-theme" }
 sparky-tiling = { path = "crates/sparky-tiling" }
