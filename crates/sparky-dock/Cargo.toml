@@ -1,0 +1,28 @@
+[package]
+name = "sparky-dock"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "sparky-dock"
+path = "src/main.rs"
+
+[lib]
+name = "sparky_dock"
+path = "src/lib.rs"
+
+[dependencies]
+iced = { version = "0.14", features = ["image", "svg", "tokio"] }
+iced_layershell = "0.19.1"
+sparky-i18n.workspace = true
+sparky-launcher = { path = "../sparky-launcher" }
+sparky-ipc.workspace = true
+sparky-theme.workspace = true
+sparky-ui.workspace = true
+sparky-xdg.workspace = true
+tokio = { version = "1", features = ["rt"] }
+
+[dev-dependencies]
+tempfile = "3"

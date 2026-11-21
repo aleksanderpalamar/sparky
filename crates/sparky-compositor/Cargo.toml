@@ -75,6 +75,7 @@ recommends = "flatpak, pipewire-pulse, network-manager, bluez, foot | kitty, lib
 assets = [
     ["target/release/sparky", "usr/bin/", "755"],
     ["target/release/sparky-bar", "usr/bin/", "755"],
+    ["target/release/sparky-dock", "usr/bin/", "755"],
     ["target/release/sparky-notifications", "usr/bin/", "755"],
     ["target/release/sparky-msg", "usr/bin/", "755"],
     ["target/release/sparky-fetch", "usr/bin/", "755"],
@@ -157,6 +158,7 @@ auto-req = "disabled"
 assets = [
     { source = "target/release/sparky", dest = "/usr/bin/sparky", mode = "755" },
     { source = "target/release/sparky-bar", dest = "/usr/bin/sparky-bar", mode = "755" },
+    { source = "target/release/sparky-dock", dest = "/usr/bin/sparky-dock", mode = "755" },
     { source = "target/release/sparky-notifications", dest = "/usr/bin/sparky-notifications", mode = "755" },
     { source = "target/release/sparky-msg", dest = "/usr/bin/sparky-msg", mode = "755" },
     { source = "target/release/sparky-fetch", dest = "/usr/bin/sparky-fetch", mode = "755" },
