@@ -9,7 +9,9 @@ use crate::adapters::icons::ADD;
 use crate::app::message::Message;
 use crate::app::state::Dock;
 use crate::domain::app::App;
-use crate::domain::layout::{DIVIDER, GAP, GLYPH, INSET, MARK, MARK_GAP, SLOT};
+use crate::domain::layout::{
+    DIVIDER, DIVIDER_HEIGHT, GAP, GLYPH, INSET_X, INSET_Y, MARK, MARK_GAP, SLOT,
+};
 use crate::domain::presence::Presence;
 
 pub fn view(dock: &Dock) -> Element<'_, Message> {
@@ -21,7 +23,7 @@ pub fn view(dock: &Dock) -> Element<'_, Message> {
     let controls = [divider(skin), add(dock)];
     let slots = row(apps.chain(controls)).spacing(GAP);
     container(slots)
-        .padding(INSET)
+        .padding([INSET_Y, INSET_X])
         .width(Length::Fill)
         .height(Length::Fill)
         .style(move |_| style::tray(skin))
@@ -64,9 +66,9 @@ fn add(dock: &Dock) -> Element<'_, Message> {
 }
 
 fn divider(skin: Skin) -> Element<'static, Message> {
-    let line = container(Space::new().width(DIVIDER).height(SLOT * 0.6))
-        .style(move |_| style::divider(skin));
-    container(line).center_y(SLOT).into()
+    container(Space::new().width(DIVIDER).height(DIVIDER_HEIGHT))
+        .style(move |_| style::divider(skin))
+        .into()
 }
 
 fn mark(skin: Skin, presence: Presence) -> Element<'static, Message> {

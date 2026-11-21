@@ -4921,6 +4921,7 @@ dependencies = [
 name = "sparky-dock"
 version = "0.32.0"
 dependencies = [
+ "fluent-bundle",
  "iced",
  "iced_layershell",
  "sparky-i18n",

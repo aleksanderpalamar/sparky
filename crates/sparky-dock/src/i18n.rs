@@ -1,5 +1,6 @@
 use std::sync::OnceLock;
 
+use fluent_bundle::FluentArgs;
 use sparky_i18n::Catalog;
 
 const PORTUGUESE: &str = include_str!("../../../data/i18n/pt-BR/dock.ftl");
@@ -17,11 +18,21 @@ fn load_catalog() -> Result<Catalog, String> {
 }
 
 pub fn text(key: &str) -> String {
+    message(key, None)
+}
+
+pub fn counted(key: &str, count: usize) -> String {
+    let mut args = FluentArgs::new();
+    args.set("count", count);
+    message(key, Some(&args))
+}
+
+fn message(key: &str, args: Option<&FluentArgs<'_>>) -> String {
     CATALOG
         .get_or_init(load_catalog)
         .as_ref()
         .ok()
-        .and_then(|catalog| catalog.text(key))
+        .and_then(|catalog| catalog.message(key, args))
         .unwrap_or_else(|| key.to_owned())
 }
 
@@ -38,6 +49,22 @@ mod tests {
         };
         assert_eq!(english.text("picker-add").as_deref(), Some("Add selected"));
         assert_eq!(super::text("picker-cancel"), "Cancelar");
+    }
+
+    #[test]
+    fn o_rodape_conta_os_aplicativos_selecionados() {
+        assert_eq!(
+            super::counted("picker-count", 0),
+            "Nenhum aplicativo selecionado"
+        );
+        assert_eq!(
+            super::counted("picker-count", 1),
+            "1 aplicativo selecionado"
+        );
+        assert_eq!(
+            super::counted("picker-count", 2),
+            "2 aplicativos selecionados"
+        );
     }
 
     #[test]

@@ -1,6 +1,11 @@
 use super::layout::{GAP, SLOT, height, reserved, size, width};
 
 #[test]
+fn com_os_quatro_nativos_o_dock_tem_o_tamanho_do_figma() {
+    assert_eq!(size(4), (408, 100));
+}
+
+#[test]
 fn cada_aplicativo_novo_alarga_o_dock_em_um_espaco() {
     assert_eq!(width(5) - width(4), SLOT + GAP);
     assert_eq!(size(0).0, width(0).ceil() as u32);

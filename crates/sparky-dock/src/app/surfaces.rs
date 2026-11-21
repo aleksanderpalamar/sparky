@@ -26,7 +26,7 @@ pub fn picker() -> NewLayerShellSettings {
         size: None,
         layer: Layer::Overlay,
         anchor: Anchor::Top | Anchor::Bottom | Anchor::Left | Anchor::Right,
-        exclusive_zone: Some(-1),
+        exclusive_zone: None,
         margin: None,
         keyboard_interactivity: KeyboardInteractivity::Exclusive,
         output_option: OutputOption::Active,

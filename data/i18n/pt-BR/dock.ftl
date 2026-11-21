@@ -5,3 +5,8 @@ picker-empty = Nenhum aplicativo encontrado
 picker-pinned = Já está no dock
 picker-cancel = Cancelar
 picker-add = Adicionar selecionados
+picker-count = { $count ->
+    [0] Nenhum aplicativo selecionado
+    [one] 1 aplicativo selecionado
+   *[other] { $count } aplicativos selecionados
+}

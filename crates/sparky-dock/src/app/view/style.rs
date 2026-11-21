@@ -5,12 +5,14 @@ use sparky_theme::Skin;
 use crate::domain::presence::Presence;
 
 const OUTLINE: f32 = 1.0;
-const DIM: f32 = 0.55;
+const DIM: f32 = 0.65;
+const SHADE: f32 = 0.35;
+const FRAME: f32 = 2.0;
 
 pub fn tray(skin: Skin) -> container::Style {
     container::Style {
         background: Some(Background::Color(opaque(skin.lighter_background))),
-        border: outline(skin.accent_fill(0.35)),
+        border: outline(skin.accent_fill(0.5)),
         text_color: Some(skin.foreground),
         ..container::Style::default()
     }
@@ -19,9 +21,21 @@ pub fn tray(skin: Skin) -> container::Style {
 pub fn slot(skin: Skin, presence: Presence, status: button::Status) -> button::Style {
     let hovered = matches!(status, button::Status::Hovered | button::Status::Pressed);
     let background = match (presence, hovered) {
-        (Presence::Focused, _) => skin.accent_fill(0.55),
-        (_, true) => skin.accent_fill(0.3),
-        (_, false) => skin.fill(0.08),
+        (Presence::Focused, _) => skin.accent_fill(0.45),
+        (_, true) => skin.fill(0.16),
+        (_, false) => skin.fill(0.06),
+    };
+    button::Style {
+        background: Some(Background::Color(background)),
+        text_color: skin.accent,
+        ..button::Style::default()
+    }
+}
+
+pub fn add(skin: Skin, status: button::Status) -> button::Style {
+    let background = match status {
+        button::Status::Hovered | button::Status::Pressed => skin.accent_fill(0.3),
+        _ => skin.accent_fill(0.15),
     };
     button::Style {
         background: Some(Background::Color(background)),
@@ -33,13 +47,26 @@ pub fn slot(skin: Skin, presence: Presence, status: button::Status) -> button::S
 pub fn primary(skin: Skin, status: button::Status) -> button::Style {
     let (background, text_color) = match status {
         button::Status::Disabled => (skin.fill(0.06), skin.muted),
-        button::Status::Hovered | button::Status::Pressed => (skin.accent, skin.background),
-        button::Status::Active => (skin.selection, skin.bright_foreground),
+        button::Status::Hovered | button::Status::Pressed => {
+            (skin.bright_foreground, skin.background)
+        }
+        button::Status::Active => (skin.accent, opaque(skin.background)),
     };
     button::Style {
         background: Some(Background::Color(background)),
         text_color,
-        border: outline(skin.accent),
+        ..button::Style::default()
+    }
+}
+
+pub fn secondary(skin: Skin, status: button::Status) -> button::Style {
+    let background = match status {
+        button::Status::Hovered | button::Status::Pressed => skin.fill(0.18),
+        _ => skin.fill(0.1),
+    };
+    button::Style {
+        background: Some(Background::Color(background)),
+        text_color: skin.bright_foreground,
         ..button::Style::default()
     }
 }
@@ -65,22 +92,32 @@ pub fn dot(color: Color, size: f32) -> container::Style {
 
 pub fn divider(skin: Skin) -> container::Style {
     container::Style {
-        background: Some(Background::Color(skin.fill(0.15))),
+        background: Some(Background::Color(skin.muted)),
         ..container::Style::default()
     }
 }
 
-pub fn backdrop(_: Skin) -> container::Style {
+pub fn backdrop(skin: Skin) -> container::Style {
+    let shade = |channel: f32| channel * SHADE;
+    let tone = opaque(skin.background);
     container::Style {
-        background: Some(Background::Color(Color::from_rgba(0.0, 0.0, 0.0, DIM))),
+        background: Some(Background::Color(Color::from_rgba(
+            shade(tone.r),
+            shade(tone.g),
+            shade(tone.b),
+            DIM,
+        ))),
         ..container::Style::default()
     }
 }
 
 pub fn dialog(skin: Skin) -> container::Style {
     container::Style {
-        background: Some(Background::Color(opaque(skin.lighter_background))),
-        border: outline(skin.accent),
+        background: Some(Background::Color(opaque(skin.background))),
+        border: Border {
+            width: FRAME,
+            ..outline(skin.accent)
+        },
         text_color: Some(skin.foreground),
         ..container::Style::default()
     }
@@ -89,6 +126,13 @@ pub fn dialog(skin: Skin) -> container::Style {
 pub fn card(skin: Skin) -> container::Style {
     container::Style {
         background: Some(Background::Color(skin.fill(0.04))),
+        ..container::Style::default()
+    }
+}
+
+pub fn badge(skin: Skin) -> container::Style {
+    container::Style {
+        background: Some(Background::Color(skin.accent_fill(0.25))),
         ..container::Style::default()
     }
 }
