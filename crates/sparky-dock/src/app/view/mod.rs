@@ -5,6 +5,7 @@ mod picture;
 pub mod style;
 #[cfg(test)]
 mod style_tests;
+mod tray;
 
 use iced::widget::Space;
 use iced::{Element, window};

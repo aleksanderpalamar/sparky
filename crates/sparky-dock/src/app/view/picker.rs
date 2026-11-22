@@ -118,7 +118,7 @@ fn choice<'a>(dock: &'a Dock, picker: &'a Picker, app: &'a App) -> Element<'a, M
         .into(),
         false => label.into(),
     };
-    let badge = container(picture(dock.icons.get(&app.id), None, ICON))
+    let badge = container(picture(dock.icons.get(&app.id), None, ICON, 1.0))
         .center(BADGE)
         .style(move |_| look::badge(skin));
     let line = row![badge, name, mark]

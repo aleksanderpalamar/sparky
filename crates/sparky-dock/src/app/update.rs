@@ -3,13 +3,16 @@ use sparky_theme::Skin;
 
 use super::message::Message;
 use super::state::{Dock, OpenPicker};
-use super::{surface, surfaces};
+use super::{animate, pointer, surface, surfaces};
 use crate::adapters::{catalog, icons};
 use crate::domain::picker::Picker;
 
 pub fn update(dock: &mut Dock, message: Message) -> Task<Message> {
     let task = handle(dock, message);
-    Task::batch([task, surface::sync(dock)])
+    animate::aim(dock);
+    let shape = surface::sync(dock);
+    animate::aim(dock);
+    Task::batch([task, shape])
 }
 
 fn handle(dock: &mut Dock, message: Message) -> Task<Message> {
@@ -27,8 +30,13 @@ fn handle(dock: &mut Dock, message: Message) -> Task<Message> {
             dock.hovering = inside;
             if !inside {
                 dock.menu = None;
+                pointer::left(dock);
             }
         }
+        Message::Pointer(point) => pointer::moved(dock, point),
+        Message::Press(id) => pointer::pressed(dock, &id),
+        Message::Release => pointer::released(dock),
+        Message::Frame(now) => animate::advance(dock, now),
         Message::Menu(id) => dock.menu = Some(id),
         Message::Unpin(id) => {
             dock.menu = None;

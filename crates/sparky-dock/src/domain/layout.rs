@@ -1,3 +1,5 @@
+use super::magnify::PEAK;
+
 pub const GAP: f32 = 11.0;
 pub const INSET_X: f32 = 15.0;
 pub const INSET_Y: f32 = 12.0;
@@ -9,6 +11,7 @@ pub const PEEK: u32 = 4;
 pub const MENU_WIDTH: f32 = 200.0;
 pub const MENU_SPACE: u32 = 92;
 pub const LIFT: f32 = 17.0;
+const SPREAD: f32 = 3.0;
 const GLYPH_RATIO: f32 = 40.0 / 64.0;
 const DIVIDER_RATIO: f32 = 48.0 / 64.0;
 
@@ -25,6 +28,17 @@ pub struct Geometry {
 }
 
 impl Geometry {
+    pub fn lifted(self, layout: &Layout) -> Self {
+        let rise = layout.slot * (PEAK - 1.0);
+        Self {
+            size: (
+                self.size.0 + (rise * SPREAD).ceil() as u32,
+                self.size.1 + rise.ceil() as u32,
+            ),
+            ..self
+        }
+    }
+
     pub fn with_menu(self) -> Self {
         Self {
             size: (self.size.0.max(MENU_WIDTH as u32), self.size.1 + MENU_SPACE),
@@ -69,6 +83,23 @@ impl Layout {
             self.width(pinned).ceil() as u32,
             self.height().ceil() as u32,
         )
+    }
+
+    pub fn tray_width(&self, scales: &[f32]) -> f32 {
+        let slots: f32 = scales.iter().map(|scale| scale * self.slot).sum();
+        (INSET_X + OUTLINE) * 2.0 + slots + scales.len() as f32 * GAP + DIVIDER
+    }
+
+    pub fn centers(&self, pinned: usize, surface: f32) -> Vec<f32> {
+        let left = (surface - self.width(pinned)) / 2.0;
+        let pitch = self.slot + GAP;
+        let start = left + INSET_X + OUTLINE + self.slot / 2.0;
+        (0..pinned)
+            .map(|index| start + index as f32 * pitch)
+            .chain(std::iter::once(
+                start + pinned as f32 * pitch + DIVIDER + GAP,
+            ))
+            .collect()
     }
 
     pub fn offset(&self, index: usize) -> f32 {

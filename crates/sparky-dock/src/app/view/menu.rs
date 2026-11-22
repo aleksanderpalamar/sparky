@@ -16,10 +16,10 @@ pub fn menu<'a>(dock: &'a Dock, id: &str) -> Option<Element<'a, Message>> {
     let index = entries.iter().position(|(app, _)| app.id == id)?;
     let (app, _) = entries.get(index)?;
     let layout = dock.layout();
-    let (width, _) = layout.size(entries.len());
-    let surface = (width as f32).max(MENU_WIDTH);
-    let tray_start = (surface - width as f32) / 2.0;
-    let center = tray_start + layout.offset(index) + layout.slot / 2.0;
+    let surface = dock
+        .surface
+        .map_or(MENU_WIDTH, |geometry| geometry.size.0 as f32);
+    let center = *layout.centers(entries.len(), surface).get(index)?;
     let left = (center - MENU_WIDTH / 2.0).clamp(0.0, surface - MENU_WIDTH);
     let remove = button(text(tr("menu-remove")).size(TEXT_SIZE))
         .width(Length::Fill)

@@ -69,3 +69,14 @@ fn remover_tira_so_o_aplicativo_pedido_e_mantem_a_ordem() {
     );
     assert!(!pinned.remove("sparky-files"));
 }
+
+#[test]
+fn reposicionar_poe_antes_do_vizinho_ou_no_fim() {
+    let mut pinned = Pinned::from_ids(ids(&["a", "b", "c"]));
+    assert!(pinned.place("c", Some("a")));
+    assert_eq!(pinned.ids(), ids(&["c", "a", "b"]));
+    assert!(pinned.place("c", None));
+    assert_eq!(pinned.ids(), ids(&["a", "b", "c"]));
+    assert!(!pinned.place("z", None));
+    assert!(!pinned.place("c", None));
+}

@@ -4,7 +4,7 @@ use iced::{Background, Color};
 use sparky_theme::{Palette, Skin};
 
 use super::style::{
-    add, badge, card, check, dialog, divider, mark, primary, secondary, slot, tray,
+    add, badge, card, check, dialog, divider, mark, menu, primary, secondary, strip, tray,
 };
 use crate::domain::presence::Presence;
 
@@ -27,15 +27,8 @@ fn nenhuma_superficie_do_dock_tem_canto_arredondado() {
     assert_eq!(card(skin).border.radius, reto());
     assert_eq!(divider(skin).border.radius, reto());
     assert_eq!(badge(skin).border.radius, reto());
-    for presence in [Presence::Closed, Presence::Running, Presence::Focused] {
-        for status in [
-            button::Status::Active,
-            button::Status::Hovered,
-            button::Status::Pressed,
-        ] {
-            assert_eq!(slot(skin, presence, status).border.radius, reto());
-        }
-    }
+    assert_eq!(menu(skin).border.radius, reto());
+    assert_eq!(strip(skin).border.radius, reto());
     for status in [
         button::Status::Active,
         button::Status::Hovered,
@@ -57,8 +50,18 @@ fn as_cores_seguem_o_tema_ativo() {
     });
     assert_eq!(dialog(skin).border.color, skin.accent);
     assert_eq!(mark(skin, Presence::Focused), Some(skin.accent));
-    let focado = color(slot(skin, Presence::Focused, button::Status::Active).background);
-    assert_eq!(focado, Some(skin.accent_fill(0.45)));
+    let fundo = color(tray(skin).background);
+    assert_eq!(
+        fundo.map(|cor| (cor.r, cor.g, cor.b)),
+        Some((
+            skin.lighter_background.r,
+            skin.lighter_background.g,
+            skin.lighter_background.b
+        ))
+    );
+    assert!(fundo.is_some_and(|cor| cor.a < 1.0));
+    let sem_quadrado = color(add(skin, button::Status::Active).background);
+    assert_eq!(sem_quadrado.map(|cor| cor.a), Some(0.0));
     let principal = color(primary(skin, button::Status::Active).background);
     assert_eq!(principal, Some(skin.accent));
     let marcada = check(skin, checkbox::Status::Active { is_checked: true });

@@ -1,6 +1,10 @@
+mod animate;
 #[cfg(test)]
 mod dock_tests;
 pub mod message;
+mod pointer;
+#[cfg(test)]
+mod pointer_tests;
 mod restore;
 pub mod state;
 mod surface;
@@ -12,7 +16,9 @@ pub mod update;
 mod update_tests;
 pub mod view;
 
-use iced::{Subscription, Task, keyboard, window};
+use std::time::Duration;
+
+use iced::{Subscription, Task, keyboard, time, window};
 use iced_layershell::settings::{LayerShellSettings, Settings, StartMode};
 use sparky_theme::Skin;
 use sparky_ui::style::{FONT, TEXT_SIZE};
@@ -40,6 +46,8 @@ pub fn run() -> Result<(), iced_layershell::Error> {
         .run()
 }
 
+const FRAME: Duration = Duration::from_millis(16);
+
 fn boot() -> (Dock, Task<Message>) {
     let skin = Skin::new(sparky_theme::current_palette());
     let dock = Dock::new(skin, Box::new(PinnedFile::from_env()), Box::new(Spawner));
@@ -58,7 +66,12 @@ fn subscription(dock: &Dock) -> Subscription<Message> {
         ]),
         None => Subscription::none(),
     };
+    let frames = match animate::animating(dock) {
+        true => time::every(FRAME).map(Message::Frame),
+        false => Subscription::none(),
+    };
     Subscription::batch([
+        frames,
         sparky_ui::palette::subscription().map(Message::Palette),
         Subscription::run(windows::changes).map(Message::Windows),
         Subscription::run(preferences::changes).map(Message::Preferences),

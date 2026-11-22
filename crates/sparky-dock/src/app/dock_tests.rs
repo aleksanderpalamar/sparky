@@ -21,6 +21,15 @@ fn window(visible: bool) -> Seen {
     }
 }
 
+fn settle(dock: &mut super::state::Dock) {
+    let start = std::time::Instant::now();
+    for frame in 0..120 {
+        let now = start + std::time::Duration::from_millis(16 * frame);
+        let _ = update(dock, Message::Frame(now));
+    }
+    assert!(!super::animate::animating(dock));
+}
+
 fn ready(memory: &Memory) -> super::state::Dock {
     let mut dock = dock(memory, &Started::default(), Vec::new());
     let _ = update(&mut dock, Message::Catalog(catalog()));
@@ -71,12 +80,19 @@ fn ocultar_automaticamente_esconde_com_janela_e_volta_com_o_mouse() {
     let _ = update(&mut dock, Message::Preferences(oculto));
     assert_eq!(dock.surface.map(|geometry| geometry.zone), Some(0));
     let _ = update(&mut dock, Message::Windows(vec![window(true)]));
+    assert_eq!(dock.surface.map(|geometry| geometry.size.1), Some(117));
+    assert!(super::animate::animating(&dock));
+    settle(&mut dock);
     assert_eq!(dock.surface.map(|geometry| geometry.size.1), Some(PEEK));
     let _ = update(&mut dock, Message::Hover(true));
-    assert_eq!(dock.surface.map(|geometry| geometry.size.1), Some(117));
+    assert!(dock.surface.is_some_and(|geometry| geometry.size.1 > 117));
+    settle(&mut dock);
+    assert_eq!(dock.slide.value, 0.0);
     let _ = update(&mut dock, Message::Hover(false));
+    settle(&mut dock);
     assert_eq!(dock.surface.map(|geometry| geometry.size.1), Some(PEEK));
     let _ = update(&mut dock, Message::Windows(Vec::new()));
+    settle(&mut dock);
     assert_eq!(dock.surface.map(|geometry| geometry.size.1), Some(117));
 }
 

@@ -6,34 +6,24 @@ use crate::domain::presence::Presence;
 
 const OUTLINE: f32 = 1.0;
 const FRAME: f32 = 2.0;
+const TRANSLUCENT: f32 = 0.72;
 
 pub fn tray(skin: Skin) -> container::Style {
     container::Style {
-        background: Some(Background::Color(opaque(skin.lighter_background))),
-        border: outline(skin.accent_fill(0.5)),
+        background: Some(Background::Color(Color {
+            a: TRANSLUCENT,
+            ..opaque(skin.lighter_background)
+        })),
+        border: outline(skin.fill(0.18)),
         text_color: Some(skin.foreground),
         ..container::Style::default()
     }
 }
 
-pub fn slot(skin: Skin, presence: Presence, status: button::Status) -> button::Style {
-    let hovered = matches!(status, button::Status::Hovered | button::Status::Pressed);
-    let background = match (presence, hovered) {
-        (Presence::Focused, _) => skin.accent_fill(0.45),
-        (_, true) => skin.fill(0.16),
-        (_, false) => skin.fill(0.06),
-    };
-    button::Style {
-        background: Some(Background::Color(background)),
-        text_color: skin.accent,
-        ..button::Style::default()
-    }
-}
-
 pub fn add(skin: Skin, status: button::Status) -> button::Style {
     let background = match status {
-        button::Status::Hovered | button::Status::Pressed => skin.accent_fill(0.3),
-        _ => skin.accent_fill(0.15),
+        button::Status::Pressed => skin.accent_fill(0.2),
+        _ => Color::TRANSPARENT,
     };
     button::Style {
         background: Some(Background::Color(background)),

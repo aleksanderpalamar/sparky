@@ -5,7 +5,9 @@ use sparky_launcher::app::pictures::Shown;
 use sparky_theme::Skin;
 
 use crate::domain::app::App;
+use crate::domain::drag::Drag;
 use crate::domain::layout::{Geometry, Layout, Visibility};
+use crate::domain::motion::Ease;
 use crate::domain::picker::Picker;
 use crate::domain::pinned::Pinned;
 use crate::domain::presence::{Presence, Seen, presence};
@@ -30,6 +32,11 @@ pub struct Dock {
     pub picker: Option<OpenPicker>,
     pub hovering: bool,
     pub menu: Option<String>,
+    pub pointer: Option<iced::Point>,
+    pub drag: Option<Drag>,
+    pub zoom: Vec<Ease>,
+    pub slide: Ease,
+    pub clock: Option<std::time::Instant>,
     store: Box<dyn PinnedStore>,
     starter: Box<dyn Starter>,
 }
@@ -50,6 +57,11 @@ impl Dock {
             picker: None,
             hovering: false,
             menu: None,
+            pointer: None,
+            drag: None,
+            zoom: Vec::new(),
+            slide: Ease::at(0.0),
+            clock: None,
             store,
             starter,
         }
@@ -76,14 +88,24 @@ impl Dock {
         })
     }
 
+    pub fn tucked(&self) -> bool {
+        self.visibility() == Visibility::Hidden && self.slide.settled() && self.slide.value == 1.0
+    }
+
     pub fn desired(&self) -> Option<Geometry> {
         if !self.preferences.enabled || !self.catalogued {
             return None;
         }
         let count = self.pinned.resolve(&self.apps).len();
-        let geometry = self
-            .layout()
-            .geometry(count, self.visibility(), self.preferences.autohide);
+        let layout = self.layout();
+        let autohide = self.preferences.autohide;
+        if self.tucked() {
+            return Some(layout.geometry(count, Visibility::Hidden, autohide));
+        }
+        let mut geometry = layout.geometry(count, Visibility::Shown, autohide);
+        if self.hovering || self.zoom.iter().any(|ease| !ease.settled()) {
+            geometry = geometry.lifted(&layout);
+        }
         match self.menu {
             Some(_) => Some(geometry.with_menu()),
             None => Some(geometry),
@@ -102,6 +124,12 @@ impl Dock {
 
     pub fn pin(&mut self, ids: &[String]) {
         if self.pinned.add(ids.iter().cloned()) {
+            self.persist();
+        }
+    }
+
+    pub fn place(&mut self, id: &str, before: Option<&str>) {
+        if self.pinned.place(id, before) {
             self.persist();
         }
     }

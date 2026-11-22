@@ -46,6 +46,18 @@ impl Pinned {
         self.ids.len() != before
     }
 
+    pub fn place(&mut self, id: &str, before: Option<&str>) -> bool {
+        let Some(from) = self.ids.iter().position(|pinned| pinned == id) else {
+            return false;
+        };
+        let item = self.ids.remove(from);
+        let to = before
+            .and_then(|next| self.ids.iter().position(|pinned| pinned == next))
+            .unwrap_or(self.ids.len());
+        self.ids.insert(to, item);
+        to != from
+    }
+
     pub fn add(&mut self, ids: impl IntoIterator<Item = String>) -> bool {
         let before = self.ids.len();
         for id in ids {

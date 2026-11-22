@@ -69,3 +69,34 @@ fn revelado_o_dock_continua_tocando_a_borda_onde_o_mouse_esta() {
     );
     assert!(shown.size.1 > PEEK);
 }
+
+#[test]
+fn os_centros_seguem_a_grade_e_o_mais_fica_depois_do_divisor() {
+    let dock = layout(64);
+    let centers = dock.centers(2, 300.0);
+    let left = (300.0 - dock.width(2)) / 2.0;
+    assert_eq!(centers.len(), 3);
+    assert_eq!(centers[0], left + 16.0 + 32.0);
+    assert_eq!(centers[1] - centers[0], 75.0);
+    assert_eq!(centers[2] - centers[1], 75.0 + 1.0 + 11.0);
+}
+
+#[test]
+fn com_o_mouse_no_dock_a_superficie_ganha_espaco_para_os_icones_ampliados() {
+    let dock = layout(64);
+    let base = dock.geometry(4, Visibility::Shown, false);
+    let lifted = base.lifted(&dock);
+    assert!(lifted.size.1 as f32 >= base.size.1 as f32 + 64.0 * 0.6);
+    assert!(lifted.size.0 > base.size.0);
+    assert_eq!(lifted.zone, base.zone);
+}
+
+#[test]
+fn o_fundo_ampliado_soma_a_largura_de_cada_icone() {
+    let dock = layout(64);
+    assert_eq!(dock.tray_width(&[1.0; 5]), dock.width(4));
+    assert_eq!(
+        dock.tray_width(&[1.5, 1.0, 1.0, 1.0, 1.0]),
+        dock.width(4) + 32.0
+    );
+}
