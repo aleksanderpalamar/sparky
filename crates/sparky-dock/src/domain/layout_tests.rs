@@ -30,7 +30,7 @@ fn o_quadro_e_fixo_e_cabe_os_icones_ampliados_e_o_menu() {
     let dock = layout(64);
     let frame = dock.frame(4, false);
     assert_eq!(frame.size.1, 117 + dock.rise() + MENU_SPACE);
-    assert!(frame.size.0 >= 408 + dock.rise() * 3);
+    assert!(frame.size.0 >= 408 + dock.rise() * 5);
     assert!(dock.rise() as f32 >= 64.0 * 0.6);
 }
 
@@ -72,4 +72,35 @@ fn o_fundo_ampliado_soma_a_largura_de_cada_icone() {
         dock.tray_width(&[1.5, 1.0, 1.0, 1.0, 1.0]),
         dock.width(4) + 32.0
     );
+}
+
+fn separator(dock: &Layout, scales: &[f32], surface: f32) -> f32 {
+    let apps = &scales[..scales.len() - 1];
+    let widths: f32 = apps.iter().map(|scale| scale * dock.slot).sum();
+    dock.tray_left(scales, surface) + 16.0 + widths + apps.len() as f32 * GAP
+}
+
+#[test]
+fn em_repouso_o_dock_fica_centralizado() {
+    let dock = layout(64);
+    assert_eq!(
+        dock.tray_left(&[1.0; 5], 600.0),
+        (600.0 - dock.width(4)) / 2.0
+    );
+}
+
+#[test]
+fn o_separador_nao_sai_do_lugar_quando_os_icones_crescem() {
+    let dock = layout(64);
+    let repouso = separator(&dock, &[1.0; 5], 600.0);
+    let ampliado = [1.2, 1.6, 1.3, 1.0, 1.1];
+    assert!((separator(&dock, &ampliado, 600.0) - repouso).abs() < 0.01);
+}
+
+#[test]
+fn o_quadro_tem_folga_para_os_apps_crescerem_so_para_a_esquerda() {
+    let dock = layout(64);
+    let frame = dock.frame(4, false);
+    let ampliado = [1.06, 1.39, 1.6, 1.39, 1.0];
+    assert!(dock.tray_left(&ampliado, frame.size.0 as f32) >= 0.0);
 }

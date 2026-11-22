@@ -10,7 +10,7 @@ use crate::app::message::Message;
 use crate::app::state::Dock;
 use crate::app::{animate, pointer};
 use crate::domain::app::App;
-use crate::domain::layout::{DIVIDER, INSET_Y, Layout, MARK, MARK_GAP, OUTLINE};
+use crate::domain::layout::{DIVIDER, INSET_X, INSET_Y, Layout, MARK, MARK_GAP, OUTLINE};
 use crate::domain::presence::{Presence, presence};
 
 const DRAGGED: f32 = 0.45;
@@ -39,20 +39,21 @@ pub fn tray(dock: &Dock) -> Element<'_, Message> {
         .width(layout.tray_width(&scales))
         .height(layout.height())
         .style(move |_| style::tray(skin));
+    let surface = dock.surface.map_or(0.0, |geometry| geometry.size.0 as f32);
+    let left = layout.tray_left(&scales, surface);
     stack![
-        bottom(backdrop.into(), 0.0),
-        bottom(icons.into(), INSET_Y + OUTLINE)
+        placed(backdrop.into(), left, 0.0),
+        placed(icons.into(), left + INSET_X + OUTLINE, INSET_Y + OUTLINE)
     ]
     .width(Length::Fill)
     .height(Length::Fill)
     .into()
 }
 
-fn bottom(content: Element<'_, Message>, lift: f32) -> Element<'_, Message> {
-    container(content)
+fn placed(content: Element<'_, Message>, left: f32, lift: f32) -> Element<'_, Message> {
+    container(row![Space::new().width(left.max(0.0)), content])
         .width(Length::Fill)
         .height(Length::Fill)
-        .align_x(Horizontal::Center)
         .align_y(Vertical::Bottom)
         .padding(iced::Padding::ZERO.bottom(lift))
         .into()
