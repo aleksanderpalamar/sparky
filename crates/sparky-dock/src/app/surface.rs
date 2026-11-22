@@ -1,4 +1,5 @@
 use iced::{Task, window};
+use iced_layershell::actions::ActionCallback;
 
 use super::message::Message;
 use super::state::Dock;
@@ -6,17 +7,41 @@ use super::surfaces;
 use crate::domain::layout::Geometry;
 
 pub fn sync(dock: &mut Dock) -> Task<Message> {
+    let shape = reshape(dock);
+    Task::batch([shape, accept(dock)])
+}
+
+fn accept(dock: &mut Dock) -> Task<Message> {
+    let wanted = dock.region();
+    if wanted == dock.accepting {
+        return Task::none();
+    }
+    dock.accepting = wanted;
+    let Some(rect) = wanted else {
+        return Task::none();
+    };
+    Task::done(Message::SetInputRegion {
+        id: dock.window,
+        callback: ActionCallback::new(move |region| {
+            region.add(rect.x, rect.y, rect.width, rect.height);
+        }),
+    })
+}
+
+fn reshape(dock: &mut Dock) -> Task<Message> {
     let wanted = dock.desired();
     match (dock.surface, wanted) {
         (None, None) => Task::none(),
         (Some(_), None) => {
             dock.surface = None;
+            dock.accepting = None;
             dock.hovering = false;
             dock.menu = None;
             Task::done(Message::RemoveWindow(dock.window))
         }
         (None, Some(geometry)) => {
             dock.surface = Some(geometry);
+            dock.accepting = None;
             dock.window = window::Id::unique();
             Task::done(Message::NewLayerShell {
                 settings: surfaces::dock(geometry),

@@ -47,6 +47,7 @@ fn handle(dock: &mut Dock, message: Message) -> Task<Message> {
             dock.start(&id);
         }
         Message::OpenPicker => return open_picker(dock),
+        Message::Opened(window) if window == dock.window => dock.accepting = None,
         Message::Opened(window)
             if dock
                 .picker

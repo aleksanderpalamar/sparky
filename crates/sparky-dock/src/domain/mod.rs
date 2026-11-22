@@ -25,6 +25,9 @@ mod pinned_tests;
 pub mod presence;
 #[cfg(test)]
 mod presence_tests;
+pub mod region;
+#[cfg(test)]
+mod region_tests;
 #[cfg(test)]
 pub(crate) mod support;
 pub mod visibility;

@@ -59,7 +59,7 @@ fn as_cores_seguem_o_tema_ativo() {
             skin.lighter_background.b
         ))
     );
-    assert!(fundo.is_some_and(|cor| cor.a < 1.0));
+    assert_eq!(fundo.map(|cor| cor.a), Some(1.0));
     let sem_quadrado = color(add(skin, button::Status::Active).background);
     assert_eq!(sem_quadrado.map(|cor| cor.a), Some(0.0));
     let principal = color(primary(skin, button::Status::Active).background);

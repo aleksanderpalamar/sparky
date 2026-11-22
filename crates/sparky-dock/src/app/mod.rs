@@ -60,10 +60,7 @@ fn namespace() -> String {
 
 fn subscription(dock: &Dock) -> Subscription<Message> {
     let picking = match dock.picker {
-        Some(_) => Subscription::batch([
-            keyboard::listen().filter_map(escape),
-            window::open_events().map(Message::Opened),
-        ]),
+        Some(_) => keyboard::listen().filter_map(escape),
         None => Subscription::none(),
     };
     let frames = match animate::animating(dock) {
@@ -74,6 +71,7 @@ fn subscription(dock: &Dock) -> Subscription<Message> {
         frames,
         sparky_ui::palette::subscription().map(Message::Palette),
         Subscription::run(windows::changes).map(Message::Windows),
+        window::open_events().map(Message::Opened),
         Subscription::run(preferences::changes).map(Message::Preferences),
         picking,
     ])

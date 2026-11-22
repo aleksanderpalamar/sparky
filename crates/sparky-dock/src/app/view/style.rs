@@ -6,14 +6,10 @@ use crate::domain::presence::Presence;
 
 const OUTLINE: f32 = 1.0;
 const FRAME: f32 = 2.0;
-const TRANSLUCENT: f32 = 0.72;
 
 pub fn tray(skin: Skin) -> container::Style {
     container::Style {
-        background: Some(Background::Color(Color {
-            a: TRANSLUCENT,
-            ..opaque(skin.lighter_background)
-        })),
+        background: Some(Background::Color(opaque(skin.lighter_background))),
         border: outline(skin.fill(0.18)),
         text_color: Some(skin.foreground),
         ..container::Style::default()

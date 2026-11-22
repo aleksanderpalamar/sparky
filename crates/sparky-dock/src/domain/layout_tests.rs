@@ -1,4 +1,4 @@
-use super::layout::{Geometry, Layout, PEEK, Visibility};
+use super::layout::{GAP, Geometry, Layout, MENU_SPACE};
 
 fn layout(slot: i32) -> Layout {
     Layout::new(slot)
@@ -8,12 +8,13 @@ fn layout(slot: i32) -> Layout {
 fn com_os_quatro_nativos_no_tamanho_padrao_o_dock_tem_o_tamanho_do_figma() {
     assert_eq!(layout(64).size(4), (408, 100));
     assert_eq!(layout(64).glyph(), 40.0);
+    assert_eq!(layout(64).rest(), 117);
 }
 
 #[test]
 fn cada_aplicativo_novo_alarga_o_dock_em_um_espaco() {
     let dock = layout(64);
-    assert_eq!(dock.width(5) - dock.width(4), dock.slot + dock.gap());
+    assert_eq!(dock.width(5) - dock.width(4), dock.slot + GAP);
 }
 
 #[test]
@@ -25,49 +26,31 @@ fn o_tamanho_escala_o_icone_e_a_altura() {
 }
 
 #[test]
-fn visivel_e_sempre_presente_reserva_a_altura_e_flutua_acima_da_borda() {
-    let geometry = layout(64).geometry(4, Visibility::Shown, false);
+fn o_quadro_e_fixo_e_cabe_os_icones_ampliados_e_o_menu() {
+    let dock = layout(64);
+    let frame = dock.frame(4, false);
+    assert_eq!(frame.size.1, 117 + dock.rise() + MENU_SPACE);
+    assert!(frame.size.0 >= 408 + dock.rise() * 3);
+    assert!(dock.rise() as f32 >= 64.0 * 0.6);
+}
+
+#[test]
+fn so_o_dock_sempre_visivel_reserva_espaco_na_tela() {
+    let dock = layout(64);
+    assert_eq!(dock.frame(4, false).zone, 117);
+    let oculto = dock.frame(4, true);
     assert_eq!(
-        geometry,
+        oculto,
         Geometry {
-            size: (408, 117),
-            zone: 117
+            zone: 0,
+            ..dock.frame(4, false)
         }
     );
 }
 
 #[test]
-fn ocultando_automaticamente_nao_reserva_espaco_e_escondido_vira_uma_faixa() {
-    let shown = layout(64).geometry(4, Visibility::Shown, true);
-    assert_eq!(shown.zone, 0);
-    let hidden = layout(64).geometry(4, Visibility::Hidden, true);
-    assert_eq!(
-        hidden,
-        Geometry {
-            size: (408, PEEK),
-            zone: 0
-        }
-    );
-}
-
-#[test]
-fn com_o_menu_aberto_a_superficie_cresce_para_cima_e_cabe_o_menu() {
-    let dock = layout(40);
-    let base = dock.geometry(1, Visibility::Shown, false);
-    let open = base.with_menu();
-    assert_eq!(open.size.1, base.size.1 + super::layout::MENU_SPACE);
-    assert!(open.size.0 >= super::layout::MENU_WIDTH as u32);
-    assert_eq!(open.zone, base.zone);
-}
-
-#[test]
-fn revelado_o_dock_continua_tocando_a_borda_onde_o_mouse_esta() {
-    let shown = layout(64).geometry(4, Visibility::Shown, true);
-    assert_eq!(
-        shown.size.1,
-        layout(64).size(4).1 + super::layout::LIFT as u32
-    );
-    assert!(shown.size.1 > PEEK);
+fn com_poucos_apps_o_quadro_ainda_cabe_o_menu() {
+    assert!(layout(40).frame(0, false).size.0 >= 200);
 }
 
 #[test]
@@ -79,16 +62,6 @@ fn os_centros_seguem_a_grade_e_o_mais_fica_depois_do_divisor() {
     assert_eq!(centers[0], left + 16.0 + 32.0);
     assert_eq!(centers[1] - centers[0], 75.0);
     assert_eq!(centers[2] - centers[1], 75.0 + 1.0 + 11.0);
-}
-
-#[test]
-fn com_o_mouse_no_dock_a_superficie_ganha_espaco_para_os_icones_ampliados() {
-    let dock = layout(64);
-    let base = dock.geometry(4, Visibility::Shown, false);
-    let lifted = base.lifted(&dock);
-    assert!(lifted.size.1 as f32 >= base.size.1 as f32 + 64.0 * 0.6);
-    assert!(lifted.size.0 > base.size.0);
-    assert_eq!(lifted.zone, base.zone);
 }
 
 #[test]

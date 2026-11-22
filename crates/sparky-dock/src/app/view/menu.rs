@@ -5,7 +5,7 @@ use sparky_ui::style::{SMALL_TEXT, TEXT_SIZE};
 use super::style;
 use crate::app::message::Message;
 use crate::app::state::Dock;
-use crate::domain::layout::{MENU_SPACE, MENU_WIDTH};
+use crate::domain::layout::MENU_WIDTH;
 use crate::i18n::text as tr;
 
 const PADDING: f32 = 8.0;
@@ -42,8 +42,6 @@ pub fn menu<'a>(dock: &'a Dock, id: &str) -> Option<Element<'a, Message>> {
     Some(
         container(placed)
             .width(surface)
-            .height(MENU_SPACE as f32)
-            .align_y(iced::alignment::Vertical::Bottom)
             .padding(iced::Padding::ZERO.bottom(6))
             .into(),
     )

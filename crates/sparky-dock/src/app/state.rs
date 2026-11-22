@@ -11,6 +11,7 @@ use crate::domain::motion::Ease;
 use crate::domain::picker::Picker;
 use crate::domain::pinned::Pinned;
 use crate::domain::presence::{Presence, Seen, presence};
+use crate::domain::region::{Rect, Stage, region};
 use crate::domain::visibility::{Moment, visibility};
 use crate::ports::{PinnedStore, Starter};
 
@@ -37,6 +38,7 @@ pub struct Dock {
     pub zoom: Vec<Ease>,
     pub slide: Ease,
     pub clock: Option<std::time::Instant>,
+    pub accepting: Option<Rect>,
     store: Box<dyn PinnedStore>,
     starter: Box<dyn Starter>,
 }
@@ -62,6 +64,7 @@ impl Dock {
             zoom: Vec::new(),
             slide: Ease::at(0.0),
             clock: None,
+            accepting: None,
             store,
             starter,
         }
@@ -97,19 +100,22 @@ impl Dock {
             return None;
         }
         let count = self.pinned.resolve(&self.apps).len();
-        let layout = self.layout();
-        let autohide = self.preferences.autohide;
-        if self.tucked() {
-            return Some(layout.geometry(count, Visibility::Hidden, autohide));
+        Some(self.layout().frame(count, self.preferences.autohide))
+    }
+
+    pub fn stage(&self) -> Stage {
+        match (self.tucked(), self.menu.is_some(), self.hovering) {
+            (true, _, _) => Stage::Tucked,
+            (false, true, _) => Stage::Menu,
+            (false, false, true) => Stage::Lifted,
+            (false, false, false) => Stage::Resting,
         }
-        let mut geometry = layout.geometry(count, Visibility::Shown, autohide);
-        if self.hovering || self.zoom.iter().any(|ease| !ease.settled()) {
-            geometry = geometry.lifted(&layout);
-        }
-        match self.menu {
-            Some(_) => Some(geometry.with_menu()),
-            None => Some(geometry),
-        }
+    }
+
+    pub fn region(&self) -> Option<Rect> {
+        let frame = self.surface?;
+        let count = self.pinned.resolve(&self.apps).len();
+        Some(region(&self.layout(), count, frame, self.stage()))
     }
 
     pub fn start(&self, id: &str) {

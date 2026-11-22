@@ -1,8 +1,9 @@
 use super::message::Message;
 use super::test_support::{Memory, Started, dock};
 use super::update::update;
-use crate::domain::layout::{MENU_SPACE, PEEK};
+use crate::domain::layout::{Geometry, Layout, PEEK};
 use crate::domain::presence::Seen;
+use crate::domain::region::Stage;
 use crate::domain::support::{app, ids};
 
 fn catalog() -> Vec<crate::domain::app::App> {
@@ -36,23 +37,35 @@ fn ready(memory: &Memory) -> super::state::Dock {
     dock
 }
 
+fn frame(apps: usize) -> Geometry {
+    Layout::new(64).frame(apps, false)
+}
+
+fn stage(dock: &super::state::Dock) -> Stage {
+    dock.stage()
+}
+
 #[test]
 fn a_superficie_so_existe_com_o_catalogo_lido_e_o_dock_ligado() {
     let mut dock = dock(&Memory::default(), &Started::default(), Vec::new());
     assert_eq!(dock.desired(), None);
     let _ = update(&mut dock, Message::Catalog(catalog()));
-    assert_eq!(dock.surface.map(|geometry| geometry.size), Some((258, 117)));
+    assert_eq!(dock.surface, Some(frame(2)));
+    assert_eq!(
+        dock.accepting.map(|rect| (rect.width, rect.height)),
+        Some((258, 117))
+    );
     let desligado = sparky_config::Dock {
         enabled: false,
         ..sparky_config::Dock::default()
     };
     let _ = update(&mut dock, Message::Preferences(desligado));
-    assert_eq!(dock.surface, None);
+    assert_eq!((dock.surface, dock.accepting), (None, None));
     let _ = update(
         &mut dock,
         Message::Preferences(sparky_config::Dock::default()),
     );
-    assert!(dock.surface.is_some());
+    assert!(dock.surface.is_some() && dock.accepting.is_some());
 }
 
 #[test]
@@ -63,50 +76,50 @@ fn mudar_o_tamanho_redimensiona_na_hora() {
         ..sparky_config::Dock::default()
     };
     let _ = update(&mut dock, Message::Preferences(pequeno));
-    let Some(geometry) = dock.surface else {
-        panic!("o dock deveria estar aberto");
-    };
-    assert!(geometry.size.1 < 117);
-    assert_eq!(geometry.zone, geometry.size.1 as i32);
+    assert_eq!(dock.surface, Some(Layout::new(40).frame(2, false)));
+    assert!(dock.accepting.is_some_and(|rect| rect.height < 117));
 }
 
 #[test]
-fn ocultar_automaticamente_esconde_com_janela_e_volta_com_o_mouse() {
+fn passar_o_mouse_ou_abrir_o_menu_nao_redimensiona_a_superficie() {
+    let mut dock = ready(&Memory::default());
+    let quadro = dock.surface;
+    let _ = update(&mut dock, Message::Hover(true));
+    assert_eq!((dock.surface, stage(&dock)), (quadro, Stage::Lifted));
+    let _ = update(&mut dock, Message::Menu("sparky-files".to_owned()));
+    assert_eq!((dock.surface, stage(&dock)), (quadro, Stage::Menu));
+    let _ = update(&mut dock, Message::Hover(false));
+    assert_eq!(dock.menu, None);
+    assert_eq!((dock.surface, stage(&dock)), (quadro, Stage::Resting));
+}
+
+#[test]
+fn ocultar_automaticamente_desliza_e_so_a_faixa_recebe_o_mouse() {
     let mut dock = ready(&Memory::default());
     let oculto = sparky_config::Dock {
         autohide: true,
         ..sparky_config::Dock::default()
     };
     let _ = update(&mut dock, Message::Preferences(oculto));
-    assert_eq!(dock.surface.map(|geometry| geometry.zone), Some(0));
+    let quadro = dock.surface;
+    assert_eq!(quadro.map(|geometry| geometry.zone), Some(0));
     let _ = update(&mut dock, Message::Windows(vec![window(true)]));
-    assert_eq!(dock.surface.map(|geometry| geometry.size.1), Some(117));
     assert!(super::animate::animating(&dock));
+    assert_eq!(stage(&dock), Stage::Resting);
     settle(&mut dock);
-    assert_eq!(dock.surface.map(|geometry| geometry.size.1), Some(PEEK));
+    assert_eq!(stage(&dock), Stage::Tucked);
+    assert_eq!(dock.accepting.map(|rect| rect.height), Some(PEEK as i32));
     let _ = update(&mut dock, Message::Hover(true));
-    assert!(dock.surface.is_some_and(|geometry| geometry.size.1 > 117));
+    assert_eq!(stage(&dock), Stage::Lifted);
     settle(&mut dock);
     assert_eq!(dock.slide.value, 0.0);
     let _ = update(&mut dock, Message::Hover(false));
     settle(&mut dock);
-    assert_eq!(dock.surface.map(|geometry| geometry.size.1), Some(PEEK));
+    assert_eq!(stage(&dock), Stage::Tucked);
     let _ = update(&mut dock, Message::Windows(Vec::new()));
     settle(&mut dock);
-    assert_eq!(dock.surface.map(|geometry| geometry.size.1), Some(117));
-}
-
-#[test]
-fn o_menu_abre_acima_do_icone_e_fecha_quando_o_mouse_sai() {
-    let mut dock = ready(&Memory::default());
-    let _ = update(&mut dock, Message::Menu("sparky-files".to_owned()));
-    assert_eq!(
-        dock.surface.map(|geometry| geometry.size.1),
-        Some(117 + MENU_SPACE)
-    );
-    let _ = update(&mut dock, Message::Hover(false));
-    assert_eq!(dock.menu, None);
-    assert_eq!(dock.surface.map(|geometry| geometry.size.1), Some(117));
+    assert_eq!(stage(&dock), Stage::Resting);
+    assert_eq!(dock.surface, quadro);
 }
 
 #[test]
@@ -121,7 +134,8 @@ fn remover_do_dock_salva_e_encolhe() {
         memory.stored.borrow().clone(),
         Some(ids(&["sparky-settings", "sparky-terminal", "sparky-store"]))
     );
-    assert_eq!(dock.surface.map(|geometry| geometry.size.0), Some(183));
+    assert_eq!(dock.surface, Some(frame(1)));
+    assert_eq!(dock.accepting.map(|rect| rect.width), Some(183));
 }
 
 #[test]

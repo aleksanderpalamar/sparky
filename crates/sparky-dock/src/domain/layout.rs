@@ -27,26 +27,6 @@ pub struct Geometry {
     pub zone: i32,
 }
 
-impl Geometry {
-    pub fn lifted(self, layout: &Layout) -> Self {
-        let rise = layout.slot * (PEAK - 1.0);
-        Self {
-            size: (
-                self.size.0 + (rise * SPREAD).ceil() as u32,
-                self.size.1 + rise.ceil() as u32,
-            ),
-            ..self
-        }
-    }
-
-    pub fn with_menu(self) -> Self {
-        Self {
-            size: (self.size.0.max(MENU_WIDTH as u32), self.size.1 + MENU_SPACE),
-            ..self
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Layout {
     pub slot: f32,
@@ -106,22 +86,24 @@ impl Layout {
         INSET_X + OUTLINE + index as f32 * (self.slot + GAP)
     }
 
-    pub fn geometry(&self, pinned: usize, visibility: Visibility, autohide: bool) -> Geometry {
-        let (width, height) = self.size(pinned);
-        let reach = height + LIFT as u32;
-        match (visibility, autohide) {
-            (Visibility::Hidden, _) => Geometry {
-                size: (width, PEEK),
-                zone: 0,
-            },
-            (Visibility::Shown, true) => Geometry {
-                size: (width, reach),
-                zone: 0,
-            },
-            (Visibility::Shown, false) => Geometry {
-                size: (width, reach),
-                zone: reach as i32,
-            },
+    pub fn rise(&self) -> u32 {
+        (self.slot * (PEAK - 1.0)).ceil() as u32
+    }
+
+    pub fn rest(&self) -> u32 {
+        self.height().ceil() as u32 + LIFT as u32
+    }
+
+    pub fn frame(&self, pinned: usize, autohide: bool) -> Geometry {
+        let width = self.size(pinned).0 + (self.rise() as f32 * SPREAD).ceil() as u32;
+        let height = self.rest() + self.rise() + MENU_SPACE;
+        let zone = match autohide {
+            true => 0,
+            false => self.rest() as i32,
+        };
+        Geometry {
+            size: (width.max(MENU_WIDTH as u32), height),
+            zone,
         }
     }
 }
