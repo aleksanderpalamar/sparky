@@ -6,6 +6,7 @@ use sparky_theme::Skin;
 
 use crate::domain::app::App;
 use crate::domain::drag::Drag;
+use crate::domain::fit::{capacity, fitted};
 use crate::domain::layout::{Geometry, Layout, Visibility};
 use crate::domain::motion::Ease;
 use crate::domain::picker::Picker;
@@ -39,6 +40,7 @@ pub struct Dock {
     pub slide: Ease,
     pub clock: Option<std::time::Instant>,
     pub accepting: Option<Rect>,
+    pub output: Option<u32>,
     store: Box<dyn PinnedStore>,
     starter: Box<dyn Starter>,
 }
@@ -65,13 +67,19 @@ impl Dock {
             slide: Ease::at(0.0),
             clock: None,
             accepting: None,
+            output: None,
             store,
             starter,
         }
     }
 
     pub fn layout(&self) -> Layout {
-        Layout::new(self.preferences.slot())
+        let count = self.pinned.resolve(&self.apps).len();
+        fitted(self.preferences.slot(), count, self.output)
+    }
+
+    pub fn room(&self) -> usize {
+        capacity(self.output).saturating_sub(self.pinned.resolve(&self.apps).len())
     }
 
     pub fn entries(&self) -> Vec<(&App, Presence)> {

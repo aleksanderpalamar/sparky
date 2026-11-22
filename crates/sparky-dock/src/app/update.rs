@@ -5,7 +5,7 @@ use super::contact::Contact;
 use super::message::Message;
 use super::state::{Dock, OpenPicker};
 use super::{animate, pointer, surface, surfaces};
-use crate::adapters::{catalog, icons};
+use crate::adapters::{catalog, icons, outputs};
 use crate::domain::picker::Picker;
 
 pub fn update(dock: &mut Dock, message: Message) -> Task<Message> {
@@ -26,7 +26,11 @@ fn handle(dock: &mut Dock, message: Message) -> Task<Message> {
         Message::Icons(icons) => dock.icons = icons,
         Message::Windows(windows) => dock.windows = windows,
         Message::Palette(palette) => dock.skin = Skin::new(palette),
-        Message::Preferences(preferences) => dock.preferences = preferences,
+        Message::Preferences(preferences) => {
+            dock.preferences = preferences;
+            return measure();
+        }
+        Message::Output(width) => dock.output = width,
         Message::Hover(inside) => {
             dock.hovering = inside;
             if !inside {
@@ -51,7 +55,10 @@ fn handle(dock: &mut Dock, message: Message) -> Task<Message> {
             dock.start(&id);
         }
         Message::OpenPicker => return open_picker(dock),
-        Message::Opened(window) if window == dock.window => dock.accepting = None,
+        Message::Opened(window) if window == dock.window => {
+            dock.accepting = None;
+            return measure();
+        }
         Message::Opened(window)
             if dock
                 .picker
@@ -61,7 +68,9 @@ fn handle(dock: &mut Dock, message: Message) -> Task<Message> {
             return sparky_ui::prompt::focus();
         }
         Message::Search(query) => edit(dock, |picker, _| picker.search(query)),
-        Message::Toggle(id) => edit(dock, |picker, dock| picker.toggle(&id, &dock.pinned)),
+        Message::Toggle(id) => edit(dock, |picker, dock| {
+            picker.toggle(&id, &dock.pinned, dock.room())
+        }),
         Message::Confirm => return confirm(dock),
         Message::Cancel => return close_picker(dock),
         _ => {}
@@ -76,6 +85,13 @@ fn felt(contact: Contact) -> Message {
         Contact::Moved(point) => Message::Pointer(point),
         Contact::Released => Message::Release,
     }
+}
+
+pub fn measure() -> Task<Message> {
+    Task::perform(
+        async { tokio::task::spawn_blocking(outputs::focused_width).await },
+        |width| Message::Output(width.ok().flatten()),
+    )
 }
 
 pub fn load_catalog() -> Task<Message> {
@@ -109,6 +125,7 @@ fn open_picker(dock: &mut Dock) -> Task<Message> {
             id: window,
         }),
         load_catalog(),
+        measure(),
     ])
 }
 

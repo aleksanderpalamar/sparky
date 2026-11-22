@@ -145,3 +145,19 @@ fn dock_esvaziado_continua_vazio_na_proxima_sessao() {
     let dock = dock(&memory, &Started::default(), catalog());
     assert!(dock.pinned.ids().is_empty());
 }
+
+#[test]
+fn em_tela_estreita_o_dock_encolhe_para_caber_e_o_dialogo_respeita_o_espaco() {
+    let memory = Memory::default();
+    let muitos: Vec<String> = (0..30).map(|index| format!("app{index}")).collect();
+    *memory.stored.borrow_mut() = Some(muitos.clone());
+    let mut dock = dock(&memory, &Started::default(), Vec::new());
+    let catalogo = muitos.iter().map(|id| app(id, id)).collect();
+    let _ = update(&mut dock, Message::Catalog(catalogo));
+    let _ = update(&mut dock, Message::Output(Some(1366)));
+    assert!(dock.surface.is_some_and(|geometry| geometry.size.0 <= 1366));
+    assert!(dock.layout().slot < 64.0);
+    let _ = update(&mut dock, Message::Output(Some(1100)));
+    assert!(dock.surface.is_some_and(|geometry| geometry.size.0 <= 1100));
+    assert_eq!(dock.room(), 0);
+}

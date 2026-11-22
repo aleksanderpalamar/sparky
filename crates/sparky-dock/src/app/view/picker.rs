@@ -56,7 +56,7 @@ fn pane<'a>(dock: &'a Dock, picker: &'a Picker) -> Element<'a, Message> {
             .color(skin.dark_foreground),
         search,
         container(scrollable(list(dock, picker))).height(LIST_HEIGHT),
-        footer(skin, picker.chosen().len()),
+        footer(skin, picker.chosen().len(), picker.full(dock.room())),
     ]
     .spacing(16);
     container(content)
@@ -100,9 +100,11 @@ fn list<'a>(dock: &'a Dock, picker: &'a Picker) -> Element<'a, Message> {
 fn choice<'a>(dock: &'a Dock, picker: &'a Picker, app: &'a App) -> Element<'a, Message> {
     let skin = dock.skin;
     let pinned = dock.pinned.contains(&app.id);
+    let chosen = picker.is_chosen(&app.id);
+    let locked = pinned || (!chosen && picker.full(dock.room()));
     let id = app.id.clone();
-    let mark = checkbox(pinned || picker.is_chosen(&app.id))
-        .on_toggle_maybe((!pinned).then_some(move |_| Message::Toggle(id.clone())))
+    let mark = checkbox(pinned || chosen)
+        .on_toggle_maybe((!locked).then_some(move |_| Message::Toggle(id.clone())))
         .size(CHECK)
         .style(move |_, status| look::check(skin, status));
     let label = text(app.name.as_str())
@@ -131,8 +133,12 @@ fn choice<'a>(dock: &'a Dock, picker: &'a Picker, app: &'a App) -> Element<'a, M
         .into()
 }
 
-fn footer(skin: Skin, chosen: usize) -> Element<'static, Message> {
-    let status = text(counted("picker-count", chosen))
+fn footer(skin: Skin, chosen: usize, full: bool) -> Element<'static, Message> {
+    let summary = match full {
+        true => tr("picker-full"),
+        false => counted("picker-count", chosen),
+    };
+    let status = text(summary)
         .size(NOTE)
         .color(skin.dark_foreground)
         .width(Length::Fill);

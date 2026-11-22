@@ -11,3 +11,4 @@ picker-count = { $count ->
    *[other] { $count } aplicativos selecionados
 }
 menu-remove = Remover do dock
+picker-full = O dock está cheio para esta tela

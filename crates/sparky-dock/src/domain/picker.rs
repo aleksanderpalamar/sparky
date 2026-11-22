@@ -22,7 +22,7 @@ impl Picker {
         self.chosen.iter().any(|chosen| chosen == id)
     }
 
-    pub fn toggle(&mut self, id: &str, pinned: &Pinned) {
+    pub fn toggle(&mut self, id: &str, pinned: &Pinned, room: usize) {
         if pinned.contains(id) {
             return;
         }
@@ -30,8 +30,13 @@ impl Picker {
             Some(index) => {
                 self.chosen.remove(index);
             }
+            None if self.full(room) => {}
             None => self.chosen.push(id.to_owned()),
         }
+    }
+
+    pub fn full(&self, room: usize) -> bool {
+        self.chosen.len() >= room
     }
 
     pub fn chosen(&self) -> &[String] {

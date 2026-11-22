@@ -1,5 +1,8 @@
 pub mod catalog;
 pub mod icons;
+pub mod outputs;
+#[cfg(test)]
+mod outputs_tests;
 pub mod pinned_file;
 #[cfg(test)]
 mod pinned_file_tests;

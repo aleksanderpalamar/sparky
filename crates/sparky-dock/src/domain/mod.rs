@@ -7,6 +7,9 @@ mod drag_tests;
 pub mod exec;
 #[cfg(test)]
 mod exec_tests;
+pub mod fit;
+#[cfg(test)]
+mod fit_tests;
 pub mod layout;
 #[cfg(test)]
 mod layout_tests;

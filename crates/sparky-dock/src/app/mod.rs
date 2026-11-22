@@ -54,7 +54,10 @@ const FRAME: Duration = Duration::from_millis(16);
 fn boot() -> (Dock, Task<Message>) {
     let skin = Skin::new(sparky_theme::current_palette());
     let dock = Dock::new(skin, Box::new(PinnedFile::from_env()), Box::new(Spawner));
-    (dock, update::load_catalog())
+    (
+        dock,
+        Task::batch([update::load_catalog(), update::measure()]),
+    )
 }
 
 fn namespace() -> String {
