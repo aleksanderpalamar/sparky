@@ -18,6 +18,7 @@ fn le_nome_traduzido_icone_comando_e_classe() {
             "Name=Files\nName[pt_BR]=Arquivos\nIcon=folder\nExec=sparky-files %U\nStartupWMClass=Files\n",
         ),
         "pt_BR",
+        "/usr/share/applications/sparky-files.desktop",
     );
     let Some(app) = found else {
         panic!("deveria virar aplicativo");
@@ -31,9 +32,43 @@ fn le_nome_traduzido_icone_comando_e_classe() {
 
 #[test]
 fn ignora_entradas_ocultas_de_outro_desktop_ou_sem_comando() {
-    assert!(App::of("a", &entry("Name=A\nExec=a\nNoDisplay=true\n"), "en").is_none());
-    assert!(App::of("a", &entry("Name=A\nExec=a\nOnlyShowIn=KDE;\n"), "en").is_none());
-    assert!(App::of("a", &entry("Name=A\n"), "en").is_none());
-    assert!(App::of("a", &entry("Name= \nExec=a\n"), "en").is_none());
-    assert!(App::of("a", &entry("Name=A\nExec=a\nOnlyShowIn=sparky;\n"), "en").is_some());
+    assert!(App::of("a", &entry("Name=A\nExec=a\nNoDisplay=true\n"), "en", "").is_none());
+    assert!(App::of("a", &entry("Name=A\nExec=a\nOnlyShowIn=KDE;\n"), "en", "").is_none());
+    assert!(App::of("a", &entry("Name=A\n"), "en", "").is_none());
+    assert!(App::of("a", &entry("Name= \nExec=a\n"), "en", "").is_none());
+    assert!(
+        App::of(
+            "a",
+            &entry("Name=A\nExec=a\nOnlyShowIn=sparky;\n"),
+            "en",
+            ""
+        )
+        .is_some()
+    );
+}
+
+#[test]
+fn o_nome_e_o_local_da_entrada_entram_no_comando() {
+    let found = App::of(
+        "visor.desktop",
+        &entry("Name=Visor\nIcon=visor\nExec=visor --caption %c %i --from %k %U\n"),
+        "en",
+        "/apps/visor.desktop",
+    );
+    assert_eq!(
+        found.map(|app| app.launch.arguments),
+        Some(
+            [
+                "visor",
+                "--caption",
+                "Visor",
+                "--icon",
+                "visor",
+                "--from",
+                "/apps/visor.desktop"
+            ]
+            .map(str::to_owned)
+            .to_vec()
+        )
+    );
 }

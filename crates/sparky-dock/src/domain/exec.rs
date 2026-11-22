@@ -1,8 +1,18 @@
 const ESCAPED: [char; 4] = ['"', '`', '$', '\\'];
+const ICON_FLAG: &str = "--icon";
 
-pub fn arguments(exec: &str) -> Option<Vec<String>> {
+pub struct Fields<'a> {
+    pub name: &'a str,
+    pub icon: Option<&'a str>,
+    pub location: &'a str,
+}
+
+pub fn arguments(exec: &str, fields: &Fields<'_>) -> Option<Vec<String>> {
     let words = split(exec)?;
-    let arguments: Vec<String> = words.into_iter().filter_map(expand).collect();
+    let arguments: Vec<String> = words
+        .into_iter()
+        .flat_map(|word| expand(word, fields))
+        .collect();
     match arguments.first() {
         Some(program) if !program.is_empty() => Some(arguments),
         _ => None,
@@ -54,25 +64,32 @@ fn quoted(chars: &mut std::str::Chars<'_>, word: &mut String) -> Option<()> {
     None
 }
 
-fn expand(word: String) -> Option<String> {
+fn expand(word: String, fields: &Fields<'_>) -> Vec<String> {
+    if word == "%i" {
+        return fields
+            .icon
+            .map(|icon| vec![ICON_FLAG.to_owned(), icon.to_owned()])
+            .unwrap_or_default();
+    }
     let mut expanded = String::with_capacity(word.len());
     let mut chars = word.chars().peekable();
-    let mut codes = 0;
+    let mut dropped = false;
     while let Some(next) = chars.next() {
         match (next, chars.peek().copied()) {
-            ('%', Some('%')) => {
+            ('%', Some(code)) => {
                 chars.next();
-                expanded.push('%');
-            }
-            ('%', Some(_)) => {
-                chars.next();
-                codes += 1;
+                match code {
+                    '%' => expanded.push('%'),
+                    'c' => expanded.push_str(fields.name),
+                    'k' => expanded.push_str(fields.location),
+                    _ => dropped = true,
+                }
             }
             (other, _) => expanded.push(other),
         }
     }
-    match (codes, expanded.is_empty()) {
-        (0, _) | (_, false) => Some(expanded),
-        _ => None,
+    match dropped && expanded.is_empty() {
+        true => Vec::new(),
+        false => vec![expanded],
     }
 }

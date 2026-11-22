@@ -1,6 +1,6 @@
 use sparky_xdg::desktop_entry::DesktopEntry;
 
-use super::exec::arguments;
+use super::exec::{Fields, arguments};
 
 const DESKTOP: &str = "sparky";
 const SUFFIX: &str = ".desktop";
@@ -21,16 +21,22 @@ pub struct App {
 }
 
 impl App {
-    pub fn of(id: &str, entry: &DesktopEntry, locale: &str) -> Option<Self> {
+    pub fn of(id: &str, entry: &DesktopEntry, locale: &str, location: &str) -> Option<Self> {
         if entry.no_display || !entry.shown_in(DESKTOP) {
             return None;
         }
         let name = entry.name.get(locale)?.trim().to_owned();
-        let arguments = arguments(entry.exec.as_deref()?)?;
+        let icon = entry.icon.clone().filter(|icon| !icon.is_empty());
+        let fields = Fields {
+            name: &name,
+            icon: icon.as_deref(),
+            location,
+        };
+        let arguments = arguments(entry.exec.as_deref()?, &fields)?;
         (!name.is_empty()).then(|| Self {
             id: id.strip_suffix(SUFFIX).unwrap_or(id).to_owned(),
             name,
-            icon: entry.icon.clone().filter(|icon| !icon.is_empty()),
+            icon,
             launch: Launch {
                 arguments,
                 terminal: entry.terminal,

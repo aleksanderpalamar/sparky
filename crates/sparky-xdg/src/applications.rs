@@ -31,28 +31,41 @@ pub fn desktop_id(relative: &Path) -> Option<String> {
     Some(stem.replace('/', "-"))
 }
 
+pub type Located = (String, PathBuf, DesktopEntry);
+
 pub fn installed_entries() -> Vec<(String, DesktopEntry)> {
+    entries_in(&installed_directories())
+}
+
+pub fn installed_located() -> Vec<Located> {
+    located_in(&installed_directories())
+}
+
+fn installed_directories() -> Vec<PathBuf> {
     let home = env::var("HOME").unwrap_or_default();
     let data_home = env::var("XDG_DATA_HOME").ok();
     let data_dirs = env::var("XDG_DATA_DIRS").ok();
-    entries_in(&directories(
-        data_home.as_deref(),
-        &home,
-        data_dirs.as_deref(),
-    ))
+    directories(data_home.as_deref(), &home, data_dirs.as_deref())
 }
 
 pub fn entries_in(directories: &[PathBuf]) -> Vec<(String, DesktopEntry)> {
-    let mut seen: BTreeMap<String, Option<DesktopEntry>> = BTreeMap::new();
+    located_in(directories)
+        .into_iter()
+        .map(|(id, _, entry)| (id, entry))
+        .collect()
+}
+
+pub fn located_in(directories: &[PathBuf]) -> Vec<Located> {
+    let mut seen: BTreeMap<String, Option<(PathBuf, DesktopEntry)>> = BTreeMap::new();
     for directory in directories {
         for (id, path) in desktop_files(directory) {
             if let Entry::Vacant(slot) = seen.entry(id) {
-                slot.insert(read(&path));
+                slot.insert(read(&path).map(|entry| (path, entry)));
             }
         }
     }
     seen.into_iter()
-        .filter_map(|(id, entry)| entry.map(|entry| (id, entry)))
+        .filter_map(|(id, found)| found.map(|(path, entry)| (id, path, entry)))
         .collect()
 }
 
