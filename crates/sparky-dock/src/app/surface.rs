@@ -39,12 +39,6 @@ fn changes(id: window::Id, current: Geometry, wanted: Geometry) -> Vec<Task<Mess
             zone_size: wanted.zone,
         }));
     }
-    if current.lift != wanted.lift {
-        tasks.push(Task::done(Message::MarginChange {
-            id,
-            margin: surfaces::margin(wanted),
-        }));
-    }
     if current.size != wanted.size {
         tasks.push(Task::done(Message::SizeChange {
             id,

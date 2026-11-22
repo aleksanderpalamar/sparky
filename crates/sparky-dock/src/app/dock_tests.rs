@@ -32,7 +32,7 @@ fn a_superficie_so_existe_com_o_catalogo_lido_e_o_dock_ligado() {
     let mut dock = dock(&Memory::default(), &Started::default(), Vec::new());
     assert_eq!(dock.desired(), None);
     let _ = update(&mut dock, Message::Catalog(catalog()));
-    assert_eq!(dock.surface.map(|geometry| geometry.size), Some((258, 100)));
+    assert_eq!(dock.surface.map(|geometry| geometry.size), Some((258, 117)));
     let desligado = sparky_config::Dock {
         enabled: false,
         ..sparky_config::Dock::default()
@@ -57,7 +57,7 @@ fn mudar_o_tamanho_redimensiona_na_hora() {
     let Some(geometry) = dock.surface else {
         panic!("o dock deveria estar aberto");
     };
-    assert!(geometry.size.1 < 100);
+    assert!(geometry.size.1 < 117);
     assert_eq!(geometry.zone, geometry.size.1 as i32);
 }
 
@@ -73,11 +73,11 @@ fn ocultar_automaticamente_esconde_com_janela_e_volta_com_o_mouse() {
     let _ = update(&mut dock, Message::Windows(vec![window(true)]));
     assert_eq!(dock.surface.map(|geometry| geometry.size.1), Some(PEEK));
     let _ = update(&mut dock, Message::Hover(true));
-    assert_eq!(dock.surface.map(|geometry| geometry.size.1), Some(100));
+    assert_eq!(dock.surface.map(|geometry| geometry.size.1), Some(117));
     let _ = update(&mut dock, Message::Hover(false));
     assert_eq!(dock.surface.map(|geometry| geometry.size.1), Some(PEEK));
     let _ = update(&mut dock, Message::Windows(Vec::new()));
-    assert_eq!(dock.surface.map(|geometry| geometry.size.1), Some(100));
+    assert_eq!(dock.surface.map(|geometry| geometry.size.1), Some(117));
 }
 
 #[test]
@@ -86,11 +86,11 @@ fn o_menu_abre_acima_do_icone_e_fecha_quando_o_mouse_sai() {
     let _ = update(&mut dock, Message::Menu("sparky-files".to_owned()));
     assert_eq!(
         dock.surface.map(|geometry| geometry.size.1),
-        Some(100 + MENU_SPACE)
+        Some(117 + MENU_SPACE)
     );
     let _ = update(&mut dock, Message::Hover(false));
     assert_eq!(dock.menu, None);
-    assert_eq!(dock.surface.map(|geometry| geometry.size.1), Some(100));
+    assert_eq!(dock.surface.map(|geometry| geometry.size.1), Some(117));
 }
 
 #[test]

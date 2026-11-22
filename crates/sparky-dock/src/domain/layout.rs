@@ -8,7 +8,7 @@ pub const OUTLINE: f32 = 1.0;
 pub const PEEK: u32 = 4;
 pub const MENU_WIDTH: f32 = 200.0;
 pub const MENU_SPACE: u32 = 92;
-const LIFT: i32 = 17;
+pub const LIFT: f32 = 17.0;
 const GLYPH_RATIO: f32 = 40.0 / 64.0;
 const DIVIDER_RATIO: f32 = 48.0 / 64.0;
 
@@ -21,7 +21,6 @@ pub enum Visibility {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Geometry {
     pub size: (u32, u32),
-    pub lift: i32,
     pub zone: i32,
 }
 
@@ -78,21 +77,19 @@ impl Layout {
 
     pub fn geometry(&self, pinned: usize, visibility: Visibility, autohide: bool) -> Geometry {
         let (width, height) = self.size(pinned);
+        let reach = height + LIFT as u32;
         match (visibility, autohide) {
             (Visibility::Hidden, _) => Geometry {
                 size: (width, PEEK),
-                lift: 0,
                 zone: 0,
             },
             (Visibility::Shown, true) => Geometry {
-                size: (width, height),
-                lift: LIFT,
+                size: (width, reach),
                 zone: 0,
             },
             (Visibility::Shown, false) => Geometry {
-                size: (width, height),
-                lift: LIFT,
-                zone: height as i32,
+                size: (width, reach),
+                zone: reach as i32,
             },
         }
     }

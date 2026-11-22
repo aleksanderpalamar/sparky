@@ -13,7 +13,7 @@ pub fn dock(geometry: Geometry) -> NewLayerShellSettings {
         layer: Layer::Top,
         anchor: Anchor::Bottom,
         exclusive_zone: Some(geometry.zone),
-        margin: Some(margin(geometry)),
+        margin: None,
         keyboard_interactivity: KeyboardInteractivity::None,
         output_option: OutputOption::Active,
         events_transparent: false,
@@ -33,8 +33,4 @@ pub fn picker() -> NewLayerShellSettings {
         events_transparent: false,
         namespace: Some(PICKER.to_owned()),
     }
-}
-
-pub fn margin(geometry: Geometry) -> (i32, i32, i32, i32) {
-    (0, 0, geometry.lift, 0)
 }

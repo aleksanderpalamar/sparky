@@ -30,9 +30,8 @@ fn visivel_e_sempre_presente_reserva_a_altura_e_flutua_acima_da_borda() {
     assert_eq!(
         geometry,
         Geometry {
-            size: (408, 100),
-            lift: 17,
-            zone: 100
+            size: (408, 117),
+            zone: 117
         }
     );
 }
@@ -46,7 +45,6 @@ fn ocultando_automaticamente_nao_reserva_espaco_e_escondido_vira_uma_faixa() {
         hidden,
         Geometry {
             size: (408, PEEK),
-            lift: 0,
             zone: 0
         }
     );
@@ -59,5 +57,15 @@ fn com_o_menu_aberto_a_superficie_cresce_para_cima_e_cabe_o_menu() {
     let open = base.with_menu();
     assert_eq!(open.size.1, base.size.1 + super::layout::MENU_SPACE);
     assert!(open.size.0 >= super::layout::MENU_WIDTH as u32);
-    assert_eq!((open.lift, open.zone), (base.lift, base.zone));
+    assert_eq!(open.zone, base.zone);
+}
+
+#[test]
+fn revelado_o_dock_continua_tocando_a_borda_onde_o_mouse_esta() {
+    let shown = layout(64).geometry(4, Visibility::Shown, true);
+    assert_eq!(
+        shown.size.1,
+        layout(64).size(4).1 + super::layout::LIFT as u32
+    );
+    assert!(shown.size.1 > PEEK);
 }

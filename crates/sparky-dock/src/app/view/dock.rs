@@ -10,7 +10,7 @@ use crate::adapters::icons::ADD;
 use crate::app::message::Message;
 use crate::app::state::Dock;
 use crate::domain::app::App;
-use crate::domain::layout::{DIVIDER, INSET_X, INSET_Y, Layout, MARK, MARK_GAP, Visibility};
+use crate::domain::layout::{DIVIDER, INSET_X, INSET_Y, LIFT, Layout, MARK, MARK_GAP, Visibility};
 use crate::domain::presence::Presence;
 
 pub fn view(dock: &Dock) -> Element<'_, Message> {
@@ -36,6 +36,7 @@ fn shown(dock: &Dock) -> Element<'_, Message> {
         .height(Length::Fill)
         .align_x(Horizontal::Center)
         .align_y(Vertical::Bottom)
+        .padding(iced::Padding::ZERO.bottom(LIFT))
         .into()
 }
 
