@@ -11,7 +11,7 @@ pub const PEEK: u32 = 4;
 pub const MENU_WIDTH: f32 = 200.0;
 pub const MENU_SPACE: u32 = 92;
 pub const LIFT: f32 = 17.0;
-const SPREAD: f32 = 5.0;
+const SPREAD: f32 = 3.0;
 const GLYPH_RATIO: f32 = 40.0 / 64.0;
 const DIVIDER_RATIO: f32 = 48.0 / 64.0;
 
@@ -71,14 +71,7 @@ impl Layout {
     }
 
     pub fn tray_left(&self, scales: &[f32], surface: f32) -> f32 {
-        let apps = scales.len().saturating_sub(1);
-        let resting = (surface - self.width(apps)) / 2.0;
-        let grown: f32 = scales
-            .iter()
-            .take(apps)
-            .map(|scale| (scale - 1.0) * self.slot)
-            .sum();
-        resting - grown
+        (surface - self.tray_width(scales)) / 2.0
     }
 
     pub fn centers(&self, pinned: usize, surface: f32) -> Vec<f32> {

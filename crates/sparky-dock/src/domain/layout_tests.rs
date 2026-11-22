@@ -30,7 +30,7 @@ fn o_quadro_e_fixo_e_cabe_os_icones_ampliados_e_o_menu() {
     let dock = layout(64);
     let frame = dock.frame(4, false);
     assert_eq!(frame.size.1, 117 + dock.rise() + MENU_SPACE);
-    assert!(frame.size.0 >= 408 + dock.rise() * 5);
+    assert!(frame.size.0 >= 408 + dock.rise() * 3);
     assert!(dock.rise() as f32 >= 64.0 * 0.6);
 }
 
@@ -90,17 +90,18 @@ fn em_repouso_o_dock_fica_centralizado() {
 }
 
 #[test]
-fn o_separador_nao_sai_do_lugar_quando_os_icones_crescem() {
+fn ampliado_o_dock_cresce_para_os_dois_lados_e_o_separador_anda_junto() {
     let dock = layout(64);
-    let repouso = separator(&dock, &[1.0; 5], 600.0);
     let ampliado = [1.2, 1.6, 1.3, 1.0, 1.1];
-    assert!((separator(&dock, &ampliado, 600.0) - repouso).abs() < 0.01);
+    let left = dock.tray_left(&ampliado, 600.0);
+    assert!((left * 2.0 + dock.tray_width(&ampliado) - 600.0).abs() < 0.01);
+    assert!(separator(&dock, &ampliado, 600.0) > separator(&dock, &[1.0; 5], 600.0));
 }
 
 #[test]
-fn o_quadro_tem_folga_para_os_apps_crescerem_so_para_a_esquerda() {
+fn o_quadro_tem_folga_para_a_ampliacao_dos_dois_lados() {
     let dock = layout(64);
     let frame = dock.frame(4, false);
-    let ampliado = [1.06, 1.39, 1.6, 1.39, 1.0];
+    let ampliado = [1.06, 1.39, 1.6, 1.39, 1.06];
     assert!(dock.tray_left(&ampliado, frame.size.0 as f32) >= 0.0);
 }
