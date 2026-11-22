@@ -1,5 +1,5 @@
 use iced::alignment::{Horizontal, Vertical};
-use iced::widget::{Space, container, float, mouse_area, stack};
+use iced::widget::{Space, container, float, stack};
 use iced::{Element, Length, Vector};
 
 use super::menu::menu;
@@ -10,16 +10,10 @@ use crate::app::state::Dock;
 use crate::domain::layout::{LIFT, PEEK};
 
 pub fn view(dock: &Dock) -> Element<'_, Message> {
-    let content = match dock.tucked() {
+    match dock.tucked() {
         true => strip(dock),
         false => shown(dock),
-    };
-    mouse_area(content)
-        .on_enter(Message::Hover(true))
-        .on_exit(Message::Hover(false))
-        .on_move(Message::Pointer)
-        .on_release(Message::Release)
-        .into()
+    }
 }
 
 fn shown(dock: &Dock) -> Element<'_, Message> {

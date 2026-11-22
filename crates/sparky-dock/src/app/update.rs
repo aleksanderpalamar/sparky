@@ -1,6 +1,7 @@
 use iced::{Task, window};
 use sparky_theme::Skin;
 
+use super::contact::Contact;
 use super::message::Message;
 use super::state::{Dock, OpenPicker};
 use super::{animate, pointer, surface, surfaces};
@@ -33,6 +34,9 @@ fn handle(dock: &mut Dock, message: Message) -> Task<Message> {
                 pointer::left(dock);
             }
         }
+        Message::Surface(window, contact) if window == dock.window => {
+            return handle(dock, felt(contact));
+        }
         Message::Pointer(point) => pointer::moved(dock, point),
         Message::Press(id) => pointer::pressed(dock, &id),
         Message::Release => pointer::released(dock),
@@ -63,6 +67,15 @@ fn handle(dock: &mut Dock, message: Message) -> Task<Message> {
         _ => {}
     }
     Task::none()
+}
+
+fn felt(contact: Contact) -> Message {
+    match contact {
+        Contact::Entered => Message::Hover(true),
+        Contact::Left => Message::Hover(false),
+        Contact::Moved(point) => Message::Pointer(point),
+        Contact::Released => Message::Release,
+    }
 }
 
 pub fn load_catalog() -> Task<Message> {

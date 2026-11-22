@@ -1,4 +1,7 @@
 mod animate;
+mod contact;
+#[cfg(test)]
+mod contact_tests;
 #[cfg(test)]
 mod dock_tests;
 pub mod message;
@@ -72,6 +75,7 @@ fn subscription(dock: &Dock) -> Subscription<Message> {
         sparky_ui::palette::subscription().map(Message::Palette),
         Subscription::run(windows::changes).map(Message::Windows),
         window::open_events().map(Message::Opened),
+        iced::event::listen_with(contact::surface),
         Subscription::run(preferences::changes).map(Message::Preferences),
         picking,
     ])

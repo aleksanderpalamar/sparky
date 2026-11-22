@@ -14,6 +14,7 @@ pub enum Message {
     Windows(Vec<Seen>),
     Palette(sparky_theme::Palette),
     Preferences(sparky_config::Dock),
+    Surface(iced::window::Id, super::contact::Contact),
     Hover(bool),
     Pointer(iced::Point),
     Press(String),
