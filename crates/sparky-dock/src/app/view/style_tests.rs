@@ -92,10 +92,10 @@ fn com_frosted_glass_o_fundo_e_o_menu_seguem_a_transparencia_do_tema() {
         ..Palette::default()
     });
     let fundo = color(tray(vidro, 0.0).background);
-    assert_eq!(fundo.map(|cor| cor.a), Some(vidro.lighter_background.a));
-    assert!(fundo.is_some_and(|cor| cor.a < 1.0));
+    assert_eq!(fundo.map(|cor| cor.a), Some(vidro.background.a));
+    assert_eq!(fundo.map(|cor| cor.r), Some(vidro.lighter_background.r));
     let menu_fundo = color(menu(vidro, 0.0).background);
-    assert!(menu_fundo.is_some_and(|cor| cor.a < 1.0));
+    assert_eq!(menu_fundo.map(|cor| cor.a), Some(vidro.background.a));
     let dialogo = color(dialog(vidro).background);
     assert_eq!(dialogo.map(|cor| cor.a), Some(1.0));
 }

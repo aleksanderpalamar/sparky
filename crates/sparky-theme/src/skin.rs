@@ -5,6 +5,7 @@ use crate::palette::{Mode, Palette};
 use crate::rgb::Rgb;
 
 const GLASS: f32 = 0.72;
+const TINT: f32 = 0.3;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Skin {
@@ -25,8 +26,8 @@ impl Skin {
     pub fn new(palette: Palette) -> Self {
         Self {
             mode: palette.mode,
-            background: glazed(convert(palette.background), palette.glass),
-            lighter_background: glazed(convert(palette.lighter_background), palette.glass),
+            background: glazed(convert(palette.background), palette.glass, GLASS),
+            lighter_background: glazed(convert(palette.lighter_background), palette.glass, TINT),
             foreground: convert(palette.foreground),
             bright_foreground: convert(palette.bright_foreground),
             dark_foreground: convert(palette.dark_foreground),
@@ -71,9 +72,9 @@ fn convert(rgb: Rgb) -> Color {
     Color::from_rgb8(rgb.red, rgb.green, rgb.blue)
 }
 
-fn glazed(color: Color, glass: bool) -> Color {
+fn glazed(color: Color, glass: bool, alpha: f32) -> Color {
     match glass {
-        true => with_alpha(color, GLASS),
+        true => with_alpha(color, alpha),
         false => color,
     }
 }
@@ -138,7 +139,8 @@ mod tests {
             ..Palette::SPARKY
         });
         assert!(vidro.background.a < 1.0 && vidro.background.a > 0.5);
-        assert!(vidro.lighter_background.a < 1.0);
+        assert!(vidro.lighter_background.a < vidro.background.a);
+        assert!(vidro.lighter_background.a <= 0.35);
         assert_eq!(vidro.background.r, opaco.background.r);
         assert_eq!(vidro.foreground.a, 1.0);
         assert_eq!(vidro.accent.a, 1.0);
