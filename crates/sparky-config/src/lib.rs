@@ -2,6 +2,7 @@ pub mod action;
 pub mod binds;
 pub mod combo;
 pub mod defaults;
+pub mod dock;
 pub mod edit;
 pub mod load;
 pub mod lock;
@@ -14,6 +15,8 @@ pub mod terminal;
 
 #[cfg(test)]
 mod defaults_tests;
+#[cfg(test)]
+mod dock_tests;
 #[cfg(test)]
 mod edit_output_tests;
 #[cfg(test)]
@@ -28,6 +31,7 @@ mod schema_tests;
 mod screen_tests;
 
 pub use action::{Action, Bind};
+pub use dock::Dock;
 pub use edit::Editor;
 pub use load::{ConfigError, parse, path};
 pub use lock::Lock;

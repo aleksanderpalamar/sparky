@@ -11,14 +11,13 @@ use crate::view::kit::tokens::CONTROL_WIDTH;
 
 pub fn view(settings: &Settings) -> Element<'_, Message> {
     let skin = settings.context.skin;
-    let rows = Field::of(settings.section)
-        .iter()
+    let rows = Field::shown(settings.section, &settings.config)
+        .into_iter()
         .enumerate()
         .map(|(index, field)| {
-            let line =
-                Line::new(field.label(), control(settings, index, *field)).note(field.help());
+            let line = Line::new(field.label(), control(settings, index, field)).note(field.help());
             (
-                group(*field),
+                group(field),
                 focusable(skin, index, settings.focus == index, line.view(skin)),
             )
         });
@@ -33,6 +32,11 @@ pub fn group(field: Field) -> String {
         Field::Wallpaper => "group-wallpaper",
         Field::LoginWallpaper => "group-login-screen",
         Field::RepeatRate | Field::RepeatDelay => "group-repeat",
+        Field::DockEnabled
+        | Field::DockSize
+        | Field::DockAutohide
+        | Field::DockRounded
+        | Field::DockRadius => "section-dock-label",
         Field::Terminal
         | Field::Launcher
         | Field::Files

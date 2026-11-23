@@ -4918,6 +4918,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "sparky-dock"
+version = "0.32.0"
+dependencies = [
+ "fluent-bundle",
+ "iced",
+ "iced_layershell",
+ "sparky-config",
+ "sparky-i18n",
+ "sparky-ipc",
+ "sparky-launcher",
+ "sparky-theme",
+ "sparky-ui",
+ "sparky-xdg",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
 name = "sparky-fetch"
 version = "0.32.0"
 dependencies = [

@@ -14,7 +14,7 @@ pub fn hints(section: Section, mode: Mode) -> String {
 
 fn browsing(section: Section) -> String {
     let key = match section {
-        Section::Appearance | Section::Apps => "hint-fields",
+        Section::Appearance | Section::Apps | Section::Dock => "hint-fields",
         Section::Autostart => "hint-autostart",
         Section::Shortcuts => "hint-shortcuts",
         Section::Monitors => "hint-monitors",

@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use sparky_tiling::{Gaps, Style};
 
 use crate::action::Bind;
+use crate::dock::Dock;
 use crate::lock::Lock;
 use crate::output::OutputRule;
 use crate::resources::Resources;
@@ -20,6 +21,7 @@ pub struct Config {
     pub bind: Vec<Bind>,
     pub output: Vec<OutputRule>,
     pub resources: Resources,
+    pub dock: Dock,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

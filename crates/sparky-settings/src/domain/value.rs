@@ -52,7 +52,16 @@ pub fn read(field: Field, config: &Config) -> Value {
     if let Some(text) = optional(field, &mut copy) {
         return Value::Text(text.clone().unwrap_or_default());
     }
-    Value::Flag(copy.general.default_binds)
+    Value::Flag(flag(field, &copy))
+}
+
+fn flag(field: Field, config: &Config) -> bool {
+    match field {
+        Field::DockEnabled => config.dock.enabled,
+        Field::DockAutohide => config.dock.autohide,
+        Field::DockRounded => config.dock.rounded,
+        _ => config.general.default_binds,
+    }
 }
 
 pub fn store(field: Field, value: &Value, editor: &mut Editor) {
@@ -115,6 +124,8 @@ fn number(field: Field, config: &mut Config) -> Option<&mut i32> {
         Field::FloatHeight => Some(&mut config.general.float_height),
         Field::RepeatRate => Some(&mut config.input.repeat_rate),
         Field::RepeatDelay => Some(&mut config.input.repeat_delay),
+        Field::DockSize => Some(&mut config.dock.size),
+        Field::DockRadius => Some(&mut config.dock.radius),
         _ => None,
     }
 }

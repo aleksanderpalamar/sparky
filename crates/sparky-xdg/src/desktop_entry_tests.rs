@@ -181,3 +181,15 @@ fn le_as_categorias_do_aplicativo() {
     };
     assert!(sem.categories.is_empty());
 }
+
+#[test]
+fn le_a_classe_da_janela_declarada_pelo_aplicativo() {
+    let contents = "[Desktop Entry]\nType=Application\nName=Code\nExec=code\nStartupWMClass=Code\n";
+    let entry = DesktopEntry::parse(contents);
+    assert_eq!(
+        entry.and_then(|entry| entry.startup_wm_class).as_deref(),
+        Some("Code")
+    );
+    let sem_classe = DesktopEntry::parse(NM_APPLET);
+    assert_eq!(sem_classe.and_then(|entry| entry.startup_wm_class), None);
+}

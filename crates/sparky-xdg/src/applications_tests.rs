@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use super::applications::{desktop_id, directories, entries_in};
+use super::applications::{desktop_id, directories, entries_in, located_in};
 
 #[test]
 fn a_pasta_do_usuario_vem_antes_das_do_sistema() {
@@ -54,4 +54,23 @@ fn o_primeiro_id_vence_mesmo_quando_esconde_o_do_sistema() {
         names,
         [("editor", "Meu editor"), ("kde-dolphin", "Dolphin")]
     );
+}
+
+#[test]
+fn cada_entrada_localizada_traz_o_arquivo_de_onde_veio() {
+    let Ok(dir) = tempfile::tempdir() else {
+        panic!("pasta temporária");
+    };
+    let user = dir.path().join("user");
+    let system = dir.path().join("system");
+    assert!(fs::create_dir_all(&user).is_ok() && fs::create_dir_all(&system).is_ok());
+    let app = "[Desktop Entry]\nType=Application\nName=Editor\nExec=editor\n";
+    assert!(fs::write(user.join("editor.desktop"), app).is_ok());
+    assert!(fs::write(system.join("editor.desktop"), app).is_ok());
+    let found = located_in(&[user.clone(), system]);
+    let places: Vec<_> = found
+        .iter()
+        .map(|(id, path, _)| (id.as_str(), path.clone()))
+        .collect();
+    assert_eq!(places, [("editor", user.join("editor.desktop"))]);
 }
