@@ -41,6 +41,7 @@ pub fn run() -> Result<(), iced_layershell::Error> {
     iced_layershell::build_pattern::daemon(boot, || "sparky-notifications".to_owned(), update, view)
         .subscription(subscription)
         .theme(|app: &App, _| app.skin.theme())
+        .style(sparky_ui::surface::transparent)
         .settings(Settings {
             layer_settings: LayerShellSettings {
                 start_mode: StartMode::Background,

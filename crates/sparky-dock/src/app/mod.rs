@@ -61,7 +61,7 @@ fn boot() -> (Dock, Task<Message>) {
         skin,
         Box::new(PinnedFile::from_env()),
         Box::new(Spawner),
-        Box::new(IpcBoard),
+        Box::new(IpcBoard::start()),
     );
     (
         dock,

@@ -18,13 +18,14 @@ fn glaze(dock: &mut Dock) {
         return;
     };
     let count = dock.pinned.resolve(&dock.apps).len();
-    let wanted = glass::area(
-        &dock.layout(),
-        count,
-        frame,
-        dock.tucked(),
-        dock.preferences.corner(),
-    );
+    let mut scales = super::animate::scales(dock);
+    scales.resize(count + 1, 1.0);
+    let pose = glass::Pose {
+        scales,
+        sink: dock.slide.value * dock.layout().rest() as f32,
+        tucked: dock.tucked(),
+    };
+    let wanted = glass::area(&dock.layout(), &pose, frame, dock.preferences.corner());
     if dock.glass.as_ref() != Some(&wanted) {
         dock.glass = Some(wanted.clone());
         dock.show_glass(wanted);
