@@ -5,6 +5,7 @@ use smithay::backend::renderer::gles::GlesRenderer;
 use smithay::output::Output;
 use smithay::wayland::compositor::with_states;
 
+use super::anchor::anchors;
 use super::element::GlassElement;
 use super::panes::{Pane, panes};
 use super::shaders::Shaders;
@@ -19,9 +20,13 @@ pub fn compose(
     output: &Output,
     elements: Vec<SparkyElement<GlesRenderer>>,
 ) -> Vec<ColorElement> {
+    let wanted = panes(state, output)
+        .into_iter()
+        .map(|pane| (Id::from_wayland_resource(&pane.surface), pane))
+        .collect();
+    let anchored = anchors(elements.iter().map(Element::id), wanted);
     let mut composed = colorize(state, renderer, elements);
-    let panes = panes(state, output);
-    if panes.is_empty() {
+    if anchored.is_empty() {
         return composed;
     }
     let shaders = match Shaders::get(renderer) {
@@ -32,11 +37,7 @@ pub fn compose(
         }
     };
     let scale = output.current_scale().fractional_scale();
-    for pane in panes {
-        let id = Id::from_wayland_resource(&pane.surface);
-        let Some(index) = composed.iter().position(|element| element.id() == &id) else {
-            continue;
-        };
+    for (index, pane) in anchored.into_iter().rev() {
         if let Some(glass) = glass(&pane, shaders.clone(), scale) {
             composed.insert(index + 1, ColorElement::Glass(glass));
         }

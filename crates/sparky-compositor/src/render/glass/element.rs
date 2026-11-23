@@ -4,12 +4,13 @@ use smithay::backend::allocator::Fourcc;
 use smithay::backend::renderer::element::{Element, Id, Kind, RenderElement};
 use smithay::backend::renderer::gles::{GlesError, GlesFrame, GlesRenderer, GlesTexture};
 use smithay::backend::renderer::utils::{CommitCounter, DamageSet};
-use smithay::backend::renderer::{Frame, FrameContext, Offscreen, Texture};
+use smithay::backend::renderer::{FrameContext, Offscreen, Texture};
 use smithay::utils::user_data::UserDataMap;
 use smithay::utils::{Buffer, Logical, Physical, Point, Rectangle, Scale, Size, Transform};
 
 use super::capture::copy_behind;
-use super::clip::{clipped, rounding};
+use super::clip::pieces;
+use super::paint::paint;
 use super::passes::blur;
 use super::shaders::Shaders;
 use super::state::GlassState;
@@ -173,28 +174,25 @@ impl RenderElement<GlesRenderer> for GlassElement {
             Transform::Normal,
             &Size::default(),
         );
-        let clipped = clipped(&self.region, visible, dst, damage);
-        let rounded = rounding(
-            self.region.first().copied(),
+        let pieces = pieces(
+            &self.region,
+            visible,
+            dst,
+            damage,
             self.geometry.size,
             self.radius,
         );
-        if let Some(uniforms) = rounded.clone() {
-            frame.override_default_tex_program(self.shaders.clip.clone(), uniforms);
+        for piece in pieces {
+            paint(
+                frame,
+                texture,
+                &self.shaders,
+                piece,
+                src,
+                dst,
+                opaque_regions,
+            )?;
         }
-        let drawn = Frame::render_texture_from_to(
-            frame,
-            texture,
-            src,
-            dst,
-            &clipped,
-            opaque_regions,
-            Transform::Normal,
-            1.0,
-        );
-        if rounded.is_some() {
-            frame.clear_tex_program_override();
-        }
-        drawn
+        Ok(())
     }
 }

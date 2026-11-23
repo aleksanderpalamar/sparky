@@ -42,6 +42,13 @@ impl Mode {
         }
     }
 
+    pub fn namespace(self) -> &'static str {
+        match self {
+            Mode::Apps => "sparky-launcher",
+            Mode::System => "sparky-launcher-system",
+        }
+    }
+
     pub fn columns(self) -> usize {
         match self {
             Mode::Apps => 6,
@@ -101,5 +108,11 @@ mod tests {
         assert!(!Mode::System.has_shelves());
         assert_eq!(Mode::Apps.first_selection(), None);
         assert_eq!(Mode::System.first_selection(), Some(0));
+    }
+
+    #[test]
+    fn cada_modo_tem_o_proprio_namespace_para_o_vidro_nao_se_sobrepor() {
+        assert_eq!(Mode::Apps.namespace(), "sparky-launcher");
+        assert_eq!(Mode::System.namespace(), "sparky-launcher-system");
     }
 }

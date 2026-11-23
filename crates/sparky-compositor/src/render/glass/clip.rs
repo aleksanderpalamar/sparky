@@ -1,6 +1,29 @@
 use smithay::backend::renderer::gles::Uniform;
 use smithay::utils::{Logical, Physical, Rectangle, Size};
 
+pub struct Piece {
+    pub clip: Vec<Rectangle<i32, Physical>>,
+    pub rounding: Option<Vec<Uniform<'static>>>,
+}
+
+pub fn pieces(
+    region: &[Rectangle<i32, Logical>],
+    visible: Rectangle<f64, Logical>,
+    dst: Rectangle<i32, Physical>,
+    damage: &[Rectangle<i32, Physical>],
+    whole: Size<f64, Logical>,
+    radius: f32,
+) -> Vec<Piece> {
+    region
+        .iter()
+        .map(|rect| Piece {
+            clip: clipped(std::slice::from_ref(rect), visible, dst, damage),
+            rounding: rounding(Some(*rect), whole, radius),
+        })
+        .filter(|piece| !piece.clip.is_empty())
+        .collect()
+}
+
 pub fn rounding(
     bounds: Option<Rectangle<i32, Logical>>,
     whole: Size<f64, Logical>,
@@ -21,7 +44,7 @@ pub fn rounding(
     ])
 }
 
-pub fn clipped(
+fn clipped(
     region: &[Rectangle<i32, Logical>],
     visible: Rectangle<f64, Logical>,
     dst: Rectangle<i32, Physical>,
