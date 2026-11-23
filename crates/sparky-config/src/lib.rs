@@ -20,6 +20,8 @@ mod dock_tests;
 #[cfg(test)]
 mod edit_output_tests;
 #[cfg(test)]
+mod glass_tests;
+#[cfg(test)]
 mod output_tests;
 #[cfg(test)]
 mod renamed_tests;

@@ -5397,6 +5397,7 @@ name = "sparky-theme"
 version = "0.32.0"
 dependencies = [
  "iced_core",
+ "sparky-config",
  "tempfile",
 ]
 

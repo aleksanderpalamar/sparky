@@ -32,6 +32,10 @@ impl Sparky {
             }
             Request::Session { action } => self.session_request(action),
             Request::Drag { uris } => self.start_file_drag(uris),
+            Request::Glass { namespace, area } => {
+                self.needs_render |= self.glass.set(namespace, area);
+                Reply::Done
+            }
             Request::Info => Reply::Info {
                 info: self.session_info(),
             },

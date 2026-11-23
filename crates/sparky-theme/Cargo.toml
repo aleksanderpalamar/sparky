@@ -7,6 +7,7 @@ license.workspace = true
 
 [dependencies]
 iced_core.workspace = true
+sparky-config.workspace = true
 
 [dev-dependencies]
 tempfile = "3"

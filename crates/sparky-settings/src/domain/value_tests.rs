@@ -124,3 +124,18 @@ fn le_e_grava_os_cantos_arredondados_do_dock() {
         Some(Value::Number(16))
     );
 }
+
+#[test]
+fn le_e_grava_o_frosted_glass() {
+    assert_eq!(
+        read(Field::FrostedGlass, &Config::default()),
+        Value::Flag(false)
+    );
+    let mut editor = Editor::default();
+    store(Field::FrostedGlass, &Value::Flag(true), &mut editor);
+    let Ok(saved) = parse(&editor.contents()) else {
+        panic!("o arquivo gravado deveria ser válido");
+    };
+    assert_eq!(read(Field::FrostedGlass, &saved), Value::Flag(true));
+    assert_eq!(read(Field::DefaultBinds, &saved), Value::Flag(true));
+}

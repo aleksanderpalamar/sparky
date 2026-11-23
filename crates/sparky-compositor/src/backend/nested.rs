@@ -15,7 +15,7 @@ use smithay::utils::{Physical, Rectangle, Size, Transform};
 use crate::backend::Backend;
 use crate::backend::dmabuf::render_device;
 use crate::backend::host_cursor::{HostCursor, host_cursor};
-use crate::render::hdr::colorize::colorize;
+use crate::render::glass::compose::compose;
 use crate::render::output::output_elements;
 use crate::state::Sparky;
 
@@ -117,7 +117,7 @@ fn redraw(state: &mut Sparky, nested: &mut Nested) {
     let rendered = match nested.graphics.bind() {
         Ok((renderer, mut framebuffer)) => {
             let elements = output_elements(state, renderer, &nested.output);
-            let elements = colorize(state, renderer, elements);
+            let elements = compose(state, renderer, &nested.output, elements);
             nested
                 .damage
                 .render_output(renderer, &mut framebuffer, 0, &elements, clear)

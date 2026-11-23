@@ -34,6 +34,7 @@ pub struct General {
     pub float_height: i32,
     pub default_binds: bool,
     pub wallpaper: Option<String>,
+    pub frosted_glass: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -83,6 +84,7 @@ impl General {
         float_height: Style::SPARKY.float_size.1,
         default_binds: true,
         wallpaper: None,
+        frosted_glass: false,
     };
 
     pub fn style(&self) -> Style {

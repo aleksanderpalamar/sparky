@@ -6,6 +6,9 @@ pub mod command;
 #[cfg(test)]
 mod command_tests;
 pub mod error;
+pub mod glass;
+#[cfg(test)]
+mod glass_tests;
 pub mod info;
 pub mod message;
 #[cfg(test)]
@@ -18,6 +21,7 @@ mod window_tests;
 
 pub use client::{Client, Events};
 pub use error::IpcError;
+pub use glass::{GlassArea, GlassRect};
 pub use info::{PROTOCOL, SessionInfo, SessionKind};
 pub use message::{CaptureArea, Event, IdleHold, Reply, Request, SessionAction, WorkspaceInfo};
 pub use output::{Hdr, OutputInfo, Vrr};

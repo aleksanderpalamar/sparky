@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::glass::GlassArea;
 use crate::info::SessionInfo;
 use crate::output::OutputInfo;
 use crate::window::WindowInfo;
@@ -19,6 +20,7 @@ pub enum Request {
     Drag { uris: Vec<String> },
     Windows,
     WatchWindows,
+    Glass { namespace: String, area: GlassArea },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]

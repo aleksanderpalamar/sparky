@@ -3,7 +3,7 @@ use crate::domain::section::Section;
 
 #[test]
 fn so_as_secoes_de_configuracao_tem_campos() {
-    assert_eq!(Field::of(Section::Appearance).len(), 7);
+    assert_eq!(Field::of(Section::Appearance).len(), 8);
     assert_eq!(Field::Wallpaper.place(), ("general", "wallpaper"));
     assert_eq!(Field::Wallpaper.kind(), Kind::Text(Blank::Allowed));
     assert_eq!(Field::RepeatRate.place(), ("input", "repeat_rate"));
@@ -73,4 +73,11 @@ fn o_raio_so_aparece_com_os_cantos_arredondados_ligados() {
 fn cada_campo_mora_numa_chave_do_sparky_toml() {
     assert_eq!(Field::RepeatDelay.place(), ("input", "repeat_delay"));
     assert_eq!(Field::DefaultBinds.place(), ("general", "default_binds"));
+}
+
+#[test]
+fn frosted_glass_e_um_interruptor_da_aparencia_em_general() {
+    assert!(Field::of(Section::Appearance).contains(&Field::FrostedGlass));
+    assert_eq!(Field::FrostedGlass.place(), ("general", "frosted_glass"));
+    assert_eq!(Field::FrostedGlass.kind(), Kind::Flag);
 }
