@@ -9,7 +9,7 @@ pub enum Mode {
     Light,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy)]
 pub struct Palette {
     pub mode: Mode,
     pub background: Rgb,
@@ -87,6 +87,24 @@ impl Palette {
         }
     }
 }
+
+impl PartialEq for Palette {
+    fn eq(&self, other: &Self) -> bool {
+        self.mode == other.mode
+            && self.background == other.background
+            && self.lighter_background == other.lighter_background
+            && self.foreground == other.foreground
+            && self.bright_foreground == other.bright_foreground
+            && self.dark_foreground == other.dark_foreground
+            && self.accent == other.accent
+            && self.selection == other.selection
+            && self.muted == other.muted
+            && self.urgent == other.urgent
+            && self.cyan == other.cyan
+    }
+}
+
+impl Eq for Palette {}
 
 impl Default for Palette {
     fn default() -> Self {
