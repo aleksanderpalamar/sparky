@@ -3,11 +3,10 @@ use std::collections::HashMap;
 use sparky_ipc::GlassArea;
 
 const OWN: &str = "sparky-";
-const WHOLE: [&str; 5] = [
+const WHOLE: [&str; 4] = [
     "sparky-bar",
     "sparky-bar-menu",
     "sparky-quick-panel",
-    "sparky-audio",
     "sparky-notifications",
 ];
 

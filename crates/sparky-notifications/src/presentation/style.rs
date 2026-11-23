@@ -6,13 +6,7 @@ use sparky_theme::Skin;
 
 pub fn surface(skin: Skin) -> container::Style {
     container::Style {
-        background: Some(
-            iced::Color {
-                a: 1.0,
-                ..skin.background
-            }
-            .into(),
-        ),
+        background: Some(skin.background.into()),
         text_color: Some(skin.foreground),
         border: Border {
             color: skin.accent,

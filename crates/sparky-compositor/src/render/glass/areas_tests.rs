@@ -8,7 +8,6 @@ fn a_barra_e_os_paineis_sao_vidro_na_superficie_inteira() {
     for namespace in [
         "sparky-bar",
         "sparky-quick-panel",
-        "sparky-audio",
         "sparky-notifications",
         "sparky-bar-menu",
     ] {

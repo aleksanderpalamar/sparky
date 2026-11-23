@@ -1,4 +1,7 @@
 pub mod catalog;
+pub mod glass;
+#[cfg(test)]
+mod glass_tests;
 pub mod group_file;
 pub mod icons;
 pub mod instance;

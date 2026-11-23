@@ -54,6 +54,7 @@ pub fn run(mode: Mode) -> Result<(), iced_layershell::Error> {
         Mode::Apps => installed_apps(),
         Mode::System => entries(),
     };
+    crate::adapters::glass::announce(NAMESPACE, mode.size());
     let boot = move || {
         let launcher = Launcher::new(
             apps.clone(),

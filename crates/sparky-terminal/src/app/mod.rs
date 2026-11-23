@@ -5,6 +5,8 @@ pub mod keys;
 pub mod measure;
 pub mod message;
 pub mod paint;
+#[cfg(test)]
+mod paint_tests;
 pub mod pointer;
 pub mod sequences;
 pub mod signals;
