@@ -40,7 +40,7 @@ fn campo_desconhecido_no_dock_e_recusado() {
 }
 
 #[test]
-fn cantos_retos_por_padrao_e_raio_entre_zero_e_oito() {
+fn cantos_retos_por_padrao_e_raio_entre_zero_e_dezesseis() {
     let config = parse("").unwrap_or_default();
     assert!(!config.dock.rounded);
     assert_eq!(config.dock.corner(), 0);
@@ -54,6 +54,7 @@ fn cantos_retos_por_padrao_e_raio_entre_zero_e_oito() {
         ..Dock::default()
     };
     assert_eq!(exagerado.corner(), MAX_RADIUS);
+    assert_eq!(MAX_RADIUS, 16);
     let negativo = Dock {
         rounded: true,
         radius: -2,

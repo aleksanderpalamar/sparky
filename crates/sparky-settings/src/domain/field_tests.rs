@@ -41,7 +41,7 @@ fn a_secao_dock_liga_ajusta_o_tamanho_e_oculta() {
     let Kind::Number(raio) = Field::DockRadius.kind() else {
         panic!("o raio é numérico");
     };
-    assert_eq!((raio.min, raio.max, raio.step), (0, 8, 1));
+    assert_eq!((raio.min, raio.max, raio.step), (0, 16, 1));
     assert_eq!(Field::DockEnabled.place(), ("dock", "enabled"));
     assert_eq!(Field::DockSize.place(), ("dock", "size"));
     assert_eq!(Field::DockAutohide.place(), ("dock", "autohide"));

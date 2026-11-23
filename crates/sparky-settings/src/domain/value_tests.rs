@@ -120,7 +120,7 @@ fn le_e_grava_os_cantos_arredondados_do_dock() {
     assert_eq!(read(Field::DockRounded, &saved), Value::Flag(true));
     assert_eq!(read(Field::DockRadius, &saved), Value::Number(3));
     assert_eq!(
-        stepped(Field::DockRadius, &Value::Number(8), Step::More),
-        Some(Value::Number(8))
+        stepped(Field::DockRadius, &Value::Number(16), Step::More),
+        Some(Value::Number(16))
     );
 }

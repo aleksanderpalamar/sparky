@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 pub const MIN_SIZE: i32 = 40;
 pub const MAX_SIZE: i32 = 96;
-pub const MAX_RADIUS: i32 = 8;
+pub const MAX_RADIUS: i32 = 16;
 const DEFAULT_SIZE: i32 = 64;
 const DEFAULT_RADIUS: i32 = 4;
 
