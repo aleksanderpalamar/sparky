@@ -1,6 +1,7 @@
 use iced::{Task, window};
 use iced_layershell::actions::ActionCallback;
 
+use super::glass;
 use super::message::Message;
 use super::state::Dock;
 use super::surfaces;
@@ -8,7 +9,26 @@ use crate::domain::layout::Geometry;
 
 pub fn sync(dock: &mut Dock) -> Task<Message> {
     let shape = reshape(dock);
+    glaze(dock);
     Task::batch([shape, accept(dock)])
+}
+
+fn glaze(dock: &mut Dock) {
+    let Some(frame) = dock.surface else {
+        return;
+    };
+    let count = dock.pinned.resolve(&dock.apps).len();
+    let wanted = glass::area(
+        &dock.layout(),
+        count,
+        frame,
+        dock.tucked(),
+        dock.preferences.corner(),
+    );
+    if dock.glass.as_ref() != Some(&wanted) {
+        dock.glass = Some(wanted.clone());
+        dock.show_glass(wanted);
+    }
 }
 
 fn accept(dock: &mut Dock) -> Task<Message> {

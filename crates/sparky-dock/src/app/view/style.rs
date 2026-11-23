@@ -9,7 +9,7 @@ const FRAME: f32 = 2.0;
 
 pub fn tray(skin: Skin, radius: f32) -> container::Style {
     container::Style {
-        background: Some(Background::Color(opaque(skin.lighter_background))),
+        background: Some(Background::Color(skin.lighter_background)),
         border: rounded(outline(skin.fill(0.18)), radius),
         text_color: Some(skin.foreground),
         ..container::Style::default()
@@ -91,7 +91,7 @@ pub fn strip(skin: Skin, radius: f32) -> container::Style {
 
 pub fn menu(skin: Skin, radius: f32) -> container::Style {
     container::Style {
-        background: Some(Background::Color(opaque(skin.lighter_background))),
+        background: Some(Background::Color(skin.lighter_background)),
         border: rounded(outline(skin.accent), radius),
         text_color: Some(skin.foreground),
         ..container::Style::default()

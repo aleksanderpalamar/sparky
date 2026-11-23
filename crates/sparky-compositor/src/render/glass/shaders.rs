@@ -4,11 +4,13 @@ use smithay::backend::renderer::gles::{
 
 const DOWN: &str = include_str!("down.frag");
 const UP: &str = include_str!("up.frag");
+const CLIP: &str = include_str!("clip.frag");
 
 #[derive(Debug, Clone)]
 pub struct Shaders {
     pub down: GlesTexProgram,
     pub up: GlesTexProgram,
+    pub clip: GlesTexProgram,
 }
 
 impl Shaders {
@@ -19,6 +21,14 @@ impl Shaders {
         let shaders = Self {
             down: compile(renderer, DOWN)?,
             up: compile(renderer, UP)?,
+            clip: renderer.compile_custom_texture_shader(
+                CLIP,
+                &[
+                    UniformName::new("rect", UniformType::_4f),
+                    UniformName::new("size", UniformType::_2f),
+                    UniformName::new("radius", UniformType::_1f),
+                ],
+            )?,
         };
         renderer
             .egl_context()

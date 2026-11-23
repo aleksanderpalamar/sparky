@@ -5,6 +5,9 @@ pub mod areas;
 #[cfg(test)]
 mod areas_tests;
 mod capture;
+mod clip;
+#[cfg(test)]
+mod clip_tests;
 pub mod compose;
 pub mod element;
 pub mod panes;

@@ -19,5 +19,7 @@ pub enum GlassArea {
     },
     Rects {
         rects: Vec<GlassRect>,
+        #[serde(default)]
+        radius: i32,
     },
 }

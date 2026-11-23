@@ -5,7 +5,7 @@ use smithay::utils::{Logical, Rectangle};
 use smithay::wayland::seat::WaylandFocus;
 use sparky_ipc::GlassArea;
 
-use super::area::rects;
+use super::area::{radius, rects};
 use crate::state::Sparky;
 use crate::windows::traits::traits_of;
 
@@ -14,6 +14,7 @@ const NATIVE: &str = "sparky-";
 pub struct Pane {
     pub surface: WlSurface,
     pub region: Vec<Rectangle<i32, Logical>>,
+    pub radius: i32,
 }
 
 pub fn panes(state: &Sparky, output: &Output) -> Vec<Pane> {
@@ -70,5 +71,9 @@ fn window_pane(
 
 fn pane(surface: WlSurface, area: &GlassArea, geometry: Rectangle<i32, Logical>) -> Option<Pane> {
     let region = rects(area, geometry);
-    (!region.is_empty()).then_some(Pane { surface, region })
+    (!region.is_empty()).then_some(Pane {
+        surface,
+        region,
+        radius: radius(area),
+    })
 }

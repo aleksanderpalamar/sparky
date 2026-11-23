@@ -4,6 +4,9 @@ mod contact;
 mod contact_tests;
 #[cfg(test)]
 mod dock_tests;
+mod glass;
+#[cfg(test)]
+mod glass_tests;
 pub mod message;
 mod pointer;
 #[cfg(test)]
@@ -27,6 +30,7 @@ use sparky_theme::Skin;
 use sparky_ui::style::{FONT, TEXT_SIZE};
 use sparky_ui::surface::transparent;
 
+use crate::adapters::glass_board::IpcBoard;
 use crate::adapters::{pinned_file::PinnedFile, preferences, start::Spawner, windows};
 use message::Message;
 use state::Dock;
@@ -53,7 +57,12 @@ const FRAME: Duration = Duration::from_millis(16);
 
 fn boot() -> (Dock, Task<Message>) {
     let skin = Skin::new(sparky_theme::current_palette());
-    let dock = Dock::new(skin, Box::new(PinnedFile::from_env()), Box::new(Spawner));
+    let dock = Dock::new(
+        skin,
+        Box::new(PinnedFile::from_env()),
+        Box::new(Spawner),
+        Box::new(IpcBoard),
+    );
     (
         dock,
         Task::batch([update::load_catalog(), update::measure()]),

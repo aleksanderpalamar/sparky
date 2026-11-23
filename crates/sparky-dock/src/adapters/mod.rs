@@ -1,4 +1,5 @@
 pub mod catalog;
+pub mod glass_board;
 pub mod icons;
 pub mod outputs;
 #[cfg(test)]

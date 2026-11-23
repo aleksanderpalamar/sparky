@@ -1,7 +1,7 @@
 use smithay::utils::Rectangle;
 use sparky_ipc::{GlassArea, GlassRect};
 
-use super::area::rects;
+use super::area::{radius, rects};
 
 fn surface() -> Rectangle<i32, smithay::utils::Logical> {
     Rectangle::new((100, 50).into(), (1000, 600).into())
@@ -47,6 +47,7 @@ fn retangulos_sao_relativos_a_superficie_e_recortados_nela() {
                 height: 10,
             },
         ],
+        radius: 0,
     };
     assert_eq!(
         rects(&area, surface()),
@@ -67,4 +68,21 @@ fn painel_maior_que_a_superficie_fica_limitado_a_ela() {
         rects(&area, surface()),
         vec![Rectangle::new((100, 300).into(), (1000, 100).into())]
     );
+}
+
+#[test]
+fn so_retangulos_informados_trazem_raio_e_nunca_negativo() {
+    let arredondado = GlassArea::Rects {
+        rects: Vec::new(),
+        radius: 12,
+    };
+    assert_eq!(radius(&arredondado), 12);
+    assert_eq!(
+        radius(&GlassArea::Rects {
+            rects: Vec::new(),
+            radius: -3
+        }),
+        0
+    );
+    assert_eq!(radius(&GlassArea::Whole), 0);
 }

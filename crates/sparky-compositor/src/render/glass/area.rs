@@ -14,7 +14,7 @@ pub fn rects(area: &GlassArea, surface: Rectangle<i32, Logical>) -> Vec<Rectangl
                 .into_iter()
                 .collect()
         }
-        GlassArea::Rects { rects } => rects
+        GlassArea::Rects { rects, .. } => rects
             .iter()
             .map(|rect| {
                 Rectangle::new(
@@ -24,5 +24,12 @@ pub fn rects(area: &GlassArea, surface: Rectangle<i32, Logical>) -> Vec<Rectangl
             })
             .filter_map(inside)
             .collect(),
+    }
+}
+
+pub fn radius(area: &GlassArea) -> i32 {
+    match area {
+        GlassArea::Rects { radius, .. } => (*radius).max(0),
+        _ => 0,
     }
 }

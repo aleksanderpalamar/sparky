@@ -84,3 +84,18 @@ fn com_cantos_arredondados_o_fundo_o_menu_e_a_faixa_usam_o_raio_escolhido() {
     assert_eq!(strip(skin, 3.0).border.radius, raio);
     assert_eq!(dialog(skin).border.radius, reto());
 }
+
+#[test]
+fn com_frosted_glass_o_fundo_e_o_menu_seguem_a_transparencia_do_tema() {
+    let vidro = Skin::new(Palette {
+        glass: true,
+        ..Palette::default()
+    });
+    let fundo = color(tray(vidro, 0.0).background);
+    assert_eq!(fundo.map(|cor| cor.a), Some(vidro.lighter_background.a));
+    assert!(fundo.is_some_and(|cor| cor.a < 1.0));
+    let menu_fundo = color(menu(vidro, 0.0).background);
+    assert!(menu_fundo.is_some_and(|cor| cor.a < 1.0));
+    let dialogo = color(dialog(vidro).background);
+    assert_eq!(dialogo.map(|cor| cor.a), Some(1.0));
+}

@@ -9,6 +9,7 @@ use smithay::utils::user_data::UserDataMap;
 use smithay::utils::{Buffer, Logical, Physical, Point, Rectangle, Scale, Size, Transform};
 
 use super::capture::copy_behind;
+use super::clip::{clipped, rounding};
 use super::passes::blur;
 use super::shaders::Shaders;
 use super::state::GlassState;
@@ -28,6 +29,7 @@ pub struct GlassElement {
     src: Size<f64, Buffer>,
     region: Vec<Rectangle<i32, Logical>>,
     shaders: Shaders,
+    radius: f32,
 }
 
 impl GlassElement {
@@ -36,6 +38,7 @@ impl GlassElement {
         state: &mut GlassState,
         region: Vec<Rectangle<i32, Logical>>,
         scale: f64,
+        radius: i32,
     ) -> Option<Self> {
         let bounds = region.iter().copied().reduce(|a, b| a.merge(b))?;
         if bounds.is_empty() {
@@ -59,6 +62,7 @@ impl GlassElement {
             src,
             region: local,
             shaders,
+            radius: radius as f32,
         })
     }
 }
@@ -164,26 +168,21 @@ impl RenderElement<GlesRenderer> for GlassElement {
         let Some(texture) = cached.as_ref() else {
             return Ok(());
         };
-        let ratio = self.geometry.size / self.src;
-        let visible = src
-            .upscale(ratio)
-            .to_logical(1.0, Transform::Normal, &Size::default());
-        let scale = dst.size.to_f64() / visible.size;
-        let clipped = self
-            .region
-            .iter()
-            .filter_map(|rect| {
-                let mut rect = rect.to_f64().intersection(visible)?;
-                rect.loc -= visible.loc;
-                Some(rect.to_physical_precise_round(scale))
-            })
-            .flat_map(|rect| {
-                damage
-                    .iter()
-                    .filter_map(move |hurt| hurt.intersection(rect))
-            })
-            .collect::<Vec<_>>();
-        Frame::render_texture_from_to(
+        let visible = src.upscale(self.geometry.size / self.src).to_logical(
+            1.0,
+            Transform::Normal,
+            &Size::default(),
+        );
+        let clipped = clipped(&self.region, visible, dst, damage);
+        let rounded = rounding(
+            self.region.first().copied(),
+            self.geometry.size,
+            self.radius,
+        );
+        if let Some(uniforms) = rounded.clone() {
+            frame.override_default_tex_program(self.shaders.clip.clone(), uniforms);
+        }
+        let drawn = Frame::render_texture_from_to(
             frame,
             texture,
             src,
@@ -192,6 +191,10 @@ impl RenderElement<GlesRenderer> for GlassElement {
             opaque_regions,
             Transform::Normal,
             1.0,
-        )
+        );
+        if rounded.is_some() {
+            frame.clear_tex_program_override();
+        }
+        drawn
     }
 }

@@ -50,6 +50,6 @@ fn glass(pane: &Pane, shaders: Shaders, scale: f64) -> Option<GlassElement> {
             .data_map
             .get_or_insert_threadsafe(|| Mutex::new(GlassState::default()));
         let mut state = slot.lock().ok()?;
-        GlassElement::new(shaders, &mut state, pane.region.clone(), scale)
+        GlassElement::new(shaders, &mut state, pane.region.clone(), scale, pane.radius)
     })
 }
