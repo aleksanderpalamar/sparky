@@ -1,4 +1,3 @@
-use smithay::delegate_xdg_decoration;
 use smithay::reexports::wayland_protocols::xdg::decoration::zv1::server::zxdg_toplevel_decoration_v1::Mode;
 use smithay::wayland::shell::xdg::ToplevelSurface;
 use smithay::wayland::shell::xdg::decoration::XdgDecorationHandler;
@@ -27,5 +26,3 @@ fn server_side(toplevel: &ToplevelSurface) {
         toplevel.send_pending_configure();
     }
 }
-
-delegate_xdg_decoration!(Sparky);

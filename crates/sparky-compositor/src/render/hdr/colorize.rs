@@ -5,12 +5,14 @@ use super::converted::ConvertedSurface;
 use super::{identity, surface_shader};
 use crate::color_management::conversion::Conversion;
 use crate::render::elements::SparkyElement;
+use crate::render::glass::element::GlassElement;
 use crate::state::Sparky;
 
 smithay::backend::renderer::element::render_elements! {
     pub ColorElement<=GlesRenderer>;
     Plain=SparkyElement<GlesRenderer>,
     Converted=ConvertedSurface,
+    Glass=GlassElement,
 }
 
 struct Target {

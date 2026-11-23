@@ -33,6 +33,7 @@ impl Field {
             Field::DockAutohide => "dock-autohide",
             Field::DockRounded => "dock-rounded",
             Field::DockRadius => "dock-radius",
+            Field::FrostedGlass => "frosted-glass",
         }
     }
 }

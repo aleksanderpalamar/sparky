@@ -9,7 +9,7 @@ pub enum Mode {
     Light,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy)]
 pub struct Palette {
     pub mode: Mode,
     pub background: Rgb,
@@ -22,6 +22,7 @@ pub struct Palette {
     pub muted: Rgb,
     pub urgent: Rgb,
     pub cyan: Rgb,
+    pub glass: bool,
 }
 
 impl Palette {
@@ -37,6 +38,7 @@ impl Palette {
         muted: Rgb::new(0x41, 0x48, 0x68),
         urgent: Rgb::new(0xf7, 0x76, 0x8e),
         cyan: Rgb::new(0x44, 0x9d, 0xab),
+        glass: false,
     };
 
     pub const SPARKY: Self = Self {
@@ -51,6 +53,7 @@ impl Palette {
         muted: Rgb::new(0x4d, 0x4d, 0x4d),
         urgent: Rgb::new(0xda, 0x34, 0x50),
         cyan: Rgb::new(0x2a, 0xa1, 0xb3),
+        glass: false,
     };
 
     pub fn load(read: impl Fn(&Path) -> Option<String>, candidates: &[PathBuf]) -> Self {
@@ -80,9 +83,28 @@ impl Palette {
             muted: color("muted", fallback.muted),
             urgent: color("red", fallback.urgent),
             cyan: color("cyan", fallback.cyan),
+            glass: false,
         }
     }
 }
+
+impl PartialEq for Palette {
+    fn eq(&self, other: &Self) -> bool {
+        self.mode == other.mode
+            && self.background == other.background
+            && self.lighter_background == other.lighter_background
+            && self.foreground == other.foreground
+            && self.bright_foreground == other.bright_foreground
+            && self.dark_foreground == other.dark_foreground
+            && self.accent == other.accent
+            && self.selection == other.selection
+            && self.muted == other.muted
+            && self.urgent == other.urgent
+            && self.cyan == other.cyan
+    }
+}
+
+impl Eq for Palette {}
 
 impl Default for Palette {
     fn default() -> Self {

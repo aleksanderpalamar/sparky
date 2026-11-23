@@ -15,6 +15,7 @@ pub mod hdr_state;
 pub mod modes;
 pub mod placement;
 pub mod render;
+mod scan;
 pub mod screens;
 pub mod session;
 pub mod vt;

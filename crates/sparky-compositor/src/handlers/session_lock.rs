@@ -1,4 +1,3 @@
-use smithay::delegate_session_lock;
 use smithay::output::Output;
 use smithay::reexports::wayland_server::protocol::wl_output::WlOutput;
 use smithay::wayland::session_lock::{
@@ -55,5 +54,3 @@ impl Sparky {
         self.needs_render = true;
     }
 }
-
-delegate_session_lock!(Sparky);

@@ -1,5 +1,6 @@
 use smithay::backend::input::{
-    AbsolutePositionEvent, Axis, AxisSource, ButtonState, Event, InputBackend, PointerAxisEvent, PointerButtonEvent,
+    AbsolutePositionEvent, Axis, AxisSource, ButtonState, Event, InputBackend, InputTime,
+    PointerAxisEvent, PointerButtonEvent,
 };
 use smithay::input::pointer::{AxisFrame, ButtonEvent, MotionEvent};
 use smithay::utils::{Logical, Point, SERIAL_COUNTER};
@@ -17,10 +18,10 @@ impl Sparky {
             return;
         };
         let position = event.position_transformed(geometry.size) + geometry.loc.to_f64();
-        self.move_pointer(position, event.time_msec());
+        self.move_pointer(position, event.time());
     }
 
-    pub fn move_pointer(&mut self, position: Point<f64, Logical>, time: u32) {
+    pub fn move_pointer(&mut self, position: Point<f64, Logical>, time: InputTime) {
         self.needs_render = true;
         let Some(pointer) = self.seat.get_pointer() else {
             return;
@@ -30,7 +31,15 @@ impl Sparky {
         }
         let under = self.surface_under(position);
         let serial = SERIAL_COUNTER.next_serial();
-        pointer.motion(self, under, &MotionEvent { location: position, serial, time });
+        pointer.motion(
+            self,
+            under,
+            &MotionEvent {
+                location: position,
+                serial,
+                time,
+            },
+        );
         pointer.frame(self);
     }
 
@@ -48,7 +57,7 @@ impl Sparky {
             button: event.button_code(),
             state: event.state(),
             serial,
-            time: event.time_msec(),
+            time: event.time(),
         };
         pointer.button(self, &button);
         pointer.frame(self);
@@ -59,7 +68,7 @@ impl Sparky {
             return;
         };
         let source = event.source();
-        let mut frame = AxisFrame::new(event.time_msec()).source(source);
+        let mut frame = AxisFrame::new(event.time()).source(source);
         for axis in [Axis::Horizontal, Axis::Vertical] {
             frame = scroll(frame, &event, axis, source);
         }
@@ -68,7 +77,8 @@ impl Sparky {
     }
 
     fn focus_follows_mouse(&mut self, position: Point<f64, Logical>) {
-        self.desktop.focus_monitor_at(position.x as i32, position.y as i32);
+        self.desktop
+            .focus_monitor_at(position.x as i32, position.y as i32);
         if let Some(id) = self.window_under(position)
             && self.desktop.focused_window() != Some(id)
         {
@@ -85,7 +95,12 @@ impl Sparky {
     }
 }
 
-fn scroll<E: PointerAxisEvent<I>, I: InputBackend>(frame: AxisFrame, event: &E, axis: Axis, source: AxisSource) -> AxisFrame {
+fn scroll<E: PointerAxisEvent<I>, I: InputBackend>(
+    frame: AxisFrame,
+    event: &E,
+    axis: Axis,
+    source: AxisSource,
+) -> AxisFrame {
     let discrete = event.amount_v120(axis);
     let amount = event
         .amount(axis)

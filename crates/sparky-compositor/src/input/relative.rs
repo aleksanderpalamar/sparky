@@ -19,15 +19,17 @@ impl Sparky {
         let relative = RelativeMotionEvent {
             delta: event.delta(),
             delta_unaccel: event.delta_unaccel(),
-            utime: event.time(),
+            time: event.time(),
         };
         pointer.relative_motion(self, under.clone(), &relative);
         let restriction = restriction(&pointer, under.as_ref(), current);
         let target = self.on_screen(current + event.delta());
-        let landing = target.map_or(Landing::Outside, |target| self.landing(&pointer, under.as_ref(), target));
+        let landing = target.map_or(Landing::Outside, |target| {
+            self.landing(&pointer, under.as_ref(), target)
+        });
         match (step(restriction, landing), target) {
             (Step::Move, Some(target)) => {
-                self.move_pointer(target, event.time_msec());
+                self.move_pointer(target, event.time());
                 self.activate_constraint(&pointer, target);
             }
             _ => pointer.frame(self),
@@ -44,12 +46,21 @@ impl Sparky {
         clamp(wanted.x, wanted.y, &screens).map(Point::from)
     }
 
-    fn landing(&self, pointer: &PointerHandle<Sparky>, under: Option<&Under>, target: Point<f64, Logical>) -> Landing {
+    fn landing(
+        &self,
+        pointer: &PointerHandle<Sparky>,
+        under: Option<&Under>,
+        target: Point<f64, Logical>,
+    ) -> Landing {
         let Some((surface, origin)) = under else {
             return Landing::Outside;
         };
-        let same = self.surface_under(target).is_some_and(|(found, _)| &found == surface);
-        let region = with_pointer_constraint(surface, pointer, |constraint| constraint.and_then(|constraint| constraint.region().cloned()));
+        let same = self
+            .surface_under(target)
+            .is_some_and(|(found, _)| &found == surface);
+        let region = with_pointer_constraint(surface, pointer, |constraint| {
+            constraint.and_then(|constraint| constraint.region().cloned())
+        });
         let inside = region.is_none_or(|region| region.contains((target - *origin).to_i32_round()));
         match same && inside {
             true => Landing::Inside,
@@ -57,7 +68,11 @@ impl Sparky {
         }
     }
 
-    fn activate_constraint(&mut self, pointer: &PointerHandle<Sparky>, location: Point<f64, Logical>) {
+    fn activate_constraint(
+        &mut self,
+        pointer: &PointerHandle<Sparky>,
+        location: Point<f64, Logical>,
+    ) {
         let Some((surface, origin)) = self.surface_under(location) else {
             return;
         };
@@ -65,14 +80,21 @@ impl Sparky {
             let Some(constraint) = constraint.filter(|constraint| !constraint.is_active()) else {
                 return;
             };
-            if constraint.region().is_none_or(|region| region.contains((location - origin).to_i32_round())) {
+            if constraint
+                .region()
+                .is_none_or(|region| region.contains((location - origin).to_i32_round()))
+            {
                 constraint.activate();
             }
         });
     }
 }
 
-fn restriction(pointer: &PointerHandle<Sparky>, under: Option<&Under>, location: Point<f64, Logical>) -> Restriction {
+fn restriction(
+    pointer: &PointerHandle<Sparky>,
+    under: Option<&Under>,
+    location: Point<f64, Logical>,
+) -> Restriction {
     let Some((surface, origin)) = under else {
         return Restriction::Free;
     };
@@ -80,7 +102,10 @@ fn restriction(pointer: &PointerHandle<Sparky>, under: Option<&Under>, location:
         let Some(constraint) = constraint.filter(|constraint| constraint.is_active()) else {
             return Restriction::Free;
         };
-        if !constraint.region().is_none_or(|region| region.contains((location - *origin).to_i32_round())) {
+        if !constraint
+            .region()
+            .is_none_or(|region| region.contains((location - *origin).to_i32_round()))
+        {
             return Restriction::Free;
         }
         match &*constraint {

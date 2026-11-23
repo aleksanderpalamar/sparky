@@ -19,8 +19,13 @@ pub fn paint<R: Renderer>(
     screen: &Screen,
     palette: &TerminalPalette,
     metrics: Metrics,
+    opacity: f32,
 ) {
-    frame.fill_rectangle(Point::ORIGIN, frame.size(), color(palette.background));
+    frame.fill_rectangle(
+        Point::ORIGIN,
+        frame.size(),
+        backdrop(palette.background, opacity),
+    );
     for (line, runs) in screen.rows.iter().enumerate() {
         for run in runs.iter().filter(|run| run.style.bg != palette.background) {
             frame.fill_rectangle(
@@ -142,6 +147,13 @@ pub fn origin(metrics: Metrics, line: usize, column: usize) -> Point {
 
 pub fn span(metrics: Metrics, cells: usize) -> Size {
     Size::new(cells as f32 * metrics.cell.width, metrics.cell.height)
+}
+
+pub fn backdrop(rgb: Rgb, opacity: f32) -> Color {
+    Color {
+        a: opacity.clamp(0.0, 1.0),
+        ..color(rgb)
+    }
 }
 
 fn color(rgb: Rgb) -> Color {

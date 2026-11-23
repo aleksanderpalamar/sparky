@@ -1,7 +1,6 @@
 use smithay::reexports::wayland_server::protocol::wl_surface::WlSurface;
 use smithay::wayland::idle_inhibit::IdleInhibitHandler;
 use smithay::wayland::idle_notify::{IdleNotifierHandler, IdleNotifierState};
-use smithay::{delegate_idle_inhibit, delegate_idle_notify};
 
 use crate::state::Sparky;
 
@@ -20,6 +19,3 @@ impl IdleInhibitHandler for Sparky {
         self.idle.uninhibit(&surface);
     }
 }
-
-delegate_idle_notify!(Sparky);
-delegate_idle_inhibit!(Sparky);

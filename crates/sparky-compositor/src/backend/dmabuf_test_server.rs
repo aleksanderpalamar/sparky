@@ -42,12 +42,17 @@ impl DmabufHandler for State {
         &mut self.0
     }
 
-    fn dmabuf_imported(&mut self, _global: &DmabufGlobal, _buffer: Dmabuf, notifier: ImportNotifier) {
+    fn dmabuf_imported(
+        &mut self,
+        _global: &DmabufGlobal,
+        _buffer: Dmabuf,
+        notifier: ImportNotifier,
+    ) {
         notifier.failed();
     }
 }
 
-smithay::delegate_dmabuf!(State);
+smithay::delegate_dispatch2!(State);
 
 pub struct Server {
     stop: Arc<AtomicBool>,
@@ -55,7 +60,9 @@ pub struct Server {
 }
 
 impl Server {
-    pub fn connect(device: Option<libc::dev_t>) -> Result<(Self, wayland_client::Connection), Error> {
+    pub fn connect(
+        device: Option<libc::dev_t>,
+    ) -> Result<(Self, wayland_client::Connection), Error> {
         let (server, client) = UnixStream::pair()?;
         let mut display = Display::<State>::new()?;
         let mut state = State(DmabufState::new());

@@ -24,6 +24,7 @@ pub enum Field {
     DockAutohide,
     DockRounded,
     DockRadius,
+    FrostedGlass,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -46,7 +47,7 @@ pub enum Kind {
     Text(Blank),
 }
 
-const APPEARANCE: [Field; 7] = [
+const APPEARANCE: [Field; 8] = [
     Field::GapsInner,
     Field::GapsOuter,
     Field::Border,
@@ -54,6 +55,7 @@ const APPEARANCE: [Field; 7] = [
     Field::FloatHeight,
     Field::DefaultBinds,
     Field::Wallpaper,
+    Field::FrostedGlass,
 ];
 const APPS: [Field; 7] = [
     Field::Terminal,
@@ -128,9 +130,11 @@ impl Field {
                 4,
             ),
             Field::DockRadius => bounds(0, sparky_config::dock::MAX_RADIUS, 1),
-            Field::DefaultBinds | Field::DockEnabled | Field::DockAutohide | Field::DockRounded => {
-                Kind::Flag
-            }
+            Field::DefaultBinds
+            | Field::DockEnabled
+            | Field::DockAutohide
+            | Field::DockRounded
+            | Field::FrostedGlass => Kind::Flag,
             Field::Terminal | Field::Wallpaper | Field::LoginWallpaper => {
                 Kind::Text(Blank::Allowed)
             }
@@ -167,6 +171,7 @@ impl Field {
             Field::DockAutohide => ("dock", "autohide"),
             Field::DockRounded => ("dock", "rounded"),
             Field::DockRadius => ("dock", "radius"),
+            Field::FrostedGlass => ("general", "frosted_glass"),
         }
     }
 }

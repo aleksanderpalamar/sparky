@@ -53,6 +53,7 @@ pub fn run() -> Result<(), iced_layershell::Error> {
     iced_layershell::build_pattern::daemon(boot, namespace, update::update, view::view)
         .subscription(subscription::subscription)
         .theme(|bar: &Bar, _window| bar.skin().theme())
+        .style(sparky_ui::surface::transparent)
         .settings(settings())
         .run()
 }

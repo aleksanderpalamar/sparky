@@ -92,3 +92,20 @@ fn trocar_os_icones_vai_pelo_gsettings() {
     .to_vec();
     assert_eq!(pedido.command(), ("gsettings", argumentos));
 }
+
+#[test]
+fn com_frosted_glass_ligado_o_tema_em_uso_continua_reconhecido() {
+    let Themes::Ready(mut catalogo) = catalogo() else {
+        panic!("catálogo pronto");
+    };
+    catalogo.current = Palette {
+        glass: true,
+        ..Palette::SPARKY
+    };
+    assert!(
+        catalogo
+            .themes
+            .iter()
+            .any(|tema| tema.palette() == catalogo.current)
+    );
+}

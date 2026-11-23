@@ -1,14 +1,13 @@
 pub mod payload;
+pub mod source;
 
-use std::io::Write;
-use std::os::fd::OwnedFd;
-
-use smithay::reexports::wayland_server::protocol::wl_data_device_manager::DndAction;
+use smithay::input::dnd::DnDGrab;
+use smithay::input::pointer::Focus;
 use smithay::utils::SERIAL_COUNTER;
-use smithay::wayland::selection::data_device::{SourceMetadata, start_dnd};
 use sparky_ipc::Reply;
 
 use crate::file_drag::payload::Payload;
+use crate::file_drag::source::FileSource;
 use crate::state::Sparky;
 
 impl Sparky {
@@ -25,41 +24,14 @@ impl Sparky {
         else {
             return refusal("nenhum botão pressionado sobre uma janela");
         };
-        let metadata = SourceMetadata {
-            mime_types: Payload::mime_types(),
-            dnd_action: DndAction::Copy,
-        };
-        self.file_drag = Some(payload);
-        let seat = self.seat.clone();
-        let display = self.display_handle.clone();
-        start_dnd(
-            &display,
-            &seat,
-            self,
-            SERIAL_COUNTER.next_serial(),
-            Some(start),
-            None,
-            metadata,
+        let grab = DnDGrab::new_pointer(
+            &self.display_handle,
+            start,
+            FileSource::new(payload),
+            self.seat.clone(),
         );
+        pointer.set_grab(self, grab, SERIAL_COUNTER.next_serial(), Focus::Keep);
         Reply::Done
-    }
-
-    pub fn send_file_drag(&mut self, mime_type: &str, fd: OwnedFd) {
-        let Some(content) = self
-            .file_drag
-            .as_ref()
-            .and_then(|payload| payload.content(mime_type))
-        else {
-            return;
-        };
-        std::thread::spawn(move || {
-            let mut target = std::fs::File::from(fd);
-            let _ = target.write_all(content.as_bytes());
-        });
-    }
-
-    pub fn end_file_drag(&mut self) {
-        self.file_drag = None;
     }
 }
 

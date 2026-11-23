@@ -30,6 +30,7 @@ pub fn group(field: Field) -> String {
         Field::FloatWidth | Field::FloatHeight => "group-floating-windows",
         Field::DefaultBinds => "section-shortcuts-label",
         Field::Wallpaper => "group-wallpaper",
+        Field::FrostedGlass => "group-effects",
         Field::LoginWallpaper => "group-login-screen",
         Field::RepeatRate | Field::RepeatDelay => "group-repeat",
         Field::DockEnabled

@@ -67,7 +67,11 @@ pub fn dispatch(state: &mut Sparky, directory: &Path) -> Result<(), Error> {
         Modifier::Linear,
         DmabufFlags::empty(),
     );
-    assert!(buffer.add_plane(tempfile::tempfile()?.into(), 0, 0, size.0 as u32 * 4));
+    assert!(buffer.add_plane(
+        std::os::fd::OwnedFd::from(tempfile::tempfile()?),
+        0,
+        size.0 as u32 * 4
+    ));
     state.finish_capture(
         Job {
             notify: Notify::Image(frame),
@@ -116,7 +120,11 @@ fn transition(state: &mut Sparky, directory: &Path, name: &str, locked: bool) ->
         Modifier::Linear,
         DmabufFlags::empty(),
     );
-    assert!(buffer.add_plane(tempfile::tempfile()?.into(), 0, 0, size.0 as u32 * 4));
+    assert!(buffer.add_plane(
+        std::os::fd::OwnedFd::from(tempfile::tempfile()?),
+        0,
+        size.0 as u32 * 4
+    ));
     match locked {
         true => state.lock.engage(),
         false => state.lock.release(),

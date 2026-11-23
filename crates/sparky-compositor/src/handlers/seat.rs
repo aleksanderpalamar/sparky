@@ -1,4 +1,3 @@
-use smithay::delegate_seat;
 use smithay::input::pointer::CursorImageStatus;
 use smithay::input::{Seat, SeatHandler, SeatState};
 use smithay::reexports::wayland_server::Resource;
@@ -32,5 +31,3 @@ impl SeatHandler for Sparky {
         set_primary_focus(display, seat, client);
     }
 }
-
-delegate_seat!(Sparky);

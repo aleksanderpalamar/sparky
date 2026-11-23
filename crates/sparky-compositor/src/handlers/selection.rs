@@ -1,15 +1,18 @@
 use std::os::unix::io::OwnedFd;
 
 use smithay::input::Seat;
+use smithay::input::dnd::{DnDGrab, DndGrabHandler, GrabType, Source};
+use smithay::input::pointer::Focus;
+use smithay::reexports::wayland_server::protocol::wl_surface::WlSurface;
+use smithay::utils::Serial;
 use smithay::wayland::selection::data_device::{
-    ClientDndGrabHandler, DataDeviceHandler, DataDeviceState, ServerDndGrabHandler,
+    DataDeviceHandler, DataDeviceState, WaylandDndGrabHandler,
 };
 use smithay::wayland::selection::primary_selection::{
     PrimarySelectionHandler, PrimarySelectionState,
 };
 use smithay::wayland::selection::wlr_data_control::{DataControlHandler, DataControlState};
 use smithay::wayland::selection::{SelectionHandler, SelectionSource, SelectionTarget};
-use smithay::{delegate_data_control, delegate_data_device, delegate_primary_selection};
 
 use crate::state::Sparky;
 
@@ -38,39 +41,55 @@ impl SelectionHandler for Sparky {
 }
 
 impl DataDeviceHandler for Sparky {
-    fn data_device_state(&self) -> &DataDeviceState {
-        &self.protocols.data_device
+    fn data_device_state(&mut self) -> &mut DataDeviceState {
+        &mut self.protocols.data_device
     }
 }
 
-impl ClientDndGrabHandler for Sparky {}
-
-impl ServerDndGrabHandler for Sparky {
-    fn send(&mut self, mime_type: String, fd: OwnedFd, _seat: Seat<Self>) {
-        self.send_file_drag(&mime_type, fd);
-    }
-
-    fn cancelled(&mut self, _seat: Seat<Self>) {
-        self.end_file_drag();
-    }
-
-    fn finished(&mut self, _seat: Seat<Self>) {
-        self.end_file_drag();
+impl WaylandDndGrabHandler for Sparky {
+    fn dnd_requested<S: Source>(
+        &mut self,
+        source: S,
+        _icon: Option<WlSurface>,
+        seat: Seat<Self>,
+        serial: Serial,
+        type_: GrabType,
+    ) {
+        match type_ {
+            GrabType::Pointer => {
+                let Some(pointer) = seat.get_pointer() else {
+                    return source.cancel();
+                };
+                let Some(start) = pointer.grab_start_data() else {
+                    return source.cancel();
+                };
+                let grab = DnDGrab::new_pointer(&self.display_handle, start, source, seat);
+                pointer.set_grab(self, grab, serial, Focus::Keep);
+            }
+            GrabType::Touch => {
+                let Some(touch) = seat.get_touch() else {
+                    return source.cancel();
+                };
+                let Some(start) = touch.grab_start_data() else {
+                    return source.cancel();
+                };
+                let grab = DnDGrab::new_touch(&self.display_handle, start, source, seat);
+                touch.set_grab(self, grab, serial);
+            }
+        }
     }
 }
+
+impl DndGrabHandler for Sparky {}
 
 impl PrimarySelectionHandler for Sparky {
-    fn primary_selection_state(&self) -> &PrimarySelectionState {
-        &self.protocols.primary_selection
+    fn primary_selection_state(&mut self) -> &mut PrimarySelectionState {
+        &mut self.protocols.primary_selection
     }
 }
 
 impl DataControlHandler for Sparky {
-    fn data_control_state(&self) -> &DataControlState {
-        &self.protocols.data_control
+    fn data_control_state(&mut self) -> &mut DataControlState {
+        &mut self.protocols.data_control
     }
 }
-
-delegate_data_device!(Sparky);
-delegate_primary_selection!(Sparky);
-delegate_data_control!(Sparky);

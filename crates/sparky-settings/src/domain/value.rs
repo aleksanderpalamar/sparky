@@ -60,6 +60,7 @@ fn flag(field: Field, config: &Config) -> bool {
         Field::DockEnabled => config.dock.enabled,
         Field::DockAutohide => config.dock.autohide,
         Field::DockRounded => config.dock.rounded,
+        Field::FrostedGlass => config.general.frosted_glass,
         _ => config.general.default_binds,
     }
 }

@@ -2,6 +2,7 @@ use super::queue::Job;
 use super::types::Target;
 use crate::backend::drm::cursor::Cursors;
 use crate::render::elements::SparkyElement;
+use crate::render::glass::compose::compose;
 use crate::render::hdr::colorize::colorize;
 use crate::state::Sparky;
 use smithay::backend::allocator::Buffer;
@@ -23,6 +24,10 @@ pub fn render(
 ) -> Result<SyncPoint, String> {
     let locked = state.lock.is_locked();
     job.locked = locked;
+    let glass = match &job.target {
+        Target::Output(weak) => weak.upgrade(),
+        _ => None,
+    };
     let (mut elements, scale, origin) = match &job.target {
         Target::Output(weak) => {
             let output = weak.upgrade().ok_or("monitor removido")?;
@@ -72,7 +77,11 @@ pub fn render(
         .region
         .map(|r| Point::from((-r.x, -r.y)).to_physical_precise_round(scale))
         .unwrap_or_default();
-    let elements: Vec<_> = colorize(state, renderer, elements)
+    let composed = match glass {
+        Some(output) => compose(state, renderer, &output, elements),
+        None => colorize(state, renderer, elements),
+    };
+    let elements: Vec<_> = composed
         .into_iter()
         .map(|e| RelocateRenderElement::from_element(e, offset, Relocate::Relative))
         .collect();

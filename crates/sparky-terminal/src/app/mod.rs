@@ -5,6 +5,8 @@ pub mod keys;
 pub mod measure;
 pub mod message;
 pub mod paint;
+#[cfg(test)]
+mod paint_tests;
 pub mod pointer;
 pub mod sequences;
 pub mod signals;
@@ -62,6 +64,7 @@ pub fn run(launch: Launch) -> iced::Result {
         .title(Workspace::title)
         .subscription(events::subscription)
         .theme(|terminal: &Workspace| terminal.skin.theme())
+        .style(sparky_ui::surface::transparent)
         .default_font(FONT)
         .window(sparky_ui::window::settings(
             APPLICATION_ID,

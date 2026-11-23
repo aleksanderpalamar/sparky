@@ -5,7 +5,7 @@ use sparky_theme::Skin;
 
 use super::state::Dock;
 use crate::domain::app::{App, Launch};
-use crate::ports::{PinnedStore, Starter};
+use crate::ports::{GlassBoard, PinnedStore, Starter};
 
 #[derive(Clone, Default)]
 pub struct Memory {
@@ -44,7 +44,17 @@ pub fn dock(memory: &Memory, started: &Started, apps: Vec<App>) -> Dock {
         Skin::default(),
         Box::new(memory.clone()),
         Box::new(started.clone()),
+        Box::new(Board::default()),
     );
     dock.apps = apps;
     dock
+}
+
+#[derive(Clone, Default)]
+pub struct Board(pub Rc<RefCell<Vec<sparky_ipc::GlassArea>>>);
+
+impl GlassBoard for Board {
+    fn announce(&self, area: sparky_ipc::GlassArea) {
+        self.0.borrow_mut().push(area);
+    }
 }

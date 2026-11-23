@@ -29,6 +29,7 @@ pub fn run() -> iced::Result {
         })
         .default_font(sparky_ui::style::FONT)
         .theme(|store: &Store| store.skin.theme())
+        .style(sparky_ui::surface::transparent)
         .window(sparky_ui::window::settings(
             "sparky-store",
             Size::new(1050.0, 680.0),

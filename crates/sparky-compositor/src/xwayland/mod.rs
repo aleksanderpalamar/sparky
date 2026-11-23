@@ -24,6 +24,7 @@ impl Sparky {
             &self.display_handle,
             None,
             std::iter::empty::<(String, String)>(),
+            std::iter::empty::<&str>(),
             true,
             Stdio::null(),
             Stdio::null(),
@@ -66,7 +67,12 @@ impl Sparky {
     }
 
     fn xwayland_ready(&mut self, socket: UnixStream, number: u32, client: Client) {
-        let mut wm = match X11Wm::start_wm(self.loop_handle.clone(), socket, client) {
+        let mut wm = match X11Wm::start_wm(
+            self.loop_handle.clone(),
+            &self.display_handle,
+            socket,
+            client,
+        ) {
             Ok(wm) => wm,
             Err(error) => {
                 tracing::warn!("o gerenciador de janelas X11 não subiu: {error}");

@@ -86,7 +86,7 @@ impl Sparky {
         if drm.libinput.resume().is_err() {
             tracing::warn!("o libinput não voltou");
         }
-        if let Err(error) = drm.gpu.manager.activate(false) {
+        if let Err(error) = drm.gpu.manager.lock().activate(false) {
             tracing::warn!("o vídeo não voltou: {error}");
         }
         for surface in drm.gpu.surfaces.values_mut() {

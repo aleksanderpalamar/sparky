@@ -70,7 +70,13 @@ impl Program<Message> for Painter<'_> {
     ) -> Vec<Geometry> {
         let terminal = self.terminal;
         let geometry = terminal.cache.draw(renderer, bounds.size(), |frame| {
-            paint(frame, &terminal.screen, &terminal.palette, terminal.metrics)
+            paint(
+                frame,
+                &terminal.screen,
+                &terminal.palette,
+                terminal.metrics,
+                terminal.skin.background.a,
+            )
         });
         vec![geometry]
     }

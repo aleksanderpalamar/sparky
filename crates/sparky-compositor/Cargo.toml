@@ -32,7 +32,8 @@ x11rb = "0.13"
 xcursor = "0.3"
 
 [dependencies.smithay]
-version = "0.7"
+git = "https://github.com/smithay/smithay.git"
+rev = "8a27023"
 default-features = false
 features = [
     "backend_drm",

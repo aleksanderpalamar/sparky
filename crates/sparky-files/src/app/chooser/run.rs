@@ -21,6 +21,7 @@ pub fn run(request: Request) -> iced::Result {
         .subscription(events::subscription)
         .default_font(sparky_ui::style::FONT)
         .theme(|files: &Files| files.skin.theme())
+        .style(sparky_ui::surface::transparent)
         .window(sparky_ui::window::settings(
             APPLICATION_ID,
             Size::new(WIDTH, HEIGHT),

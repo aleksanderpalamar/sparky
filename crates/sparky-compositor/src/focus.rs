@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use smithay::backend::input::KeyState;
+use smithay::backend::input::{InputTime, KeyState};
 use smithay::input::Seat;
 use smithay::input::keyboard::{KeyboardTarget, KeysymHandle, ModifiersState};
 use smithay::reexports::wayland_server::protocol::wl_surface::WlSurface;
@@ -13,7 +13,7 @@ use crate::state::Sparky;
 #[derive(Debug, Clone, PartialEq)]
 pub enum KeyboardFocus {
     Surface(WlSurface),
-    X11(X11Surface),
+    X11(Box<X11Surface>),
 }
 
 impl IsAlive for KeyboardFocus {
@@ -35,17 +35,29 @@ impl WaylandFocus for KeyboardFocus {
 }
 
 impl KeyboardTarget<Sparky> for KeyboardFocus {
-    fn enter(&self, seat: &Seat<Sparky>, data: &mut Sparky, keys: Vec<KeysymHandle<'_>>, serial: Serial) {
+    fn enter(
+        &self,
+        seat: &Seat<Sparky>,
+        data: &mut Sparky,
+        keys: Vec<KeysymHandle<'_>>,
+        serial: Serial,
+    ) {
         match self {
-            KeyboardFocus::Surface(surface) => KeyboardTarget::enter(surface, seat, data, keys, serial),
-            KeyboardFocus::X11(window) => KeyboardTarget::enter(window, seat, data, keys, serial),
+            KeyboardFocus::Surface(surface) => {
+                KeyboardTarget::enter(surface, seat, data, keys, serial)
+            }
+            KeyboardFocus::X11(window) => {
+                KeyboardTarget::enter(window.as_ref(), seat, data, keys, serial)
+            }
         }
     }
 
     fn leave(&self, seat: &Seat<Sparky>, data: &mut Sparky, serial: Serial) {
         match self {
             KeyboardFocus::Surface(surface) => KeyboardTarget::leave(surface, seat, data, serial),
-            KeyboardFocus::X11(window) => KeyboardTarget::leave(window, seat, data, serial),
+            KeyboardFocus::X11(window) => {
+                KeyboardTarget::leave(window.as_ref(), seat, data, serial)
+            }
         }
     }
 
@@ -56,18 +68,32 @@ impl KeyboardTarget<Sparky> for KeyboardFocus {
         key: KeysymHandle<'_>,
         state: KeyState,
         serial: Serial,
-        time: u32,
+        time: InputTime,
     ) {
         match self {
-            KeyboardFocus::Surface(surface) => KeyboardTarget::key(surface, seat, data, key, state, serial, time),
-            KeyboardFocus::X11(window) => KeyboardTarget::key(window, seat, data, key, state, serial, time),
+            KeyboardFocus::Surface(surface) => {
+                KeyboardTarget::key(surface, seat, data, key, state, serial, time)
+            }
+            KeyboardFocus::X11(window) => {
+                KeyboardTarget::key(window.as_ref(), seat, data, key, state, serial, time)
+            }
         }
     }
 
-    fn modifiers(&self, seat: &Seat<Sparky>, data: &mut Sparky, modifiers: ModifiersState, serial: Serial) {
+    fn modifiers(
+        &self,
+        seat: &Seat<Sparky>,
+        data: &mut Sparky,
+        modifiers: ModifiersState,
+        serial: Serial,
+    ) {
         match self {
-            KeyboardFocus::Surface(surface) => KeyboardTarget::modifiers(surface, seat, data, modifiers, serial),
-            KeyboardFocus::X11(window) => KeyboardTarget::modifiers(window, seat, data, modifiers, serial),
+            KeyboardFocus::Surface(surface) => {
+                KeyboardTarget::modifiers(surface, seat, data, modifiers, serial)
+            }
+            KeyboardFocus::X11(window) => {
+                KeyboardTarget::modifiers(window.as_ref(), seat, data, modifiers, serial)
+            }
         }
     }
 }

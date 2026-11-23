@@ -11,6 +11,11 @@ CHECKS = (
     "Sessão gráfica",
 )
 SOURCE_EXTENSIONS = {".rs", ".py", ".sh", ".yml", ".yaml"}
+THIRD_PARTY = "third_party"
+
+
+def vendored(path):
+    return Path(path).parts[:1] == (THIRD_PARTY,)
 
 
 def size_problem(path, before, after):

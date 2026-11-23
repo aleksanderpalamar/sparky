@@ -100,14 +100,14 @@ fn paineis_e_formularios_renderizam_sem_servidor_grafico_nos_temas_claro_e_escur
 }
 
 #[test]
-fn superficie_opaca_e_controles_retangulares_seguem_o_skin() {
+fn superficie_e_controles_retangulares_seguem_o_skin_inclusive_no_vidro() {
     let mut skin = Skin::default();
     skin.background.a = 0.2;
     let surface = style::surface(skin);
     let Some(iced::Background::Color(color)) = surface.background else {
         panic!("sem fundo")
     };
-    assert_eq!(color.a, 1.0);
+    assert_eq!(color.a, skin.background.a);
     assert_eq!(color.r, skin.background.r);
     assert_eq!(surface.border.radius, 0.0.into());
     assert_eq!(surface.border.color, skin.accent);

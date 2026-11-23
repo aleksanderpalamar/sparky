@@ -39,8 +39,6 @@ use crate::domain::mode::Mode;
 use crate::domain::symbols::symbols;
 use crate::domain::system::entries;
 
-const NAMESPACE: &str = "sparky-launcher";
-
 pub fn run(mode: Mode) -> Result<(), iced_layershell::Error> {
     match socket_from_env(mode).map(|path| claim(&path)) {
         Some(Ok(Claim::Signalled)) => return Ok(()),
@@ -54,6 +52,8 @@ pub fn run(mode: Mode) -> Result<(), iced_layershell::Error> {
         Mode::Apps => installed_apps(),
         Mode::System => entries(),
     };
+    let namespace = mode.namespace();
+    crate::adapters::glass::announce(namespace, mode.size());
     let boot = move || {
         let launcher = Launcher::new(
             apps.clone(),
@@ -63,7 +63,7 @@ pub fn run(mode: Mode) -> Result<(), iced_layershell::Error> {
         );
         (launcher, icons(apps.clone()))
     };
-    iced_layershell::application(boot, || NAMESPACE.to_owned(), update, view::view)
+    iced_layershell::application(boot, move || namespace.to_owned(), update, view::view)
         .subscription(|_| {
             Subscription::batch([
                 event::listen_with(keyboard_message),

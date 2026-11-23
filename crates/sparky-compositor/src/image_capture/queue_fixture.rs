@@ -35,6 +35,7 @@ impl Fixture {
                 subpixel: Subpixel::Unknown,
                 make: "fixture".into(),
                 model: "fixture".into(),
+                serial_number: String::new(),
             },
         );
         let target = Target::Output(output.downgrade());
@@ -76,7 +77,11 @@ impl Fixture {
             Modifier::Linear,
             DmabufFlags::empty(),
         );
-        assert!(buffer.add_plane(tempfile::tempfile().unwrap().into(), 0, 0, 3200));
+        assert!(buffer.add_plane(
+            std::os::fd::OwnedFd::from(tempfile::tempfile().unwrap()),
+            0,
+            3200
+        ));
         Self {
             display,
             socket,

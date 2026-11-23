@@ -14,7 +14,7 @@ use crate::domain::pinned::Pinned;
 use crate::domain::presence::{Presence, Seen, presence};
 use crate::domain::region::{Rect, Stage, region};
 use crate::domain::visibility::{Moment, visibility};
-use crate::ports::{PinnedStore, Starter};
+use crate::ports::{GlassBoard, PinnedStore, Starter};
 
 pub struct OpenPicker {
     pub window: window::Id,
@@ -40,13 +40,20 @@ pub struct Dock {
     pub slide: Ease,
     pub clock: Option<std::time::Instant>,
     pub accepting: Option<Rect>,
+    pub glass: Option<sparky_ipc::GlassArea>,
     pub output: Option<u32>,
     store: Box<dyn PinnedStore>,
     starter: Box<dyn Starter>,
+    board: Box<dyn GlassBoard>,
 }
 
 impl Dock {
-    pub fn new(skin: Skin, store: Box<dyn PinnedStore>, starter: Box<dyn Starter>) -> Self {
+    pub fn new(
+        skin: Skin,
+        store: Box<dyn PinnedStore>,
+        starter: Box<dyn Starter>,
+        board: Box<dyn GlassBoard>,
+    ) -> Self {
         let pinned = super::restore::restore(store.as_ref());
         Self {
             skin,
@@ -67,9 +74,11 @@ impl Dock {
             slide: Ease::at(0.0),
             clock: None,
             accepting: None,
+            glass: None,
             output: None,
             store,
             starter,
+            board,
         }
     }
 
@@ -144,6 +153,10 @@ impl Dock {
         if self.pinned.add(ids.iter().cloned()) {
             self.persist();
         }
+    }
+
+    pub fn show_glass(&self, area: sparky_ipc::GlassArea) {
+        self.board.announce(area);
     }
 
     pub fn place(&mut self, id: &str, before: Option<&str>) {

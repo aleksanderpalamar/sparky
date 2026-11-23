@@ -7,7 +7,7 @@ use crate::focus::KeyboardFocus;
 pub fn focus_target(window: &Window) -> KeyboardFocus {
     match window.underlying_surface() {
         WindowSurface::Wayland(toplevel) => KeyboardFocus::Surface(toplevel.wl_surface().clone()),
-        WindowSurface::X11(x11) => KeyboardFocus::X11(x11.clone()),
+        WindowSurface::X11(x11) => KeyboardFocus::X11(Box::new(x11.clone())),
     }
 }
 
