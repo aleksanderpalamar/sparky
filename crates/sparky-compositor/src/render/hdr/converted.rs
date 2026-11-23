@@ -4,6 +4,7 @@ use smithay::backend::renderer::gles::{
     GlesError, GlesFrame, GlesRenderer, GlesTexProgram, Uniform,
 };
 use smithay::backend::renderer::utils::{CommitCounter, DamageSet, OpaqueRegions};
+use smithay::utils::user_data::UserDataMap;
 use smithay::utils::{Buffer as BufferCoords, Physical, Point, Rectangle, Scale, Transform};
 
 use super::surface_shader;
@@ -86,9 +87,12 @@ impl RenderElement<GlesRenderer> for ConvertedSurface {
         dst: Rectangle<i32, Physical>,
         damage: &[Rectangle<i32, Physical>],
         opaque_regions: &[Rectangle<i32, Physical>],
+        cache: Option<&UserDataMap>,
     ) -> Result<(), GlesError> {
         frame.override_default_tex_program(self.program.clone(), self.uniforms.clone());
-        let drawn = self.inner.draw(frame, src, dst, damage, opaque_regions);
+        let drawn = self
+            .inner
+            .draw(frame, src, dst, damage, opaque_regions, cache);
         frame.clear_tex_program_override();
         drawn
     }

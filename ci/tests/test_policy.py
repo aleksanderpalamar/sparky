@@ -1,6 +1,6 @@
 import unittest
 
-from ci.policy import CHECKS, missing_checks, size_problem
+from ci.policy import CHECKS, missing_checks, size_problem, vendored
 
 
 class SizePolicyTest(unittest.TestCase):
@@ -13,6 +13,11 @@ class SizePolicyTest(unittest.TestCase):
         self.assertIsNone(size_problem("old.py", original, "x\n" * 259))
         self.assertIsNone(size_problem("old.py", original, original))
         self.assertIsNotNone(size_problem("old.py", original, "x\n" * 261))
+
+    def test_third_party_copies_are_not_project_source(self):
+        self.assertTrue(vendored("third_party/iced_exdevtools/src/keymap.rs"))
+        self.assertFalse(vendored("crates/sparky-compositor/src/main.rs"))
+        self.assertFalse(vendored("ci/third_party.py"))
 
     def test_small_file_cannot_become_large(self):
         self.assertIsNotNone(size_problem("file.sh", "x\n" * 190, "x\n" * 201))

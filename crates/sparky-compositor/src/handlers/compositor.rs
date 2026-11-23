@@ -7,7 +7,6 @@ use smithay::wayland::compositor::{
     CompositorClientState, CompositorHandler, CompositorState, is_sync_subsurface,
 };
 use smithay::wayland::shm::{ShmHandler, ShmState};
-use smithay::{delegate_compositor, delegate_shm};
 
 use crate::state::Sparky;
 use crate::state::client::compositor_state_of;
@@ -57,6 +56,3 @@ impl ShmHandler for Sparky {
         &self.protocols.shm
     }
 }
-
-delegate_compositor!(Sparky);
-delegate_shm!(Sparky);

@@ -72,7 +72,7 @@ impl Gpu {
             gbm.clone(),
             GbmBufferFlags::RENDERING | GbmBufferFlags::SCANOUT,
         );
-        let exporter = GbmFramebufferExporter::new(gbm.clone(), Some(node));
+        let exporter = GbmFramebufferExporter::new(gbm.clone(), node.into());
         let manager = DrmOutputManager::new(
             drm,
             allocator.clone(),

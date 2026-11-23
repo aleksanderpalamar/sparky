@@ -1,10 +1,11 @@
-use smithay::delegate_xdg_shell;
 use smithay::desktop::{PopupKind, Window, find_popup_root_surface, get_popup_toplevel_coords};
 use smithay::reexports::wayland_protocols::xdg::shell::server::xdg_toplevel::ResizeEdge;
 use smithay::reexports::wayland_server::protocol::wl_output::WlOutput;
 use smithay::reexports::wayland_server::protocol::wl_seat::WlSeat;
 use smithay::utils::Serial;
-use smithay::wayland::shell::xdg::{PopupSurface, PositionerState, ToplevelSurface, XdgShellHandler, XdgShellState};
+use smithay::wayland::shell::xdg::{
+    PopupSurface, PositionerState, ToplevelSurface, XdgShellHandler, XdgShellState,
+};
 use sparky_tiling::drag_session::Gesture;
 use sparky_tiling::{Fullscreen, WindowId};
 
@@ -33,7 +34,12 @@ impl XdgShellHandler for Sparky {
         }
     }
 
-    fn reposition_request(&mut self, surface: PopupSurface, positioner: PositionerState, token: u32) {
+    fn reposition_request(
+        &mut self,
+        surface: PopupSurface,
+        positioner: PositionerState,
+        token: u32,
+    ) {
         surface.with_pending_state(|state| {
             state.geometry = positioner.get_geometry();
             state.positioner = positioner;
@@ -58,7 +64,13 @@ impl XdgShellHandler for Sparky {
         }
     }
 
-    fn resize_request(&mut self, surface: ToplevelSurface, _seat: WlSeat, serial: Serial, edges: ResizeEdge) {
+    fn resize_request(
+        &mut self,
+        surface: ToplevelSurface,
+        _seat: WlSeat,
+        serial: Serial,
+        edges: ResizeEdge,
+    ) {
         if let Some(window) = self.window_of(&surface) {
             self.start_client_drag(window, Gesture::Resize(from_xdg(edges)), Some(serial));
         }
@@ -92,13 +104,17 @@ impl Sparky {
         let Ok(root) = find_popup_root_surface(&PopupKind::Xdg(popup.clone())) else {
             return;
         };
-        let Some((_, window)) = self
-            .windows
-            .find(|window| window.toplevel().is_some_and(|toplevel| toplevel.wl_surface() == &root))
-        else {
+        let Some((_, window)) = self.windows.find(|window| {
+            window
+                .toplevel()
+                .is_some_and(|toplevel| toplevel.wl_surface() == &root)
+        }) else {
             return;
         };
-        let (Some(window_geometry), Some(output)) = (self.space.element_geometry(window), self.space.outputs().next()) else {
+        let (Some(window_geometry), Some(output)) = (
+            self.space.element_geometry(window),
+            self.space.outputs().next(),
+        ) else {
             return;
         };
         let Some(mut target) = self.space.output_geometry(output) else {
@@ -111,5 +127,3 @@ impl Sparky {
         });
     }
 }
-
-delegate_xdg_shell!(Sparky);

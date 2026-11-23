@@ -8,8 +8,8 @@ use smithay::desktop::utils::send_frames_surface_tree;
 use smithay::output::{Mode, Output, PhysicalProperties, Subpixel};
 use smithay::reexports::calloop::EventLoop;
 use smithay::reexports::winit::dpi::LogicalSize;
-use smithay::reexports::winit::platform::wayland::WindowAttributesExtWayland;
-use smithay::reexports::winit::window::Window as HostWindow;
+use smithay::reexports::winit::platform::wayland::WindowAttributesWayland;
+use smithay::reexports::winit::window::WindowAttributes;
 use smithay::utils::{Physical, Rectangle, Size, Transform};
 
 use crate::backend::Backend;
@@ -33,10 +33,11 @@ pub fn init(
     event_loop: &mut EventLoop<'static, Sparky>,
     state: &mut Sparky,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let attributes = HostWindow::default_attributes()
-        .with_inner_size(LogicalSize::new(1600.0, 900.0))
+    let wayland = WindowAttributesWayland::default().with_name(APP_ID, APP_ID);
+    let attributes = WindowAttributes::default()
+        .with_surface_size(LogicalSize::new(1600.0, 900.0))
         .with_title("Sparky")
-        .with_name(APP_ID, APP_ID)
+        .with_platform_attributes(Box::new(wayland))
         .with_visible(true);
     let (mut graphics, events) = winit::init_from_attributes::<GlesRenderer>(attributes)?;
     let output = nested_output(state, graphics.window_size());
@@ -75,6 +76,7 @@ fn nested_output(state: &mut Sparky, size: Size<i32, Physical>) -> Output {
             subpixel: Subpixel::Unknown,
             make: "Sparky".into(),
             model: "Aninhado".into(),
+            serial_number: String::new(),
         },
     );
     let _global = output.create_global::<Sparky>(&state.display_handle);
@@ -143,7 +145,7 @@ fn apply_cursor(state: &Sparky, nested: &mut Nested) {
     match wanted {
         HostCursor::Shape(icon) => {
             window.set_cursor_visible(true);
-            window.set_cursor(icon);
+            window.set_cursor(smithay::reexports::winit::cursor::Cursor::Icon(icon));
         }
         HostCursor::Hidden => window.set_cursor_visible(false),
     }

@@ -1,5 +1,4 @@
 use smithay::backend::allocator::dmabuf::Dmabuf;
-use smithay::delegate_dmabuf;
 use smithay::wayland::dmabuf::{DmabufGlobal, DmabufHandler, DmabufState, ImportNotifier};
 
 use crate::state::Sparky;
@@ -9,7 +8,12 @@ impl DmabufHandler for Sparky {
         &mut self.protocols.dmabuf
     }
 
-    fn dmabuf_imported(&mut self, _global: &DmabufGlobal, dmabuf: Dmabuf, notifier: ImportNotifier) {
+    fn dmabuf_imported(
+        &mut self,
+        _global: &DmabufGlobal,
+        dmabuf: Dmabuf,
+        notifier: ImportNotifier,
+    ) {
         match self.import_dmabuf(&dmabuf) {
             true => {
                 if notifier.successful::<Sparky>().is_err() {
@@ -20,5 +24,3 @@ impl DmabufHandler for Sparky {
         }
     }
 }
-
-delegate_dmabuf!(Sparky);

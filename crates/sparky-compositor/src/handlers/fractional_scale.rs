@@ -1,4 +1,3 @@
-use smithay::delegate_fractional_scale;
 use smithay::reexports::wayland_server::protocol::wl_surface::WlSurface;
 use smithay::wayland::fractional_scale::FractionalScaleHandler;
 
@@ -9,5 +8,3 @@ impl FractionalScaleHandler for Sparky {
         self.publish_scales();
     }
 }
-
-delegate_fractional_scale!(Sparky);

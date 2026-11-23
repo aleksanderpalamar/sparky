@@ -7,7 +7,7 @@ import tomllib
 from pathlib import Path
 
 from ci.changes import changed_paths, check_format, contents, git
-from ci.policy import SOURCE_EXTENSIONS, missing_checks, size_problem
+from ci.policy import SOURCE_EXTENSIONS, missing_checks, size_problem, vendored
 from ci.refs import event_base, pull_request_problem
 
 
@@ -23,6 +23,8 @@ def inspect_files(base, head):
     edition = str(tomllib.loads(Path("Cargo.toml").read_text())["workspace"]["package"]["edition"])
     problems = []
     for path, old_path in changed_paths(base, head):
+        if vendored(path):
+            continue
         if Path(path).suffix not in SOURCE_EXTENSIONS and Path(path).name != "PKGBUILD":
             continue
         before = contents(base, old_path) if old_path else None

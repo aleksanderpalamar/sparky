@@ -25,6 +25,7 @@ pub fn attach_monitor(state: &mut Sparky, name: &str) -> Output {
             subpixel: Subpixel::Unknown,
             make: "fixture".into(),
             model: "fixture".into(),
+            serial_number: String::new(),
         },
     );
     output.create_global::<Sparky>(&state.display_handle);

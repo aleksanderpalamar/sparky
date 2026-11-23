@@ -3,6 +3,7 @@ use smithay::backend::renderer::gles::{
     GlesError, GlesFrame, GlesRenderer, GlesTexProgram, GlesTexture, Uniform,
 };
 use smithay::backend::renderer::utils::{CommitCounter, OpaqueRegions};
+use smithay::utils::user_data::UserDataMap;
 use smithay::utils::{Buffer as BufferCoords, Physical, Rectangle, Scale, Size, Transform};
 
 pub struct PqElement {
@@ -44,6 +45,7 @@ impl RenderElement<GlesRenderer> for PqElement {
         dst: Rectangle<i32, Physical>,
         damage: &[Rectangle<i32, Physical>],
         opaque_regions: &[Rectangle<i32, Physical>],
+        _cache: Option<&UserDataMap>,
     ) -> Result<(), GlesError> {
         frame.render_texture_from_to(
             &self.texture,

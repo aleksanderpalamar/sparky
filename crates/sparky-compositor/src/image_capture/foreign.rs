@@ -1,6 +1,5 @@
 use crate::state::Sparky;
 use crate::windows::traits::{title_of, traits_of};
-use smithay::delegate_foreign_toplevel_list;
 use smithay::reexports::calloop::timer::{TimeoutAction, Timer};
 use smithay::wayland::foreign_toplevel_list::{
     ForeignToplevelListHandler, ForeignToplevelListState,
@@ -14,7 +13,6 @@ impl ForeignToplevelListHandler for Sparky {
         &mut self.protocols.foreign_toplevels
     }
 }
-delegate_foreign_toplevel_list!(Sparky);
 
 impl Sparky {
     pub fn refresh_capture_sources(&mut self) {

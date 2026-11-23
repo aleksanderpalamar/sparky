@@ -99,6 +99,7 @@ mod tests {
                 subpixel: Subpixel::Unknown,
                 make: "teste".into(),
                 model: "teste".into(),
+                serial_number: String::new(),
             },
         )
     }

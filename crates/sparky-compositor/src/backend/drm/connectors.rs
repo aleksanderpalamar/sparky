@@ -1,20 +1,18 @@
-use smithay::backend::drm::DrmDevice;
 use smithay::backend::drm::output::DrmOutputRenderElements;
 use smithay::backend::renderer::gles::GlesRenderer;
 use smithay::output::{Mode as WlMode, Output, PhysicalProperties, Subpixel};
-use smithay::reexports::drm::control::{
-    Device as ControlDevice, Mode, ResourceHandles, connector, crtc,
-};
+use smithay::reexports::drm::control::{Device as ControlDevice, Mode, connector, crtc};
 use sparky_tiling::Rect;
 
 use crate::backend::drm::Drm;
 use crate::backend::drm::configure::{chosen_mode, preferred_mode, set_vrr};
-use crate::backend::drm::crtcs::{self, Candidate};
+use crate::backend::drm::crtcs;
 use crate::backend::drm::gpu::{Gpu, Surface};
 use crate::backend::drm::hdr;
 use crate::backend::drm::hdr_state::HdrState;
 use crate::backend::drm::modes;
 use crate::backend::drm::placement;
+use crate::backend::drm::scan::candidates;
 use crate::backend::drm::screens::{description, output_name};
 use crate::layout::outputs::rect_of;
 use crate::layout::rotation::transform;
@@ -73,6 +71,7 @@ impl Sparky {
         let global = output.create_global::<Sparky>(&self.display_handle);
         let drm_output = gpu
             .manager
+            .lock()
             .initialize_output::<_, SparkyElement<GlesRenderer>>(
                 crtc,
                 mode,
@@ -123,6 +122,7 @@ impl Sparky {
                 subpixel: Subpixel::Unknown,
                 make: known(make),
                 model: known(model),
+                serial_number: String::new(),
             },
         );
         let existing: Vec<Rect> = self
@@ -164,37 +164,4 @@ impl Sparky {
             self.loop_handle.remove(timer);
         }
     }
-}
-
-type Candidates = (Vec<String>, Vec<Candidate<connector::Handle, crtc::Handle>>);
-
-fn candidates(device: &DrmDevice) -> Option<Candidates> {
-    let resources = device.resource_handles().ok()?;
-    let found = resources
-        .connectors()
-        .iter()
-        .filter_map(|handle| {
-            let info = device.get_connector(*handle, true).ok()?;
-            (info.state() == connector::State::Connected).then(|| {
-                let candidate = Candidate {
-                    connector: *handle,
-                    crtcs: crtcs_for(device, &resources, &info),
-                };
-                (output_name(&info), candidate)
-            })
-        })
-        .unzip();
-    Some(found)
-}
-
-fn crtcs_for(
-    device: &DrmDevice,
-    resources: &ResourceHandles,
-    info: &connector::Info,
-) -> Vec<crtc::Handle> {
-    info.encoders()
-        .iter()
-        .filter_map(|encoder| device.get_encoder(*encoder).ok())
-        .flat_map(|encoder| resources.filter_crtcs(encoder.possible_crtcs()))
-        .collect()
 }

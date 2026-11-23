@@ -1,6 +1,7 @@
 [workspace]
 resolver = "3"
 members = ["crates/*"]
+exclude = ["third_party/*"]
 
 [workspace.package]
 version = "0.32.0"
@@ -26,3 +27,6 @@ sparky-tiling = { path = "crates/sparky-tiling" }
 sparky-ui = { path = "crates/sparky-ui" }
 sparky-xdg = { path = "crates/sparky-xdg" }
 sparky-storage = { path = "crates/sparky-storage" }
+
+[patch.crates-io]
+iced_exdevtools = { path = "third_party/iced_exdevtools" }
