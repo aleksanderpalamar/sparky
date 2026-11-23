@@ -2,6 +2,8 @@ pub mod about;
 pub mod describe;
 pub mod diagram;
 pub mod field;
+#[cfg(test)]
+mod field_tests;
 pub mod hardware;
 pub mod labels;
 pub mod network;

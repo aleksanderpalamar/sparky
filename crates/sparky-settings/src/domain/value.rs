@@ -59,6 +59,7 @@ fn flag(field: Field, config: &Config) -> bool {
     match field {
         Field::DockEnabled => config.dock.enabled,
         Field::DockAutohide => config.dock.autohide,
+        Field::DockRounded => config.dock.rounded,
         _ => config.general.default_binds,
     }
 }
@@ -124,6 +125,7 @@ fn number(field: Field, config: &mut Config) -> Option<&mut i32> {
         Field::RepeatRate => Some(&mut config.input.repeat_rate),
         Field::RepeatDelay => Some(&mut config.input.repeat_delay),
         Field::DockSize => Some(&mut config.dock.size),
+        Field::DockRadius => Some(&mut config.dock.radius),
         _ => None,
     }
 }

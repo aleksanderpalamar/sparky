@@ -22,13 +22,13 @@ fn color(background: Option<Background>) -> Option<Color> {
 #[test]
 fn nenhuma_superficie_do_dock_tem_canto_arredondado() {
     let skin = Skin::default();
-    assert_eq!(tray(skin).border.radius, reto());
+    assert_eq!(tray(skin, 0.0).border.radius, reto());
     assert_eq!(dialog(skin).border.radius, reto());
     assert_eq!(card(skin).border.radius, reto());
     assert_eq!(divider(skin).border.radius, reto());
     assert_eq!(badge(skin).border.radius, reto());
-    assert_eq!(menu(skin).border.radius, reto());
-    assert_eq!(strip(skin).border.radius, reto());
+    assert_eq!(menu(skin, 0.0).border.radius, reto());
+    assert_eq!(strip(skin, 0.0).border.radius, reto());
     for status in [
         button::Status::Active,
         button::Status::Hovered,
@@ -50,7 +50,7 @@ fn as_cores_seguem_o_tema_ativo() {
     });
     assert_eq!(dialog(skin).border.color, skin.accent);
     assert_eq!(mark(skin, Presence::Focused), Some(skin.accent));
-    let fundo = color(tray(skin).background);
+    let fundo = color(tray(skin, 0.0).background);
     assert_eq!(
         fundo.map(|cor| (cor.r, cor.g, cor.b)),
         Some((
@@ -73,4 +73,14 @@ fn so_aplicativo_aberto_ganha_indicador() {
     let skin = Skin::default();
     assert_eq!(mark(skin, Presence::Closed), None);
     assert_eq!(mark(skin, Presence::Running), Some(skin.muted));
+}
+
+#[test]
+fn com_cantos_arredondados_o_fundo_o_menu_e_a_faixa_usam_o_raio_escolhido() {
+    let skin = Skin::default();
+    let raio = Radius::from(3.0);
+    assert_eq!(tray(skin, 3.0).border.radius, raio);
+    assert_eq!(menu(skin, 3.0).border.radius, raio);
+    assert_eq!(strip(skin, 3.0).border.radius, raio);
+    assert_eq!(dialog(skin).border.radius, reto());
 }

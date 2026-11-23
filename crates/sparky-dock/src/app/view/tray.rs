@@ -17,6 +17,7 @@ const DRAGGED: f32 = 0.45;
 
 pub fn tray(dock: &Dock) -> Element<'_, Message> {
     let skin = dock.skin;
+    let corner = dock.corner();
     let layout = dock.layout();
     let order = pointer::order(dock);
     let mut scales = animate::scales(dock);
@@ -38,7 +39,7 @@ pub fn tray(dock: &Dock) -> Element<'_, Message> {
     let backdrop = container(Space::new())
         .width(layout.tray_width(&scales))
         .height(layout.height())
-        .style(move |_| style::tray(skin));
+        .style(move |_| style::tray(skin, corner));
     let surface = dock.surface.map_or(0.0, |geometry| geometry.size.0 as f32);
     let left = layout.tray_left(&scales, surface);
     stack![

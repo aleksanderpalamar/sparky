@@ -14,7 +14,9 @@ pub enum Opened {
 impl Settings {
     pub fn count(&self) -> usize {
         match self.section {
-            Section::Appearance | Section::Apps | Section::Dock => Field::of(self.section).len(),
+            Section::Appearance | Section::Apps | Section::Dock => {
+                Field::shown(self.section, &self.config).len()
+            }
             Section::Autostart => self.config.autostart.len() + 1,
             Section::Shortcuts => self.binds().len(),
             Section::Monitors => self.outputs.as_ref().map_or(0, Vec::len),
@@ -58,7 +60,9 @@ impl Settings {
     }
 
     pub fn focused_field(&self) -> Option<Field> {
-        Field::of(self.section).get(self.focus).copied()
+        Field::shown(self.section, &self.config)
+            .get(self.focus)
+            .copied()
     }
 
     pub fn nudge(&mut self, step: Step) {

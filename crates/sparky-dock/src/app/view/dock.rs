@@ -40,11 +40,12 @@ fn shown(dock: &Dock) -> Element<'_, Message> {
 
 fn strip(dock: &Dock) -> Element<'_, Message> {
     let skin = dock.skin;
+    let corner = dock.corner();
     let count = dock.pinned.resolve(&dock.apps).len();
     let line = container(Space::new())
         .width(dock.layout().size(count).0 as f32)
         .height(PEEK as f32)
-        .style(move |_| style::strip(skin));
+        .style(move |_| style::strip(skin, corner));
     grounded(line.into(), 0.0)
 }
 

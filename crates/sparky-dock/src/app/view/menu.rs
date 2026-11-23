@@ -12,6 +12,7 @@ const PADDING: f32 = 8.0;
 
 pub fn menu<'a>(dock: &'a Dock, id: &str) -> Option<Element<'a, Message>> {
     let skin = dock.skin;
+    let corner = dock.corner();
     let entries = dock.entries();
     let index = entries.iter().position(|(app, _)| app.id == id)?;
     let (app, _) = entries.get(index)?;
@@ -37,7 +38,7 @@ pub fn menu<'a>(dock: &'a Dock, id: &str) -> Option<Element<'a, Message>> {
     )
     .width(MENU_WIDTH)
     .padding(PADDING)
-    .style(move |_| style::menu(skin));
+    .style(move |_| style::menu(skin, corner));
     let placed = row![Space::new().width(left), card];
     Some(
         container(placed)

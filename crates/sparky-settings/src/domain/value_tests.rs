@@ -105,3 +105,22 @@ fn o_tamanho_do_dock_anda_de_quatro_em_quatro_dentro_da_faixa() {
         Some(Value::Number(96))
     );
 }
+
+#[test]
+fn le_e_grava_os_cantos_arredondados_do_dock() {
+    let config = Config::default();
+    assert_eq!(read(Field::DockRounded, &config), Value::Flag(false));
+    assert_eq!(read(Field::DockRadius, &config), Value::Number(4));
+    let mut editor = Editor::default();
+    store(Field::DockRounded, &Value::Flag(true), &mut editor);
+    store(Field::DockRadius, &Value::Number(3), &mut editor);
+    let Ok(saved) = parse(&editor.contents()) else {
+        panic!("o arquivo gravado deveria ser válido");
+    };
+    assert_eq!(read(Field::DockRounded, &saved), Value::Flag(true));
+    assert_eq!(read(Field::DockRadius, &saved), Value::Number(3));
+    assert_eq!(
+        stepped(Field::DockRadius, &Value::Number(8), Step::More),
+        Some(Value::Number(8))
+    );
+}

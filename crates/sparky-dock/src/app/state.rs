@@ -78,6 +78,10 @@ impl Dock {
         fitted(self.preferences.slot(), count, self.output)
     }
 
+    pub fn corner(&self) -> f32 {
+        self.preferences.corner() as f32
+    }
+
     pub fn room(&self) -> usize {
         capacity(self.output).saturating_sub(self.pinned.resolve(&self.apps).len())
     }

@@ -7,10 +7,10 @@ use crate::domain::presence::Presence;
 const OUTLINE: f32 = 1.0;
 const FRAME: f32 = 2.0;
 
-pub fn tray(skin: Skin) -> container::Style {
+pub fn tray(skin: Skin, radius: f32) -> container::Style {
     container::Style {
         background: Some(Background::Color(opaque(skin.lighter_background))),
-        border: outline(skin.fill(0.18)),
+        border: rounded(outline(skin.fill(0.18)), radius),
         text_color: Some(skin.foreground),
         ..container::Style::default()
     }
@@ -81,17 +81,18 @@ pub fn divider(skin: Skin) -> container::Style {
     }
 }
 
-pub fn strip(skin: Skin) -> container::Style {
+pub fn strip(skin: Skin, radius: f32) -> container::Style {
     container::Style {
         background: Some(Background::Color(skin.accent_fill(0.5))),
+        border: rounded(Border::default(), radius),
         ..container::Style::default()
     }
 }
 
-pub fn menu(skin: Skin) -> container::Style {
+pub fn menu(skin: Skin, radius: f32) -> container::Style {
     container::Style {
         background: Some(Background::Color(opaque(skin.lighter_background))),
-        border: outline(skin.accent),
+        border: rounded(outline(skin.accent), radius),
         text_color: Some(skin.foreground),
         ..container::Style::default()
     }
@@ -162,6 +163,13 @@ fn outline(color: Color) -> Border {
         color,
         width: OUTLINE,
         ..Border::default()
+    }
+}
+
+fn rounded(border: Border, radius: f32) -> Border {
+    Border {
+        radius: radius.into(),
+        ..border
     }
 }
 
