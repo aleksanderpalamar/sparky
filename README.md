@@ -4,8 +4,6 @@ English | [Português (Brasil)](README.pt-BR.md)
 
 Sparky is a keyboard-focused Wayland desktop environment written in Rust, with its own compositor. The mouse works too, but everything has a keyboard shortcut.
 
-Only the themes, such as color palettes and wallpapers, come from [Omarchy](https://github.com/basecamp/omarchy).
-
 ## Screenshots
 
 ![Sparky desktop](.github/images/main_image.png)
