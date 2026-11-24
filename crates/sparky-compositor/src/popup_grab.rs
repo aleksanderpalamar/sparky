@@ -10,8 +10,17 @@ pub struct PopupHold {
     popup: PopupKind,
 }
 
-pub fn dismisses<T: PartialEq>(under: Option<&T>, tree: &[T]) -> bool {
-    under.is_none_or(|surface| !tree.contains(surface))
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Above {
+    Nothing,
+    ExclusiveLayer,
+}
+
+pub fn dismisses<T: PartialEq>(under: Option<&T>, tree: &[T], above: Above) -> bool {
+    match above {
+        Above::ExclusiveLayer => false,
+        Above::Nothing => under.is_none_or(|surface| !tree.contains(surface)),
+    }
 }
 
 impl Sparky {
@@ -48,7 +57,11 @@ impl Sparky {
         let tree: Vec<WlSurface> = PopupManager::popups_for_surface(&hold.root)
             .map(|(popup, _)| popup.wl_surface().clone())
             .collect();
-        if !dismisses(under, &tree) {
+        let above = match self.exclusive_layer() {
+            Some(_) => Above::ExclusiveLayer,
+            None => Above::Nothing,
+        };
+        if !dismisses(under, &tree, above) {
             return false;
         }
         if let Err(error) = PopupManager::dismiss_popup(&hold.root, &hold.popup) {

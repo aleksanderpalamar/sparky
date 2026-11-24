@@ -11,8 +11,8 @@ impl Sparky {
         let target = match self.lock.is_locked() {
             true => self.lock_surface(),
             false => self
-                .held_popup()
-                .or_else(|| self.exclusive_layer())
+                .exclusive_layer()
+                .or_else(|| self.held_popup())
                 .or_else(|| self.focused_surface()),
         };
         self.announce_active_window(target.as_ref());
@@ -43,7 +43,7 @@ impl Sparky {
         self.windows.get(id).map(focus_target)
     }
 
-    fn exclusive_layer(&self) -> Option<KeyboardFocus> {
+    pub(crate) fn exclusive_layer(&self) -> Option<KeyboardFocus> {
         let focused = self
             .desktop
             .focused_monitor()
