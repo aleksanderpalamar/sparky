@@ -8,6 +8,7 @@ use crate::windows::surface::focus_target;
 
 impl Sparky {
     pub fn update_keyboard_focus(&mut self) {
+        self.dismiss_hidden();
         let target = match self.lock.is_locked() {
             true => self.lock_surface(),
             false => self

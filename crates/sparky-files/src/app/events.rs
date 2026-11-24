@@ -22,6 +22,7 @@ pub fn subscription(files: &Files) -> Subscription<Message> {
     Subscription::batch([
         sparky_ui::palette::subscription().map(Message::Palette),
         event::listen_with(keyboard_message),
+        event::listen_with(opened),
         window::resize_events().map(|(id, size)| Message::Sized(id, size)),
         window::close_events().map(Message::Closed),
         time::every(POLL).map(|_| Message::Tick),
@@ -56,6 +57,13 @@ fn forward(dir: &Path, mut sender: mpsc::Sender<()>) {
         || !alive.is_closed(),
         || !matches!(sender.try_send(()), Err(error) if error.is_disconnected()),
     );
+}
+
+fn opened(event: Event, _status: Status, window: window::Id) -> Option<Message> {
+    match event {
+        Event::Window(window::Event::Opened { size, .. }) => Some(Message::Opened(window, size)),
+        _ => None,
+    }
 }
 
 fn keyboard_message(event: Event, status: Status, window: window::Id) -> Option<Message> {

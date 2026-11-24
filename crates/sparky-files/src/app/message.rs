@@ -19,6 +19,7 @@ use std::time::SystemTime;
 pub enum Message {
     Moved(window::Id, Point),
     Sized(window::Id, Size),
+    Opened(window::Id, Size),
     Closed(window::Id),
     Palette(sparky_theme::Palette),
     Key(Key, Modifiers),

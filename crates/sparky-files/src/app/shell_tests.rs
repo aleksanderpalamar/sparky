@@ -78,3 +78,31 @@ fn dispensar_o_menu_fecha_o_popup() {
     let _ = update(&mut shell, Message::ContextDismiss);
     assert!(shell.menu.is_none());
 }
+
+#[test]
+fn a_janela_principal_aberta_define_o_tamanho_inicial() {
+    let (mut shell, _cena) = casca();
+    let principal = shell.desk.main();
+    let _ = update(
+        &mut shell,
+        Message::Opened(principal, Size::new(875.0, 600.0)),
+    );
+    assert_eq!(shell.files.size, Size::new(875.0, 600.0));
+}
+
+#[test]
+fn tarefas_de_inicio_esperam_a_janela_principal_abrir() {
+    let (mut shell, _cena) = casca();
+    assert!(shell.waiting.is_some());
+    let _ = update(
+        &mut shell,
+        Message::Opened(window::Id::unique(), Size::new(200.0, 100.0)),
+    );
+    assert!(shell.waiting.is_some());
+    let principal = shell.desk.main();
+    let _ = update(
+        &mut shell,
+        Message::Opened(principal, Size::new(900.0, 500.0)),
+    );
+    assert!(shell.waiting.is_none());
+}

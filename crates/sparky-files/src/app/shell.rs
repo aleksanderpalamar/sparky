@@ -1,5 +1,5 @@
 use iced::widget::Space;
-use iced::{Element, Task, Theme, window};
+use iced::{Element, Size, Task, Theme, window};
 use iced_layershell::actions::IcedXdgWindowSettings;
 use libsparky::desk::Desk;
 use libsparky::popup::{self, Step};
@@ -15,6 +15,7 @@ pub struct Shell {
     desk: Desk,
     menu: Option<window::Id>,
     step: Handler,
+    waiting: Option<Task<Message>>,
 }
 
 pub fn open(
@@ -33,14 +34,16 @@ pub fn open(
         desk: Desk::new(main),
         menu: None,
         step,
+        waiting: Some(task),
     };
-    (shell, Task::batch([opened, task]))
+    (shell, opened)
 }
 
 pub fn update(shell: &mut Shell, message: Message) -> Task<Message> {
     let task = match message {
         Message::Moved(id, point) => within(shell, id, Message::Pointer(point)),
         Message::Sized(id, size) => within(shell, id, Message::Resized(size)),
+        Message::Opened(id, size) => started(shell, id, size),
         Message::Closed(id) => return closed(shell, id),
         other => (shell.step)(&mut shell.files, other),
     };
@@ -70,6 +73,15 @@ fn within(shell: &mut Shell, id: window::Id, message: Message) -> Task<Message> 
         true => (shell.step)(&mut shell.files, message),
         false => Task::none(),
     }
+}
+
+fn started(shell: &mut Shell, id: window::Id, size: Size) -> Task<Message> {
+    if !shell.desk.is_main(id) {
+        return Task::none();
+    }
+    let resized = (shell.step)(&mut shell.files, Message::Resized(size));
+    let waiting = shell.waiting.take().unwrap_or_else(Task::none);
+    Task::batch([resized, waiting])
 }
 
 fn closed(shell: &mut Shell, id: window::Id) -> Task<Message> {
