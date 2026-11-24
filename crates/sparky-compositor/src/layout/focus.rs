@@ -10,7 +10,10 @@ impl Sparky {
     pub fn update_keyboard_focus(&mut self) {
         let target = match self.lock.is_locked() {
             true => self.lock_surface(),
-            false => self.exclusive_layer().or_else(|| self.focused_surface()),
+            false => self
+                .held_popup()
+                .or_else(|| self.exclusive_layer())
+                .or_else(|| self.focused_surface()),
         };
         self.announce_active_window(target.as_ref());
         let Some(keyboard) = self.seat.get_keyboard() else {

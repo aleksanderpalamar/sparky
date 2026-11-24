@@ -48,7 +48,13 @@ impl XdgShellHandler for Sparky {
         surface.send_repositioned(token);
     }
 
-    fn grab(&mut self, _surface: PopupSurface, _seat: WlSeat, _serial: Serial) {}
+    fn grab(&mut self, surface: PopupSurface, _seat: WlSeat, _serial: Serial) {
+        self.hold_popup(PopupKind::Xdg(surface));
+    }
+
+    fn popup_destroyed(&mut self, surface: PopupSurface) {
+        self.release_popup(surface.wl_surface());
+    }
 
     fn fullscreen_request(&mut self, surface: ToplevelSurface, _output: Option<WlOutput>) {
         self.set_fullscreen(&surface, true);

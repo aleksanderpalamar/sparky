@@ -13,6 +13,19 @@ use crate::windows::traits::traits_of;
 
 const NATIVE: &str = "sparky-";
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Owner {
+    Sparky,
+    Other,
+}
+
+pub fn owner(name: &str) -> Owner {
+    match name.starts_with(NATIVE) {
+        true => Owner::Sparky,
+        false => Owner::Other,
+    }
+}
+
 pub struct Pane {
     pub surface: WlSurface,
     pub region: Vec<Rectangle<i32, Logical>>,
@@ -47,7 +60,8 @@ fn layers(state: &Sparky, output: &Output) -> Vec<Pane> {
                 let area = state.glass.of(layer.namespace())?;
                 pane(surface.clone(), &area, geometry)
             });
-            own.into_iter().chain(popups(surface, geometry.loc))
+            let popups = popups(surface, geometry.loc, owner(layer.namespace()));
+            own.into_iter().chain(popups)
         })
         .collect()
 }
@@ -68,22 +82,33 @@ fn window_panes(
         return Vec::new();
     }
     let location = location - origin;
-    let own = asked(&surface, location - window.geometry().loc).or_else(|| {
-        traits_of(window).app_id.starts_with(NATIVE).then(|| {
-            pane(
-                surface.clone(),
-                &GlassArea::Whole,
-                Rectangle::new(location, window.geometry().size),
-            )
-        })?
+    let by = owner(&traits_of(window).app_id);
+    let own = asked(&surface, location - window.geometry().loc).or_else(|| match by {
+        Owner::Sparky => pane(
+            surface.clone(),
+            &GlassArea::Whole,
+            Rectangle::new(location, window.geometry().size),
+        ),
+        Owner::Other => None,
     });
-    own.into_iter().chain(popups(&surface, location)).collect()
+    own.into_iter()
+        .chain(popups(&surface, location, by))
+        .collect()
 }
 
-fn popups(root: &WlSurface, origin: Point<i32, Logical>) -> Vec<Pane> {
+fn popups(root: &WlSurface, origin: Point<i32, Logical>, by: Owner) -> Vec<Pane> {
     PopupManager::popups_for_surface(root)
         .filter_map(|(popup, offset)| {
-            asked(popup.wl_surface(), origin + offset - popup.geometry().loc)
+            let surface = popup.wl_surface();
+            let geometry = popup.geometry();
+            asked(surface, origin + offset - geometry.loc).or_else(|| match by {
+                Owner::Sparky => pane(
+                    surface.clone(),
+                    &GlassArea::Whole,
+                    Rectangle::new(origin + offset, geometry.size),
+                ),
+                Owner::Other => None,
+            })
         })
         .collect()
 }

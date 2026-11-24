@@ -60,3 +60,11 @@ fn regiao_vazia_ou_fora_da_superficie_nao_desfoca() {
     let fora = regiao(&[(RectangleKind::Add, retangulo(400, 0, 50, 50))]);
     assert!(rects(&fora, origem(), tamanho()).is_empty());
 }
+
+#[test]
+fn so_superficies_do_sparky_ganham_vidro_sem_pedir() {
+    use super::panes::{Owner, owner};
+    assert_eq!(owner("sparky-files"), Owner::Sparky);
+    assert_eq!(owner("sparky-launcher-system"), Owner::Sparky);
+    assert_eq!(owner("firefox"), Owner::Other);
+}

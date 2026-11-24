@@ -18,6 +18,9 @@ pub mod ipc;
 pub mod layout;
 pub mod lock;
 mod logging;
+pub mod popup_grab;
+#[cfg(test)]
+mod popup_grab_tests;
 pub mod render;
 pub mod screencopy;
 pub mod session;
