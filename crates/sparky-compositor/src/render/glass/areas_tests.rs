@@ -35,3 +35,16 @@ fn so_componentes_do_sparky_podem_pedir_vidro() {
     assert!(!areas.set("waybar".to_owned(), GlassArea::Whole));
     assert_eq!(areas.of("waybar"), None);
 }
+
+#[test]
+fn os_dialogos_do_sparky_sao_vidro_na_superficie_inteira() {
+    let areas = Areas::default();
+    for namespace in [
+        "polkit-sparky",
+        "sparky-keyring-prompt",
+        "sparky-shot-picker",
+        "sparky-share-source",
+    ] {
+        assert_eq!(areas.of(namespace), Some(GlassArea::Whole));
+    }
+}
