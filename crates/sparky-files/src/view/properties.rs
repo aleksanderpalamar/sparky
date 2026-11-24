@@ -73,7 +73,7 @@ fn pane(skin: Skin, details: &Properties) -> Element<'static, Message> {
         .width(480)
         .padding(16)
         .style(move |_| container::Style {
-            background: Some(Background::Color(skin.lighter_background)),
+            background: Some(Background::Color(skin.raised)),
             text_color: Some(skin.foreground),
             border: Border {
                 color: skin.accent,

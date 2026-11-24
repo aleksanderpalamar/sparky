@@ -81,7 +81,7 @@ pub fn field(skin: Skin) -> impl Fn(&Theme, text_input::Status) -> text_input::S
 
 pub fn menu(skin: Skin) -> impl Fn(&Theme) -> menu::Style {
     move |_| menu::Style {
-        background: skin.lighter_background.into(),
+        background: skin.raised.into(),
         border: border(skin.fill(alpha::NORMAL_BORDER), 1.0),
         text_color: skin.foreground,
         selected_text_color: skin.background,

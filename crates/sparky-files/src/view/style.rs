@@ -32,7 +32,7 @@ pub fn layout_for(mode: ViewMode, size: Size) -> Layout {
 
 pub fn dialog(skin: Skin, fill: Color) -> container::Style {
     container::Style {
-        background: Some(Background::Color(fill)),
+        background: Some(Background::Color(Color { a: 1.0, ..fill })),
         text_color: Some(skin.foreground),
         border: Border {
             color: skin.accent,
@@ -72,5 +72,19 @@ mod tests {
     #[test]
     fn janela_minuscula_ainda_mostra_uma_linha() {
         assert_eq!(rows_for(10.0), 1);
+    }
+
+    #[test]
+    fn dialogos_flutuantes_ficam_opacos_mesmo_com_o_vidro() {
+        let skin = sparky_theme::Skin::new(sparky_theme::Palette {
+            glass: true,
+            ..sparky_theme::Palette::SPARKY
+        });
+        let style = super::dialog(skin, skin.background);
+        let Some(iced::Background::Color(fill)) = style.background else {
+            panic!("o diálogo precisa de fundo de cor");
+        };
+        assert_eq!(fill.a, 1.0);
+        assert_eq!(fill.r, skin.background.r);
     }
 }
