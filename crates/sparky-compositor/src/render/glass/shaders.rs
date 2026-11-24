@@ -27,6 +27,7 @@ impl Shaders {
                     UniformName::new("rect", UniformType::_4f),
                     UniformName::new("size", UniformType::_2f),
                     UniformName::new("radius", UniformType::_1f),
+                    UniformName::new("grain", UniformType::_1f),
                 ],
             )?,
         };

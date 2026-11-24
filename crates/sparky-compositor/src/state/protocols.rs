@@ -1,5 +1,6 @@
 use smithay::input::SeatState;
 use smithay::reexports::wayland_server::DisplayHandle;
+use smithay::wayland::background_effect::BackgroundEffectState;
 use smithay::wayland::compositor::CompositorState;
 use smithay::wayland::cursor_shape::CursorShapeManagerState;
 use smithay::wayland::dmabuf::DmabufState;
@@ -44,6 +45,7 @@ pub struct Protocols {
     pub screencopy: ScreencopyState,
     pub session_lock: SessionLockManagerState,
     pub idle_inhibit: IdleInhibitManagerState,
+    pub background_effect: BackgroundEffectState,
 }
 
 impl Protocols {
@@ -78,6 +80,7 @@ impl Protocols {
             screencopy: ScreencopyState::new::<Sparky>(display),
             session_lock: SessionLockManagerState::new::<Sparky, _>(display, |_| true),
             idle_inhibit: IdleInhibitManagerState::new::<Sparky>(display),
+            background_effect: BackgroundEffectState::new::<Sparky>(display),
         }
     }
 }

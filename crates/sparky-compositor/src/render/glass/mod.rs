@@ -16,5 +16,8 @@ pub mod element;
 mod paint;
 pub mod panes;
 mod passes;
+mod requested;
+#[cfg(test)]
+mod requested_tests;
 pub mod shaders;
 pub mod state;

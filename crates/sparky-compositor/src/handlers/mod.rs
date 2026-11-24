@@ -1,3 +1,4 @@
+mod background_effect;
 mod commit;
 mod compositor;
 mod decoration;
