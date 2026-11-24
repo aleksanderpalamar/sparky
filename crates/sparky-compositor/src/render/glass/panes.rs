@@ -6,7 +6,7 @@ use smithay::utils::{Logical, Point, Rectangle};
 use smithay::wayland::seat::WaylandFocus;
 use sparky_ipc::GlassArea;
 
-use super::area::{radius, rects};
+use super::area::{extent, radius, rects};
 use super::requested::{self, requested};
 use crate::state::Sparky;
 use crate::windows::traits::traits_of;
@@ -100,7 +100,9 @@ fn popups(root: &WlSurface, origin: Point<i32, Logical>, by: Owner) -> Vec<Pane>
     PopupManager::popups_for_surface(root)
         .filter_map(|(popup, offset)| {
             let surface = popup.wl_surface();
-            let geometry = popup.geometry();
+            let size =
+                with_renderer_surface_state(surface, |state| state.surface_size()).flatten()?;
+            let geometry = extent(popup.geometry(), size);
             asked(surface, origin + offset - geometry.loc).or_else(|| match by {
                 Owner::Sparky => pane(
                     surface.clone(),
