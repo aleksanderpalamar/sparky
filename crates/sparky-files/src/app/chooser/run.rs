@@ -1,32 +1,26 @@
 use std::rc::Rc;
 
+use iced::Task;
 use iced::widget::operation;
-use iced::{Size, Task};
 
 use super::{APPLICATION_ID, Chooser, NAME_INPUT, update};
 use crate::adapters::portal::answer::{StdoutAnswer, mime_of};
 use crate::app::boot;
-use crate::app::events;
 use crate::app::message::Message;
 use crate::app::state::Files;
 use crate::domain::choice::Request;
-use crate::view;
 
-const WIDTH: f32 = 875.0;
-const HEIGHT: f32 = 600.0;
+const WIDTH: u32 = 875;
+const HEIGHT: u32 = 600;
+const MIN_SIZE: (u32, u32) = (480, 360);
 
-pub fn run(request: Request) -> iced::Result {
-    iced::application(move || start(request.clone()), update, view::view)
-        .title(view::title)
-        .subscription(events::subscription)
-        .default_font(sparky_ui::style::FONT)
-        .theme(|files: &Files| files.skin.theme())
-        .style(sparky_ui::surface::transparent)
-        .window(sparky_ui::window::settings(
-            APPLICATION_ID,
-            Size::new(WIDTH, HEIGHT),
-        ))
-        .run()
+pub fn run(request: Request) -> Result<(), iced_layershell::Error> {
+    crate::app::serve(
+        move || start(request.clone()),
+        APPLICATION_ID,
+        libsparky::desk::window(APPLICATION_ID, (WIDTH, HEIGHT), MIN_SIZE),
+        update,
+    )
 }
 
 fn start(request: Request) -> (Files, Task<Message>) {

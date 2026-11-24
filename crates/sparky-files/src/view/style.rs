@@ -7,6 +7,7 @@ use sparky_ui::style::{HEADER_HEIGHT, PADDING, SIDEBAR_WIDTH, SPACING, STATUS_HE
 pub const APPLICATION_ID: &str = "sparky-files";
 pub const WINDOW_WIDTH: f32 = 1000.0;
 pub const WINDOW_HEIGHT: f32 = 640.0;
+pub const MIN_SIZE: (u32, u32) = (480, 360);
 pub const ROW_HEIGHT: f32 = 32.0;
 pub const TILE_WIDTH: f32 = 112.0;
 pub const TILE_HEIGHT: f32 = 124.0;

@@ -1,0 +1,12 @@
+[package]
+name = "libsparky"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+iced = { version = "0.14", features = ["tokio"] }
+iced_layershell = "0.19.1"
+sparky-theme.workspace = true
+sparky-ui.workspace = true

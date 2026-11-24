@@ -14,6 +14,8 @@ name = "sparky_files"
 path = "src/lib.rs"
 
 [dependencies]
+iced_layershell = "0.19.1"
+libsparky.workspace = true
 fluent-bundle = "0.16"
 sparky-i18n.workspace = true
 sparky-ipc.workspace = true

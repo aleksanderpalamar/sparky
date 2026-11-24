@@ -1,4 +1,4 @@
-use super::context::{Action, Target, entries, position};
+use super::context::{Action, Target, entries};
 
 #[test]
 fn arquivo_e_pasta_expoem_operacoes_reais_e_propriedades() {
@@ -65,22 +65,6 @@ fn lixeira_oferece_apenas_restauracao_e_propriedades() {
     assert!(
         full.iter()
             .any(|row| row.action() == Some(Action::RestoreAll))
-    );
-}
-
-#[test]
-fn menu_permanece_dentro_da_janela_junto_das_bordas() {
-    assert_eq!(
-        position((950.0, 700.0), (1000.0, 760.0), (280.0, 460.0)),
-        (720.0, 300.0)
-    );
-    assert_eq!(
-        position((20.0, 30.0), (1000.0, 760.0), (280.0, 460.0)),
-        (20.0, 30.0)
-    );
-    assert_eq!(
-        position((20.0, 30.0), (100.0, 80.0), (280.0, 460.0)),
-        (0.0, 0.0)
     );
 }
 

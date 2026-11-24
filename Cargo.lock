@@ -2796,6 +2796,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "libsparky"
+version = "0.32.0"
+dependencies = [
+ "iced",
+ "iced_layershell",
+ "sparky-theme",
+ "sparky-ui",
+]
+
+[[package]]
 name = "libudev-sys"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5045,8 +5055,10 @@ dependencies = [
  "fluent-bundle",
  "gio",
  "iced",
+ "iced_layershell",
  "iced_runtime",
  "image",
+ "libsparky",
  "md-5",
  "png 0.18.1",
  "quick-xml",

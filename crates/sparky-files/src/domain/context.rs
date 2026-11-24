@@ -170,10 +170,3 @@ pub fn height(rows: &[Row]) -> f32 {
         })
         .sum::<f32>()
 }
-
-pub fn position(pointer: (f32, f32), window: (f32, f32), menu: (f32, f32)) -> (f32, f32) {
-    (
-        pointer.0.max(0.0).min((window.0 - menu.0).max(0.0)),
-        pointer.1.max(0.0).min((window.1 - menu.1).max(0.0)),
-    )
-}
