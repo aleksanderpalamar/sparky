@@ -45,10 +45,7 @@ pub fn panel(skin: Skin) -> container::Style {
 
 pub fn tooltip(skin: Skin) -> container::Style {
     container::Style {
-        background: Some(Background::Color(Color {
-            a: 1.0,
-            ..skin.lighter_background
-        })),
+        background: Some(Background::Color(skin.raised)),
         text_color: Some(Color {
             a: 1.0,
             ..skin.bright_foreground
@@ -93,7 +90,10 @@ pub fn entry(skin: Skin, highlight: Highlight, status: button::Status) -> button
 pub fn input(theme: &Theme, status: text_input::Status) -> text_input::Style {
     let standard = text_input::default(theme, status);
     text_input::Style {
-        border: Border { radius: 0.0.into(), ..standard.border },
+        border: Border {
+            radius: 0.0.into(),
+            ..standard.border
+        },
         ..standard
     }
 }
@@ -135,8 +135,18 @@ mod tests {
         let skin = Skin::default();
         let reto = Radius::from(0.0);
         assert_eq!(row(skin, Highlight::Selected).border.radius, reto);
-        assert_eq!(entry(skin, Highlight::Selected, button::Status::Active).border.radius, reto);
-        assert_eq!(entry(skin, Highlight::Plain, button::Status::Hovered).border.radius, reto);
+        assert_eq!(
+            entry(skin, Highlight::Selected, button::Status::Active)
+                .border
+                .radius,
+            reto
+        );
+        assert_eq!(
+            entry(skin, Highlight::Plain, button::Status::Hovered)
+                .border
+                .radius,
+            reto
+        );
     }
 
     #[test]
@@ -147,7 +157,15 @@ mod tests {
     #[test]
     fn a_caixa_de_texto_tem_cantos_retos() {
         let theme = Skin::default().theme();
-        assert_eq!(input(&theme, text_input::Status::Active).border.radius, Radius::from(0.0));
-        assert_eq!(input(&theme, text_input::Status::Focused { is_hovered: false }).border.radius, Radius::from(0.0));
+        assert_eq!(
+            input(&theme, text_input::Status::Active).border.radius,
+            Radius::from(0.0)
+        );
+        assert_eq!(
+            input(&theme, text_input::Status::Focused { is_hovered: false })
+                .border
+                .radius,
+            Radius::from(0.0)
+        );
     }
 }

@@ -78,7 +78,7 @@ fn action(skin: Skin, label: String, message: Message) -> Element<'static, Messa
 
 pub fn frame(skin: Skin) -> container::Style {
     container::Style {
-        background: Some(Background::Color(skin.lighter_background)),
+        background: Some(Background::Color(skin.raised)),
         text_color: Some(skin.foreground),
         border: Border {
             color: skin.accent,

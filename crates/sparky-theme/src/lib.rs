@@ -1,5 +1,7 @@
 pub mod colors_file;
 pub mod glass;
+pub mod layers;
+pub mod lightness;
 pub mod locations;
 pub mod names;
 pub mod palette;
@@ -16,7 +18,13 @@ pub use terminal::TerminalPalette;
 #[cfg(test)]
 mod glass_tests;
 #[cfg(test)]
+mod layers_tests;
+#[cfg(test)]
+mod lightness_tests;
+#[cfg(test)]
 mod names_tests;
+#[cfg(test)]
+mod skin_glass_tests;
 #[cfg(test)]
 mod terminal_tests;
 

@@ -22,7 +22,9 @@ pub fn subscription(files: &Files) -> Subscription<Message> {
     Subscription::batch([
         sparky_ui::palette::subscription().map(Message::Palette),
         event::listen_with(keyboard_message),
-        window::resize_events().map(|(_, size)| Message::Resized(size)),
+        event::listen_with(opened),
+        window::resize_events().map(|(id, size)| Message::Sized(id, size)),
+        window::close_events().map(Message::Closed),
         time::every(POLL).map(|_| Message::Tick),
         folder(files),
     ])
@@ -57,10 +59,17 @@ fn forward(dir: &Path, mut sender: mpsc::Sender<()>) {
     );
 }
 
-fn keyboard_message(event: Event, status: Status, _window: window::Id) -> Option<Message> {
+fn opened(event: Event, _status: Status, window: window::Id) -> Option<Message> {
+    match event {
+        Event::Window(window::Event::Opened { size, .. }) => Some(Message::Opened(window, size)),
+        _ => None,
+    }
+}
+
+fn keyboard_message(event: Event, status: Status, window: window::Id) -> Option<Message> {
     match event {
         Event::Mouse(mouse::Event::CursorMoved { position }) => {
-            return Some(Message::Pointer(position));
+            return Some(Message::Moved(window, position));
         }
         Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) => {
             return Some(Message::Released);

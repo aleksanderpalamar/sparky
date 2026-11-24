@@ -86,7 +86,7 @@ fn com_cantos_arredondados_o_fundo_o_menu_e_a_faixa_usam_o_raio_escolhido() {
 }
 
 #[test]
-fn com_frosted_glass_o_fundo_e_o_menu_seguem_a_transparencia_do_tema() {
+fn com_frosted_glass_o_fundo_segue_o_vidro_e_o_menu_fica_opaco() {
     let vidro = Skin::new(Palette {
         glass: true,
         ..Palette::default()
@@ -95,7 +95,11 @@ fn com_frosted_glass_o_fundo_e_o_menu_seguem_a_transparencia_do_tema() {
     assert_eq!(fundo.map(|cor| cor.a), Some(vidro.background.a));
     assert_eq!(fundo.map(|cor| cor.r), Some(vidro.lighter_background.r));
     let menu_fundo = color(menu(vidro, 0.0).background);
-    assert_eq!(menu_fundo.map(|cor| cor.a), Some(vidro.background.a));
+    assert_eq!(menu_fundo.map(|cor| cor.a), Some(1.0));
+    assert_eq!(
+        menu_fundo.map(|cor| cor.r),
+        Some(vidro.lighter_background.r)
+    );
     let dialogo = color(dialog(vidro).background);
     assert_eq!(dialogo.map(|cor| cor.a), Some(1.0));
 }

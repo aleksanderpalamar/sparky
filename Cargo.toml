@@ -10,6 +10,7 @@ authors = ["Aleksander Palamar <apalamardev@gmail.com>"]
 license = "GPL-3.0-or-later"
 
 [workspace.dependencies]
+libsparky = { path = "crates/libsparky" }
 iced_core = "0.14"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -30,3 +31,5 @@ sparky-storage = { path = "crates/sparky-storage" }
 
 [patch.crates-io]
 iced_exdevtools = { path = "third_party/iced_exdevtools" }
+iced_layershell = { path = "third_party/iced_layershell" }
+layershellev = { path = "third_party/layershellev" }

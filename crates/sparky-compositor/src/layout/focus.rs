@@ -8,9 +8,13 @@ use crate::windows::surface::focus_target;
 
 impl Sparky {
     pub fn update_keyboard_focus(&mut self) {
+        self.dismiss_hidden();
         let target = match self.lock.is_locked() {
             true => self.lock_surface(),
-            false => self.exclusive_layer().or_else(|| self.focused_surface()),
+            false => self
+                .exclusive_layer()
+                .or_else(|| self.held_popup())
+                .or_else(|| self.focused_surface()),
         };
         self.announce_active_window(target.as_ref());
         let Some(keyboard) = self.seat.get_keyboard() else {
@@ -40,7 +44,7 @@ impl Sparky {
         self.windows.get(id).map(focus_target)
     }
 
-    fn exclusive_layer(&self) -> Option<KeyboardFocus> {
+    pub(crate) fn exclusive_layer(&self) -> Option<KeyboardFocus> {
         let focused = self
             .desktop
             .focused_monitor()

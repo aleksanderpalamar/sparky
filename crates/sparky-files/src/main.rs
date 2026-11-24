@@ -6,7 +6,7 @@ use sparky_files::adapters::file_manager1;
 use sparky_files::adapters::portal::{dialog, service};
 use sparky_files::domain::choice::wire::decode_request;
 
-fn main() -> iced::Result {
+fn main() -> Result<(), iced_layershell::Error> {
     match std::env::args().nth(1).as_deref() {
         Some(SERVE) => std::process::exit(run_from_stdin()),
         Some(file_manager1::SERVE) => std::process::exit(served(file_manager1::serve())),
@@ -27,7 +27,7 @@ fn served(result: std::io::Result<()>) -> i32 {
     }
 }
 
-fn choose() -> iced::Result {
+fn choose() -> Result<(), iced_layershell::Error> {
     let mut text = String::new();
     if std::io::stdin().read_to_string(&mut text).is_err() {
         std::process::exit(1);

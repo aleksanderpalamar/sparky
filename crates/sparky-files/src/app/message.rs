@@ -8,13 +8,19 @@ use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
 use crate::domain::thumbnail::Thumbnail;
 use crate::ports::EmptyReport;
 use iced::keyboard::{Key, Modifiers};
-use iced::{Point, Size};
+use iced::{Point, Size, window};
+use iced_layershell::to_layer_message;
 use sparky_storage::{Operation, Volume};
 use std::path::PathBuf;
 use std::time::SystemTime;
 
+#[to_layer_message(multi)]
 #[derive(Debug, Clone)]
 pub enum Message {
+    Moved(window::Id, Point),
+    Sized(window::Id, Size),
+    Opened(window::Id, Size),
+    Closed(window::Id),
     Palette(sparky_theme::Palette),
     Key(Key, Modifiers),
     Escape,

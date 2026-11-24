@@ -1,17 +1,17 @@
 use iced_core::theme::Palette as IcedPalette;
 use iced_core::{Color, Theme};
 
+use crate::layers::{WINDOW, card, spread};
+use crate::lightness::apart;
 use crate::palette::{Mode, Palette};
 use crate::rgb::Rgb;
-
-const GLASS: f32 = 0.72;
-const TINT: f32 = 0.3;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Skin {
     pub mode: Mode,
     pub background: Color,
     pub lighter_background: Color,
+    pub raised: Color,
     pub foreground: Color,
     pub bright_foreground: Color,
     pub dark_foreground: Color,
@@ -24,16 +24,29 @@ pub struct Skin {
 
 impl Skin {
     pub fn new(palette: Palette) -> Self {
+        let ground = convert(palette.background);
+        let layer = |alpha: f32| match palette.glass {
+            true => alpha,
+            false => 1.0,
+        };
+        let text = |rgb: Rgb| match palette.glass {
+            true => apart(convert(rgb), ground, spread(WINDOW)),
+            false => convert(rgb),
+        };
         Self {
             mode: palette.mode,
-            background: glazed(convert(palette.background), palette.glass, GLASS),
-            lighter_background: glazed(convert(palette.lighter_background), palette.glass, TINT),
-            foreground: convert(palette.foreground),
-            bright_foreground: convert(palette.bright_foreground),
-            dark_foreground: convert(palette.dark_foreground),
+            background: with_alpha(ground, layer(WINDOW)),
+            lighter_background: with_alpha(
+                convert(palette.lighter_background),
+                layer(card(palette.mode, WINDOW)),
+            ),
+            raised: convert(palette.lighter_background),
+            foreground: text(palette.foreground),
+            bright_foreground: text(palette.bright_foreground),
+            dark_foreground: text(palette.dark_foreground),
             accent: convert(palette.accent),
             selection: convert(palette.selection),
-            muted: convert(palette.muted),
+            muted: text(palette.muted),
             urgent: convert(palette.urgent),
             cyan: convert(palette.cyan),
         }
@@ -70,13 +83,6 @@ impl Default for Skin {
 
 fn convert(rgb: Rgb) -> Color {
     Color::from_rgb8(rgb.red, rgb.green, rgb.blue)
-}
-
-fn glazed(color: Color, glass: bool, alpha: f32) -> Color {
-    match glass {
-        true => with_alpha(color, alpha),
-        false => color,
-    }
 }
 
 fn with_alpha(color: Color, alpha: f32) -> Color {
@@ -128,21 +134,5 @@ mod tests {
         let skin = Skin::default();
         assert_eq!(skin.fill(-1.0).a, 0.0);
         assert_eq!(skin.fill(3.0).a, 1.0);
-    }
-
-    #[test]
-    fn com_frosted_glass_os_fundos_ficam_translucidos_e_o_resto_opaco() {
-        let opaco = Skin::new(Palette::SPARKY);
-        assert_eq!(opaco.background.a, 1.0);
-        let vidro = Skin::new(Palette {
-            glass: true,
-            ..Palette::SPARKY
-        });
-        assert!(vidro.background.a < 1.0 && vidro.background.a > 0.5);
-        assert!(vidro.lighter_background.a < vidro.background.a);
-        assert!(vidro.lighter_background.a <= 0.35);
-        assert_eq!(vidro.background.r, opaco.background.r);
-        assert_eq!(vidro.foreground.a, 1.0);
-        assert_eq!(vidro.accent.a, 1.0);
     }
 }

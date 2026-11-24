@@ -36,6 +36,7 @@ mod removal;
 mod reveal;
 pub mod search;
 mod services;
+pub mod shell;
 mod sidebar_navigation;
 pub mod sorting;
 pub mod state;
@@ -118,21 +119,47 @@ mod volume_pending_tests;
 #[cfg(test)]
 mod volumes_tests;
 
-use iced::Size;
+use iced::Task;
+use iced_layershell::actions::IcedXdgWindowSettings;
 
+use crate::app::message::Message;
+use crate::app::shell::{Handler, Shell};
 use crate::app::state::Files;
-use crate::view::{self, style};
+use crate::view::style;
 
-pub fn run() -> iced::Result {
-    iced::application(boot::boot, update::update, view::view)
-        .title(view::title)
-        .subscription(events::subscription)
-        .default_font(sparky_ui::style::FONT)
-        .theme(|files: &Files| files.skin.theme())
-        .style(sparky_ui::surface::transparent)
-        .window(sparky_ui::window::settings(
+pub fn run() -> Result<(), iced_layershell::Error> {
+    serve(
+        boot::boot,
+        style::APPLICATION_ID,
+        libsparky::desk::window(
             style::APPLICATION_ID,
-            Size::new(style::WINDOW_WIDTH, style::WINDOW_HEIGHT),
-        ))
-        .run()
+            (style::WINDOW_WIDTH as u32, style::WINDOW_HEIGHT as u32),
+            style::MIN_SIZE,
+        ),
+        update::update,
+    )
+}
+
+pub fn serve(
+    boot: impl Fn() -> (Files, Task<Message>) + 'static,
+    namespace: &'static str,
+    window: IcedXdgWindowSettings,
+    handler: Handler,
+) -> Result<(), iced_layershell::Error> {
+    let start = move || {
+        let (files, task) = boot();
+        shell::open(files, task, window, handler)
+    };
+    iced_layershell::build_pattern::daemon(
+        start,
+        move || namespace.to_owned(),
+        shell::update,
+        shell::view,
+    )
+    .title(shell::title)
+    .subscription(|shell: &Shell| events::subscription(&shell.files))
+    .theme(shell::theme)
+    .style(sparky_ui::surface::transparent)
+    .settings(libsparky::desk::settings())
+    .run()
 }

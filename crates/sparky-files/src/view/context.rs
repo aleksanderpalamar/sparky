@@ -1,7 +1,5 @@
-use iced::widget::{
-    Space, button, column, container, mouse_area, row, rule, scrollable, stack, text,
-};
-use iced::{Background, Border, Element, Length};
+use iced::widget::{Space, button, column, container, row, rule, scrollable, text};
+use iced::{Background, Element, Length};
 use sparky_theme::Skin;
 
 use crate::app::message::Message;
@@ -13,22 +11,27 @@ use crate::view::tag_palette::palette;
 const WIDTH: f32 = 280.0;
 const ITEM_HEIGHT: f32 = 32.0;
 
-pub fn layer<'a>(files: &'a Files, base: Element<'a, Message>) -> Element<'a, Message> {
-    if files.open_with.is_some() {
-        return crate::view::open_with::layer(files, base);
+pub struct Menu {
+    entries: Vec<Row>,
+    tag: Option<TagColor>,
+}
+
+impl Menu {
+    pub fn size(&self, room: f32) -> (f32, f32) {
+        (
+            WIDTH,
+            context::height(&self.entries).min((room - 16.0).max(32.0)),
+        )
     }
-    if files.details.is_some() {
-        return crate::view::properties::layer(files, base);
-    }
-    let Some(menu) = &files.context else {
-        return base;
-    };
+}
+
+pub fn menu(files: &Files) -> Option<Menu> {
+    let menu = files.context.as_ref()?;
     let has_entries = if menu.target == context::Target::TrashBackground {
         files.listing.total_len() > 0
     } else {
         !files.listing.is_empty()
     };
-    let entries = context::entries(menu.target, files.clip.is_some(), has_entries);
     let tag = match menu.target {
         context::Target::Bookmark(index) => files
             .bookmarks
@@ -37,21 +40,28 @@ pub fn layer<'a>(files: &'a Files, base: Element<'a, Message>) -> Element<'a, Me
             .and_then(|bookmark| bookmark.color),
         _ => None,
     };
-    let height = context::height(&entries).min((files.size.height - 16.0).max(32.0));
-    let (x, y) = context::position(
-        (menu.point.x, menu.point.y),
-        (files.size.width, files.size.height),
-        (WIDTH, height),
-    );
-    let backdrop = mouse_area(Space::new().width(Length::Fill).height(Length::Fill))
-        .on_press(Message::ContextDismiss)
-        .on_right_press(Message::ContextDismiss);
-    let pane = menu_pane(files.skin, &entries, height, tag);
-    let positioned = column![Space::new().height(y), row![Space::new().width(x), pane],];
-    stack![base, backdrop, positioned]
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .into()
+    Some(Menu {
+        entries: context::entries(menu.target, files.clip.is_some(), has_entries),
+        tag,
+    })
+}
+
+pub fn layer<'a>(files: &'a Files, base: Element<'a, Message>) -> Element<'a, Message> {
+    if files.open_with.is_some() {
+        return crate::view::open_with::layer(files, base);
+    }
+    if files.details.is_some() {
+        return crate::view::properties::layer(files, base);
+    }
+    base
+}
+
+pub fn popup(files: &Files) -> Element<'static, Message> {
+    let Some(menu) = menu(files) else {
+        return Space::new().into();
+    };
+    let (_, height) = menu.size(files.size.height);
+    menu_pane(files.skin, &menu.entries, height, menu.tag)
 }
 
 fn menu_pane(
@@ -66,17 +76,9 @@ fn menu_pane(
     });
     let body = scrollable(column(rows).padding(6)).height(height);
     container(body)
-        .width(WIDTH)
-        .style(move |_| container::Style {
-            background: Some(Background::Color(skin.lighter_background)),
-            text_color: Some(skin.foreground),
-            border: Border {
-                color: skin.accent,
-                width: 1.0,
-                radius: 0.0.into(),
-            },
-            ..container::Style::default()
-        })
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .style(move |_| libsparky::look::floating(skin))
         .into()
 }
 

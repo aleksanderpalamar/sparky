@@ -1,4 +1,4 @@
-use smithay::utils::{Logical, Rectangle};
+use smithay::utils::{Logical, Rectangle, Size};
 use sparky_ipc::GlassArea;
 
 pub fn rects(area: &GlassArea, surface: Rectangle<i32, Logical>) -> Vec<Rectangle<i32, Logical>> {
@@ -31,5 +31,15 @@ pub fn radius(area: &GlassArea) -> i32 {
     match area {
         GlassArea::Rects { radius, .. } => (*radius).max(0),
         _ => 0,
+    }
+}
+
+pub fn extent(
+    declared: Rectangle<i32, Logical>,
+    size: Size<i32, Logical>,
+) -> Rectangle<i32, Logical> {
+    match declared.is_empty() {
+        true => Rectangle::from_size(size),
+        false => declared,
     }
 }

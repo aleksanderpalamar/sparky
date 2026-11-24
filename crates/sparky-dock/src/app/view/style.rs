@@ -91,7 +91,7 @@ pub fn strip(skin: Skin, radius: f32) -> container::Style {
 
 pub fn menu(skin: Skin, radius: f32) -> container::Style {
     container::Style {
-        background: Some(Background::Color(surface(skin))),
+        background: Some(Background::Color(skin.raised)),
         border: rounded(outline(skin.accent), radius),
         text_color: Some(skin.foreground),
         ..container::Style::default()

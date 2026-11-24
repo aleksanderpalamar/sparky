@@ -50,6 +50,10 @@ impl Sparky {
         let serial = SERIAL_COUNTER.next_serial();
         if event.state() == ButtonState::Pressed {
             let location = pointer.current_location();
+            let under = self.surface_under(location).map(|(surface, _)| surface);
+            if self.dismiss_outside(under.as_ref()) {
+                return;
+            }
             self.focus_under(location);
             self.start_super_drag(event.button_code(), location, serial);
         }

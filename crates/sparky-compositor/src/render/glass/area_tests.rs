@@ -1,7 +1,7 @@
 use smithay::utils::Rectangle;
 use sparky_ipc::{GlassArea, GlassRect};
 
-use super::area::{radius, rects};
+use super::area::{extent, radius, rects};
 
 fn surface() -> Rectangle<i32, smithay::utils::Logical> {
     Rectangle::new((100, 50).into(), (1000, 600).into())
@@ -85,4 +85,18 @@ fn so_retangulos_informados_trazem_raio_e_nunca_negativo() {
         0
     );
     assert_eq!(radius(&GlassArea::Whole), 0);
+}
+
+#[test]
+fn popup_sem_geometria_declarada_usa_a_superficie_inteira() {
+    assert_eq!(
+        extent(Rectangle::default(), (220, 400).into()),
+        Rectangle::new((0, 0).into(), (220, 400).into())
+    );
+}
+
+#[test]
+fn popup_com_geometria_declarada_mantem_a_geometria() {
+    let declared = Rectangle::new((8, 8).into(), (200, 380).into());
+    assert_eq!(extent(declared, (220, 400).into()), declared);
 }
