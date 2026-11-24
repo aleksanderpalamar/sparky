@@ -30,3 +30,5 @@ sparky-storage = { path = "crates/sparky-storage" }
 
 [patch.crates-io]
 iced_exdevtools = { path = "third_party/iced_exdevtools" }
+iced_layershell = { path = "third_party/iced_layershell" }
+layershellev = { path = "third_party/layershellev" }
