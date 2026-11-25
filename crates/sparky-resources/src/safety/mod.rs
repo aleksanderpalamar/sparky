@@ -10,6 +10,10 @@ pub mod ledger;
 mod ledger_tests;
 #[cfg(test)]
 mod restore_tests;
+#[cfg(test)]
+mod transient_tests;
+#[cfg(test)]
+mod unreadable_tests;
 
 pub use journal::{Applied, Failure, Outcome, apply, commit, prepare, restore};
 pub use ledger::Ledger;

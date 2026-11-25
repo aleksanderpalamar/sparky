@@ -183,3 +183,12 @@ fn notificacoes_comecam_desligadas_e_mudam_pelo_pedido() {
         Some(Switch::On)
     );
 }
+
+#[test]
+fn restauracao_confirmada_depois_sai_do_modo_seguro() {
+    let mut service = ready();
+    service.failed(crate::application::lifecycle::Fault::RestoreUnconfirmed);
+    assert_eq!(service.state(), ServiceState::Safe);
+    service.restored();
+    assert_ne!(service.state(), ServiceState::Safe);
+}

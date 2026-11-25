@@ -64,8 +64,9 @@ pub fn sample_forever<F, S, L>(
                 herald.hear(&decisions, recorded, service.notifying());
                 service.decided(decisions);
                 service.shielded(orchestra.guarded(), orchestra.conductor.adjusting());
-                if orchestra.conductor.unconfirmed() {
-                    service.failed(Fault::RestoreUnconfirmed);
+                match orchestra.conductor.unconfirmed() {
+                    true => service.failed(Fault::RestoreUnconfirmed),
+                    false => service.restored(),
                 }
             }
             if forget {

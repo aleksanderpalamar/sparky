@@ -3,7 +3,7 @@ use super::evaluation::{Judgement, judge};
 use super::log::Verdict;
 use super::planner::Candidate;
 use crate::domain::{Activity, Change};
-use crate::ports::{Executor, Storage};
+use crate::ports::{ExecError, Executor, Storage};
 use crate::safety::{Applied, Failure, Outcome, restore};
 
 impl<E: Executor, S: Storage> Conductor<E, S> {
@@ -14,7 +14,20 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
         self.finish(&active) != Outcome::Unconfirmed
     }
 
+    pub(super) fn retry(&mut self) {
+        if !self.unconfirmed {
+            return;
+        }
+        let outcomes = self.ledger.recover(&self.executor);
+        self.unconfirmed = outcomes.contains(&Outcome::Unconfirmed) || self.ledger.pending();
+    }
+
     pub(super) fn follow(&mut self, mut active: Active, moment: &Moment) -> Option<Active> {
+        if self.ended(&active) {
+            let outcome = self.finish(&active);
+            self.record(moment, &active, Verdict::Finished(outcome));
+            return None;
+        }
         let sensitive = moment.activities.contains(Activity::Gaming)
             || moment.activities.contains(Activity::Recording);
         let withdrawn = moment.authority == crate::domain::Authority::None;
@@ -48,6 +61,10 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
                 None
             }
         }
+    }
+
+    fn ended(&self, active: &Active) -> bool {
+        self.executor.tasks(active.applied.adjustment.target) == Err(ExecError::Gone)
     }
 
     pub(super) fn finish(&mut self, active: &Active) -> Outcome {

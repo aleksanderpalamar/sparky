@@ -8,6 +8,7 @@ use crate::ports::Storage;
 pub struct FakeStorage {
     pub files: RefCell<BTreeMap<String, Vec<u8>>>,
     pub refuse: RefCell<bool>,
+    pub unreadable: RefCell<bool>,
 }
 
 fn missing() -> io::Error {
@@ -16,6 +17,9 @@ fn missing() -> io::Error {
 
 impl Storage for &FakeStorage {
     fn load(&self, name: &str) -> io::Result<Vec<u8>> {
+        if *self.unreadable.borrow() {
+            return Err(io::Error::from(io::ErrorKind::PermissionDenied));
+        }
         self.files.borrow().get(name).cloned().ok_or_else(missing)
     }
 

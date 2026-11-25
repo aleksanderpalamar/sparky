@@ -31,12 +31,12 @@ fn main() -> ExitCode {
         Ok(server) => server,
         Err(error) => return failed("abrir o socket", error),
     };
-    let ledger = match runtime(&path) {
+    let mut ledger = match runtime(&path) {
         Ok(storage) => Ledger::open(storage),
         Err(error) => return failed("abrir o registro de ajustes", error),
     };
     let mut service = Service::default();
-    if !recover(&path) {
+    if !restored(&mut ledger) {
         service.failed(Fault::RestoreUnconfirmed);
     }
     service.configure(&settings());
@@ -63,7 +63,7 @@ fn main() -> ExitCode {
     thread::spawn(move || server.serve(&shared));
     notify("READY=1");
     let outcome = stop.wait();
-    recover(&socket_path);
+    recover_at_exit(&socket_path);
     let _ = fs::remove_file(&socket_path);
     match outcome {
         Ok(_) => ExitCode::SUCCESS,
@@ -76,15 +76,23 @@ fn failed(action: &str, error: impl std::fmt::Display) -> ExitCode {
     ExitCode::FAILURE
 }
 
-fn recover(socket: &std::path::Path) -> bool {
-    let Ok(storage) = runtime(socket) else {
-        return true;
-    };
-    let outcomes = Ledger::open(storage).recover(&LinuxExecutor::new(
+fn restored(ledger: &mut Ledger<DiskStorage>) -> bool {
+    let outcomes = ledger.recover(&LinuxExecutor::new(
         LinuxFiles,
         Pkexec::installed(LinuxFiles),
     ));
-    !outcomes.contains(&Outcome::Unconfirmed)
+    !outcomes.contains(&Outcome::Unconfirmed) && !ledger.pending()
+}
+
+fn recover_at_exit(socket: &std::path::Path) {
+    match runtime(socket) {
+        Ok(storage) => {
+            if !restored(&mut Ledger::open(storage)) {
+                eprintln!("sparky-resources: restauração não confirmada ao encerrar");
+            }
+        }
+        Err(error) => eprintln!("sparky-resources: falha ao abrir o registro de ajustes: {error}"),
+    }
 }
 
 fn runtime(socket: &std::path::Path) -> std::io::Result<DiskStorage> {

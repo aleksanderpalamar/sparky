@@ -88,8 +88,10 @@ pub fn commit(executor: &impl Executor, intent: &Applied) -> Result<(), Failure>
 }
 
 pub fn restore(executor: &impl Executor, applied: &Applied) -> Outcome {
-    let Ok(tasks) = executor.tasks(applied.adjustment.target) else {
-        return Outcome::Gone;
+    let tasks = match executor.tasks(applied.adjustment.target) {
+        Ok(tasks) => tasks,
+        Err(ExecError::Gone) => return Outcome::Gone,
+        Err(_) => return Outcome::Unconfirmed,
     };
     let mut outcome = Outcome::Restored;
     for (task, previous, origin) in pending(applied, &tasks) {

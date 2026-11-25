@@ -90,6 +90,10 @@ impl Service {
         self.lifecycle.receive(Signal::Failed(fault));
     }
 
+    pub fn restored(&mut self) {
+        self.lifecycle.receive(Signal::Cleared);
+    }
+
     pub fn activities(&self) -> crate::domain::Activities {
         self.activities
     }

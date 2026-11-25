@@ -32,15 +32,17 @@ impl<F: Files, E: Elevator> Executor for LinuxExecutor<F, E> {
         let stat = self
             .files
             .read(Path::new(&format!("/proc/{}/stat", target.pid)))
-            .map_err(|_| ExecError::Gone)?;
-        let started = parse_stat(&stat).map(|stat| stat.started);
-        if started != Some(target.started) {
+            .map_err(unreadable)?;
+        let started = parse_stat(&stat)
+            .map(|stat| stat.started)
+            .ok_or(ExecError::Failed)?;
+        if started != target.started {
             return Err(ExecError::Gone);
         }
         let entries = self
             .files
             .entries(Path::new(&format!("/proc/{}/task", target.pid)))
-            .map_err(|_| ExecError::Gone)?;
+            .map_err(unreadable)?;
         Ok(entries
             .iter()
             .filter_map(|name| name.parse().ok())
@@ -82,6 +84,14 @@ fn io_class((class, data): (u8, u8)) -> Result<IoClass, ExecError> {
         2 => Ok(IoClass::BestEffort(data)),
         3 => Ok(IoClass::Idle),
         _ => Err(ExecError::Unsupported),
+    }
+}
+
+fn unreadable(error: io::Error) -> ExecError {
+    match error.kind() {
+        io::ErrorKind::NotFound => ExecError::Gone,
+        io::ErrorKind::PermissionDenied => ExecError::Denied,
+        _ => failure(error),
     }
 }
 

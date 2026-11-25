@@ -50,6 +50,7 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
         capabilities: Capabilities,
         spare: Vec<u32>,
     ) -> Self {
+        let unconfirmed = ledger.pending();
         Self {
             executor,
             ledger,
@@ -60,7 +61,7 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
             active: None,
             log: Log::default(),
             last: None,
-            unconfirmed: false,
+            unconfirmed,
         }
     }
 
@@ -69,6 +70,7 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
             self.active = self.follow(active, moment);
             return;
         }
+        self.retry();
         let eligible = self.backoff.eligible(moment.consumers, moment.at);
         let Some(candidate) = plan(
             moment.activities,
