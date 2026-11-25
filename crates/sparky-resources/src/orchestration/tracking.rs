@@ -4,7 +4,7 @@ use super::log::Verdict;
 use super::planner::Candidate;
 use crate::domain::{Activity, Change};
 use crate::ports::{Executor, Storage};
-use crate::safety::{Failure, Outcome, restore};
+use crate::safety::{Applied, Failure, Outcome, restore};
 
 impl<E: Executor, S: Storage> Conductor<E, S> {
     pub fn release(&mut self) -> bool {
@@ -54,11 +54,20 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
         let outcome = restore(&self.executor, &active.applied);
         self.unconfirmed |= outcome == Outcome::Unconfirmed;
         if outcome != Outcome::Unconfirmed
-            && let Err(error) = self.ledger.settle(active.applied.adjustment.target)
+            && let Err(error) = self.ledger.settle(&active.applied)
         {
             eprintln!("sparky-resources: registro de ajustes não atualizado: {error}");
         }
         outcome
+    }
+
+    pub(super) fn abandon(&mut self, applied: &Applied, failure: &Failure) {
+        if matches!(failure, Failure::Unverified(Outcome::Unconfirmed, _)) {
+            return;
+        }
+        if let Err(error) = self.ledger.settle(applied) {
+            eprintln!("sparky-resources: registro de ajustes não atualizado: {error}");
+        }
     }
 
     pub(super) fn failed(
@@ -68,9 +77,8 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
         change: Change,
         failure: Failure,
     ) {
-        if let Failure::Unverified(Outcome::Unconfirmed, applied) = failure {
+        if let Failure::Unverified(Outcome::Unconfirmed, _) = failure {
             self.unconfirmed = true;
-            self.remember(*applied);
         }
         self.note(moment, candidate, Some(change), Verdict::Failed);
     }

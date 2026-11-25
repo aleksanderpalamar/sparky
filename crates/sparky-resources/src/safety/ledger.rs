@@ -1,5 +1,4 @@
 use super::journal::{Applied, Outcome, restore};
-use crate::domain::Identity;
 use crate::ports::{Executor, Storage};
 
 const NAME: &str = "applied.json";
@@ -25,12 +24,18 @@ impl<S: Storage> Ledger<S> {
 
     pub fn record(&mut self, applied: Applied) -> std::io::Result<()> {
         self.entries.push(applied);
-        self.save()
+        let saved = self.save();
+        if saved.is_err() {
+            self.entries.pop();
+        }
+        saved
     }
 
-    pub fn settle(&mut self, target: Identity) -> std::io::Result<()> {
-        self.entries
-            .retain(|entry| entry.adjustment.target != target);
+    pub fn settle(&mut self, applied: &Applied) -> std::io::Result<()> {
+        let Some(index) = self.entries.iter().rposition(|entry| entry == applied) else {
+            return Ok(());
+        };
+        self.entries.remove(index);
         self.save()
     }
 

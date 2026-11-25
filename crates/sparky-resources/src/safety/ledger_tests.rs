@@ -54,15 +54,8 @@ fn ajuste_encerrado_sai_do_registro() {
     let Ok(applied) = apply(&executor, &idle(900)) else {
         panic!("deveria aplicar")
     };
-    assert!(ledger.record(applied).is_ok());
-    assert!(
-        ledger
-            .settle(Identity {
-                pid: 900,
-                started: 1
-            })
-            .is_ok()
-    );
+    assert!(ledger.record(applied.clone()).is_ok());
+    assert!(ledger.settle(&applied).is_ok());
     assert!(Ledger::open(&storage).entries().is_empty());
 }
 

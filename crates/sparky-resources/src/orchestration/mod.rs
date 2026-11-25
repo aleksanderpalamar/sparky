@@ -9,6 +9,8 @@ mod conductor_cycle_tests;
 #[cfg(test)]
 mod conductor_guard_tests;
 #[cfg(test)]
+mod conductor_intent_tests;
+#[cfg(test)]
 mod conductor_support;
 #[cfg(test)]
 mod conductor_tests;
