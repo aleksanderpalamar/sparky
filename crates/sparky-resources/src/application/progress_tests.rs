@@ -74,3 +74,37 @@ fn rodada_guarda_os_erros_e_o_progresso_vai_e_volta_pelo_protocolo() {
     assert!(text.contains(r#""outcome":"behind_statistics""#), "{text}");
     assert_eq!(serde_json::from_str::<Progress>(&text).ok(), Some(progress));
 }
+
+#[test]
+fn ganho_de_exatamente_cinco_por_cento_promove() {
+    assert_eq!(
+        outcome(0.05, &errors(19.002, 20.0), None, true),
+        Outcome::BehindStatistics
+    );
+    assert_eq!(
+        outcome(0.05, &errors(19.0, 20.0), None, true),
+        Outcome::Promoted
+    );
+    assert_eq!(
+        outcome(0.05, &errors(18.998, 20.0), None, true),
+        Outcome::Promoted
+    );
+}
+
+#[test]
+fn estatistica_sem_erro_nao_e_superada() {
+    assert_eq!(
+        outcome(0.05, &errors(0.0, 0.0), None, true),
+        Outcome::BehindStatistics
+    );
+}
+
+#[test]
+fn ativo_com_erro_menor_ou_igual_segura_a_promocao() {
+    for active in [18.0, 19.0] {
+        assert_eq!(
+            outcome(0.05, &errors(19.0, 20.0), Some(active), true),
+            Outcome::BehindActive
+        );
+    }
+}

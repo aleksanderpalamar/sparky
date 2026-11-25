@@ -21,7 +21,7 @@ pub fn best(
         return (fresh, measured);
     };
     let earlier = tally(rows, split, Some(&previous));
-    match score(&earlier) < score(&measured) {
+    match score(&earlier) <= score(&measured) {
         true => (previous, earlier),
         false => (fresh, measured),
     }

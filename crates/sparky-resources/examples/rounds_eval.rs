@@ -39,10 +39,14 @@ fn main() -> std::io::Result<()> {
     };
     let mut samples = unpack_samples(&checkpoint.values, 0.0);
     println!(
-        "amostras={} decay={} rate={}",
+        "amostras={} plano: epocas={} lote={} taxa={} decay={} margem={} semente={}",
         samples.len(),
+        plan.epochs,
+        plan.batch,
+        plan.rate,
         plan.decay,
-        plan.rate
+        plan.margin,
+        plan.seed
     );
     let start = samples.len() / 2;
     let chunk = (samples.len() - start) / rounds.max(1);
@@ -58,17 +62,21 @@ fn main() -> std::io::Result<()> {
     println!("candidato herdado: {}", inherited.is_some());
     let mut learner = Learner::new(plan);
     learner.resume(samples, inherited);
+    let mut active: Option<Hybrid> = None;
     for round in 1..=rounds {
         for sample in arriving.by_ref().take(chunk) {
             learner.record(sample);
         }
-        let verdict = finish(&mut learner);
+        let verdict = finish(&mut learner, active.as_ref());
+        if let Verdict::Promoted(model, _) = &verdict {
+            active = Some((**model).clone());
+        }
         let summary = match &verdict {
             Verdict::Promoted(_, errors) => format!("aprovado {errors:?}"),
             Verdict::Rejected(errors, outcome) => format!("{outcome:?} {errors:?}"),
             other => format!("{other:?}"),
         };
-        println!("rodada {round}: {summary}");
+        println!("rodada {round} (ativo: {}): {summary}", active.is_some());
         if let Some(tally) = learner.diagnosis() {
             report(tally);
         }
@@ -76,9 +84,9 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 
-fn finish(learner: &mut Learner) -> Verdict {
+fn finish(learner: &mut Learner, active: Option<&Hybrid>) -> Verdict {
     loop {
-        match learner.step(None, Instant::now() + Duration::from_millis(200)) {
+        match learner.step(active, Instant::now() + Duration::from_millis(200)) {
             Verdict::Training => continue,
             other => return other,
         }

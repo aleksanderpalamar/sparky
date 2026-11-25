@@ -10,9 +10,14 @@ mod budget_tests;
 pub mod diagnosis;
 #[cfg(test)]
 mod diagnosis_tests;
+#[cfg(test)]
+mod division_tests;
+pub mod drill;
 pub mod encoding;
 #[cfg(test)]
 mod encoding_tests;
+#[cfg(test)]
+mod evidence_tests;
 pub mod features;
 pub mod footprint;
 #[cfg(test)]
@@ -49,6 +54,8 @@ mod reference_tests;
 pub mod selection;
 #[cfg(test)]
 mod selection_tests;
+#[cfg(test)]
+mod session_tests;
 pub mod training;
 #[cfg(test)]
 mod training_tests;
