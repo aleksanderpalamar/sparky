@@ -9,6 +9,8 @@ mod forgetting_tests;
 pub mod herald;
 #[cfg(test)]
 mod herald_tests;
+#[cfg(test)]
+mod missing_metric_tests;
 pub mod notify;
 pub mod recall;
 #[cfg(test)]

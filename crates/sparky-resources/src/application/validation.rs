@@ -28,20 +28,15 @@ pub fn tally(rows: &[Sample], from: usize, model: Option<&Hybrid>) -> Tally {
         else {
             continue;
         };
-        let predicted = model.map(|model| {
-            decode(
-                &model.predict(&example.window, &example.context),
-                base,
-                &now.features,
-            )
-        });
+        let predicted =
+            model.map(|model| decode(&model.predict(&example.window, &example.context), base));
         for (output, target) in absolute(&example.targets, base).iter().enumerate() {
             let (Some(target), Some(estimate)) = (*target, base[output]) else {
                 continue;
             };
             let neural = predicted
                 .as_ref()
-                .and_then(|values| values.get(output))
+                .and_then(|values| values.get(output).copied().flatten())
                 .map_or(0.0, |value| f64::from((value - target).abs()));
             tally.add(
                 segment,

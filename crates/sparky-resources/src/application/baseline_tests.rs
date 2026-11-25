@@ -3,7 +3,7 @@ use sparky_hardware::stat::CpuTimes;
 use super::baseline::Baseline;
 use super::features::features;
 use crate::domain::{Features, Metric, Reading};
-use crate::telemetry::{GpuSample, MemorySample, Pressures, SystemSample};
+use crate::telemetry::{GpuSample, MemorySample, Pressures, SystemSample, Vram};
 
 fn sample(busy: u64, total: u64) -> SystemSample {
     SystemSample {
@@ -28,9 +28,8 @@ fn sample(busy: u64, total: u64) -> SystemSample {
         },
         gpu: Reading::Measured {
             value: GpuSample {
-                busy_percent: 80,
-                vram_used: 2,
-                vram_total: 8,
+                busy_percent: Some(80),
+                vram: Some(Vram { used: 2, total: 8 }),
             },
             age_ms: 0,
         },

@@ -72,14 +72,12 @@ pub fn window(rows: &[Sample]) -> Vec<Vec<f32>> {
         .collect()
 }
 
-pub fn decode(outputs: &[f32], base: &Base, current: &Features) -> Vec<f32> {
+pub fn decode(outputs: &[f32], base: &Base) -> Vec<Option<f32>> {
     outputs
         .iter()
         .zip(base)
-        .zip(METRICS.iter().cycle())
-        .map(|((correction, reference), metric)| {
-            let start = reference.or(current.get(*metric)).unwrap_or(0.0);
-            (start + correction * SCALE).clamp(0.0, 100.0)
+        .map(|(correction, reference)| {
+            reference.map(|start| (start + correction * SCALE).clamp(0.0, 100.0))
         })
         .collect()
 }

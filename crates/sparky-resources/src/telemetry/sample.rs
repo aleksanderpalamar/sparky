@@ -13,9 +13,14 @@ pub struct MemorySample {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GpuSample {
-    pub busy_percent: u8,
-    pub vram_used: u64,
-    pub vram_total: u64,
+    pub busy_percent: Option<u8>,
+    pub vram: Option<Vram>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Vram {
+    pub used: u64,
+    pub total: u64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
