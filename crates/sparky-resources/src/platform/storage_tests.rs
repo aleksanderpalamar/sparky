@@ -60,3 +60,31 @@ fn o_conhecimento_sobrevive_a_um_novo_processo() {
         Restored::Model(model)
     );
 }
+
+#[test]
+fn rotacao_em_disco_deixa_atual_e_anterior_sem_temporario() {
+    let Ok(root) = tempfile::tempdir() else {
+        return;
+    };
+    let Ok(storage) = DiskStorage::open(root.path().to_owned()) else {
+        panic!("diretório não criado")
+    };
+    let mut knowledge = Knowledge::new(storage);
+    for value in [1.0, 2.0] {
+        let model = Checkpoint {
+            kind: Kind::Sequence,
+            hardware: 3,
+            values: vec![value],
+        };
+        assert!(knowledge.store(&model).is_ok());
+    }
+    let directory = root.path();
+    assert!(directory.join("sequence.ckpt").exists());
+    assert!(directory.join("sequence.previous.ckpt").exists());
+    assert!(!directory.join("sequence.next.ckpt").exists());
+    assert!(knowledge.roll_back(Kind::Sequence).is_ok());
+    assert!(matches!(
+        knowledge.restore(Kind::Sequence, 3),
+        Restored::Model(model) if model.values == vec![1.0]
+    ));
+}
