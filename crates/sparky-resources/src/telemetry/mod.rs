@@ -10,6 +10,8 @@ mod consumers_tests;
 #[cfg(test)]
 pub(crate) mod fake_files;
 #[cfg(test)]
+mod freshness_tests;
+#[cfg(test)]
 mod gpu_tests;
 pub mod processes;
 #[cfg(test)]

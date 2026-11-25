@@ -3,7 +3,7 @@ use std::time::{Duration, Instant};
 use sparky_resources::context::{Scene, recognize};
 use sparky_resources::platform::LinuxFiles;
 use sparky_resources::telemetry::Collector;
-use sparky_resources::telemetry::processes::{ProcessTable, scan};
+use sparky_resources::telemetry::processes::{ProcessTable, Sweep, scan};
 
 const ROUNDS: usize = 200;
 
@@ -14,9 +14,14 @@ fn main() {
     });
     report("varredura de processos", || drop(scan(&LinuxFiles)));
     let mut table = ProcessTable::default();
-    table.update(&LinuxFiles, Instant::now());
-    report("tabela incremental", || {
-        table.update(&LinuxFiles, Instant::now());
+    table.update(&LinuxFiles, Instant::now(), Sweep::Routine);
+    report("tabela em rodizio", || {
+        table.update(&LinuxFiles, Instant::now(), Sweep::Routine);
+    });
+    let mut at = Instant::now();
+    report("releitura na decisao", || {
+        at += Duration::from_secs(1);
+        table.update(&LinuxFiles, at, Sweep::Decision);
     });
     let processes = scan(&LinuxFiles);
     let scene = Scene {

@@ -63,8 +63,12 @@ impl<S: Storage> Orchestra<S> {
                     .iter()
                     .map(|process| process.pid)
                     .collect::<Vec<_>>(),
+                Instant::now(),
             ),
-            false => Vec::new(),
+            false => {
+                self.consumers.pause();
+                Vec::new()
+            }
         };
         let foreground: Vec<_> = observation
             .windows

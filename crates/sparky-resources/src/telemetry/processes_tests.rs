@@ -48,7 +48,7 @@ fn sem_proc_nao_ha_lista() {
 
 #[test]
 fn le_so_os_processos_novos_e_esquece_os_que_sairam() {
-    use super::processes::ProcessTable;
+    use super::processes::{ProcessTable, Sweep};
     use std::time::{Duration, Instant};
     let start = Instant::now();
     let mut table = ProcessTable::default();
@@ -56,22 +56,29 @@ fn le_so_os_processos_novos_e_esquece_os_que_sairam() {
         .with("/proc/1/stat", &stat(1, "systemd", 0))
         .with("/proc/5/stat", &stat(5, "steam", 1));
     assert_eq!(
-        table.update(&before, start).map(|found| found.len()),
+        table
+            .update(&before, start, Sweep::Routine)
+            .map(|found| found.len()),
         Some(2)
     );
     let renamed = FakeFiles::default()
         .with("/proc/1/stat", &stat(1, "init", 0))
         .with("/proc/9/stat", &stat(9, "obs", 1));
     let after = table
-        .update(&renamed, start + Duration::from_secs(5))
+        .update(&renamed, start + Duration::from_secs(5), Sweep::Routine)
         .unwrap_or_default();
     let names: Vec<&str> = after.iter().map(|process| process.name.as_str()).collect();
     assert_eq!(names, vec!["systemd", "obs"]);
-    let refreshed = table
-        .update(&renamed, start + Duration::from_secs(61))
-        .unwrap_or_default();
-    assert_eq!(
-        refreshed.first().map(|process| process.name.as_str()),
-        Some("init")
-    );
+    let renewed = (2..=9).any(|tick| {
+        table
+            .update(
+                &renamed,
+                start + Duration::from_secs(5 * tick),
+                Sweep::Routine,
+            )
+            .unwrap_or_default()
+            .first()
+            .is_some_and(|process| process.name == "init")
+    });
+    assert!(renewed);
 }
