@@ -71,6 +71,9 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
             return;
         }
         self.retry();
+        if self.unconfirmed {
+            return;
+        }
         let eligible = self.backoff.eligible(moment.consumers, moment.at);
         let Some(candidate) = plan(
             moment.activities,

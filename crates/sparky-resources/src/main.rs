@@ -51,7 +51,7 @@ fn main() -> ExitCode {
     let knowledge = DiskStorage::from_env()
         .and_then(|directory| DiskStorage::open(directory).ok())
         .map(Knowledge::new);
-    sample_forever(
+    let worker = sample_forever(
         Observer::new(collector),
         Brain::new(knowledge, hardware),
         orchestra(ledger),
@@ -63,11 +63,15 @@ fn main() -> ExitCode {
     thread::spawn(move || server.serve(&shared));
     notify("READY=1");
     let outcome = stop.wait();
-    recover_at_exit(&socket_path);
+    let restored = match worker.finish() {
+        Ok(restored) => restored,
+        Err(_) => recover_at_exit(&socket_path),
+    };
     let _ = fs::remove_file(&socket_path);
-    match outcome {
-        Ok(_) => ExitCode::SUCCESS,
-        Err(error) => failed("esperar sinais", error),
+    match (outcome, restored) {
+        (Err(error), _) => failed("esperar sinais", error),
+        (Ok(_), false) => failed("encerrar", "restauração não confirmada"),
+        (Ok(_), true) => ExitCode::SUCCESS,
     }
 }
 
@@ -84,14 +88,13 @@ fn restored(ledger: &mut Ledger<DiskStorage>) -> bool {
     !outcomes.contains(&Outcome::Unconfirmed) && !ledger.pending()
 }
 
-fn recover_at_exit(socket: &std::path::Path) {
+fn recover_at_exit(socket: &std::path::Path) -> bool {
     match runtime(socket) {
-        Ok(storage) => {
-            if !restored(&mut Ledger::open(storage)) {
-                eprintln!("sparky-resources: restauração não confirmada ao encerrar");
-            }
+        Ok(storage) => restored(&mut Ledger::open(storage)),
+        Err(error) => {
+            eprintln!("sparky-resources: falha ao abrir o registro de ajustes: {error}");
+            false
         }
-        Err(error) => eprintln!("sparky-resources: falha ao abrir o registro de ajustes: {error}"),
     }
 }
 

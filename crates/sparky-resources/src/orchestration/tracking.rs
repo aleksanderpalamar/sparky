@@ -3,6 +3,7 @@ use super::evaluation::{Judgement, judge};
 use super::log::Verdict;
 use super::planner::Candidate;
 use crate::domain::{Activity, Change};
+use crate::policy::permits;
 use crate::ports::{ExecError, Executor, Storage};
 use crate::safety::{Applied, Failure, Outcome, restore};
 
@@ -12,6 +13,12 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
             return true;
         };
         self.finish(&active) != Outcome::Unconfirmed
+    }
+
+    pub fn shutdown(&mut self) -> bool {
+        let released = self.release();
+        let outcomes = self.ledger.recover(&self.executor);
+        released && !outcomes.contains(&Outcome::Unconfirmed) && !self.ledger.pending()
     }
 
     pub(super) fn retry(&mut self) {
@@ -30,7 +37,7 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
         }
         let sensitive = moment.activities.contains(Activity::Gaming)
             || moment.activities.contains(Activity::Recording);
-        let withdrawn = moment.authority == crate::domain::Authority::None;
+        let withdrawn = !permits(moment.authority, active.applied.adjustment.change.kind());
         let shielded = moment
             .protected
             .contains(&active.applied.adjustment.target.pid);

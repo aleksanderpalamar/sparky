@@ -164,7 +164,7 @@ impl Service {
                 reason: Refusal::NotInSafeMode,
             };
         }
-        self.apply(Signal::Cleared)
+        Reply::Done
     }
 
     fn status(&self) -> Status {

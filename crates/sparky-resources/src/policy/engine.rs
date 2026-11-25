@@ -78,6 +78,14 @@ impl Policy {
     }
 }
 
+pub fn permits(authority: Authority, kind: ChangeKind) -> bool {
+    match authority {
+        Authority::None => false,
+        Authority::Conservative => kind != ChangeKind::Affinity,
+        Authority::Adaptive => true,
+    }
+}
+
 fn static_rules(
     adjustment: &Adjustment,
     confidence: f32,
@@ -101,9 +109,7 @@ fn static_rules(
     if !reversible(adjustment.change.kind(), situation.capabilities) {
         return Err(Block::NotReversible);
     }
-    if situation.authority == Authority::Conservative
-        && adjustment.change.kind() == ChangeKind::Affinity
-    {
+    if !permits(situation.authority, adjustment.change.kind()) {
         return Err(Block::Conservative);
     }
     Ok(())
