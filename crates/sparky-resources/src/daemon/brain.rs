@@ -35,16 +35,15 @@ impl<S: Storage> Brain<S> {
         let mut learner = Learner::new(plan);
         let candidate = recall
             .model(Kind::Candidate, &plan)
-            .or_else(|| recall.inherited(Kind::Candidate, &plan));
+            .or_else(|| recall.inherited(Kind::Candidate, &plan))
+            .or_else(|| recall.inherited(Kind::Sequence, &plan));
         learner.resume(recall.samples(0.0), candidate);
         let (rounds, history) = recall.rounds().unwrap_or_default();
         let skip = history.len().saturating_sub(REMEMBERED);
         Self {
             baseline: Baseline::default(),
             learner,
-            active: recall
-                .model(Kind::Sequence, &plan)
-                .or_else(|| recall.inherited(Kind::Sequence, &plan)),
+            active: recall.model(Kind::Sequence, &plan),
             recall,
             recent: Recent::default(),
             rounds,
@@ -62,6 +61,10 @@ impl<S: Storage> Brain<S> {
 
     pub fn written(&self) -> u64 {
         self.recall.written()
+    }
+
+    pub fn has_candidate(&self) -> bool {
+        self.learner.incumbent().is_some()
     }
 
     pub fn insights(&mut self, at: f64, observation: &Observation) -> Vec<Insight> {
@@ -94,8 +97,8 @@ impl<S: Storage> Brain<S> {
             });
         if let Some(values) = neural {
             for (slot, insight) in insights.iter_mut().enumerate() {
-                insight.neural_short = values.get(slot).copied();
-                insight.neural_long = values.get(slot + OUTPUTS / HORIZONS.len()).copied();
+                insight.neural_short = finite(values.get(slot));
+                insight.neural_long = finite(values.get(slot + OUTPUTS / HORIZONS.len()));
             }
         }
         insights
@@ -132,12 +135,12 @@ impl<S: Storage> Brain<S> {
         false
     }
 
-    pub fn forget(&mut self) {
+    pub fn forget(&mut self) -> std::io::Result<()> {
         self.active = None;
         self.learner.forget();
         self.rounds = 0;
         self.history.clear();
-        self.recall.forget();
+        self.recall.forget()
     }
 
     fn finished(&mut self, round: Round) {
@@ -189,4 +192,8 @@ impl<S: Storage> Brain<S> {
         let values = pack_samples(self.learner.samples());
         self.recall.keep(Kind::History, values);
     }
+}
+
+fn finite(value: Option<&f32>) -> Option<f32> {
+    value.copied().filter(|value| value.is_finite())
 }

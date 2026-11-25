@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::thread::{self, JoinHandle};
+use std::thread::{self, JoinHandle, Thread};
 use std::time::Duration;
 
 pub struct Worker<R> {
@@ -26,6 +26,10 @@ impl<R: Send + 'static> Worker<R> {
             finish(state)
         });
         Self { stop, handle }
+    }
+
+    pub fn thread(&self) -> &Thread {
+        self.handle.thread()
     }
 
     pub fn finish(self) -> thread::Result<R> {

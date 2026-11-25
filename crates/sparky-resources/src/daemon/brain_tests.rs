@@ -85,7 +85,7 @@ fn esquecer_volta_ao_estado_inicial_e_apaga_os_arquivos() {
     let storage = FakeStorage::default();
     saved(&storage, HARDWARE);
     let mut brain = Brain::new(Some(Knowledge::new(&storage)), HARDWARE);
-    brain.forget();
+    assert!(brain.forget().is_ok());
     assert_eq!(brain.validity(), Validity::Unvalidated);
     assert!(storage.files.borrow().is_empty());
 }
@@ -124,7 +124,7 @@ fn esquecer_durante_o_treino_descarta_a_rodada_em_andamento() {
     while brain.progress().epoch == 0 {
         assert!(brain.train(TrainingState::Allowed, 0));
     }
-    brain.forget();
+    assert!(brain.forget().is_ok());
     assert_eq!(brain.progress().epoch, 0);
     assert_eq!(brain.validity(), Validity::Unvalidated);
     assert!(storage.files.borrow().is_empty());
@@ -173,7 +173,7 @@ fn esquecer_apaga_coleta_candidato_e_rodadas() {
     let storage = FakeStorage::default();
     let mut brain = Brain::new(Some(Knowledge::new(&storage)), HARDWARE);
     round_done(&mut brain);
-    brain.forget();
+    assert!(brain.forget().is_ok());
     assert!(storage.files.borrow().is_empty());
     let progress = brain.progress();
     assert_eq!((progress.collected, progress.rounds), (0, 0));

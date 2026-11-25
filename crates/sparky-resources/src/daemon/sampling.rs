@@ -4,6 +4,7 @@ use std::time::{Duration, Instant};
 use super::brain::Brain;
 use super::compositor::Windows;
 use super::conduct::Orchestra;
+use super::forgetting::Forgetting;
 use super::herald::Herald;
 use super::notify::notify;
 use super::service::Service;
@@ -27,6 +28,7 @@ struct Sampler<F, S, L> {
     service: Arc<Mutex<Service>>,
     spending: Spending,
     herald: Herald<DesktopNotifier>,
+    forgetting: Arc<Forgetting>,
 }
 
 pub fn sample_forever<F, S, L>(
@@ -35,6 +37,7 @@ pub fn sample_forever<F, S, L>(
     orchestra: Orchestra<L>,
     windows: Windows,
     service: Arc<Mutex<Service>>,
+    forgetting: Arc<Forgetting>,
 ) -> Worker<bool>
 where
     F: Files + Send + 'static,
@@ -53,6 +56,7 @@ where
         herald: Herald::new(DesktopNotifier {
             application: crate::i18n::text("notice-app"),
         }),
+        forgetting,
     };
     Worker::spawn(sampler, Sampler::step, Sampler::finish)
 }
@@ -63,6 +67,7 @@ fn lock(service: &Mutex<Service>) -> MutexGuard<'_, Service> {
 
 impl<F: Files, S: Storage, L: Storage> Sampler<F, S, L> {
     fn step(&mut self) -> Duration {
+        self.forget_if_asked();
         let current = self.windows.snapshot();
         let link = match current.is_some() {
             true => Link::Available,
@@ -72,26 +77,30 @@ impl<F: Files, S: Storage, L: Storage> Sampler<F, S, L> {
         let insights = self
             .brain
             .insights(self.started.elapsed().as_secs_f64(), &observation);
-        let (training, forget, authority) = {
+        let (training, authority) = {
             let mut service = lock(&self.service);
             service.observe(observation.activities, link, insights);
             self.orchestra.protect(service.protected());
-            (
-                service.training(),
-                service.take_forget(),
-                service.state().authority(),
-            )
+            (service.training(), service.state().authority())
         };
         self.orchestra
             .tick(&observation, authority, self.started.elapsed().as_secs());
         self.publish();
-        if forget {
-            self.brain.forget();
-        }
         let active = self.brain.train(training, self.started.elapsed().as_secs());
         let pause = settle(lock(&self.service), &mut self.spending, &self.brain, active);
         notify("WATCHDOG=1");
         pause
+    }
+
+    fn forget_if_asked(&mut self) {
+        if !self.forgetting.take() {
+            return;
+        }
+        let removed = self.brain.forget();
+        if let Err(error) = &removed {
+            eprintln!("sparky-resources: conhecimento não apagado: {error}");
+        }
+        self.forgetting.finish(removed.is_ok());
     }
 
     fn publish(&mut self) {

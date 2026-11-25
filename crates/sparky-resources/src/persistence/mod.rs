@@ -6,6 +6,8 @@ pub(crate) mod fake_storage;
 pub mod knowledge;
 #[cfg(test)]
 mod knowledge_tests;
+#[cfg(test)]
+mod rotation_tests;
 
 pub use checkpoint::{Checkpoint, CheckpointError, Kind};
 pub use knowledge::{Knowledge, Restored};

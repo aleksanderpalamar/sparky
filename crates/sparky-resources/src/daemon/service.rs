@@ -11,7 +11,6 @@ pub struct Service {
     activities: Activities,
     insights: Vec<Insight>,
     training_active: bool,
-    forget_requested: bool,
     decisions: Vec<crate::orchestration::Decision>,
     protected: Vec<String>,
     progress: Progress,
@@ -102,10 +101,6 @@ impl Service {
         self.training_active = active;
     }
 
-    pub fn take_forget(&mut self) -> bool {
-        std::mem::take(&mut self.forget_requested)
-    }
-
     pub fn training(&self) -> TrainingState {
         match training(self.learning, self.state(), self.activities) {
             TrainingState::Allowed if self.training_active => TrainingState::Active,
@@ -146,10 +141,9 @@ impl Service {
                     reason: Refusal::InvalidNames,
                 },
             },
-            Request::ForgetKnowledge => {
-                self.forget_requested = true;
-                Reply::Done
-            }
+            Request::ForgetKnowledge => Reply::Refused {
+                reason: Refusal::ForgetFailed,
+            },
         }
     }
 

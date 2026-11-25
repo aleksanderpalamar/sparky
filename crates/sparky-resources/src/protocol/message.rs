@@ -80,4 +80,5 @@ pub enum Refusal {
     TooLarge,
     NotInSafeMode,
     InvalidNames,
+    ForgetFailed,
 }

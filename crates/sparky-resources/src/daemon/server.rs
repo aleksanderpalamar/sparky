@@ -6,11 +6,13 @@ use std::path::{Path, PathBuf};
 use std::sync::{Mutex, PoisonError};
 use std::time::Duration;
 
+use super::forgetting::{Forgetting, reply};
 use super::service::Service;
 use crate::protocol::codec::{self, LineError, MAX_LINE};
 use crate::protocol::{Refusal, Reply, Request};
 
 const TIMEOUT: Duration = Duration::from_secs(2);
+const FORGET_LIMIT: Duration = Duration::from_millis(1500);
 
 pub struct Server {
     listener: UnixListener,
@@ -32,9 +34,9 @@ impl Server {
         &self.path
     }
 
-    pub fn serve(&self, service: &Mutex<Service>) {
+    pub fn serve(&self, service: &Mutex<Service>, forgetting: &Forgetting) {
         for stream in self.listener.incoming() {
-            let outcome = stream.and_then(|stream| answer(&stream, service));
+            let outcome = stream.and_then(|stream| answer(&stream, service, forgetting));
             if let Err(error) = outcome {
                 eprintln!("sparky-resources: conexão recusada: {error}");
             }
@@ -55,11 +57,15 @@ fn release_stale(path: &Path) -> io::Result<()> {
     fs::remove_file(path)
 }
 
-fn answer(stream: &UnixStream, service: &Mutex<Service>) -> io::Result<()> {
+fn answer(
+    stream: &UnixStream,
+    service: &Mutex<Service>,
+    forgetting: &Forgetting,
+) -> io::Result<()> {
     stream.set_read_timeout(Some(TIMEOUT))?;
     stream.set_write_timeout(Some(TIMEOUT))?;
     let reply = match codec::read_line(&mut BufReader::new(stream), MAX_LINE) {
-        Ok(line) => respond(&line, service),
+        Ok(line) => respond(&line, service, forgetting),
         Err(LineError::TooLarge) => refused(Refusal::TooLarge),
         Err(LineError::Closed) => return Ok(()),
         Err(LineError::Io(error)) => return Err(error),
@@ -68,8 +74,9 @@ fn answer(stream: &UnixStream, service: &Mutex<Service>) -> io::Result<()> {
     codec::write(&mut writer, reply)
 }
 
-fn respond(line: &[u8], service: &Mutex<Service>) -> Reply {
+fn respond(line: &[u8], service: &Mutex<Service>, forgetting: &Forgetting) -> Reply {
     match codec::decode::<Request>(line) {
+        Ok(Request::ForgetKnowledge) => reply(forgetting, FORGET_LIMIT),
         Ok(request) => service
             .lock()
             .unwrap_or_else(PoisonError::into_inner)
