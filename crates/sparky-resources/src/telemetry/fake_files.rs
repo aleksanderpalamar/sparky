@@ -7,6 +7,7 @@ use crate::ports::Files;
 #[derive(Default)]
 pub struct FakeFiles {
     files: BTreeMap<PathBuf, String>,
+    broken: BTreeMap<PathBuf, io::ErrorKind>,
 }
 
 impl FakeFiles {
@@ -14,10 +15,23 @@ impl FakeFiles {
         self.files.insert(PathBuf::from(path), text.to_owned());
         self
     }
+
+    pub fn broken(mut self, path: &str, kind: io::ErrorKind) -> Self {
+        self.broken.insert(PathBuf::from(path), kind);
+        self
+    }
+
+    fn failure(&self, path: &Path) -> io::Result<()> {
+        match self.broken.get(path) {
+            Some(kind) => Err(io::Error::from(*kind)),
+            None => Ok(()),
+        }
+    }
 }
 
 impl Files for FakeFiles {
     fn read(&self, path: &Path) -> io::Result<String> {
+        self.failure(path)?;
         self.files
             .get(path)
             .cloned()
@@ -25,6 +39,7 @@ impl Files for FakeFiles {
     }
 
     fn entries(&self, directory: &Path) -> io::Result<Vec<String>> {
+        self.failure(directory)?;
         let mut names: Vec<String> = self
             .files
             .keys()

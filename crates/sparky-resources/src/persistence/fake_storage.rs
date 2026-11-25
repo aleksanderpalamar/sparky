@@ -7,6 +7,8 @@ use crate::ports::Storage;
 #[derive(Default)]
 pub struct FakeStorage {
     pub files: RefCell<BTreeMap<String, Vec<u8>>>,
+    pub refuse: RefCell<bool>,
+    pub unreadable: RefCell<bool>,
 }
 
 fn missing() -> io::Error {
@@ -15,10 +17,16 @@ fn missing() -> io::Error {
 
 impl Storage for &FakeStorage {
     fn load(&self, name: &str) -> io::Result<Vec<u8>> {
+        if *self.unreadable.borrow() {
+            return Err(io::Error::from(io::ErrorKind::PermissionDenied));
+        }
         self.files.borrow().get(name).cloned().ok_or_else(missing)
     }
 
     fn save(&self, name: &str, bytes: &[u8]) -> io::Result<()> {
+        if *self.refuse.borrow() {
+            return Err(io::Error::other("armazenamento recusado"));
+        }
         self.files
             .borrow_mut()
             .insert(name.to_owned(), bytes.to_vec());

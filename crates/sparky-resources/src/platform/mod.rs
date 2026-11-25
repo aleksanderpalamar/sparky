@@ -3,6 +3,8 @@ pub mod elevator;
 mod elevator_tests;
 pub mod executor;
 #[cfg(test)]
+mod executor_tasks_tests;
+#[cfg(test)]
 mod executor_tests;
 pub mod files;
 #[cfg(test)]

@@ -1,5 +1,4 @@
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
-use std::thread;
 use std::time::{Duration, Instant};
 
 use super::brain::Brain;
@@ -8,6 +7,7 @@ use super::conduct::Orchestra;
 use super::herald::Herald;
 use super::notify::notify;
 use super::service::Service;
+use super::worker::Worker;
 use crate::application::budget::{Usage, assess, cpu_percent, usage};
 use crate::application::footprint::{Footprint, memory_limit};
 use crate::application::{Fault, Link, Observer};
@@ -18,65 +18,99 @@ use crate::telemetry::cadence::interval;
 
 const BUDGET_WINDOW: Duration = Duration::from_secs(60);
 
-pub fn sample_forever<F, S, L>(
-    mut observer: Observer<F>,
-    mut brain: Brain<S>,
-    mut orchestra: Orchestra<L>,
+struct Sampler<F, S, L> {
+    started: Instant,
+    observer: Observer<F>,
+    brain: Brain<S>,
+    orchestra: Orchestra<L>,
     windows: Windows,
     service: Arc<Mutex<Service>>,
-) where
+    spending: Spending,
+    herald: Herald<DesktopNotifier>,
+}
+
+pub fn sample_forever<F, S, L>(
+    observer: Observer<F>,
+    brain: Brain<S>,
+    orchestra: Orchestra<L>,
+    windows: Windows,
+    service: Arc<Mutex<Service>>,
+) -> Worker<bool>
+where
     F: Files + Send + 'static,
     S: Storage + Send + 'static,
     L: Storage + Send + 'static,
 {
-    thread::spawn(move || {
-        let started = Instant::now();
-        let lock = || service.lock().unwrap_or_else(PoisonError::into_inner);
-        lock().learned(brain.validity());
-        let mut spending = Spending::start();
-        let mut herald = Herald::new(DesktopNotifier {
+    lock(&service).learned(brain.validity());
+    let sampler = Sampler {
+        started: Instant::now(),
+        observer,
+        brain,
+        orchestra,
+        windows,
+        service,
+        spending: Spending::start(),
+        herald: Herald::new(DesktopNotifier {
             application: crate::i18n::text("notice-app"),
-        });
-        loop {
-            let current = windows.snapshot();
-            let link = if current.is_some() {
-                Link::Available
-            } else {
-                Link::Lost
-            };
-            let observation = observer.observe(Instant::now(), current);
-            let insights = brain.insights(started.elapsed().as_secs_f64(), &observation);
-            let (training, forget, authority) = {
-                let mut service = lock();
-                service.observe(observation.activities, link, insights);
-                orchestra.protect(service.protected());
-                (
-                    service.training(),
-                    service.take_forget(),
-                    service.state().authority(),
-                )
-            };
-            orchestra.tick(&observation, authority, started.elapsed().as_secs());
-            {
-                let mut service = lock();
-                let decisions = orchestra.conductor.decisions();
-                let recorded = orchestra.conductor.recorded();
-                herald.hear(&decisions, recorded, service.notifying());
-                service.decided(decisions);
-                service.shielded(orchestra.guarded(), orchestra.conductor.adjusting());
-                if orchestra.conductor.unconfirmed() {
-                    service.failed(Fault::RestoreUnconfirmed);
-                }
-            }
-            if forget {
-                brain.forget();
-            }
-            let active = brain.train(training, started.elapsed().as_secs());
-            let pause = settle(lock(), &mut spending, &brain, active);
-            notify("WATCHDOG=1");
-            thread::sleep(pause);
+        }),
+    };
+    Worker::spawn(sampler, Sampler::step, Sampler::finish)
+}
+
+fn lock(service: &Mutex<Service>) -> MutexGuard<'_, Service> {
+    service.lock().unwrap_or_else(PoisonError::into_inner)
+}
+
+impl<F: Files, S: Storage, L: Storage> Sampler<F, S, L> {
+    fn step(&mut self) -> Duration {
+        let current = self.windows.snapshot();
+        let link = match current.is_some() {
+            true => Link::Available,
+            false => Link::Lost,
+        };
+        let observation = self.observer.observe(Instant::now(), current);
+        let insights = self
+            .brain
+            .insights(self.started.elapsed().as_secs_f64(), &observation);
+        let (training, forget, authority) = {
+            let mut service = lock(&self.service);
+            service.observe(observation.activities, link, insights);
+            self.orchestra.protect(service.protected());
+            (
+                service.training(),
+                service.take_forget(),
+                service.state().authority(),
+            )
+        };
+        self.orchestra
+            .tick(&observation, authority, self.started.elapsed().as_secs());
+        self.publish();
+        if forget {
+            self.brain.forget();
         }
-    });
+        let active = self.brain.train(training, self.started.elapsed().as_secs());
+        let pause = settle(lock(&self.service), &mut self.spending, &self.brain, active);
+        notify("WATCHDOG=1");
+        pause
+    }
+
+    fn publish(&mut self) {
+        let mut service = lock(&self.service);
+        let conductor = &self.orchestra.conductor;
+        let decisions = conductor.decisions();
+        self.herald
+            .hear(&decisions, conductor.recorded(), service.notifying());
+        service.decided(decisions);
+        service.shielded(self.orchestra.guarded(), conductor.adjusting());
+        match conductor.unconfirmed() {
+            true => service.failed(Fault::RestoreUnconfirmed),
+            false => service.restored(),
+        }
+    }
+
+    fn finish(mut self) -> bool {
+        self.orchestra.conductor.shutdown()
+    }
 }
 
 fn settle<S: Storage>(

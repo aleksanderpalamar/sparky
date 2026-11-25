@@ -11,6 +11,8 @@ pub struct FakeExecutor {
     pub deny: RefCell<bool>,
     pub ignore_writes: RefCell<bool>,
     pub writes_left: RefCell<Option<usize>>,
+    pub tasks_error: RefCell<Option<ExecError>>,
+    pub gone: RefCell<Vec<u32>>,
 }
 
 impl FakeExecutor {
@@ -46,7 +48,13 @@ impl FakeExecutor {
 }
 
 impl Executor for FakeExecutor {
-    fn tasks(&self, _target: Identity) -> Result<Vec<u32>, ExecError> {
+    fn tasks(&self, target: Identity) -> Result<Vec<u32>, ExecError> {
+        if self.gone.borrow().contains(&target.pid) {
+            return Err(ExecError::Gone);
+        }
+        if let Some(error) = *self.tasks_error.borrow() {
+            return Err(error);
+        }
         let tasks = self.tasks.borrow().clone();
         if tasks.is_empty() {
             return Err(ExecError::Gone);

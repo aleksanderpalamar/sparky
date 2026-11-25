@@ -160,3 +160,14 @@ fn espera_entre_ajustes_do_mesmo_processo_e_limita_a_frequencia() {
         Ok(())
     );
 }
+
+#[test]
+fn conservador_permite_tudo_menos_afinidade() {
+    use super::engine::permits;
+    use crate::domain::ChangeKind;
+    assert!(!permits(Authority::Conservative, ChangeKind::Affinity));
+    assert!(permits(Authority::Conservative, ChangeKind::IoPriority));
+    assert!(permits(Authority::Conservative, ChangeKind::Nice));
+    assert!(permits(Authority::Adaptive, ChangeKind::Affinity));
+    assert!(!permits(Authority::None, ChangeKind::IoPriority));
+}

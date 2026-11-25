@@ -3,11 +3,19 @@ pub mod backoff;
 mod backoff_tests;
 pub mod conductor;
 #[cfg(test)]
+mod conductor_authority_tests;
+#[cfg(test)]
 mod conductor_backoff_tests;
 #[cfg(test)]
 mod conductor_cycle_tests;
 #[cfg(test)]
 mod conductor_guard_tests;
+#[cfg(test)]
+mod conductor_intent_tests;
+#[cfg(test)]
+mod conductor_liveness_tests;
+#[cfg(test)]
+mod conductor_shutdown_tests;
 #[cfg(test)]
 mod conductor_support;
 #[cfg(test)]

@@ -31,12 +31,12 @@ fn main() -> ExitCode {
         Ok(server) => server,
         Err(error) => return failed("abrir o socket", error),
     };
-    let ledger = match runtime(&path) {
+    let mut ledger = match runtime(&path) {
         Ok(storage) => Ledger::open(storage),
         Err(error) => return failed("abrir o registro de ajustes", error),
     };
     let mut service = Service::default();
-    if !recover(&path) {
+    if !restored(&mut ledger) {
         service.failed(Fault::RestoreUnconfirmed);
     }
     service.configure(&settings());
@@ -51,7 +51,7 @@ fn main() -> ExitCode {
     let knowledge = DiskStorage::from_env()
         .and_then(|directory| DiskStorage::open(directory).ok())
         .map(Knowledge::new);
-    sample_forever(
+    let worker = sample_forever(
         Observer::new(collector),
         Brain::new(knowledge, hardware),
         orchestra(ledger),
@@ -63,11 +63,15 @@ fn main() -> ExitCode {
     thread::spawn(move || server.serve(&shared));
     notify("READY=1");
     let outcome = stop.wait();
-    recover(&socket_path);
+    let restored = match worker.finish() {
+        Ok(restored) => restored,
+        Err(_) => recover_at_exit(&socket_path),
+    };
     let _ = fs::remove_file(&socket_path);
-    match outcome {
-        Ok(_) => ExitCode::SUCCESS,
-        Err(error) => failed("esperar sinais", error),
+    match (outcome, restored) {
+        (Err(error), _) => failed("esperar sinais", error),
+        (Ok(_), false) => failed("encerrar", "restauração não confirmada"),
+        (Ok(_), true) => ExitCode::SUCCESS,
     }
 }
 
@@ -76,15 +80,22 @@ fn failed(action: &str, error: impl std::fmt::Display) -> ExitCode {
     ExitCode::FAILURE
 }
 
-fn recover(socket: &std::path::Path) -> bool {
-    let Ok(storage) = runtime(socket) else {
-        return true;
-    };
-    let outcomes = Ledger::open(storage).recover(&LinuxExecutor::new(
+fn restored(ledger: &mut Ledger<DiskStorage>) -> bool {
+    let outcomes = ledger.recover(&LinuxExecutor::new(
         LinuxFiles,
         Pkexec::installed(LinuxFiles),
     ));
-    !outcomes.contains(&Outcome::Unconfirmed)
+    !outcomes.contains(&Outcome::Unconfirmed) && !ledger.pending()
+}
+
+fn recover_at_exit(socket: &std::path::Path) -> bool {
+    match runtime(socket) {
+        Ok(storage) => restored(&mut Ledger::open(storage)),
+        Err(error) => {
+            eprintln!("sparky-resources: falha ao abrir o registro de ajustes: {error}");
+            false
+        }
+    }
 }
 
 fn runtime(socket: &std::path::Path) -> std::io::Result<DiskStorage> {

@@ -3,8 +3,9 @@ use super::evaluation::{Judgement, judge};
 use super::log::Verdict;
 use super::planner::Candidate;
 use crate::domain::{Activity, Change};
-use crate::ports::{Executor, Storage};
-use crate::safety::{Failure, Outcome, restore};
+use crate::policy::permits;
+use crate::ports::{ExecError, Executor, Storage};
+use crate::safety::{Applied, Failure, Outcome, restore};
 
 impl<E: Executor, S: Storage> Conductor<E, S> {
     pub fn release(&mut self) -> bool {
@@ -14,10 +15,29 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
         self.finish(&active) != Outcome::Unconfirmed
     }
 
+    pub fn shutdown(&mut self) -> bool {
+        let released = self.release();
+        let outcomes = self.ledger.recover(&self.executor);
+        released && !outcomes.contains(&Outcome::Unconfirmed) && !self.ledger.pending()
+    }
+
+    pub(super) fn retry(&mut self) {
+        if !self.unconfirmed {
+            return;
+        }
+        let outcomes = self.ledger.recover(&self.executor);
+        self.unconfirmed = outcomes.contains(&Outcome::Unconfirmed) || self.ledger.pending();
+    }
+
     pub(super) fn follow(&mut self, mut active: Active, moment: &Moment) -> Option<Active> {
+        if self.ended(&active) {
+            let outcome = self.finish(&active);
+            self.record(moment, &active, Verdict::Finished(outcome));
+            return None;
+        }
         let sensitive = moment.activities.contains(Activity::Gaming)
             || moment.activities.contains(Activity::Recording);
-        let withdrawn = moment.authority == crate::domain::Authority::None;
+        let withdrawn = !permits(moment.authority, active.applied.adjustment.change.kind());
         let shielded = moment
             .protected
             .contains(&active.applied.adjustment.target.pid);
@@ -50,15 +70,28 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
         }
     }
 
+    fn ended(&self, active: &Active) -> bool {
+        self.executor.tasks(active.applied.adjustment.target) == Err(ExecError::Gone)
+    }
+
     pub(super) fn finish(&mut self, active: &Active) -> Outcome {
         let outcome = restore(&self.executor, &active.applied);
         self.unconfirmed |= outcome == Outcome::Unconfirmed;
         if outcome != Outcome::Unconfirmed
-            && let Err(error) = self.ledger.settle(active.applied.adjustment.target)
+            && let Err(error) = self.ledger.settle(&active.applied)
         {
             eprintln!("sparky-resources: registro de ajustes não atualizado: {error}");
         }
         outcome
+    }
+
+    pub(super) fn abandon(&mut self, applied: &Applied, failure: &Failure) {
+        if matches!(failure, Failure::Unverified(Outcome::Unconfirmed, _)) {
+            return;
+        }
+        if let Err(error) = self.ledger.settle(applied) {
+            eprintln!("sparky-resources: registro de ajustes não atualizado: {error}");
+        }
     }
 
     pub(super) fn failed(
@@ -68,9 +101,8 @@ impl<E: Executor, S: Storage> Conductor<E, S> {
         change: Change,
         failure: Failure,
     ) {
-        if let Failure::Unverified(Outcome::Unconfirmed, applied) = failure {
+        if let Failure::Unverified(Outcome::Unconfirmed, _) = failure {
             self.unconfirmed = true;
-            self.remember(*applied);
         }
         self.note(moment, candidate, Some(change), Verdict::Failed);
     }

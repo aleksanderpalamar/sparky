@@ -37,6 +37,12 @@ enum Step {
 }
 
 pub fn apply(executor: &impl Executor, adjustment: &Adjustment) -> Result<Applied, Failure> {
+    let intent = prepare(executor, adjustment)?;
+    commit(executor, &intent)?;
+    Ok(intent)
+}
+
+pub fn prepare(executor: &impl Executor, adjustment: &Adjustment) -> Result<Applied, Failure> {
     let tasks = executor
         .tasks(adjustment.target)
         .map_err(Failure::Refused)?;
@@ -52,33 +58,40 @@ pub fn apply(executor: &impl Executor, adjustment: &Adjustment) -> Result<Applie
     {
         return Err(Failure::Refused(ExecError::Unsupported));
     }
-    let applied = Applied {
+    Ok(Applied {
         adjustment: adjustment.clone(),
         previous,
-    };
+    })
+}
+
+pub fn commit(executor: &impl Executor, intent: &Applied) -> Result<(), Failure> {
+    let change = &intent.adjustment.change;
+    let tasks: Vec<u32> = intent.previous.iter().map(|(task, _)| *task).collect();
     let written = tasks
         .iter()
-        .try_for_each(|task| executor.write(*task, &adjustment.change));
+        .try_for_each(|task| executor.write(*task, change));
     let verified = written.is_ok()
         && tasks.iter().all(|task| {
             executor
-                .read(*task, kind)
-                .is_ok_and(|now| now == adjustment.change)
+                .read(*task, change.kind())
+                .is_ok_and(|now| now == *change)
         });
     if verified {
-        return Ok(applied);
+        return Ok(());
     }
-    match restore(executor, &applied) {
+    match restore(executor, intent) {
         Outcome::Restored | Outcome::Gone => {
             Err(Failure::Refused(written.err().unwrap_or(ExecError::Failed)))
         }
-        outcome => Err(Failure::Unverified(outcome, Box::new(applied))),
+        outcome => Err(Failure::Unverified(outcome, Box::new(intent.clone()))),
     }
 }
 
 pub fn restore(executor: &impl Executor, applied: &Applied) -> Outcome {
-    let Ok(tasks) = executor.tasks(applied.adjustment.target) else {
-        return Outcome::Gone;
+    let tasks = match executor.tasks(applied.adjustment.target) {
+        Ok(tasks) => tasks,
+        Err(ExecError::Gone) => return Outcome::Gone,
+        Err(_) => return Outcome::Unconfirmed,
     };
     let mut outcome = Outcome::Restored;
     for (task, previous, origin) in pending(applied, &tasks) {

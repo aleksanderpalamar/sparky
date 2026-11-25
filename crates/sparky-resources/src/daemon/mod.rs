@@ -10,6 +10,8 @@ pub mod notify;
 pub mod recall;
 #[cfg(test)]
 mod recall_tests;
+#[cfg(test)]
+mod safe_mode_tests;
 pub mod sampling;
 pub mod server;
 #[cfg(test)]
@@ -18,6 +20,9 @@ pub mod service;
 #[cfg(test)]
 mod service_tests;
 pub mod signals;
+pub mod worker;
+#[cfg(test)]
+mod worker_tests;
 
 pub use compositor::{Windows, follow};
 pub use sampling::sample_forever;
