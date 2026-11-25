@@ -29,11 +29,15 @@ pub fn features(previous_cpu: Option<CpuTimes>, sample: &SystemSample) -> Featur
         .with(Metric::CpuPressure, stall(&sample.pressure.cpu))
         .with(Metric::MemoryPressure, stall(&sample.pressure.memory))
         .with(Metric::IoPressure, stall(&sample.pressure.io))
-        .with(Metric::GpuBusy, gpu.map(|gpu| f32::from(gpu.busy_percent)))
+        .with(
+            Metric::GpuBusy,
+            gpu.and_then(|gpu| gpu.busy_percent).map(f32::from),
+        )
         .with(
             Metric::VramUsed,
-            gpu.filter(|gpu| gpu.vram_total > 0)
-                .map(|gpu| percent(gpu.vram_used, gpu.vram_total)),
+            gpu.and_then(|gpu| gpu.vram)
+                .filter(|vram| vram.total > 0)
+                .map(|vram| percent(vram.used, vram.total)),
         )
 }
 

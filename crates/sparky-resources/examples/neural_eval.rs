@@ -83,11 +83,7 @@ fn compare(rows: &[Sample], split: usize, model: &Hybrid) {
         if index < split {
             continue;
         }
-        let neural = decode(
-            &model.predict(&example.window, &example.context),
-            base,
-            &now.features,
-        );
+        let neural = decode(&model.predict(&example.window, &example.context), base);
         for (output, target) in absolute(&example.targets, base).iter().enumerate() {
             let Some(target) = *target else {
                 continue;
@@ -96,7 +92,7 @@ fn compare(rows: &[Sample], split: usize, model: &Hybrid) {
             let predictions = [
                 naive[slot].forecast(horizon),
                 holts[slot].forecast(horizon),
-                Some(neural[output]),
+                neural[output],
             ];
             for (method, predicted) in predictions.iter().enumerate() {
                 errors[output][method] +=

@@ -9,6 +9,8 @@ pub mod consumers;
 mod consumers_tests;
 #[cfg(test)]
 pub(crate) mod fake_files;
+#[cfg(test)]
+mod gpu_tests;
 pub mod processes;
 #[cfg(test)]
 mod processes_tests;
@@ -18,5 +20,5 @@ pub mod topology;
 mod topology_tests;
 
 pub use collector::Collector;
-pub use sample::{GpuSample, MemorySample, Pressures, SystemSample};
+pub use sample::{GpuSample, MemorySample, Pressures, SystemSample, Vram};
 pub use topology::{LogicalCpu, Topology, read_topology};

@@ -89,11 +89,7 @@ impl<S: Storage> Brain<S> {
                     &observation.features,
                     &self.recent.misses(),
                 );
-                decode(
-                    &model.predict(&window, &hints),
-                    &base,
-                    &observation.features,
-                )
+                decode(&model.predict(&window, &hints), &base)
             });
         if let Some(values) = neural {
             for (slot, insight) in insights.iter_mut().enumerate() {
@@ -194,6 +190,6 @@ impl<S: Storage> Brain<S> {
     }
 }
 
-fn finite(value: Option<&f32>) -> Option<f32> {
-    value.copied().filter(|value| value.is_finite())
+fn finite(value: Option<&Option<f32>>) -> Option<f32> {
+    value.copied().flatten().filter(|value| value.is_finite())
 }

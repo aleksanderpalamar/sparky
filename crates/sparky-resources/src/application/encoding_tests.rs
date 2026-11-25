@@ -102,22 +102,18 @@ fn sem_futuro_suficiente_nao_ha_exemplo() {
 
 #[test]
 fn a_saida_corrige_a_previsao_da_estatistica() {
-    let current = Features::default()
-        .with(Metric::CpuBusy, Some(40.0))
-        .with(Metric::MemoryUsed, Some(95.0));
     let mut base = base_with(45.0);
     base[1] = Some(96.0);
-    let decoded = decode(&[0.1, 0.1, -0.2], &base, &current);
-    assert_eq!(decoded, vec![55.0, 100.0, 0.0]);
+    base[2] = Some(10.0);
+    let decoded = decode(&[0.1, 0.1, -0.2], &base);
+    assert_eq!(decoded, vec![Some(55.0), Some(100.0), Some(0.0)]);
 }
 
 #[test]
-fn saida_zero_repete_a_estatistica_ou_o_valor_atual() {
-    let current = Features::default()
-        .with(Metric::CpuBusy, Some(37.0))
-        .with(Metric::MemoryUsed, Some(20.0));
-    let decoded = decode(&[0.0; OUTPUTS], &base_with(41.0), &current);
-    assert_eq!((decoded[0], decoded[1]), (41.0, 20.0));
+fn saida_zero_repete_a_estatistica_e_sem_referencia_nao_preve() {
+    let decoded = decode(&[0.0; OUTPUTS], &base_with(41.0));
+    assert_eq!((decoded[0], decoded[1]), (Some(41.0), None));
+    assert!(decoded.iter().skip(1).all(Option::is_none));
     assert_eq!(decoded.len(), OUTPUTS);
     assert_eq!(METRICS.len() * 2, OUTPUTS);
 }

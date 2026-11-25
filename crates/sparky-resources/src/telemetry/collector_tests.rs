@@ -2,7 +2,7 @@ use sparky_hardware::stat::CpuTimes;
 
 use super::collector::Collector;
 use super::fake_files::FakeFiles;
-use super::sample::{GpuSample, MemorySample};
+use super::sample::{GpuSample, MemorySample, Vram};
 use crate::domain::Reading;
 
 const PSI: &str = "some avg10=2.00 avg60=1.00 avg300=0.50 total=10\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=1\n";
@@ -51,9 +51,11 @@ fn le_cpu_memoria_pressao_e_gpu_amd() {
     assert_eq!(
         sample.gpu.measured(),
         Some(&GpuSample {
-            busy_percent: 37,
-            vram_used: 1024,
-            vram_total: 8192
+            busy_percent: Some(37),
+            vram: Some(Vram {
+                used: 1024,
+                total: 8192
+            })
         })
     );
 }
@@ -82,5 +84,8 @@ fn texto_corrompido_nao_vira_medicao() {
         .with("/sys/class/drm/card1/device/gpu_busy_percent", "muito\n");
     let sample = Collector::new(files).system();
     assert_eq!(sample.pressure.cpu, Reading::Missing);
-    assert_eq!(sample.gpu, Reading::Missing);
+    assert_eq!(
+        sample.gpu.measured().map(|gpu| gpu.busy_percent),
+        Some(None)
+    );
 }

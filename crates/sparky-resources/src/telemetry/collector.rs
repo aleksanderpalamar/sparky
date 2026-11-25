@@ -4,7 +4,7 @@ use sparky_hardware::pressure::{Pressure, parse_pressure};
 use sparky_hardware::procfs::{available_memory_kib, swap_kib, total_memory_kib};
 use sparky_hardware::stat::parse_stat;
 
-use super::sample::{GpuSample, MemorySample, Pressures, SystemSample, fresh};
+use super::sample::{GpuSample, MemorySample, Pressures, SystemSample, Vram, fresh};
 use crate::ports::Files;
 
 const DRM: &str = "/sys/class/drm";
@@ -52,11 +52,12 @@ impl<F: Files> Collector<F> {
     fn gpu(&self) -> Option<GpuSample> {
         let device = self.gpu.as_ref()?;
         let number = |name: &str| self.text(device.join(name))?.trim().parse::<u64>().ok();
-        Some(GpuSample {
-            busy_percent: u8::try_from(number("gpu_busy_percent")?.min(100)).ok()?,
-            vram_used: number("mem_info_vram_used")?,
-            vram_total: number("mem_info_vram_total")?,
-        })
+        let busy_percent =
+            number("gpu_busy_percent").and_then(|busy| u8::try_from(busy.min(100)).ok());
+        let vram = number("mem_info_vram_used")
+            .zip(number("mem_info_vram_total"))
+            .map(|(used, total)| Vram { used, total });
+        (busy_percent.is_some() || vram.is_some()).then_some(GpuSample { busy_percent, vram })
     }
 }
 
