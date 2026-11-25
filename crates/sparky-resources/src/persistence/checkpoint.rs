@@ -37,6 +37,7 @@ pub enum CheckpointError {
     Format,
     Kind,
     Checksum,
+    Values,
 }
 
 pub fn encode(checkpoint: &Checkpoint) -> Vec<u8> {

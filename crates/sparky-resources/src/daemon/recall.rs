@@ -39,16 +39,16 @@ impl<S: Storage> Recall<S> {
     }
 
     pub fn model(&self, kind: Kind, plan: &Plan) -> Option<Hybrid> {
-        let current = self.values(kind)?;
+        let current = self.values_at(kind, owner(kind, self.hardware), fits(shape(plan)))?;
         filled(shape(plan), current)
     }
 
     pub fn inherited(&self, kind: Kind, plan: &Plan) -> Option<Hybrid> {
-        let values = self.values_at(kind, stamp(kind, self.hardware, LEGACY))?;
         let legacy = Shape {
             context: ACTIVITIES.len(),
             ..shape(plan)
         };
+        let values = self.values_at(kind, stamp(kind, self.hardware, LEGACY), fits(legacy))?;
         let mut inherited = filled(legacy, values)?.widen(shape(plan))?;
         inherited.settle(1.0);
         Some(inherited)
@@ -88,18 +88,21 @@ impl<S: Storage> Recall<S> {
         }
     }
 
-    pub fn forget(&mut self) {
-        if let Some(Err(error)) = self.knowledge.as_mut().map(Knowledge::forget) {
-            eprintln!("sparky-resources: conhecimento não apagado: {error}");
-        }
+    pub fn forget(&mut self) -> std::io::Result<()> {
+        self.knowledge.as_mut().map_or(Ok(()), Knowledge::forget)
     }
 
     fn values(&self, kind: Kind) -> Option<Vec<f32>> {
-        self.values_at(kind, owner(kind, self.hardware))
+        self.values_at(kind, owner(kind, self.hardware), |_| true)
     }
 
-    fn values_at(&self, kind: Kind, owner: u64) -> Option<Vec<f32>> {
-        match self.knowledge.as_ref()?.restore(kind, owner) {
+    fn values_at(
+        &self,
+        kind: Kind,
+        owner: u64,
+        accept: impl Fn(&Checkpoint) -> bool,
+    ) -> Option<Vec<f32>> {
+        match self.knowledge.as_ref()?.restore_with(kind, owner, accept) {
             Restored::Model(checkpoint) => Some(checkpoint.values),
             _ => None,
         }
@@ -112,4 +115,12 @@ fn filled(shape: Shape, values: Vec<f32>) -> Option<Hybrid> {
         model.params.values = values;
         model
     })
+}
+
+fn fits(shape: Shape) -> impl Fn(&Checkpoint) -> bool {
+    let expected = Hybrid::new(shape, 0).params.len();
+    move |checkpoint| {
+        checkpoint.values.len() == expected
+            && checkpoint.values.iter().all(|value| value.is_finite())
+    }
 }

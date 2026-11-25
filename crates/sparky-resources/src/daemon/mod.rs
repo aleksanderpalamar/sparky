@@ -3,6 +3,9 @@ pub mod brain;
 mod brain_tests;
 pub mod compositor;
 pub mod conduct;
+pub mod forgetting;
+#[cfg(test)]
+mod forgetting_tests;
 pub mod herald;
 #[cfg(test)]
 mod herald_tests;
@@ -10,6 +13,8 @@ pub mod notify;
 pub mod recall;
 #[cfg(test)]
 mod recall_tests;
+#[cfg(test)]
+mod restore_guard_tests;
 #[cfg(test)]
 mod safe_mode_tests;
 pub mod sampling;

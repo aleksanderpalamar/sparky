@@ -32,6 +32,10 @@ impl DiskStorage {
         Some(base.join("sparky/resources"))
     }
 
+    fn settle(&self) -> io::Result<()> {
+        File::open(&self.directory)?.sync_all()
+    }
+
     fn path(&self, name: &str) -> io::Result<PathBuf> {
         let valid = !name.is_empty()
             && name
@@ -65,11 +69,12 @@ impl Storage for DiskStorage {
         file.write_all(bytes)?;
         file.sync_all()?;
         fs::rename(&temporary, &target)?;
-        File::open(&self.directory)?.sync_all()
+        self.settle()
     }
 
     fn rename(&self, from: &str, to: &str) -> io::Result<()> {
-        fs::rename(self.path(from)?, self.path(to)?)
+        fs::rename(self.path(from)?, self.path(to)?)?;
+        self.settle()
     }
 
     fn remove(&self, name: &str) -> io::Result<()> {

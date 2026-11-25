@@ -4,6 +4,7 @@ use std::os::unix::net::{UnixListener, UnixStream};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
+use super::forgetting::Forgetting;
 use super::server::Server;
 use super::service::Service;
 use crate::domain::{Activity, Change, Mode, ServiceState};
@@ -20,7 +21,7 @@ fn serving(directory: &tempfile::TempDir, mut service: Service) -> Option<std::p
     let server = Server::bind(&path).ok()?;
     service.ready();
     let service = Arc::new(Mutex::new(service));
-    thread::spawn(move || server.serve(&service));
+    thread::spawn(move || server.serve(&service, &Forgetting::default()));
     Some(path)
 }
 

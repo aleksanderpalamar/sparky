@@ -8,6 +8,7 @@ use sparky_resources::application::Observer;
 use sparky_resources::application::hardware::fingerprint;
 use sparky_resources::daemon::brain::Brain;
 use sparky_resources::daemon::conduct::Orchestra;
+use sparky_resources::daemon::forgetting::Forgetting;
 use sparky_resources::daemon::notify::notify;
 use sparky_resources::daemon::{Server, Service, Stop, Windows, follow, sample_forever};
 use sparky_resources::orchestration::Conductor;
@@ -51,16 +52,19 @@ fn main() -> ExitCode {
     let knowledge = DiskStorage::from_env()
         .and_then(|directory| DiskStorage::open(directory).ok())
         .map(Knowledge::new);
+    let forgetting = Arc::new(Forgetting::default());
     let worker = sample_forever(
         Observer::new(collector),
         Brain::new(knowledge, hardware),
         orchestra(ledger),
         windows,
         Arc::clone(&service),
+        Arc::clone(&forgetting),
     );
+    forgetting.wake_with(worker.thread().clone());
     let shared = Arc::clone(&service);
     let socket_path = server.path().to_owned();
-    thread::spawn(move || server.serve(&shared));
+    thread::spawn(move || server.serve(&shared, &forgetting));
     notify("READY=1");
     let outcome = stop.wait();
     let restored = match worker.finish() {
