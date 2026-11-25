@@ -41,6 +41,8 @@ impl Progress {
     }
 }
 
+const TOLERANCE: f64 = 1e-9;
+
 pub fn outcome(margin: f64, errors: &Errors, current: Option<f64>, finite: bool) -> Outcome {
     let Some(score) = errors.neural.filter(|_| errors.count > 0) else {
         return Outcome::NoData;
@@ -48,13 +50,18 @@ pub fn outcome(margin: f64, errors: &Errors, current: Option<f64>, finite: bool)
     if !finite || !score.is_finite() {
         return Outcome::Unstable;
     }
-    if score >= errors.statistical * (1.0 - margin) {
+    if !beats(score, errors.statistical, margin) {
         return Outcome::BehindStatistics;
     }
     if current.is_some_and(|current| score >= current) {
         return Outcome::BehindActive;
     }
     Outcome::Promoted
+}
+
+fn beats(score: f64, statistical: f64, margin: f64) -> bool {
+    let limit = statistical * (1.0 - margin);
+    statistical > 0.0 && score <= limit * (1.0 + TOLERANCE)
 }
 
 impl Round {

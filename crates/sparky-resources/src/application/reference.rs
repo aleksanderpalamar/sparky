@@ -1,3 +1,4 @@
+use super::archive::GAP;
 use super::baseline::{ALPHA, BETA, Insight};
 use super::encoding::{HORIZONS, OUTPUTS, SCALE, Sample};
 use crate::domain::METRICS;
@@ -6,10 +7,19 @@ use crate::predict::Holt;
 pub type Base = [Option<f32>; OUTPUTS];
 pub type Misses = [Option<f32>; OUTPUTS];
 
+pub fn continuous(previous: &Sample, next: &Sample) -> bool {
+    next.at - previous.at < GAP
+}
+
 pub fn bases(rows: &[Sample]) -> Vec<Base> {
     let mut holts = [Holt::new(ALPHA, BETA); METRICS.len()];
+    let mut previous: Option<&Sample> = None;
     rows.iter()
         .map(|sample| {
+            if previous.is_some_and(|previous| !continuous(previous, sample)) {
+                holts = [Holt::new(ALPHA, BETA); METRICS.len()];
+            }
+            previous = Some(sample);
             for (slot, metric) in METRICS.iter().enumerate() {
                 if let Some(value) = sample.features.get(*metric) {
                     holts[slot].update(sample.at, value);

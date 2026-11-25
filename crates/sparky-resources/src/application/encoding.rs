@@ -1,4 +1,4 @@
-use super::reference::{Base, Misses, bases, misses};
+use super::reference::{Base, Misses, bases, continuous, misses};
 use crate::domain::activity::ACTIVITIES;
 use crate::domain::{Activities, Features, METRICS};
 
@@ -99,6 +99,10 @@ pub fn examples(rows: &[Sample]) -> Vec<Example> {
 
 pub fn example_at(rows: &[Sample], bases: &[Base], end: usize) -> Option<Example> {
     let start = end.checked_sub(WINDOW)?;
+    let span = rows.get(start..end)?;
+    if !span.windows(2).all(|pair| continuous(&pair[0], &pair[1])) {
+        return None;
+    }
     let now = rows.get(end - 1)?;
     let base = bases.get(end - 1)?;
     let future = rows.get(end..)?;

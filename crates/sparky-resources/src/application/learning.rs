@@ -2,6 +2,7 @@ use std::collections::VecDeque;
 use std::time::Instant;
 
 use super::diagnosis::Tally;
+use super::drill::{Division, divide, practise};
 use super::encoding::{Example, Sample, WINDOW, example_at};
 pub use super::plan::{Plan, shape};
 use super::progress::{Outcome, Progress};
@@ -9,8 +10,6 @@ use super::reference::{Base, bases};
 use super::selection::{Judged, best, judge};
 use super::validation::Errors;
 use crate::neural::{Adam, Hybrid};
-
-const LEAK_GUARD: usize = 40;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Verdict {
@@ -96,18 +95,12 @@ impl Learner {
         let session = self
             .session
             .get_or_insert_with(|| start(plan, &self.history, self.incumbent.as_ref().or(active)));
-        let split = session.rows.len() * 7 / 10;
-        let last = split.saturating_sub(LEAK_GUARD).max(WINDOW);
+        let Division { split, last } = divide(session.rows.len());
         while Instant::now() < deadline && session.epoch < plan.epochs {
-            for end in session.cursor..(session.cursor + plan.batch).min(last) {
-                if let Some(example) = lesson(&session.rows, &session.bases, split, end) {
-                    session
-                        .model
-                        .accumulate(&example.window, &example.context, &example.targets);
-                }
-            }
-            session.adam.step(&mut session.model.params);
-            session.model.settle(plan.decay);
+            let lessons: Vec<Example> = (session.cursor..(session.cursor + plan.batch).min(last))
+                .filter_map(|end| lesson(&session.rows, &session.bases, split, end))
+                .collect();
+            practise(&mut session.model, &mut session.adam, &lessons, plan.decay);
             session.cursor += plan.batch;
             if session.cursor >= last {
                 session.cursor = WINDOW;
@@ -120,11 +113,16 @@ impl Learner {
         let Some(session) = self.session.take() else {
             return Verdict::Waiting;
         };
-        let (model, diagnosis) = best(self.incumbent.take(), session.model, &session.rows, split);
+        let previous = self.incumbent.take();
+        let (model, diagnosis) = best(previous.clone(), session.model, &session.rows, split);
         let errors = diagnosis.errors(true);
         self.diagnosis = Some(diagnosis);
         match judge(&plan, model, &session.rows, split, active, errors) {
             Judged::Promoted(model, errors) => Verdict::Promoted(Box::new(model), errors),
+            Judged::Rejected(errors, Outcome::NoData, _) => {
+                self.incumbent = previous;
+                Verdict::Rejected(errors, Outcome::NoData)
+            }
             Judged::Rejected(errors, outcome, incumbent) => {
                 self.incumbent = incumbent;
                 Verdict::Rejected(errors, outcome)

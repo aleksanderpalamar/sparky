@@ -1,19 +1,15 @@
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
+use sparky_resources::application::drill::{Division, divide};
 use sparky_resources::application::encoding::{
     Example, HORIZONS, OUTPUTS, Sample, WINDOW, absolute, decode, example_at, examples,
 };
-use sparky_resources::application::learning::{Plan, shape};
+use sparky_resources::application::learning::{Learner, Plan, Verdict, lesson};
 use sparky_resources::application::reference::bases;
 use sparky_resources::domain::{Activities, METRICS};
-use sparky_resources::neural::{Adam, Hybrid};
+use sparky_resources::neural::Hybrid;
 use sparky_resources::predict::trace::parse;
 use sparky_resources::predict::{Forecaster, Holt, Persistence};
-
-const EPOCHS: usize = 40;
-const BATCH: usize = 16;
-const SEED: u64 = 20261118;
-const LEAK_GUARD: usize = 40;
 
 fn main() -> std::io::Result<()> {
     let mut rows = Vec::new();
@@ -30,36 +26,68 @@ fn main() -> std::io::Result<()> {
                 }),
         );
     }
-    let all = examples(&rows);
-    let split = all.len() * 7 / 10;
-    let (train, test) = all.split_at(split);
-    let train = &train[..train.len().saturating_sub(LEAK_GUARD)];
-    let mut model = Hybrid::still(shape(&Plan::default()), SEED);
+    let plan = Plan::default();
+    let kept = rows.len().saturating_sub(plan.capacity);
+    let rows = rows.split_off(kept);
+    let division = divide(rows.len());
     println!(
-        "amostras={} exemplos treino={} teste={}",
-        rows.len(),
-        train.len(),
-        test.len()
+        "plano: epocas={} lote={} taxa={} decay={} margem={} semente={}",
+        plan.epochs, plan.batch, plan.rate, plan.decay, plan.margin, plan.seed
     );
-    println!("parametros: gru+mlp={}", model.params.len());
+    coverage(&rows, division);
     let started = Instant::now();
-    let mut adam = Adam::new(0.003, model.params.len());
-    for _ in 0..EPOCHS {
-        for batch in train.chunks(BATCH) {
-            for example in batch {
-                model.accumulate(&example.window, &example.context, &example.targets);
-            }
-            adam.step(&mut model.params);
+    let mut learner = Learner::new(plan);
+    learner.resume(rows.clone(), None);
+    let verdict = finish(&mut learner);
+    println!(
+        "treino: {:?}, decisao: {}",
+        started.elapsed(),
+        summary(&verdict)
+    );
+    let model = match verdict {
+        Verdict::Promoted(model, _) => Some(*model),
+        _ => learner.incumbent().cloned(),
+    };
+    let Some(model) = model else {
+        println!("sem modelo para avaliar");
+        return Ok(());
+    };
+    println!("parametros: gru+mlp={}", model.params.len());
+    compare(&rows, division.split, &model);
+    latency(&model, &examples(&rows[division.split..]));
+    Ok(())
+}
+
+fn coverage(rows: &[Sample], division: Division) {
+    let bases = bases(rows);
+    let training = (WINDOW..division.last)
+        .filter(|end| lesson(rows, &bases, division.split, *end).is_some())
+        .count();
+    let evaluation = (division.split.max(WINDOW)..=rows.len())
+        .filter(|end| example_at(rows, &bases, *end).is_some())
+        .count();
+    println!(
+        "amostras={} corte={} exemplos treino={training} avaliacao={evaluation}",
+        rows.len(),
+        division.split
+    );
+}
+
+fn finish(learner: &mut Learner) -> Verdict {
+    loop {
+        match learner.step(None, Instant::now() + Duration::from_millis(200)) {
+            Verdict::Training => continue,
+            other => return other,
         }
     }
-    let per_epoch = started.elapsed() / EPOCHS as u32;
-    println!(
-        "treino: {per_epoch:?} por epoca, {} passos",
-        EPOCHS * train.len().div_ceil(BATCH)
-    );
-    compare(&rows, split, &model);
-    latency(&model, test);
-    Ok(())
+}
+
+fn summary(verdict: &Verdict) -> String {
+    match verdict {
+        Verdict::Promoted(_, errors) => format!("aprovado {errors:?}"),
+        Verdict::Rejected(errors, outcome) => format!("{outcome:?} {errors:?}"),
+        other => format!("{other:?}"),
+    }
 }
 
 fn compare(rows: &[Sample], split: usize, model: &Hybrid) {
@@ -68,7 +96,7 @@ fn compare(rows: &[Sample], split: usize, model: &Hybrid) {
     let mut holts = [Holt::new(0.2, 0.0); METRICS.len()];
     let mut naive = [Persistence::default(); METRICS.len()];
     let bases = bases(rows);
-    for (index, end) in (WINDOW..rows.len()).enumerate() {
+    for end in WINDOW..rows.len() {
         let now = &rows[end - 1];
         for (slot, metric) in METRICS.iter().enumerate() {
             if let Some(value) = now.features.get(*metric) {
@@ -80,7 +108,7 @@ fn compare(rows: &[Sample], split: usize, model: &Hybrid) {
         else {
             continue;
         };
-        if index < split {
+        if end - 1 < split {
             continue;
         }
         let neural = decode(&model.predict(&example.window, &example.context), base);
