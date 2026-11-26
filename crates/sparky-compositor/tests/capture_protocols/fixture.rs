@@ -14,7 +14,7 @@ fn private_capture_server() -> Result<(), Error> {
         return Ok(());
     };
     let (mut event_loop, mut state) = compositor::start()?;
-    let output = compositor::attach_monitor(&mut state, "capture-fixture");
+    let output = compositor::attach_monitor(&mut state, "capture-fixture", 0);
     state.image_capture.formats.set(
         Some(0x1234),
         [

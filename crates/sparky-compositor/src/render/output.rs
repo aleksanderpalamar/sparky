@@ -6,8 +6,9 @@ use smithay::output::Output;
 use smithay::utils::{Logical, Point, Scale};
 use smithay::wayland::shell::wlr_layer::Layer as ShellLayer;
 use sparky_tiling::workspace_groups::Tabs;
-use sparky_tiling::{Fullscreen, Layer, Placement, Rect};
+use sparky_tiling::{Placement, Rect};
 
+use crate::layout::stacking::{Stratum, covers, strata};
 use crate::render::border;
 use crate::render::elements::SparkyElement;
 use crate::render::lock::lock_elements;
@@ -20,7 +21,11 @@ struct Target {
     scale: Scale<f64>,
 }
 
-pub fn output_elements<R>(state: &mut Sparky, renderer: &mut R, output: &Output) -> Vec<SparkyElement<R>>
+pub fn output_elements<R>(
+    state: &mut Sparky,
+    renderer: &mut R,
+    output: &Output,
+) -> Vec<SparkyElement<R>>
 where
     R: Renderer + ImportAll + ImportMem,
     R::TextureId: Clone + Texture + Send + 'static,
@@ -40,17 +45,29 @@ where
     let (above, below): (Vec<&Placement>, Vec<&Placement>) = placements
         .iter()
         .rev()
-        .partition(|placement| placement.layer == Layer::Fullscreen(Fullscreen::Monitor));
+        .partition(|placement| covers(placement));
     let map = layer_map_for_output(output);
-    let mut elements = layer_elements(&map, renderer, ShellLayer::Overlay, &target);
-    for window in state.unmanaged.iter().rev() {
-        elements.extend(surface(&state.space, window, renderer, &target));
+    let mut elements = Vec::new();
+    for stratum in strata(state.stacking.cover(&output.name())) {
+        let shell = match stratum {
+            Stratum::Overlay => ShellLayer::Overlay,
+            Stratum::Top => ShellLayer::Top,
+            Stratum::Bottom => ShellLayer::Bottom,
+            Stratum::Background => ShellLayer::Background,
+            Stratum::Unmanaged => {
+                for window in state.unmanaged.iter().rev() {
+                    elements.extend(surface(&state.space, window, renderer, &target));
+                }
+                continue;
+            }
+            Stratum::Windows => {
+                elements.extend(windows(state, renderer, &above, &bars, &target));
+                elements.extend(windows(state, renderer, &below, &bars, &target));
+                continue;
+            }
+        };
+        elements.extend(layer_elements(&map, renderer, shell, &target));
     }
-    elements.extend(windows(state, renderer, &above, &bars, &target));
-    elements.extend(layer_elements(&map, renderer, ShellLayer::Top, &target));
-    elements.extend(windows(state, renderer, &below, &bars, &target));
-    elements.extend(layer_elements(&map, renderer, ShellLayer::Bottom, &target));
-    elements.extend(layer_elements(&map, renderer, ShellLayer::Background, &target));
     elements.extend(wallpaper_element(state, renderer, output, geometry.size));
     elements
 }
@@ -95,9 +112,13 @@ where
         let width = border::border_width(placement, state.border());
         let frame = relative(placement.frame, target.origin);
         let color = state.colors.for_focus(placement.focused);
-        let edges = state.frames.elements(placement.window, frame, width, color, target.scale);
+        let edges = state
+            .frames
+            .elements(placement.window, frame, width, color, target.scale);
         elements.extend(edges.into_iter().map(SparkyElement::Solid));
-        let bar = bars.iter().find(|bar| bar.members.get(bar.active) == Some(&placement.window));
+        let bar = bars
+            .iter()
+            .find(|bar| bar.members.get(bar.active) == Some(&placement.window));
         if let Some(bar) = bar {
             let area = relative(bar.frame, target.origin);
             elements.extend(tab_elements(state, renderer, bar, area, target.scale));
@@ -120,17 +141,30 @@ where
         return Vec::new();
     };
     let origin = location - window.geometry().loc - target.origin;
-    window.render_elements(renderer, origin.to_physical_precise_round(target.scale), target.scale, 1.0)
+    window.render_elements(
+        renderer,
+        origin.to_physical_precise_round(target.scale),
+        target.scale,
+        1.0,
+    )
 }
 
-fn layer_elements<R>(map: &LayerMap, renderer: &mut R, layer: ShellLayer, target: &Target) -> Vec<SparkyElement<R>>
+fn layer_elements<R>(
+    map: &LayerMap,
+    renderer: &mut R,
+    layer: ShellLayer,
+    target: &Target,
+) -> Vec<SparkyElement<R>>
 where
     R: Renderer + ImportAll + ImportMem,
     R::TextureId: Clone + Texture + Send + 'static,
 {
     map.layers_on(layer)
         .rev()
-        .filter_map(|surface| map.layer_geometry(surface).map(|geometry| (surface, geometry.loc)))
+        .filter_map(|surface| {
+            map.layer_geometry(surface)
+                .map(|geometry| (surface, geometry.loc))
+        })
         .flat_map(|(surface, location)| {
             AsRenderElements::<R>::render_elements::<WaylandSurfaceRenderElement<R>>(
                 surface,
@@ -145,5 +179,10 @@ where
 }
 
 fn relative(frame: Rect, origin: Point<i32, Logical>) -> Rect {
-    Rect::new(frame.x - origin.x, frame.y - origin.y, frame.width, frame.height)
+    Rect::new(
+        frame.x - origin.x,
+        frame.y - origin.y,
+        frame.width,
+        frame.height,
+    )
 }

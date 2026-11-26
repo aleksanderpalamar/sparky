@@ -17,7 +17,7 @@ pub fn start() -> Result<(EventLoop<'static, Sparky>, Sparky), Error> {
     Ok((event_loop, state))
 }
 
-pub fn attach_monitor(state: &mut Sparky, name: &str) -> Output {
+pub fn attach_monitor(state: &mut Sparky, name: &str, x: i32) -> Output {
     let output = Output::new(
         name.into(),
         PhysicalProperties {
@@ -37,11 +37,11 @@ pub fn attach_monitor(state: &mut Sparky, name: &str) -> Output {
         Some(mode),
         Some(Transform::Normal),
         None,
-        Some((0, 0).into()),
+        Some((x, 0).into()),
     );
-    state.space.map_output(&output, (0, 0));
+    state.space.map_output(&output, (x, 0));
     state
         .desktop
-        .add_monitor(name, sparky_tiling::Rect::new(0, 0, 800, 600));
+        .add_monitor(name, sparky_tiling::Rect::new(x, 0, 800, 600));
     output
 }
