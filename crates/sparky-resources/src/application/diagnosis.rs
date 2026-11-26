@@ -4,18 +4,22 @@ use crate::domain::{Activity, METRICS};
 
 pub const ENTRY: f64 = 60.0;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Segment {
     Desktop,
     Entering,
     Playing,
+    Recording,
+    Compiling,
     Other,
 }
 
-pub const SEGMENTS: [Segment; 4] = [
+pub const SEGMENTS: [Segment; 6] = [
     Segment::Desktop,
     Segment::Entering,
     Segment::Playing,
+    Segment::Recording,
+    Segment::Compiling,
     Segment::Other,
 ];
 
@@ -25,6 +29,8 @@ impl Segment {
             Self::Desktop => "desktop",
             Self::Entering => "entrada",
             Self::Playing => "jogo",
+            Self::Recording => "gravacao",
+            Self::Compiling => "compilacao",
             Self::Other => "outros",
         }
     }
@@ -39,16 +45,26 @@ impl Phase {
     pub fn segment(&mut self, sample: &Sample) -> Segment {
         if !sample.activities.contains(Activity::Gaming) {
             self.since = None;
-            return match sample.activities.is_sensitive() {
-                true => Segment::Other,
-                false => Segment::Desktop,
-            };
+            return calm(sample.activities);
         }
         let since = *self.since.get_or_insert(sample.at);
         match sample.at - since < ENTRY {
             true => Segment::Entering,
             false => Segment::Playing,
         }
+    }
+}
+
+fn calm(activities: crate::domain::Activities) -> Segment {
+    if activities.contains(Activity::Recording) {
+        return Segment::Recording;
+    }
+    if activities.contains(Activity::Compiling) {
+        return Segment::Compiling;
+    }
+    match activities.is_sensitive() {
+        true => Segment::Other,
+        false => Segment::Desktop,
     }
 }
 

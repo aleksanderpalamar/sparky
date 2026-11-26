@@ -2,9 +2,11 @@ use std::time::{Duration, Instant};
 
 use sparky_resources::application::archive::unpack_samples;
 use sparky_resources::application::diagnosis::{SEGMENTS, Segment, Tally};
+use sparky_resources::application::drill::divide;
 use sparky_resources::application::encoding::OUTPUTS;
 use sparky_resources::application::learning::shape;
 use sparky_resources::application::learning::{Learner, Plan, Verdict};
+use sparky_resources::application::replay::sessions::overlap;
 use sparky_resources::domain::activity::ACTIVITIES;
 use sparky_resources::neural::{Hybrid, Shape};
 use sparky_resources::persistence::checkpoint::decode;
@@ -60,13 +62,25 @@ fn main() -> std::io::Result<()> {
         (model, _) => model,
     };
     println!("candidato herdado: {}", inherited.is_some());
+    let mut seen = samples.len();
     let mut learner = Learner::new(plan);
     learner.resume(samples, inherited);
     let mut active: Option<Hybrid> = None;
+    let mut previous: Option<std::ops::Range<usize>> = None;
     for round in 1..=rounds {
         for sample in arriving.by_ref().take(chunk) {
             learner.record(sample);
+            seen += 1;
         }
+        let kept = learner.samples().count();
+        let validation = seen - kept + divide(kept).split..seen;
+        let shared = previous
+            .as_ref()
+            .map_or(0.0, |earlier| overlap(earlier, &validation));
+        println!(
+            "rodada {round}: validacao {validation:?}, sobreposicao com a anterior {shared:.2}"
+        );
+        previous = Some(validation);
         let verdict = finish(&mut learner, active.as_ref());
         if let Verdict::Promoted(model, _) = &verdict {
             active = Some((**model).clone());
