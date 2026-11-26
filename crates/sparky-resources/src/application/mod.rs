@@ -51,6 +51,7 @@ mod recent_tests;
 pub mod reference;
 #[cfg(test)]
 mod reference_tests;
+pub mod replay;
 pub mod selection;
 #[cfg(test)]
 mod selection_tests;
