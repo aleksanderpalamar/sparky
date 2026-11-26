@@ -24,14 +24,17 @@ pub fn recognize(scene: &Scene) -> Activities {
 fn by_processes(
     activities: Activities,
     processes: &[Process],
-    capture: Option<Sensed>,
+    capture: Option<(u32, Sensed)>,
 ) -> Activities {
     let any = |list: &[&str]| processes.iter().any(|process| listed(list, &process.name));
     let mut found = activities;
     if Tree::new(processes).has_game() || any(&GAME_HOSTS) {
         found = found.with(Activity::Gaming);
     }
-    if any(&RECORDERS) && capture != Some(Sensed::Idle) {
+    let recording = |process: &Process| {
+        listed(&RECORDERS, &process.name) && capture != Some((process.pid, Sensed::Idle))
+    };
+    if processes.iter().any(recording) {
         found = found.with(Activity::Recording);
     }
     for (list, activity) in [

@@ -1,6 +1,10 @@
-use std::process::Command;
+use std::io;
+use std::os::unix::process::CommandExt;
+use std::process::{Child, Command};
 use std::thread;
 use std::time::{Duration, Instant};
+
+use nix::sys::signal::SigSet;
 
 use crate::context::{Sensed, Unavailable};
 
@@ -68,13 +72,26 @@ pub struct Spawn;
 
 impl Launch for Spawn {
     fn launch(&mut self) {
-        match Command::new(PROGRAM).spawn() {
+        match spawn(&mut Command::new(PROGRAM)) {
             Ok(mut child) => {
                 thread::spawn(move || child.wait());
             }
             Err(error) => eprintln!("sparky-resources: aviso do OBS não abriu: {error}"),
         }
     }
+}
+
+pub fn spawn(command: &mut Command) -> io::Result<Child> {
+    unsafe {
+        command.pre_exec(unblock_signals);
+    }
+    command.spawn()
+}
+
+fn unblock_signals() -> io::Result<()> {
+    SigSet::empty()
+        .thread_set_mask()
+        .map_err(|error| io::Error::from_raw_os_error(error as i32))
 }
 
 pub fn allowed() -> bool {

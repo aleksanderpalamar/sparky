@@ -133,9 +133,14 @@ fn ciclo_na_arvore_nao_trava_o_reconhecimento() {
 }
 
 fn obs(capture: Option<crate::context::Sensed>) -> Activities {
+    recorders(capture.map(|sensed| (4000, sensed)), &[4000])
+}
+
+fn recorders(capture: Option<(u32, crate::context::Sensed)>, pids: &[u32]) -> Activities {
+    let instances: Vec<Process> = pids.iter().map(|&pid| process(pid, 1233, "obs")).collect();
     let scene = Scene {
         capture,
-        ..with(desktop(), &[process(4000, 1233, "obs")])
+        ..with(desktop(), &instances)
     };
     recognize(&scene)
 }
@@ -161,4 +166,18 @@ fn sem_como_confirmar_o_obs_aberto_continua_gravacao() {
     ] {
         assert!(obs(capture).contains(Activity::Recording), "{capture:?}");
     }
+}
+
+#[test]
+fn obs_parado_so_libera_a_instancia_consultada() {
+    use crate::context::Sensed;
+    let activities = recorders(Some((4000, Sensed::Idle)), &[4000, 4001]);
+    assert!(activities.contains(Activity::Recording));
+}
+
+#[test]
+fn resposta_de_outro_processo_nao_libera_o_obs_aberto() {
+    use crate::context::Sensed;
+    let activities = recorders(Some((4999, Sensed::Idle)), &[4000]);
+    assert!(activities.contains(Activity::Recording));
 }

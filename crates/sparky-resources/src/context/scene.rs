@@ -27,5 +27,5 @@ pub struct Scene {
     pub processes: Option<Vec<Process>>,
     pub windows: Option<Vec<Window>>,
     pub load: Load,
-    pub capture: Option<Sensed>,
+    pub capture: Option<(u32, Sensed)>,
 }

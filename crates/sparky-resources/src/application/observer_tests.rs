@@ -98,3 +98,16 @@ fn sem_obs_aberto_o_obs_nao_e_consultado() {
     assert_eq!(observation.capture, None);
     assert_eq!(asked.load(std::sync::atomic::Ordering::SeqCst), 0);
 }
+
+#[test]
+fn com_duas_instancias_do_obs_a_resposta_nao_e_atribuida_a_nenhuma() {
+    let files = with_obs(machine(10)).with(
+        "/proc/901/stat",
+        "901 (obs) S 1 0 0 0 -1 0 0 0 0 0 1 1 0 0 20 0 1 0 1 0",
+    );
+    let (mut observer, asked) = sensing(files, crate::context::Sensed::Idle);
+    let observation = observer.observe(Instant::now(), Some(Vec::new()));
+    assert!(observation.activities.contains(Activity::Recording));
+    assert_eq!(observation.capture, None);
+    assert_eq!(asked.load(std::sync::atomic::Ordering::SeqCst), 0);
+}

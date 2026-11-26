@@ -1,6 +1,6 @@
 use std::time::{Duration, Instant};
 
-use super::obs_guide::{Guide, Launch};
+use super::obs_guide::{Guide, Launch, spawn};
 use crate::context::{Sensed, Unavailable};
 
 #[derive(Default)]
@@ -85,4 +85,25 @@ fn obs_funcionando_fechado_ou_com_senha_recusada_nao_avisa() {
         guide.consider(sensed, start + Duration::from_secs(60), || true);
     }
     assert_eq!(guide.launcher().0, 0);
+}
+
+#[test]
+fn o_aviso_nasce_sem_os_sinais_bloqueados_do_daemon() {
+    use nix::sys::signal::{SigSet, Signal};
+    use std::process::{Command, Stdio};
+    let mut blocked = SigSet::empty();
+    blocked.add(Signal::SIGTERM);
+    assert!(blocked.thread_block().is_ok());
+    let mut command = Command::new("sh");
+    command
+        .args(["-c", "grep SigBlk /proc/self/status"])
+        .stdout(Stdio::piped());
+    let output = spawn(&mut command).and_then(|child| child.wait_with_output());
+    assert!(blocked.thread_unblock().is_ok());
+    let text = output.map(|output| String::from_utf8_lossy(&output.stdout).into_owned());
+    assert!(
+        text.as_deref()
+            .is_ok_and(|text| text.contains("0000000000000000")),
+        "{text:?}"
+    );
 }

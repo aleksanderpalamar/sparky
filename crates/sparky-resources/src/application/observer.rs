@@ -55,7 +55,7 @@ impl<F: Files> Observer<F> {
             capture: None,
         };
         let capture = self.sense(scene.processes.as_deref(), now);
-        scene.capture = capture.map(|(_, sensed)| sensed);
+        scene.capture = capture;
         let mut activities = recognize(&scene);
         if deciding(activities, &sample) {
             scene.processes = self
@@ -76,10 +76,13 @@ impl<F: Files> Observer<F> {
 
 impl<F> Observer<F> {
     fn sense(&mut self, processes: Option<&[Process]>, now: Instant) -> Option<(u32, Sensed)> {
-        let pid = processes?
+        let mut recorders = processes?
             .iter()
-            .find(|process| listed(&RECORDERS, &process.name))?
-            .pid;
+            .filter(|process| listed(&RECORDERS, &process.name));
+        let pid = recorders.next()?.pid;
+        if recorders.next().is_some() {
+            return None;
+        }
         Some((pid, self.sensor.as_mut()?.sense(now)))
     }
 }
