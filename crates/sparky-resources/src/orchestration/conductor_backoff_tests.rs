@@ -7,12 +7,12 @@ use crate::domain::{Authority, Identity};
 use crate::persistence::fake_storage::FakeStorage;
 use crate::safety::fake_executor::FakeExecutor;
 use crate::safety::{Ledger, Outcome};
-use crate::telemetry::consumers::Consumer;
+use crate::telemetry::consumers::{Consumer, Usage};
 
 fn reverted_once<'a>(
     conductor: &mut Conductor<&'a FakeExecutor, &'a FakeStorage>,
     start: Instant,
-    consumers: &[(Consumer, u64)],
+    consumers: &[(Consumer, Usage)],
 ) {
     for (seconds, stall) in [(0, 40.0), (31, 39.0)] {
         conductor.tick(&moment(
@@ -26,7 +26,7 @@ fn reverted_once<'a>(
     }
 }
 
-fn helper() -> (Consumer, u64) {
+fn helper() -> (Consumer, Usage) {
     (
         Consumer {
             identity: Identity {
@@ -37,7 +37,7 @@ fn helper() -> (Consumer, u64) {
             name: "steamwebhelper".to_owned(),
             ticks: 0,
         },
-        200,
+        Usage::cpu(200),
     )
 }
 

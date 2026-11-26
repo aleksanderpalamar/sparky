@@ -38,3 +38,11 @@ fn notificacoes_comecam_desligadas_e_podem_ser_ligadas() {
     };
     assert!(config.resources.notify);
 }
+
+#[test]
+fn aviso_do_obs_comeca_ligado_e_pode_ser_desligado() {
+    let config = parse("").unwrap_or_default();
+    assert!(config.resources.obs_guide);
+    let quiet = parse("[resources]\nobs_guide = false\n").unwrap_or_default();
+    assert!(!quiet.resources.obs_guide);
+}

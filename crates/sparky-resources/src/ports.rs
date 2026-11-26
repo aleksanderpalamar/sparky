@@ -58,3 +58,7 @@ impl<E: Elevator> Elevator for &E {
 pub trait Notifier {
     fn notify(&self, title: &str, body: &str);
 }
+
+pub trait CaptureSensor {
+    fn sense(&mut self, now: std::time::Instant) -> crate::context::Sensed;
+}

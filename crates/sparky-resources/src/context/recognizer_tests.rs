@@ -27,6 +27,7 @@ fn with(mut processes: Vec<Process>, extra: &[Process]) -> Scene {
             cpu_busy_percent: Some(40.0),
             ..Load::default()
         },
+        capture: None,
     }
 }
 
@@ -129,4 +130,54 @@ fn sem_nenhum_dado_o_contexto_e_desconhecido() {
 fn ciclo_na_arvore_nao_trava_o_reconhecimento() {
     let scene = with(Vec::new(), &[process(10, 11, "a"), process(11, 10, "b")]);
     assert!(!recognize(&scene).contains(Activity::Gaming));
+}
+
+fn obs(capture: Option<crate::context::Sensed>) -> Activities {
+    recorders(capture.map(|sensed| (4000, sensed)), &[4000])
+}
+
+fn recorders(capture: Option<(u32, crate::context::Sensed)>, pids: &[u32]) -> Activities {
+    let instances: Vec<Process> = pids.iter().map(|&pid| process(pid, 1233, "obs")).collect();
+    let scene = Scene {
+        capture,
+        ..with(desktop(), &instances)
+    };
+    recognize(&scene)
+}
+
+#[test]
+fn obs_aberto_e_parado_nao_e_gravacao() {
+    assert!(!obs(Some(crate::context::Sensed::Idle)).contains(Activity::Recording));
+}
+
+#[test]
+fn obs_gravando_ou_transmitindo_e_gravacao() {
+    assert!(obs(Some(crate::context::Sensed::Capturing)).contains(Activity::Recording));
+}
+
+#[test]
+fn sem_como_confirmar_o_obs_aberto_continua_gravacao() {
+    use crate::context::{Sensed, Unavailable};
+    for capture in [
+        None,
+        Some(Sensed::Unavailable(Unavailable::Disabled)),
+        Some(Sensed::Unavailable(Unavailable::Unreachable)),
+        Some(Sensed::Unavailable(Unavailable::Unauthorized)),
+    ] {
+        assert!(obs(capture).contains(Activity::Recording), "{capture:?}");
+    }
+}
+
+#[test]
+fn obs_parado_so_libera_a_instancia_consultada() {
+    use crate::context::Sensed;
+    let activities = recorders(Some((4000, Sensed::Idle)), &[4000, 4001]);
+    assert!(activities.contains(Activity::Recording));
+}
+
+#[test]
+fn resposta_de_outro_processo_nao_libera_o_obs_aberto() {
+    use crate::context::Sensed;
+    let activities = recorders(Some((4999, Sensed::Idle)), &[4000]);
+    assert!(activities.contains(Activity::Recording));
 }

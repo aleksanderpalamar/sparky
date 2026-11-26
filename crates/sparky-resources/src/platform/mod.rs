@@ -10,6 +10,7 @@ pub mod files;
 #[cfg(test)]
 mod files_tests;
 pub mod notifier;
+pub mod obs;
 pub mod storage;
 #[cfg(test)]
 mod storage_tests;

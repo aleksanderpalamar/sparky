@@ -1,0 +1,9 @@
+title = Ative o servidor WebSocket do OBS
+explanation = O Sparky consulta o OBS para saber se você está gravando ou transmitindo de verdade. Com o servidor desligado, o OBS aberto conta sempre como gravação: o aprendizado fica pausado e os ajustes de desempenho podem agir sem necessidade.
+steps = Como ativar:
+step-open = 1. No OBS, abra o menu Ferramentas › Configurações do servidor WebSocket.
+step-enable = 2. Marque “Ativar servidor WebSocket”.
+step-apply = 3. Clique em Aplicar. O Sparky lê a senha sozinho, sem pedir nada.
+understood = Entendi
+never = Não avisar de novo
+hint = Enter confirma · Esc fecha

@@ -2,7 +2,7 @@ use super::planner::{Contention, Purpose, plan};
 use super::protection::protected;
 use crate::context::Process;
 use crate::domain::{Activities, Activity, Change, Identity, IoClass};
-use crate::telemetry::consumers::Consumer;
+use crate::telemetry::consumers::{Consumer, Usage};
 
 fn process(pid: u32, parent: u32, name: &str) -> Process {
     Process {
@@ -54,7 +54,10 @@ fn protege_jogo_gravacao_audio_e_o_proprio_desktop() {
 #[test]
 fn com_jogo_e_cpu_disputada_propoe_aliviar_o_maior_consumidor_de_fundo() {
     let kept = protected(&session(), 99, &[], &[]);
-    let consumers = [(consumer(31, "ets2"), 900), (consumer(60, "rustc"), 400)];
+    let consumers = [
+        (consumer(31, "ets2"), Usage::cpu(900)),
+        (consumer(60, "rustc"), Usage::cpu(400)),
+    ];
     let contention = Contention {
         cpu_stall: Some(35.0),
         io_stall: None,
@@ -76,7 +79,13 @@ fn com_jogo_e_cpu_disputada_propoe_aliviar_o_maior_consumidor_de_fundo() {
 
 #[test]
 fn disco_disputado_rebaixa_a_prioridade_de_io() {
-    let consumers = [(consumer(60, "rustc"), 400)];
+    let consumers = [(
+        consumer(60, "rustc"),
+        Usage {
+            cpu: 400,
+            io: Some(64 << 20),
+        },
+    )];
     let contention = Contention {
         cpu_stall: Some(1.0),
         io_stall: Some(40.0),
@@ -90,7 +99,7 @@ fn disco_disputado_rebaixa_a_prioridade_de_io() {
 
 #[test]
 fn sem_jogo_sem_disputa_ou_sem_consumidor_relevante_nao_interfere() {
-    let consumers = [(consumer(60, "rustc"), 400)];
+    let consumers = [(consumer(60, "rustc"), Usage::cpu(400))];
     let busy = Contention {
         cpu_stall: Some(50.0),
         io_stall: None,
@@ -104,7 +113,13 @@ fn sem_jogo_sem_disputa_ou_sem_consumidor_relevante_nao_interfere() {
         None
     );
     assert_eq!(
-        plan(gaming(), busy, &[(consumer(60, "rustc"), 10)], &[], &[]),
+        plan(
+            gaming(),
+            busy,
+            &[(consumer(60, "rustc"), Usage::cpu(10))],
+            &[],
+            &[]
+        ),
         None
     );
     assert_eq!(plan(gaming(), busy, &consumers, &[60], &[]), None);
@@ -118,4 +133,67 @@ fn a_janela_em_foco_e_seus_filhos_ficam_protegidos() {
     let kept = protected(&processes, 99, &[], &[70]);
     assert!(kept.contains(&70) && kept.contains(&71));
     assert!(!kept.contains(&60));
+}
+
+#[test]
+fn disco_disputado_escolhe_quem_faz_io_e_nao_quem_gasta_cpu() {
+    let consumers = [
+        (
+            consumer(60, "rustc"),
+            Usage {
+                cpu: 900,
+                io: Some(0),
+            },
+        ),
+        (
+            consumer(70, "rsync"),
+            Usage {
+                cpu: 10,
+                io: Some(64 << 20),
+            },
+        ),
+    ];
+    let disk = Contention {
+        cpu_stall: Some(1.0),
+        io_stall: Some(40.0),
+    };
+    let Some(candidate) = plan(gaming(), disk, &consumers, &[], &[]) else {
+        panic!("deveria propor ajuste de disco");
+    };
+    assert_eq!(candidate.purpose, Purpose::EaseIo);
+    assert_eq!(candidate.name, "rsync");
+    let cpu = Contention {
+        cpu_stall: Some(40.0),
+        io_stall: None,
+    };
+    assert_eq!(
+        plan(gaming(), cpu, &consumers, &[], &[]).map(|candidate| candidate.name),
+        Some("rustc".to_owned())
+    );
+}
+
+#[test]
+fn sem_telemetria_de_io_nao_ha_ajuste_de_disco() {
+    let consumers = [(consumer(70, "rsync"), Usage { cpu: 900, io: None })];
+    let disk = Contention {
+        cpu_stall: Some(1.0),
+        io_stall: Some(40.0),
+    };
+    assert_eq!(plan(gaming(), disk, &consumers, &[], &[]), None);
+}
+
+#[test]
+fn pouco_io_nao_justifica_ajuste_de_disco() {
+    let consumers = [(
+        consumer(70, "rsync"),
+        Usage {
+            cpu: 10,
+            io: Some(1 << 20),
+        },
+    )];
+    let disk = Contention {
+        cpu_stall: Some(1.0),
+        io_stall: Some(40.0),
+    };
+    assert_eq!(plan(gaming(), disk, &consumers, &[], &[]), None);
 }

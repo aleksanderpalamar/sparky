@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DOMAINS = {"login", "keyring", "polkit", "launcher", "settings", "bar", "files", "image", "shot", "monitor", "terminal", "notifications", "fetch", "store", "resources", "dock"}
+DOMAINS = {"login", "keyring", "polkit", "launcher", "settings", "bar", "files", "image", "shot", "monitor", "terminal", "notifications", "fetch", "store", "resources", "dock", "obs-guide"}
 
 
 class CatalogPackages(unittest.TestCase):

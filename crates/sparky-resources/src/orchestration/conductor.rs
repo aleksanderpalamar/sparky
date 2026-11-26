@@ -8,14 +8,14 @@ use crate::policy::{Block, Capabilities, Policy, Situation};
 use crate::ports::{Executor, Storage};
 use crate::safety::Ledger;
 use crate::safety::{Applied, commit, prepare};
-use crate::telemetry::consumers::Consumer;
+use crate::telemetry::consumers::{Consumer, Usage};
 
 pub struct Moment<'a> {
     pub at: Instant,
     pub seconds: u64,
     pub activities: Activities,
     pub contention: Contention,
-    pub consumers: &'a [(Consumer, u64)],
+    pub consumers: &'a [(Consumer, Usage)],
     pub protected: &'a [u32],
     pub authority: Authority,
     pub confidence: f32,

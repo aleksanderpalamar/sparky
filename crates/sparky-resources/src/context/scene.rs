@@ -1,3 +1,5 @@
+use super::capture::Sensed;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Process {
     pub pid: u32,
@@ -25,4 +27,5 @@ pub struct Scene {
     pub processes: Option<Vec<Process>>,
     pub windows: Option<Vec<Window>>,
     pub load: Load,
+    pub capture: Option<(u32, Sensed)>,
 }

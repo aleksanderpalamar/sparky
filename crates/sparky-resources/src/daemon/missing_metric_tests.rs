@@ -27,6 +27,7 @@ fn observation(features: Features) -> Observation {
         },
         processes: None,
         windows: None,
+        capture: None,
     }
 }
 

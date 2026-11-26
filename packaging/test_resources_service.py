@@ -38,9 +38,9 @@ class ResourcesServiceTest(unittest.TestCase):
         self.assertEqual(service["Slice"], "background.slice")
         self.assertEqual(service["IOSchedulingClass"], "idle")
 
-    def test_o_servico_nao_fala_com_a_rede_e_so_eleva_pelo_pkexec(self):
+    def test_o_servico_so_abre_socket_local_e_ipv4_e_so_eleva_pelo_pkexec(self):
         service = self.unit["Service"]
-        self.assertEqual(service["RestrictAddressFamilies"], "AF_UNIX")
+        self.assertEqual(service["RestrictAddressFamilies"], "AF_UNIX AF_INET")
         self.assertNotEqual(service.get("NoNewPrivileges"), "yes")
 
     def test_a_politica_do_polkit_so_libera_o_helper_na_sessao_ativa(self):

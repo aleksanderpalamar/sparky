@@ -13,6 +13,7 @@ use sparky_resources::daemon::notify::notify;
 use sparky_resources::daemon::{Server, Service, Stop, Windows, follow, sample_forever};
 use sparky_resources::orchestration::Conductor;
 use sparky_resources::persistence::Knowledge;
+use sparky_resources::platform::obs::probe::ObsProbe;
 use sparky_resources::platform::{DiskStorage, LinuxExecutor, LinuxFiles, Pkexec};
 use sparky_resources::policy::Capabilities;
 use sparky_resources::protocol::socket;
@@ -54,7 +55,7 @@ fn main() -> ExitCode {
         .map(Knowledge::new);
     let forgetting = Arc::new(Forgetting::default());
     let worker = sample_forever(
-        Observer::new(collector),
+        Observer::new(collector).sensing(Box::new(ObsProbe::from_disk())),
         Brain::new(knowledge, hardware),
         orchestra(ledger),
         windows,

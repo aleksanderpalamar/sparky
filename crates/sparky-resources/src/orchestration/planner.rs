@@ -1,10 +1,11 @@
 use serde::{Deserialize, Serialize};
 
 use crate::domain::{Activities, Activity, Adjustment, Change, IoClass};
-use crate::telemetry::consumers::Consumer;
+use crate::telemetry::consumers::{Consumer, Usage};
 
 pub const STALL: f32 = 20.0;
 const MIN_TICKS: u64 = 50;
+const MIN_BYTES: u64 = 8 << 20;
 const BACKGROUND_NICE: i8 = 10;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -39,23 +40,20 @@ pub struct Candidate {
 pub fn plan(
     activities: Activities,
     contention: Contention,
-    consumers: &[(Consumer, u64)],
+    consumers: &[(Consumer, Usage)],
     protected: &[u32],
     spare: &[u32],
 ) -> Option<Candidate> {
     if !(activities.contains(Activity::Gaming) || activities.contains(Activity::Recording)) {
         return None;
     }
-    let hog = consumers
-        .iter()
-        .filter(|(consumer, ticks)| {
-            *ticks >= MIN_TICKS && !protected.contains(&consumer.identity.pid)
-        })
-        .max_by_key(|(_, ticks)| *ticks)
-        .map(|(consumer, _)| consumer)?;
-    let target = hog.identity;
-    let adjust = |change| Adjustment { target, change };
-    if contention.cpu_stall.is_some_and(|stall| stall >= STALL) {
+    let contended = |stall: Option<f32>| stall.is_some_and(|stall| stall >= STALL);
+    if contended(contention.cpu_stall) {
+        let hog = heaviest(consumers, protected, |usage| Some(usage.cpu), MIN_TICKS)?;
+        let adjust = |change| Adjustment {
+            target: hog.identity,
+            change,
+        };
         let mut options = vec![adjust(Change::Nice(BACKGROUND_NICE))];
         if !spare.is_empty() {
             options.push(adjust(Change::Affinity(spare.to_vec())));
@@ -66,12 +64,31 @@ pub fn plan(
             options,
         });
     }
-    contention
-        .io_stall
-        .filter(|stall| *stall >= STALL)
-        .map(|_| Candidate {
-            purpose: Purpose::EaseIo,
-            name: hog.name.clone(),
-            options: vec![adjust(Change::IoPriority(IoClass::Idle))],
-        })
+    if !contended(contention.io_stall) {
+        return None;
+    }
+    let hog = heaviest(consumers, protected, |usage| usage.io, MIN_BYTES)?;
+    Some(Candidate {
+        purpose: Purpose::EaseIo,
+        name: hog.name.clone(),
+        options: vec![Adjustment {
+            target: hog.identity,
+            change: Change::IoPriority(IoClass::Idle),
+        }],
+    })
+}
+
+fn heaviest<'a>(
+    consumers: &'a [(Consumer, Usage)],
+    protected: &[u32],
+    measure: impl Fn(&Usage) -> Option<u64>,
+    minimum: u64,
+) -> Option<&'a Consumer> {
+    consumers
+        .iter()
+        .filter(|(consumer, _)| !protected.contains(&consumer.identity.pid))
+        .filter_map(|(consumer, usage)| Some((consumer, measure(usage)?)))
+        .filter(|(_, amount)| *amount >= minimum)
+        .max_by_key(|(_, amount)| *amount)
+        .map(|(consumer, _)| consumer)
 }

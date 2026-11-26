@@ -62,6 +62,7 @@ fn neural(brain: &mut Brain<&FakeStorage>) -> bool {
         },
         processes: None,
         windows: None,
+        capture: None,
     };
     (0..40)
         .flat_map(|step| brain.insights(f64::from(step) * 2.0, &observation))

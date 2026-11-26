@@ -1,0 +1,9 @@
+title = Turn on the OBS WebSocket server
+explanation = Sparky asks OBS whether you are really recording or streaming. With the server off, an open OBS always counts as recording: learning stays paused and performance adjustments may act when they are not needed.
+steps = How to turn it on:
+step-open = 1. In OBS, open Tools › WebSocket Server Settings.
+step-enable = 2. Check “Enable WebSocket server”.
+step-apply = 3. Click Apply. Sparky reads the password on its own, without asking.
+understood = Got it
+never = Don't remind me again
+hint = Enter confirms · Esc closes

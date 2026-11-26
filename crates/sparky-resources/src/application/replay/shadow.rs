@@ -8,7 +8,7 @@ use crate::orchestration::{Conductor, Contention, Decision, Moment, Verdict};
 use crate::policy::Capabilities;
 use crate::predict::Holt;
 use crate::safety::Ledger;
-use crate::telemetry::consumers::Consumer;
+use crate::telemetry::consumers::{Consumer, Usage};
 
 const HOG: u32 = 900;
 const CADENCE: u64 = 2;
@@ -45,7 +45,7 @@ pub fn replay(scenario: &Scenario, mode: Mode) -> Outcome {
         affinity: true,
     };
     let mut conductor = Conductor::new(&executor, Ledger::open(&storage), capabilities, vec![3]);
-    let consumers = [(hog(), RATE)];
+    let consumers = [(hog(), Usage::cpu(RATE))];
     let protected: &[u32] = if scenario.protected_hog { &[HOG] } else { &[] };
     let gaming: Activities = [Activity::Gaming].into_iter().collect();
     let mut holt = Holt::new(ALPHA, BETA);

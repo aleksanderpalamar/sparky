@@ -18,4 +18,4 @@ MemoryMax=64M
 MemorySwapMax=0
 CPUQuota=20%
 TasksMax=16
-RestrictAddressFamilies=AF_UNIX
+RestrictAddressFamilies=AF_UNIX AF_INET

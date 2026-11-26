@@ -1,0 +1,25 @@
+[package]
+name = "sparky-obs-guide"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "sparky-obs-guide"
+path = "src/main.rs"
+
+[lib]
+name = "sparky_obs_guide"
+path = "src/lib.rs"
+
+[dependencies]
+iced = { version = "0.14", features = ["tokio"] }
+iced_layershell = "0.19.1"
+sparky-config.workspace = true
+sparky-i18n.workspace = true
+sparky-theme.workspace = true
+sparky-ui.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

@@ -3,6 +3,7 @@ use std::time::{Duration, Instant};
 use sparky_resources::context::{Scene, recognize};
 use sparky_resources::platform::LinuxFiles;
 use sparky_resources::telemetry::Collector;
+use sparky_resources::telemetry::consumers::Consumers;
 use sparky_resources::telemetry::processes::{ProcessTable, Sweep, scan};
 
 const ROUNDS: usize = 200;
@@ -22,6 +23,15 @@ fn main() {
     report("releitura na decisao", || {
         at += Duration::from_secs(1);
         table.update(&LinuxFiles, at, Sweep::Decision);
+    });
+    let pids: Vec<u32> = scan(&LinuxFiles)
+        .unwrap_or_default()
+        .iter()
+        .map(|process| process.pid)
+        .collect();
+    let mut consumers = Consumers::default();
+    report("cpu e io dos processos", || {
+        consumers.measure(&LinuxFiles, &pids, Instant::now());
     });
     let processes = scan(&LinuxFiles);
     let scene = Scene {

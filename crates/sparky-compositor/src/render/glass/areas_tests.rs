@@ -44,6 +44,7 @@ fn os_dialogos_do_sparky_sao_vidro_na_superficie_inteira() {
         "sparky-keyring-prompt",
         "sparky-shot-picker",
         "sparky-share-source",
+        "sparky-obs-guide",
     ] {
         assert_eq!(areas.of(namespace), Some(GlassArea::Whole));
     }
