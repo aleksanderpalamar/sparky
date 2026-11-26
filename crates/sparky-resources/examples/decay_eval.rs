@@ -1,12 +1,10 @@
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use sparky_resources::application::archive::unpack_samples;
-use sparky_resources::application::drill::divide;
-use sparky_resources::application::encoding::WINDOW;
 use sparky_resources::application::learning::Plan;
 use sparky_resources::application::replay::confirm::{Paired, confirm};
 use sparky_resources::application::replay::holdout::{chain, freeze};
-use sparky_resources::application::replay::resample::interval;
+use sparky_resources::application::replay::report::summarize;
 use sparky_resources::application::replay::sessions::reserve;
 use sparky_resources::neural::objective::Objective;
 use sparky_resources::persistence::checkpoint::decode;
@@ -19,6 +17,14 @@ const OBJECTIVES: [Objective; 3] = [
     Objective::Huber(0.02),
     Objective::Absolute,
 ];
+
+struct Run {
+    plan: Plan,
+    updates: usize,
+    elapsed: Duration,
+    finite: bool,
+    pairs: Vec<Paired>,
+}
 
 fn main() -> std::io::Result<()> {
     let mut parts = Vec::new();
@@ -34,9 +40,8 @@ fn main() -> std::io::Result<()> {
     };
     let training = &rows[holdout.training.clone()];
     let base = Plan::default();
-    let steps = steps(&base, training.len());
     println!(
-        "amostras={} treino={:?} reserva={:?} taxa={} semente={} epocas={} passos<={steps}",
+        "amostras={} treino={:?} reserva={:?} taxa={} semente={} epocas={}",
         rows.len(),
         holdout.training,
         holdout.reserved,
@@ -45,9 +50,9 @@ fn main() -> std::io::Result<()> {
         base.epochs
     );
     println!(
-        "decay,objetivo,restante_apos_passos,duracao,finito,n,mae_rede,mae_estat,ganho_vs_atual [ic95]"
+        "decay,objetivo,passos_aplicados,restante_da_cabeca,duracao,finito,n,mae_rede,mae_estat,ganho_vs_atual [ic95]"
     );
-    let mut reference: Option<Vec<f64>> = None;
+    let mut current: Option<Vec<Paired>> = None;
     for objective in OBJECTIVES {
         for decay in DECAYS {
             let plan = Plan {
@@ -56,63 +61,61 @@ fn main() -> std::io::Result<()> {
                 ..base
             };
             let started = Instant::now();
-            let (model, _) = freeze(plan, training);
-            let elapsed = started.elapsed();
-            let pairs: Vec<Paired> = confirm(&rows, holdout.reserved.clone(), model.as_ref())
-                .into_values()
-                .flatten()
-                .collect();
-            let errors: Vec<f64> = pairs.iter().filter_map(|pair| pair.neural).collect();
-            let current = reference.get_or_insert_with(|| errors.clone());
-            report(
-                &plan,
-                steps,
-                elapsed,
-                model.is_some_and(|model| model.params.is_finite()),
-                &pairs,
-                &errors,
-                current,
-            );
+            let frozen = freeze(plan, training);
+            let run = Run {
+                plan,
+                updates: frozen.updates,
+                elapsed: started.elapsed(),
+                finite: frozen
+                    .model
+                    .as_ref()
+                    .is_some_and(|model| model.params.is_finite()),
+                pairs: confirm(&rows, holdout.reserved.clone(), frozen.model.as_ref())
+                    .into_values()
+                    .flatten()
+                    .collect(),
+            };
+            let reference = current.get_or_insert_with(|| run.pairs.clone());
+            report(&run, reference);
         }
     }
     Ok(())
 }
 
-fn steps(plan: &Plan, rows: usize) -> usize {
-    let division = divide(rows);
-    plan.epochs * division.last.saturating_sub(WINDOW).div_ceil(plan.batch)
-}
-
-fn report(
-    plan: &Plan,
-    steps: usize,
-    elapsed: std::time::Duration,
-    finite: bool,
-    pairs: &[Paired],
-    errors: &[f64],
-    current: &[f64],
-) {
-    let mean = |values: &[f64]| values.iter().sum::<f64>() / values.len().max(1) as f64;
-    let statistical: Vec<f64> = pairs.iter().map(|pair| pair.statistical).collect();
-    let paired: Vec<f64> = current
-        .iter()
-        .zip(errors)
-        .map(|(before, now)| before - now)
-        .collect();
-    let gain = (paired.len() == current.len())
-        .then(|| interval(&paired, 30, 1000, SEED))
-        .flatten()
+fn report(run: &Run, reference: &[Paired]) {
+    let summary = summarize(&run.pairs, SEED);
+    let versus: Option<Vec<Paired>> = (reference.len() == run.pairs.len()).then(|| {
+        reference
+            .iter()
+            .zip(&run.pairs)
+            .filter_map(|(before, now)| {
+                Some(Paired {
+                    at: before.at,
+                    neural: now.neural,
+                    statistical: before.neural?,
+                    persistence: None,
+                })
+            })
+            .collect()
+    });
+    let gain = versus
+        .and_then(|pairs| summarize(&pairs, SEED).gain)
         .map_or_else(
             || "-".to_owned(),
             |gain| format!("{:.4} [{:.4}; {:.4}]", gain.mean, gain.low, gain.high),
         );
+    let neural = summary
+        .neural
+        .map_or_else(|| "-".to_owned(), |neural| format!("{neural:.4}"));
     println!(
-        "{},{:?},{:.3e},{elapsed:.1?},{finite},{},{:.4},{:.4},{gain}",
-        plan.decay,
-        plan.objective,
-        f64::from(1.0 - plan.decay).powi(steps as i32),
-        errors.len(),
-        mean(errors),
-        mean(&statistical),
+        "{},{:?},{},{:.3e},{:.1?},{},{},{neural},{:.4},{gain}",
+        run.plan.decay,
+        run.plan.objective,
+        run.updates,
+        f64::from(1.0 - run.plan.decay).powi(i32::try_from(run.updates).unwrap_or(i32::MAX)),
+        run.elapsed,
+        run.finite,
+        summary.count,
+        summary.statistical,
     );
 }

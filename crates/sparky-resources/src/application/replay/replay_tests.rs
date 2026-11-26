@@ -154,13 +154,13 @@ fn coletas_encadeadas_viram_sessoes_separadas() {
 fn treino_congelado_e_deterministico_e_so_ve_o_treino() {
     use crate::application::learning_support::small;
     let rows = wave(0.0, 400, Activity::Desktop);
-    let (first, _) = super::holdout::freeze(small(), &rows[..320]);
-    let (again, _) = super::holdout::freeze(small(), &rows[..320]);
+    let first = super::holdout::freeze(small(), &rows[..320]).model;
+    let again = super::holdout::freeze(small(), &rows[..320]).model;
     assert_eq!(first, again);
     let mut changed = rows.clone();
     for sample in &mut changed[320..] {
         sample.features = Features::default().with(Metric::CpuBusy, Some(99.0));
     }
-    let (blind, _) = super::holdout::freeze(small(), &changed[..320]);
+    let blind = super::holdout::freeze(small(), &changed[..320]).model;
     assert_eq!(first, blind);
 }

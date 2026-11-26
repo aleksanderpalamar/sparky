@@ -23,16 +23,26 @@ pub fn chain(parts: Vec<Vec<Sample>>) -> Vec<Sample> {
     rows
 }
 
-pub fn freeze(plan: Plan, training: &[Sample]) -> (Option<Hybrid>, Verdict) {
+pub struct Frozen {
+    pub model: Option<Hybrid>,
+    pub verdict: Verdict,
+    pub updates: usize,
+}
+
+pub fn freeze(plan: Plan, training: &[Sample]) -> Frozen {
     let mut learner = Learner::new(plan);
     learner.resume(training.to_vec(), None);
     loop {
-        match learner.step(None, Instant::now() + SLICE) {
+        let verdict = learner.step(None, Instant::now() + SLICE);
+        let model = match &verdict {
             Verdict::Training => continue,
-            Verdict::Promoted(model, errors) => {
-                return (Some((*model).clone()), Verdict::Promoted(model, errors));
-            }
-            other => return (learner.incumbent().cloned(), other),
-        }
+            Verdict::Promoted(model, _) => Some((**model).clone()),
+            _ => learner.incumbent().cloned(),
+        };
+        return Frozen {
+            model,
+            verdict,
+            updates: learner.updates(),
+        };
     }
 }

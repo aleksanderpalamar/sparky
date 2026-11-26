@@ -26,6 +26,7 @@ struct Session {
     bases: Vec<Base>,
     cursor: usize,
     epoch: usize,
+    updates: usize,
 }
 
 pub struct Learner {
@@ -35,6 +36,7 @@ pub struct Learner {
     session: Option<Session>,
     incumbent: Option<Hybrid>,
     diagnosis: Option<Tally>,
+    updates: usize,
 }
 
 impl Learner {
@@ -47,6 +49,7 @@ impl Learner {
             session: None,
             incumbent: None,
             diagnosis: None,
+            updates: 0,
         }
     }
 
@@ -56,6 +59,10 @@ impl Learner {
 
     pub fn incumbent(&self) -> Option<&Hybrid> {
         self.incumbent.as_ref()
+    }
+
+    pub fn updates(&self) -> usize {
+        self.updates
     }
 
     pub fn diagnosis(&self) -> Option<&Tally> {
@@ -100,7 +107,9 @@ impl Learner {
             let lessons: Vec<Example> = (session.cursor..(session.cursor + plan.batch).min(last))
                 .filter_map(|end| lesson(&session.rows, &session.bases, split, end))
                 .collect();
-            practise(&mut session.model, &mut session.adam, &lessons, &plan);
+            if practise(&mut session.model, &mut session.adam, &lessons, &plan) > 0 {
+                session.updates += 1;
+            }
             session.cursor += plan.batch;
             if session.cursor >= last {
                 session.cursor = WINDOW;
@@ -113,6 +122,7 @@ impl Learner {
         let Some(session) = self.session.take() else {
             return Verdict::Waiting;
         };
+        self.updates = session.updates;
         let previous = self.incumbent.take();
         let (model, diagnosis) = best(previous.clone(), session.model, &session.rows, split);
         let errors = diagnosis.errors(true);
@@ -164,5 +174,6 @@ fn start(plan: Plan, history: &VecDeque<Sample>, origin: Option<&Hybrid>) -> Ses
         rows,
         cursor: WINDOW,
         epoch: 0,
+        updates: 0,
     }
 }

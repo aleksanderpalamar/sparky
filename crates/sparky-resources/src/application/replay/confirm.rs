@@ -3,7 +3,7 @@ use std::ops::Range;
 
 use crate::application::diagnosis::{Phase, Segment};
 use crate::application::encoding::{Sample, WINDOW, absolute, decode, example_at};
-use crate::application::reference::bases;
+use crate::application::reference::{bases, continuous};
 use crate::domain::METRICS;
 use crate::neural::Hybrid;
 
@@ -23,8 +23,11 @@ pub fn confirm(rows: &[Sample], reserved: Range<usize>, model: Option<&Hybrid>) 
     let mut cuts = Cuts::new();
     for end in 1..=rows.len() {
         let now = &rows[end - 1];
+        if end > 1 && !continuous(&rows[end - 2], now) {
+            phase = Phase::default();
+        }
         let segment = phase.segment(now);
-        if end - 1 < reserved.start || end < WINDOW {
+        if !reserved.contains(&(end - 1)) || end < WINDOW {
             continue;
         }
         let (Some(example), Some(base)) = (example_at(rows, &bases, end), bases.get(end - 1))

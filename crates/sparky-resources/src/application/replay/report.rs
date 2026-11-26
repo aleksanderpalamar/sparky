@@ -27,8 +27,9 @@ pub fn summarize(pairs: &[Paired], seed: u64) -> Summary {
         .iter()
         .filter_map(|pair| pair.neural.map(|neural| pair.statistical - neural))
         .collect();
-    let gain = (gains.len() >= 2 * BLOCK)
-        .then(|| interval(&gains, BLOCK, DRAWS, seed))
+    let joint = instants(pairs);
+    let gain = (joint.len() >= 2 * BLOCK)
+        .then(|| interval(&joint, BLOCK, DRAWS, seed))
         .flatten();
     let baseline = mean(&statistical);
     let lost = -mean(&gains);
@@ -41,6 +42,21 @@ pub fn summarize(pairs: &[Paired], seed: u64) -> Summary {
         margin: (!gains.is_empty() && baseline > 0.0).then(|| -lost / baseline),
         regression: lost >= MATERIAL && gain.is_some_and(|gain| gain.high < 0.0),
     }
+}
+
+fn instants(pairs: &[Paired]) -> Vec<f64> {
+    let mut timed: Vec<(f64, f64)> = pairs
+        .iter()
+        .filter_map(|pair| {
+            pair.neural
+                .map(|neural| (pair.at, pair.statistical - neural))
+        })
+        .collect();
+    timed.sort_by(|left, right| left.0.total_cmp(&right.0));
+    timed
+        .chunk_by(|left, right| left.0 == right.0)
+        .map(|group| group.iter().map(|(_, gain)| gain).sum::<f64>() / group.len() as f64)
+        .collect()
 }
 
 pub fn line(segment: Segment, output: usize, summary: &Summary) -> String {

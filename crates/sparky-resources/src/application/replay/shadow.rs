@@ -4,7 +4,7 @@ use super::volatile::{Recorder, Volatile};
 use crate::application::baseline::{ALPHA, BETA};
 use crate::domain::{Activities, Activity, Authority, Identity};
 use crate::orchestration::planner::STALL;
-use crate::orchestration::{Conductor, Contention, Moment, Verdict};
+use crate::orchestration::{Conductor, Contention, Decision, Moment, Verdict};
 use crate::policy::Capabilities;
 use crate::predict::Holt;
 use crate::safety::Ledger;
@@ -50,6 +50,7 @@ pub fn replay(scenario: &Scenario, mode: Mode) -> Outcome {
     let gaming: Activities = [Activity::Gaming].into_iter().collect();
     let mut holt = Holt::new(ALPHA, BETA);
     let start = Instant::now();
+    let mut seen = Seen::default();
     for (tick, stall) in scenario.stalls.iter().enumerate() {
         let seconds = tick as u64 * CADENCE;
         holt.update(seconds as f64, *stall);
@@ -68,42 +69,57 @@ pub fn replay(scenario: &Scenario, mode: Mode) -> Outcome {
             authority: Authority::Adaptive,
             confidence: 1.0,
         });
+        seen.absorb(&conductor);
     }
-    measure(scenario, &conductor, &executor)
+    measure(scenario, &seen, &executor)
 }
 
-fn measure(
-    scenario: &Scenario,
-    conductor: &Conductor<&Recorder, &Volatile>,
-    executor: &Recorder,
-) -> Outcome {
-    let decisions = conductor.decisions();
-    let applied: Vec<u64> = decisions
-        .iter()
-        .filter(|decision| decision.verdict == Verdict::Applied)
-        .map(|decision| decision.at_seconds)
-        .collect();
+#[derive(Default)]
+struct Seen {
+    recorded: u64,
+    applied: Vec<u64>,
+    finished: usize,
+}
+
+impl Seen {
+    fn absorb(&mut self, conductor: &Conductor<&Recorder, &Volatile>) {
+        let now = conductor.recorded();
+        let entries = conductor.decisions();
+        for decision in fresh(&entries, self.recorded, now) {
+            match decision.verdict {
+                Verdict::Applied => self.applied.push(decision.at_seconds),
+                Verdict::Finished(_) | Verdict::Reverted(_) => self.finished += 1,
+                _ => {}
+            }
+        }
+        self.recorded = now;
+    }
+}
+
+pub fn fresh(entries: &[Decision], before: u64, now: u64) -> &[Decision] {
+    let count = usize::try_from(now.saturating_sub(before))
+        .unwrap_or(usize::MAX)
+        .min(entries.len());
+    &entries[entries.len() - count..]
+}
+
+fn measure(scenario: &Scenario, seen: &Seen, executor: &Recorder) -> Outcome {
     let onset = scenario
         .stalls
         .iter()
         .position(|stall| *stall >= STALL)
         .map(|tick| tick as u64 * CADENCE);
-    let finished = decisions
-        .iter()
-        .filter(|decision| {
-            matches!(
-                decision.verdict,
-                Verdict::Finished(_) | Verdict::Reverted(_)
-            )
-        })
-        .count();
     Outcome {
-        interventions: applied.len(),
+        interventions: seen.applied.len(),
         latency: onset
-            .zip(applied.first())
+            .zip(seen.applied.first())
             .map(|(onset, first)| first - onset),
-        false_positives: if scenario.transient { applied.len() } else { 0 },
-        finished,
+        false_positives: if scenario.transient {
+            seen.applied.len()
+        } else {
+            0
+        },
+        finished: seen.finished,
         protected_writes: match scenario.protected_hog {
             true => executor.writes_to(HOG),
             false => 0,

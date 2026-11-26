@@ -49,8 +49,13 @@ fn main() -> std::io::Result<()> {
         overlap(&(inner.split..training.len()), &holdout.reserved)
     );
     let started = Instant::now();
-    let (model, verdict) = freeze(plan, training);
-    println!("decisao do treino: {}", summary(&verdict));
+    let frozen = freeze(plan, training);
+    println!(
+        "decisao do treino: {} (passos aplicados={})",
+        summary(&frozen.verdict),
+        frozen.updates
+    );
+    let model = frozen.model;
     println!("treino congelado em {:?}", started.elapsed());
     let cuts = confirm(&rows, holdout.reserved.clone(), model.as_ref());
     publish(&cuts);
