@@ -17,16 +17,32 @@ pub struct Consumer {
 
 const WINDOW: Duration = Duration::from_secs(2);
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Usage {
+    pub cpu: u64,
+    pub io: Option<u64>,
+}
+
+impl Usage {
+    pub fn cpu(ticks: u64) -> Self {
+        Self {
+            cpu: ticks,
+            io: None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 struct Mark {
     ticks: u64,
+    bytes: Option<u64>,
     at: Instant,
 }
 
 #[derive(Default)]
 pub struct Consumers {
     marks: HashMap<Identity, Mark>,
-    rates: HashMap<Identity, u64>,
+    rates: HashMap<Identity, Usage>,
 }
 
 impl Consumers {
@@ -40,26 +56,33 @@ impl Consumers {
         files: &impl Files,
         pids: &[u32],
         now: Instant,
-    ) -> Vec<(Consumer, u64)> {
-        let current: Vec<Consumer> = pids.iter().filter_map(|pid| read(files, *pid)).collect();
-        let alive: HashSet<Identity> = current.iter().map(|consumer| consumer.identity).collect();
+    ) -> Vec<(Consumer, Usage)> {
+        let current: Vec<(Consumer, Option<u64>)> = pids
+            .iter()
+            .filter_map(|pid| Some((read(files, *pid)?, bytes(files, *pid))))
+            .collect();
+        let alive: HashSet<Identity> = current
+            .iter()
+            .map(|(consumer, _)| consumer.identity)
+            .collect();
         self.marks.retain(|identity, _| alive.contains(identity));
         self.rates.retain(|identity, _| alive.contains(identity));
-        for consumer in &current {
-            self.advance(consumer, now);
+        for (consumer, bytes) in &current {
+            self.advance(consumer, *bytes, now);
         }
         current
             .into_iter()
-            .filter_map(|consumer| {
-                let rate = *self.rates.get(&consumer.identity)?;
-                Some((consumer, rate))
+            .filter_map(|(consumer, _)| {
+                let usage = *self.rates.get(&consumer.identity)?;
+                Some((consumer, usage))
             })
             .collect()
     }
 
-    fn advance(&mut self, consumer: &Consumer, now: Instant) {
+    fn advance(&mut self, consumer: &Consumer, bytes: Option<u64>, now: Instant) {
         let mark = Mark {
             ticks: consumer.ticks,
+            bytes,
             at: now,
         };
         let Some(before) = self.marks.get(&consumer.identity).copied() else {
@@ -71,8 +94,16 @@ impl Consumers {
             return;
         }
         let spent = consumer.ticks.saturating_sub(before.ticks);
-        self.rates
-            .insert(consumer.identity, normalized(spent, elapsed));
+        let moved = bytes
+            .zip(before.bytes)
+            .map(|(now, before)| normalized(now.saturating_sub(before), elapsed));
+        self.rates.insert(
+            consumer.identity,
+            Usage {
+                cpu: normalized(spent, elapsed),
+                io: moved,
+            },
+        );
         self.marks.insert(consumer.identity, mark);
     }
 }
@@ -92,4 +123,14 @@ fn read(files: &impl Files, pid: u32) -> Option<Consumer> {
         name: stat.comm,
         ticks: stat.ticks,
     })
+}
+
+fn bytes(files: &impl Files, pid: u32) -> Option<u64> {
+    let text = files.read(Path::new(&format!("/proc/{pid}/io"))).ok()?;
+    let field = |name: &str| {
+        text.lines()
+            .find_map(|line| line.strip_prefix(name))
+            .and_then(|value| value.trim().parse::<u64>().ok())
+    };
+    Some(field("read_bytes:")? + field("write_bytes:")?)
 }

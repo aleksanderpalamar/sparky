@@ -6,7 +6,7 @@ use super::planner::Contention;
 use crate::domain::{Activities, Activity, Authority, Change, ChangeKind, Identity};
 use crate::policy::Capabilities;
 use crate::safety::fake_executor::FakeExecutor;
-use crate::telemetry::consumers::Consumer;
+use crate::telemetry::consumers::{Consumer, Usage};
 
 pub const NO_NICE: Capabilities = Capabilities {
     restore_nice: false,
@@ -14,7 +14,7 @@ pub const NO_NICE: Capabilities = Capabilities {
     affinity: true,
 };
 
-pub fn hog() -> Vec<(Consumer, u64)> {
+pub fn hog() -> Vec<(Consumer, Usage)> {
     vec![(
         Consumer {
             identity: Identity {
@@ -25,7 +25,7 @@ pub fn hog() -> Vec<(Consumer, u64)> {
             name: "rustc".to_owned(),
             ticks: 0,
         },
-        500,
+        Usage::cpu(500),
     )]
 }
 
@@ -39,7 +39,7 @@ pub fn moment<'a>(
     activities: Activities,
     stall: f32,
     authority: Authority,
-    consumers: &'a [(Consumer, u64)],
+    consumers: &'a [(Consumer, Usage)],
 ) -> Moment<'a> {
     Moment {
         at: start + Duration::from_secs(seconds),

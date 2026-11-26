@@ -8,7 +8,7 @@ use crate::persistence::fake_storage::FakeStorage;
 use crate::ports::{ExecError, Executor};
 use crate::safety::fake_executor::FakeExecutor;
 use crate::safety::{Ledger, Outcome, prepare};
-use crate::telemetry::consumers::Consumer;
+use crate::telemetry::consumers::{Consumer, Usage};
 
 fn kept<'a>(
     executor: &'a FakeExecutor,
@@ -37,7 +37,7 @@ fn kept<'a>(
     conductor
 }
 
-fn other() -> Vec<(Consumer, u64)> {
+fn other() -> Vec<(Consumer, Usage)> {
     vec![(
         Consumer {
             identity: Identity {
@@ -48,7 +48,7 @@ fn other() -> Vec<(Consumer, u64)> {
             name: "cargo".to_owned(),
             ticks: 0,
         },
-        500,
+        Usage::cpu(500),
     )]
 }
 

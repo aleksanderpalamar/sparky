@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
-use crate::telemetry::consumers::Consumer;
+use crate::telemetry::consumers::{Consumer, Usage};
 
 const FIRST: Duration = Duration::from_secs(600);
 const LONGEST: Duration = Duration::from_secs(3600);
@@ -44,7 +44,11 @@ impl Backoff {
             .is_some_and(|strikes| now < strikes.until)
     }
 
-    pub fn eligible(&self, consumers: &[(Consumer, u64)], now: Instant) -> Vec<(Consumer, u64)> {
+    pub fn eligible(
+        &self,
+        consumers: &[(Consumer, Usage)],
+        now: Instant,
+    ) -> Vec<(Consumer, Usage)> {
         consumers
             .iter()
             .filter(|(consumer, _)| !self.resting(&consumer.name, now))

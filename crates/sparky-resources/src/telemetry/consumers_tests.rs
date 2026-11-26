@@ -15,7 +15,7 @@ fn rate(consumers: &mut Consumers, files: &FakeFiles, now: Instant) -> Option<u6
     consumers
         .measure(files, &[50], now)
         .first()
-        .map(|(_, rate)| *rate)
+        .map(|(_, usage)| usage.cpu)
 }
 
 #[test]
@@ -64,4 +64,36 @@ fn mesma_taxa_da_o_mesmo_valor_em_cadencias_diferentes() {
         }
         assert_eq!(last, Some(50), "cadência {cadence:?}");
     }
+}
+
+fn with_io(ticks: u64, bytes: u64) -> FakeFiles {
+    at(ticks).with(
+        "/proc/50/io",
+        &format!("rchar: 1\nwchar: 1\nread_bytes: {bytes}\nwrite_bytes: {bytes}\ncancelled_write_bytes: 0\n"),
+    )
+}
+
+#[test]
+fn mede_tambem_o_io_de_disco_no_mesmo_intervalo() {
+    let (mut consumers, start) = (Consumers::default(), Instant::now());
+    consumers.measure(&with_io(100, 1_000), &[50], start);
+    let usage = consumers
+        .measure(&with_io(160, 2_000), &[50], start + Duration::from_secs(4))
+        .first()
+        .map(|(_, usage)| *usage);
+    assert_eq!(
+        usage.map(|usage| (usage.cpu, usage.io)),
+        Some((30, Some(1_000)))
+    );
+}
+
+#[test]
+fn sem_contador_de_io_o_io_fica_ausente() {
+    let (mut consumers, start) = (Consumers::default(), Instant::now());
+    consumers.measure(&at(100), &[50], start);
+    let usage = consumers
+        .measure(&at(160), &[50], start + Duration::from_secs(2))
+        .first()
+        .map(|(_, usage)| *usage);
+    assert_eq!(usage.map(|usage| usage.io), Some(None));
 }
