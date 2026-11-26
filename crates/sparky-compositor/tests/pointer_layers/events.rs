@@ -1,13 +1,15 @@
 use wayland_client::globals::GlobalListContents;
 use wayland_client::protocol::{
-    wl_buffer, wl_compositor, wl_output, wl_pointer, wl_region, wl_registry, wl_seat, wl_shm,
-    wl_shm_pool, wl_surface,
+    wl_buffer, wl_compositor, wl_keyboard, wl_output, wl_pointer, wl_region, wl_registry, wl_seat,
+    wl_shm, wl_shm_pool, wl_surface,
 };
 use wayland_client::{Connection, Dispatch, QueueHandle, WEnum, delegate_noop};
 pub use wayland_protocols::wp::pointer_constraints::zv1::client::{
     zwp_confined_pointer_v1 as confined, zwp_pointer_constraints_v1 as constraints,
 };
-pub use wayland_protocols::xdg::shell::client::{xdg_surface, xdg_toplevel, xdg_wm_base};
+pub use wayland_protocols::xdg::shell::client::{
+    xdg_popup, xdg_positioner, xdg_surface, xdg_toplevel, xdg_wm_base,
+};
 pub use wayland_protocols_wlr::layer_shell::v1::client::{
     zwlr_layer_shell_v1 as layer_shell, zwlr_layer_surface_v1 as layer_surface,
 };
@@ -20,6 +22,8 @@ pub struct Events {
     pub configured: usize,
     pub layer_sizes: Vec<(u32, u32)>,
     pub confined: bool,
+    pub keyboard: Option<wl_surface::WlSurface>,
+    pub serial: Option<u32>,
 }
 
 impl Dispatch<wl_registry::WlRegistry, GlobalListContents> for Events {
@@ -53,9 +57,30 @@ impl Dispatch<wl_pointer::WlPointer, ()> for Events {
             wl_pointer::Event::Leave { .. } => state.focus = None,
             wl_pointer::Event::Motion { surface_y, .. } => state.last_y = Some(surface_y),
             wl_pointer::Event::Button {
+                serial,
                 state: WEnum::Value(button),
                 ..
-            } => state.presses.push((state.focus.clone(), button)),
+            } => {
+                state.serial = Some(serial);
+                state.presses.push((state.focus.clone(), button));
+            }
+            _ => {}
+        }
+    }
+}
+
+impl Dispatch<wl_keyboard::WlKeyboard, ()> for Events {
+    fn event(
+        state: &mut Self,
+        _: &wl_keyboard::WlKeyboard,
+        event: wl_keyboard::Event,
+        _: &(),
+        _: &Connection,
+        _: &QueueHandle<Self>,
+    ) {
+        match event {
+            wl_keyboard::Event::Enter { surface, .. } => state.keyboard = Some(surface),
+            wl_keyboard::Event::Leave { .. } => state.keyboard = None,
             _ => {}
         }
     }
@@ -137,3 +162,5 @@ delegate_noop!(Events: ignore wl_surface::WlSurface);
 delegate_noop!(Events: ignore wl_output::WlOutput);
 delegate_noop!(Events: ignore wl_seat::WlSeat);
 delegate_noop!(Events: ignore xdg_toplevel::XdgToplevel);
+delegate_noop!(Events: ignore xdg_popup::XdgPopup);
+delegate_noop!(Events: xdg_positioner::XdgPositioner);

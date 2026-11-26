@@ -32,7 +32,7 @@ impl Sparky {
         }
         self.update_keyboard_focus();
         self.publish_scales();
-        self.refresh_pointer();
+        self.pointer_stale = true;
         self.needs_render = true;
     }
 

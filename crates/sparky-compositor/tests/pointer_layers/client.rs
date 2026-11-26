@@ -2,12 +2,12 @@ use std::{fs, thread, time::Duration, time::Instant};
 
 use wayland_client::EventQueue;
 use wayland_client::globals::{GlobalList, registry_queue_init};
-use wayland_client::protocol::{wl_compositor, wl_output, wl_pointer, wl_shm, wl_surface};
+use wayland_client::protocol::{wl_compositor, wl_output, wl_pointer, wl_seat, wl_shm, wl_surface};
 
 use super::events::{Events, layer_shell, xdg_wm_base};
 use super::fixture::{COMMAND, Error, NAME, Server};
-use super::server::wait;
-use super::surfaces::{Bar, buffer};
+use super::surfaces::Bar;
+use super::windows::{Toplevel, toplevel};
 
 pub struct Client {
     pub events: Events,
@@ -18,6 +18,9 @@ pub struct Client {
     pub layers: layer_shell::ZwlrLayerShellV1,
     pub window: wl_surface::WlSurface,
     pub bar: wl_surface::WlSurface,
+    pub first: Toplevel,
+    pub base: xdg_wm_base::XdgWmBase,
+    pub seat: wl_seat::WlSeat,
     pub pointer: wl_pointer::WlPointer,
     server: Server,
 }
@@ -31,21 +34,11 @@ impl Client {
         let shm: wl_shm::WlShm = globals.bind(&qh, 1..=1, ())?;
         let base: xdg_wm_base::XdgWmBase = globals.bind(&qh, 1..=5, ())?;
         let layers: layer_shell::ZwlrLayerShellV1 = globals.bind(&qh, 1..=4, ())?;
-        let seat: wayland_client::protocol::wl_seat::WlSeat = globals.bind(&qh, 1..=7, ())?;
+        let seat: wl_seat::WlSeat = globals.bind(&qh, 1..=7, ())?;
         let pointer = seat.get_pointer(&qh, ());
-        let window = compositor.create_surface(&qh, ());
-        let xdg = base.get_xdg_surface(&window, &qh, ());
-        xdg.get_toplevel(&qh, ());
-        window.commit();
+        seat.get_keyboard(&qh, ());
         let mut events = Events::default();
-        wait(
-            &mut queue,
-            &mut events,
-            |events| events.configured > 0,
-            "janela sem configure",
-        )?;
-        window.attach(Some(&buffer(&shm, &qh, 800, 600)?), 0, 0);
-        window.commit();
+        let first = toplevel(&mut queue, &mut events, &compositor, &base, &shm)?;
         let mut client = Self {
             events,
             queue,
@@ -53,8 +46,11 @@ impl Client {
             compositor,
             shm,
             layers,
-            window: window.clone(),
-            bar: window,
+            window: first.surface.clone(),
+            bar: first.surface.clone(),
+            first,
+            base,
+            seat,
             pointer,
             server,
         };

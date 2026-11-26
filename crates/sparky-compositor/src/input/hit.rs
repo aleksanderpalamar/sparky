@@ -6,7 +6,7 @@ use sparky_tiling::WindowId;
 
 use crate::layout::stacking::{Cover, Stratum, strata};
 use crate::state::Sparky;
-use crate::windows::surface::{root_of, root_surface};
+use crate::windows::surface::root_surface;
 
 pub type Under = (WlSurface, Point<f64, Logical>);
 
@@ -35,7 +35,7 @@ impl Sparky {
     }
 
     pub fn window_owning(&self, surface: &WlSurface) -> Option<WindowId> {
-        let root = root_of(surface);
+        let root = self.owner(surface);
         let (id, _) = self
             .windows
             .find(|window| root_surface(window).as_ref() == Some(&root))?;

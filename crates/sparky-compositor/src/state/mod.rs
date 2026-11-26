@@ -64,6 +64,7 @@ pub struct Sparky {
     pub needs_render: bool,
     pub glass: crate::render::glass::areas::Areas,
     pub stacking: crate::layout::stacking::Stacking,
+    pub pointer_stale: bool,
     pub xwm: Option<X11Wm>,
     pub x_display: Option<u32>,
     pub active_window: Option<Box<dyn crate::xwayland::active::ActiveWindow>>,
@@ -135,6 +136,7 @@ impl Sparky {
             needs_render: true,
             glass: Default::default(),
             stacking: Default::default(),
+            pointer_stale: false,
             xwm: None,
             x_display: None,
             active_window: None,
@@ -148,6 +150,9 @@ impl Sparky {
 
     pub fn after_dispatch(&mut self) {
         self.diagnostics.phase(Phase::Dispatch);
+        if std::mem::take(&mut self.pointer_stale) {
+            self.refresh_pointer();
+        }
         if std::mem::take(&mut self.needs_render) {
             self.image_capture.generation = self.image_capture.generation.wrapping_add(1);
             self.render_pending();

@@ -10,6 +10,8 @@ mod events;
 mod fixture;
 #[path = "pointer_layers/fullscreen.rs"]
 mod fullscreen;
+#[path = "pointer_layers/grabs.rs"]
+mod grabs;
 #[path = "pointer_layers/layers.rs"]
 mod layers;
 #[path = "support/ready.rs"]
@@ -18,3 +20,5 @@ mod ready;
 mod server;
 #[path = "pointer_layers/surfaces.rs"]
 mod surfaces;
+#[path = "pointer_layers/windows.rs"]
+mod windows;
