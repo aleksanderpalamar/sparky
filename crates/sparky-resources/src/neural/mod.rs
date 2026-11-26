@@ -4,6 +4,9 @@ pub mod dense;
 mod gradient_tests;
 pub mod gru;
 pub mod hybrid;
+pub mod objective;
+#[cfg(test)]
+mod objective_tests;
 pub mod params;
 pub mod rng;
 #[cfg(test)]

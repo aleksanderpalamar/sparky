@@ -32,7 +32,7 @@ fn separa_desktop_entrada_jogo_e_outros() {
     );
     assert_eq!(
         phase.segment(&at(200.0, &[Activity::Compiling])),
-        Segment::Other
+        Segment::Compiling
     );
 }
 
@@ -79,5 +79,24 @@ fn as_linhas_trazem_grupo_metrica_horizonte_e_contagem() {
             "jogo CpuBusy 10s n=1 rede=2.00 estat=4.00".to_owned(),
         ]
     );
-    assert_eq!(SEGMENTS.len(), 4);
+    assert_eq!(SEGMENTS.len(), 6);
+}
+
+#[test]
+fn gravacao_e_compilacao_tem_grupos_proprios() {
+    let mut phase = Phase::default();
+    assert_eq!(
+        phase.segment(&at(0.0, &[Activity::Recording])),
+        Segment::Recording
+    );
+    assert_eq!(
+        phase.segment(&at(2.0, &[Activity::Compiling])),
+        Segment::Compiling
+    );
+    assert_eq!(
+        phase.segment(&at(4.0, &[Activity::CriticalPressure])),
+        Segment::Other
+    );
+    assert_eq!(Segment::Recording.label(), "gravacao");
+    assert_eq!(Segment::Compiling.label(), "compilacao");
 }

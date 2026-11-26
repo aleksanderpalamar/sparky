@@ -1,5 +1,6 @@
 use super::encoding::{CONTEXT_INPUTS, OUTPUTS, STEP_INPUTS};
 use crate::neural::Shape;
+use crate::neural::objective::Objective;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Plan {
@@ -9,6 +10,7 @@ pub struct Plan {
     pub batch: usize,
     pub rate: f32,
     pub decay: f32,
+    pub objective: Objective,
     pub margin: f64,
     pub hidden: usize,
     pub blend: usize,
@@ -24,6 +26,7 @@ impl Default for Plan {
             batch: 16,
             rate: 0.001,
             decay: 0.1,
+            objective: Objective::Squared,
             margin: 0.05,
             hidden: 32,
             blend: 32,

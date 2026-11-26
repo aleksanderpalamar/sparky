@@ -13,6 +13,7 @@ pub fn small() -> Plan {
         batch: 16,
         rate: 0.01,
         decay: 0.0,
+        objective: crate::neural::objective::Objective::Squared,
         margin: 0.05,
         hidden: 8,
         blend: 8,

@@ -1,5 +1,6 @@
 use super::dense::Dense;
 use super::gru::{Gru, Step};
+use super::objective::{Objective, measure};
 use super::params::Parameters;
 use super::rng::Rng;
 
@@ -82,7 +83,7 @@ impl Hybrid {
     }
 
     pub fn loss(&self, sequence: &[Vec<f32>], context: &[f32], target: &[Option<f32>]) -> f32 {
-        squared(&self.predict(sequence, context), target).0
+        measure(Objective::Squared, &self.predict(sequence, context), target).0
     }
 
     pub fn accumulate(
@@ -91,8 +92,18 @@ impl Hybrid {
         context: &[f32],
         target: &[Option<f32>],
     ) -> f32 {
+        self.accumulate_with(Objective::Squared, sequence, context, target)
+    }
+
+    pub fn accumulate_with(
+        &mut self,
+        objective: Objective,
+        sequence: &[Vec<f32>],
+        context: &[f32],
+        target: &[Option<f32>],
+    ) -> f32 {
         let pass = self.pass(sequence, context);
-        let (loss, gradient) = squared(&pass.output, target);
+        let (loss, gradient) = measure(objective, &pass.output, target);
         let mut active = vec![0.0; self.blend.outputs];
         self.head
             .backward(&mut self.params, &pass.active, &gradient, Some(&mut active));
@@ -139,22 +150,4 @@ pub(super) fn activate(sum: f32) -> f32 {
 
 pub(super) fn slope(active: f32) -> f32 {
     1.0 - active * active
-}
-
-fn squared(predicted: &[f32], target: &[Option<f32>]) -> (f32, Vec<f32>) {
-    let present = target.iter().flatten().count().max(1) as f32;
-    let mut loss = 0.0;
-    let gradient = predicted
-        .iter()
-        .zip(target)
-        .map(|(value, wanted)| {
-            let Some(wanted) = wanted else {
-                return 0.0;
-            };
-            let error = value - wanted;
-            loss += error * error / present;
-            2.0 * error / present
-        })
-        .collect();
-    (loss, gradient)
 }

@@ -100,7 +100,7 @@ impl Learner {
             let lessons: Vec<Example> = (session.cursor..(session.cursor + plan.batch).min(last))
                 .filter_map(|end| lesson(&session.rows, &session.bases, split, end))
                 .collect();
-            practise(&mut session.model, &mut session.adam, &lessons, plan.decay);
+            practise(&mut session.model, &mut session.adam, &lessons, &plan);
             session.cursor += plan.batch;
             if session.cursor >= last {
                 session.cursor = WINDOW;

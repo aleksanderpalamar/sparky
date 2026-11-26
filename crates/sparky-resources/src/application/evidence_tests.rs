@@ -38,10 +38,10 @@ fn lote_vazio_nao_mexe_nos_pesos_nem_no_adam() {
     let lessons = examples(&rows);
     let mut model = fresh(plan);
     let mut adam = Adam::new(plan.rate, model.params.len());
-    assert!(practise(&mut model, &mut adam, lessons.iter().take(4), plan.decay) > 0);
+    assert!(practise(&mut model, &mut adam, lessons.iter().take(4), &plan) > 0);
     let (before, momentum) = (model.clone(), adam.clone());
     assert_eq!(
-        practise(&mut model, &mut adam, std::iter::empty(), plan.decay),
+        practise(&mut model, &mut adam, std::iter::empty(), &plan),
         0
     );
     assert_eq!(model, before);

@@ -1,4 +1,5 @@
 use super::encoding::{Example, WINDOW};
+use super::plan::Plan;
 use crate::neural::{Adam, Hybrid};
 
 pub const LEAK_GUARD: usize = 40;
@@ -21,16 +22,21 @@ pub fn practise<'a>(
     model: &mut Hybrid,
     adam: &mut Adam,
     lessons: impl IntoIterator<Item = &'a Example>,
-    decay: f32,
+    plan: &Plan,
 ) -> usize {
     let mut learned = 0;
     for example in lessons {
-        model.accumulate(&example.window, &example.context, &example.targets);
+        model.accumulate_with(
+            plan.objective,
+            &example.window,
+            &example.context,
+            &example.targets,
+        );
         learned += 1;
     }
     if learned > 0 {
         adam.step(&mut model.params);
-        model.settle(decay);
+        model.settle(plan.decay);
     }
     learned
 }
