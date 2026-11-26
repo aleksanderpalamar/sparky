@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use super::capture::Sensed;
 use super::names::{CALLS, COMPILERS, EDITORS, GAME_HOSTS, GAME_LAUNCHERS, RECORDERS, listed};
 use super::scene::{Load, Process, Scene};
 use crate::domain::{Activities, Activity};
@@ -15,19 +16,25 @@ pub fn recognize(scene: &Scene) -> Activities {
         activities = activities.with(Activity::CriticalPressure);
     }
     if let Some(processes) = &scene.processes {
-        activities = by_processes(activities, processes);
+        activities = by_processes(activities, processes, scene.capture);
     }
     settle(activities, scene)
 }
 
-fn by_processes(activities: Activities, processes: &[Process]) -> Activities {
+fn by_processes(
+    activities: Activities,
+    processes: &[Process],
+    capture: Option<Sensed>,
+) -> Activities {
     let any = |list: &[&str]| processes.iter().any(|process| listed(list, &process.name));
     let mut found = activities;
     if Tree::new(processes).has_game() || any(&GAME_HOSTS) {
         found = found.with(Activity::Gaming);
     }
+    if any(&RECORDERS) && capture != Some(Sensed::Idle) {
+        found = found.with(Activity::Recording);
+    }
     for (list, activity) in [
-        (&RECORDERS[..], Activity::Recording),
         (&CALLS[..], Activity::Communication),
         (&COMPILERS[..], Activity::Compiling),
         (&EDITORS[..], Activity::Development),

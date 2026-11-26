@@ -27,6 +27,7 @@ fn with(mut processes: Vec<Process>, extra: &[Process]) -> Scene {
             cpu_busy_percent: Some(40.0),
             ..Load::default()
         },
+        capture: None,
     }
 }
 
@@ -129,4 +130,35 @@ fn sem_nenhum_dado_o_contexto_e_desconhecido() {
 fn ciclo_na_arvore_nao_trava_o_reconhecimento() {
     let scene = with(Vec::new(), &[process(10, 11, "a"), process(11, 10, "b")]);
     assert!(!recognize(&scene).contains(Activity::Gaming));
+}
+
+fn obs(capture: Option<crate::context::Sensed>) -> Activities {
+    let scene = Scene {
+        capture,
+        ..with(desktop(), &[process(4000, 1233, "obs")])
+    };
+    recognize(&scene)
+}
+
+#[test]
+fn obs_aberto_e_parado_nao_e_gravacao() {
+    assert!(!obs(Some(crate::context::Sensed::Idle)).contains(Activity::Recording));
+}
+
+#[test]
+fn obs_gravando_ou_transmitindo_e_gravacao() {
+    assert!(obs(Some(crate::context::Sensed::Capturing)).contains(Activity::Recording));
+}
+
+#[test]
+fn sem_como_confirmar_o_obs_aberto_continua_gravacao() {
+    use crate::context::{Sensed, Unavailable};
+    for capture in [
+        None,
+        Some(Sensed::Unavailable(Unavailable::Disabled)),
+        Some(Sensed::Unavailable(Unavailable::Unreachable)),
+        Some(Sensed::Unavailable(Unavailable::Unauthorized)),
+    ] {
+        assert!(obs(capture).contains(Activity::Recording), "{capture:?}");
+    }
 }

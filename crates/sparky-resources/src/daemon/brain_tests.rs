@@ -28,6 +28,7 @@ fn observation(value: f32) -> Observation {
         },
         processes: None,
         windows: None,
+        capture: None,
     }
 }
 

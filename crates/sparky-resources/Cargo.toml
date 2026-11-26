@@ -27,6 +27,9 @@ sparky-hardware.workspace = true
 sparky-i18n.workspace = true
 sparky-ipc.workspace = true
 serde_json.workspace = true
+base64 = "0.22"
+sha2 = "0.10"
+tungstenite = { version = "0.30", default-features = false, features = ["handshake"] }
 
 [dev-dependencies]
 tempfile = "3"

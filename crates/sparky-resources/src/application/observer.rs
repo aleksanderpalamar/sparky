@@ -3,10 +3,11 @@ use std::time::Instant;
 use sparky_hardware::stat::CpuTimes;
 
 use super::features::features;
-use crate::context::{Load, Process, Scene, Window, recognize};
+use crate::context::names::{RECORDERS, listed};
+use crate::context::{Load, Process, Scene, Sensed, Window, recognize};
 use crate::domain::{Activities, Activity, Features, Metric};
 use crate::orchestration::planner::STALL;
-use crate::ports::Files;
+use crate::ports::{CaptureSensor, Files};
 use crate::telemetry::processes::{ProcessTable, Sweep};
 use crate::telemetry::{Collector, SystemSample};
 
@@ -16,12 +17,14 @@ pub struct Observation {
     pub sample: SystemSample,
     pub processes: Option<Vec<Process>>,
     pub windows: Option<Vec<Window>>,
+    pub capture: Option<(u32, Sensed)>,
 }
 
 pub struct Observer<F> {
     collector: Collector<F>,
     previous_cpu: Option<CpuTimes>,
     processes: ProcessTable,
+    sensor: Option<Box<dyn CaptureSensor + Send>>,
 }
 
 impl<F: Files> Observer<F> {
@@ -30,7 +33,13 @@ impl<F: Files> Observer<F> {
             collector,
             previous_cpu: None,
             processes: ProcessTable::default(),
+            sensor: None,
         }
+    }
+
+    pub fn sensing(mut self, sensor: Box<dyn CaptureSensor + Send>) -> Self {
+        self.sensor = Some(sensor);
+        self
     }
 
     pub fn observe(&mut self, now: Instant, windows: Option<Vec<Window>>) -> Observation {
@@ -43,7 +52,10 @@ impl<F: Files> Observer<F> {
                 .update(self.collector.files(), now, Sweep::Routine),
             windows,
             load: load(&features, &sample),
+            capture: None,
         };
+        let capture = self.sense(scene.processes.as_deref(), now);
+        scene.capture = capture.map(|(_, sensed)| sensed);
         let mut activities = recognize(&scene);
         if deciding(activities, &sample) {
             scene.processes = self
@@ -57,7 +69,18 @@ impl<F: Files> Observer<F> {
             sample,
             processes: scene.processes,
             windows: scene.windows,
+            capture,
         }
+    }
+}
+
+impl<F> Observer<F> {
+    fn sense(&mut self, processes: Option<&[Process]>, now: Instant) -> Option<(u32, Sensed)> {
+        let pid = processes?
+            .iter()
+            .find(|process| listed(&RECORDERS, &process.name))?
+            .pid;
+        Some((pid, self.sensor.as_mut()?.sense(now)))
     }
 }
 

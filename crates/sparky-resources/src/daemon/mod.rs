@@ -12,6 +12,9 @@ mod herald_tests;
 #[cfg(test)]
 mod missing_metric_tests;
 pub mod notify;
+pub mod obs_guide;
+#[cfg(test)]
+mod obs_guide_tests;
 pub mod recall;
 #[cfg(test)]
 mod recall_tests;

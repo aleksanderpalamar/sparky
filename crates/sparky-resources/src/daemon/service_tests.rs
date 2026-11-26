@@ -128,6 +128,7 @@ fn a_configuracao_do_usuario_define_o_comeco() {
         learning: false,
         notify: true,
         protected: vec!["obs".to_owned()],
+        obs_guide: true,
     };
     service.configure(&settings);
     let status = status(&mut service);

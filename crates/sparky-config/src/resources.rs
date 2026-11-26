@@ -17,6 +17,7 @@ pub struct Resources {
     pub learning: bool,
     pub notify: bool,
     pub protected: Vec<String>,
+    pub obs_guide: bool,
 }
 
 impl Default for Resources {
@@ -27,6 +28,7 @@ impl Default for Resources {
             learning: true,
             notify: false,
             protected: Vec::new(),
+            obs_guide: true,
         }
     }
 }

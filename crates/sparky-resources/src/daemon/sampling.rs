@@ -7,6 +7,7 @@ use super::conduct::Orchestra;
 use super::forgetting::Forgetting;
 use super::herald::Herald;
 use super::notify::notify;
+use super::obs_guide::{Guide, Spawn, allowed};
 use super::service::Service;
 use super::worker::Worker;
 use crate::application::budget::{Usage, assess, cpu_percent, usage};
@@ -29,6 +30,7 @@ struct Sampler<F, S, L> {
     spending: Spending,
     herald: Herald<DesktopNotifier>,
     forgetting: Arc<Forgetting>,
+    guide: Guide<Spawn>,
 }
 
 pub fn sample_forever<F, S, L>(
@@ -57,6 +59,7 @@ where
             application: crate::i18n::text("notice-app"),
         }),
         forgetting,
+        guide: Guide::new(Spawn),
     };
     Worker::spawn(sampler, Sampler::step, Sampler::finish)
 }
@@ -74,6 +77,8 @@ impl<F: Files, S: Storage, L: Storage> Sampler<F, S, L> {
             false => Link::Lost,
         };
         let observation = self.observer.observe(Instant::now(), current);
+        self.guide
+            .consider(observation.capture, Instant::now(), allowed);
         let insights = self
             .brain
             .insights(self.started.elapsed().as_secs_f64(), &observation);
