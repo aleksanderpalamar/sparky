@@ -75,9 +75,13 @@ mod handoff_tests;
 #[cfg(test)]
 mod jobs_tests;
 #[cfg(test)]
+mod keys_table_tests;
+#[cfg(test)]
 mod keys_tests;
 #[cfg(test)]
 mod menu_actions_tests;
+#[cfg(test)]
+mod menu_shortcuts_tests;
 #[cfg(test)]
 mod mtp_tests;
 #[cfg(test)]

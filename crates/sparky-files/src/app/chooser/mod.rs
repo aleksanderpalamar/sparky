@@ -7,6 +7,8 @@ mod activation_tests;
 #[cfg(test)]
 mod chooser_tests;
 #[cfg(test)]
+mod guard_tests;
+#[cfg(test)]
 mod test_support;
 
 use std::path::{Path, PathBuf};

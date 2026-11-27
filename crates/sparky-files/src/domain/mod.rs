@@ -47,6 +47,8 @@ mod thumbnail_tests;
 pub mod wording;
 
 #[cfg(test)]
+mod context_rows_tests;
+#[cfg(test)]
 mod context_tests;
 
 #[cfg(test)]
