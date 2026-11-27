@@ -44,24 +44,28 @@ impl Sparky {
     }
 
     pub fn on_button<I: InputBackend>(&mut self, event: I::PointerButtonEvent) {
+        self.click(event.button_code(), event.state(), event.time());
+    }
+
+    pub fn click(&mut self, code: u32, state: ButtonState, time: InputTime) {
         let Some(pointer) = self.seat.get_pointer() else {
             return;
         };
         let serial = SERIAL_COUNTER.next_serial();
-        if event.state() == ButtonState::Pressed {
+        if state == ButtonState::Pressed {
             let location = pointer.current_location();
             let under = self.surface_under(location).map(|(surface, _)| surface);
             if self.dismiss_outside(under.as_ref()) {
                 return;
             }
             self.focus_under(location);
-            self.start_super_drag(event.button_code(), location, serial);
+            self.start_super_drag(code, location, serial);
         }
         let button = ButtonEvent {
-            button: event.button_code(),
-            state: event.state(),
+            button: code,
+            state,
             serial,
-            time: event.time(),
+            time,
         };
         pointer.button(self, &button);
         pointer.frame(self);
@@ -80,10 +84,31 @@ impl Sparky {
         pointer.frame(self);
     }
 
+    pub fn refresh_pointer(&mut self) {
+        let Some(pointer) = self.seat.get_pointer() else {
+            return;
+        };
+        if pointer.is_grabbed() {
+            return;
+        }
+        let location = pointer.current_location();
+        let under = self.surface_under(location);
+        if pointer.current_focus() == under.as_ref().map(|(surface, _)| surface.clone()) {
+            return;
+        }
+        let motion = MotionEvent {
+            location,
+            serial: SERIAL_COUNTER.next_serial(),
+            time: InputTime::now(),
+        };
+        pointer.motion(self, under, &motion);
+        pointer.frame(self);
+    }
+
     fn focus_follows_mouse(&mut self, position: Point<f64, Logical>) {
         self.desktop
             .focus_monitor_at(position.x as i32, position.y as i32);
-        if let Some(id) = self.window_under(position)
+        if let Some(id) = self.window_pointed(position)
             && self.desktop.focused_window() != Some(id)
         {
             self.desktop.focus_window(id);
@@ -92,10 +117,15 @@ impl Sparky {
     }
 
     fn focus_under(&mut self, position: Point<f64, Logical>) {
-        if let Some(id) = self.window_under(position) {
+        if let Some(id) = self.window_pointed(position) {
             self.desktop.focus_window(id);
             self.relayout();
         }
+    }
+
+    fn window_pointed(&self, position: Point<f64, Logical>) -> Option<sparky_tiling::WindowId> {
+        let (surface, _) = self.surface_under(position)?;
+        self.window_owning(&surface)
     }
 }
 

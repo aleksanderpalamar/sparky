@@ -8,7 +8,9 @@ use crate::windows::configure::configure;
 impl Sparky {
     pub fn relayout(&mut self) {
         let mut visible: Vec<WindowId> = Vec::new();
-        for (_, placements) in self.desktop.arrange() {
+        let arrangement = self.desktop.arrange();
+        self.stacking.refresh(&arrangement);
+        for (_, placements) in arrangement {
             for placement in placements {
                 if let Some(window) = self.windows.get(placement.window).cloned() {
                     self.show(window, &placement);
@@ -30,12 +32,17 @@ impl Sparky {
         }
         self.update_keyboard_focus();
         self.publish_scales();
+        self.pointer_stale = true;
         self.needs_render = true;
     }
 
     fn show(&mut self, window: Window, placement: &Placement) {
-        let content = border::content(placement.frame, border::border_width(placement, self.border()));
+        let content = border::content(
+            placement.frame,
+            border::border_width(placement, self.border()),
+        );
         configure(&window, placement, content);
-        self.space.map_element(window, (content.x, content.y), false);
+        self.space
+            .map_element(window, (content.x, content.y), false);
     }
 }

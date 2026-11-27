@@ -11,25 +11,29 @@ use crate::state::Sparky;
 
 impl Sparky {
     pub fn on_relative_motion<I: InputBackend>(&mut self, event: I::PointerMotionEvent) {
-        let Some(pointer) = self.seat.get_pointer() else {
-            return;
-        };
-        let current = pointer.current_location();
-        let under = self.surface_under(current);
         let relative = RelativeMotionEvent {
             delta: event.delta(),
             delta_unaccel: event.delta_unaccel(),
             time: event.time(),
         };
+        self.shift_pointer(relative);
+    }
+
+    pub fn shift_pointer(&mut self, relative: RelativeMotionEvent) {
+        let Some(pointer) = self.seat.get_pointer() else {
+            return;
+        };
+        let current = pointer.current_location();
+        let under = self.surface_under(current);
         pointer.relative_motion(self, under.clone(), &relative);
         let restriction = restriction(&pointer, under.as_ref(), current);
-        let target = self.on_screen(current + event.delta());
+        let target = self.on_screen(current + relative.delta);
         let landing = target.map_or(Landing::Outside, |target| {
             self.landing(&pointer, under.as_ref(), target)
         });
         match (step(restriction, landing), target) {
             (Step::Move, Some(target)) => {
-                self.move_pointer(target, event.time());
+                self.move_pointer(target, relative.time);
                 self.activate_constraint(&pointer, target);
             }
             _ => pointer.frame(self),

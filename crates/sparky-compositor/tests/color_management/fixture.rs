@@ -16,7 +16,7 @@ fn private_color_server() -> Result<(), Error> {
         return Ok(());
     };
     let (mut event_loop, mut state) = compositor::start()?;
-    let output = compositor::attach_monitor(&mut state, "color-fixture");
+    let output = compositor::attach_monitor(&mut state, "color-fixture", 0);
     let directory = PathBuf::from(directory);
     ready::publish(&directory, &state.socket_name)?;
     loop {

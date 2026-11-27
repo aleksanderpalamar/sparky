@@ -13,7 +13,7 @@ impl Sparky {
             .or_else(|| self.space.outputs().next().cloned())
     }
 
-    fn owner(&self, surface: &WlSurface) -> WlSurface {
+    pub fn owner(&self, surface: &WlSurface) -> WlSurface {
         let root = root_of(surface);
         self.popups
             .find_popup(&root)
