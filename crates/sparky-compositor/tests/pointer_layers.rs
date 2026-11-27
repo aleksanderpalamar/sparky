@@ -14,6 +14,8 @@ mod fullscreen;
 mod grabs;
 #[path = "pointer_layers/layers.rs"]
 mod layers;
+#[path = "pointer_layers/outputs.rs"]
+mod outputs;
 #[path = "support/ready.rs"]
 mod ready;
 #[path = "support/server.rs"]

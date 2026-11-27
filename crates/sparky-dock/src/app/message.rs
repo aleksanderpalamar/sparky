@@ -26,6 +26,7 @@ pub enum Message {
     Start(String),
     OpenPicker,
     Opened(iced::window::Id),
+    Closed(iced::window::Id),
     Search(String),
     Toggle(String),
     Confirm,

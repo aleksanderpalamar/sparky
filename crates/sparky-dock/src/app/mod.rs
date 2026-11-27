@@ -1,4 +1,6 @@
 mod animate;
+#[cfg(test)]
+mod closed_tests;
 mod contact;
 #[cfg(test)]
 mod contact_tests;
@@ -7,6 +9,7 @@ mod dock_tests;
 mod glass;
 #[cfg(test)]
 mod glass_tests;
+mod lost;
 pub mod message;
 mod pointer;
 #[cfg(test)]
@@ -87,6 +90,7 @@ fn subscription(dock: &Dock) -> Subscription<Message> {
         sparky_ui::palette::subscription().map(Message::Palette),
         Subscription::run(windows::changes).map(Message::Windows),
         window::open_events().map(Message::Opened),
+        window::close_events().map(Message::Closed),
         iced::event::listen_with(contact::surface),
         Subscription::run(preferences::changes).map(Message::Preferences),
         picking,

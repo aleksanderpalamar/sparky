@@ -24,6 +24,7 @@ pub struct Events {
     pub confined: bool,
     pub keyboard: Option<wl_surface::WlSurface>,
     pub serial: Option<u32>,
+    pub layers_closed: usize,
 }
 
 impl Dispatch<wl_registry::WlRegistry, GlobalListContents> for Events {
@@ -126,14 +127,17 @@ impl Dispatch<layer_surface::ZwlrLayerSurfaceV1, ()> for Events {
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
-        if let layer_surface::Event::Configure {
-            serial,
-            width,
-            height,
-        } = event
-        {
-            surface.ack_configure(serial);
-            state.layer_sizes.push((width, height));
+        match event {
+            layer_surface::Event::Configure {
+                serial,
+                width,
+                height,
+            } => {
+                surface.ack_configure(serial);
+                state.layer_sizes.push((width, height));
+            }
+            layer_surface::Event::Closed => state.layers_closed += 1,
+            _ => {}
         }
     }
 }
