@@ -6,6 +6,13 @@ use sparky_tiling::{Rect, Screen};
 use crate::state::Sparky;
 
 impl Sparky {
+    pub fn retire_output(&mut self, output: &Output) {
+        for layer in layer_map_for_output(output).layers() {
+            layer.layer_surface().send_close();
+        }
+        self.space.unmap_output(output);
+    }
+
     pub fn sync_outputs(&mut self) {
         let outputs: Vec<Output> = self.space.outputs().cloned().collect();
         for output in &outputs {
@@ -48,5 +55,10 @@ impl Sparky {
 }
 
 pub fn rect_of(rectangle: Rectangle<i32, Logical>) -> Rect {
-    Rect::new(rectangle.loc.x, rectangle.loc.y, rectangle.size.w, rectangle.size.h)
+    Rect::new(
+        rectangle.loc.x,
+        rectangle.loc.y,
+        rectangle.size.w,
+        rectangle.size.h,
+    )
 }

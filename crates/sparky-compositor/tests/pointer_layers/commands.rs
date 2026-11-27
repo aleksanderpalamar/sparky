@@ -20,8 +20,23 @@ pub fn run(state: &mut Sparky, command: &str) {
         ["fullscreen"] => toggle(state, Fullscreen::Monitor),
         ["maximize"] => toggle(state, Fullscreen::Maximized),
         ["lock"] => state.lock.engage(),
+        ["unplug"] => unplug(state),
+        ["plug"] => {
+            super::compositor::attach_monitor(state, "A", 0);
+            state.sync_outputs();
+            state.relayout();
+        }
         _ => {}
     }
+}
+
+fn unplug(state: &mut Sparky) {
+    let outputs: Vec<_> = state.space.outputs().cloned().collect();
+    for output in outputs {
+        state.retire_output(&output);
+    }
+    state.sync_outputs();
+    state.relayout();
 }
 
 fn toggle(state: &mut Sparky, mode: Fullscreen) {

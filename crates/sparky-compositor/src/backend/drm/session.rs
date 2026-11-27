@@ -97,6 +97,9 @@ impl Sparky {
         }
         drm.active = true;
         self.needs_render = true;
+        self.loop_handle.insert_idle(|state| {
+            state.with_drm(|state, drm| state.scan_connectors(drm));
+        });
     }
 
     fn on_device_changed(&mut self, device: Dev) {

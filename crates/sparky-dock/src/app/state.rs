@@ -42,6 +42,7 @@ pub struct Dock {
     pub accepting: Option<Rect>,
     pub glass: Option<sparky_ipc::GlassArea>,
     pub output: Option<u32>,
+    pub displaced: bool,
     store: Box<dyn PinnedStore>,
     starter: Box<dyn Starter>,
     board: Box<dyn GlassBoard>,
@@ -76,6 +77,7 @@ impl Dock {
             accepting: None,
             glass: None,
             output: None,
+            displaced: false,
             store,
             starter,
             board,
@@ -117,7 +119,7 @@ impl Dock {
     }
 
     pub fn desired(&self) -> Option<Geometry> {
-        if !self.preferences.enabled || !self.catalogued {
+        if !self.preferences.enabled || !self.catalogued || self.displaced {
             return None;
         }
         let count = self.pinned.resolve(&self.apps).len();

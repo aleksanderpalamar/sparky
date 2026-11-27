@@ -158,7 +158,7 @@ impl Sparky {
         hdr::set(&gpu.video(), &mut surface, false);
         hdr::release(gpu.manager.device(), &surface);
         tracing::info!("monitor {} desligado", surface.output.name());
-        self.space.unmap_output(&surface.output);
+        self.retire_output(&surface.output);
         self.display_handle.remove_global::<Sparky>(surface.global);
         if let Some(timer) = surface.idle_timer {
             self.loop_handle.remove(timer);

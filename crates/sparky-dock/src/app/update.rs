@@ -4,7 +4,7 @@ use sparky_theme::Skin;
 use super::contact::Contact;
 use super::message::Message;
 use super::state::{Dock, OpenPicker};
-use super::{animate, pointer, surface, surfaces};
+use super::{animate, lost, pointer, surface, surfaces};
 use crate::adapters::{catalog, icons, outputs};
 use crate::domain::picker::Picker;
 
@@ -30,7 +30,8 @@ fn handle(dock: &mut Dock, message: Message) -> Task<Message> {
             dock.preferences = preferences;
             return measure();
         }
-        Message::Output(width) => dock.output = width,
+        Message::Output(width) => return lost::found(dock, width),
+        Message::Closed(window) => return lost::closed(dock, window),
         Message::Hover(inside) => {
             dock.hovering = inside;
             if !inside {
