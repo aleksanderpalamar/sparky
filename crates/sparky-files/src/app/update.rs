@@ -138,6 +138,7 @@ fn key_pressed(files: &mut Files, key: &Key, modifiers: Modifiers) -> Task<Messa
         Mode::Browse => keys::browse(key, modifiers),
         Mode::Filter => keys::filtering(key),
         Mode::Search => None,
+        Mode::Location(_) => keys::locating(key, modifiers),
         Mode::ConfirmDelete(_) | Mode::ConfirmEmptyTrash(_) => return files.confirm(key),
         Mode::Conflict(_) => {
             return keys::conflict(key)
@@ -172,6 +173,7 @@ fn run(files: &mut Files, command: Command) -> Task<Message> {
             prompt::focus()
         }
         Command::Rename => files.start_rename(),
+        Command::EditLocation => files.begin_location(),
         Command::NewFolder => prompt::select(files.begin_new(Kind::Directory)),
         Command::Quit => iced::exit(),
         Command::View(mode) => {

@@ -39,6 +39,7 @@ pub fn status(files: &Files) -> Element<'_, Message> {
         Mode::New(Kind::File) => prompt(files, i18n::text("new-file"), i18n::text("create-keys")),
         Mode::Destination(clip) => prompt(files, destination(clip), i18n::text("destination-hint")),
         Mode::Compress(_) => prompt(files, i18n::text("compress"), i18n::text("create-keys")),
+        Mode::Location(_) => prompt(files, i18n::text("location"), i18n::text("location-keys")),
         Mode::ConfirmDelete(_) => browsing(files),
         Mode::Conflict(pending) => text(conflict(pending))
             .size(TEXT_SIZE)

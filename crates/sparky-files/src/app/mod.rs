@@ -26,6 +26,7 @@ mod history;
 mod job_report;
 pub mod jobs;
 pub mod keys;
+mod location;
 pub mod message;
 pub mod mode;
 pub mod navigation;
@@ -80,9 +81,13 @@ mod jobs_tests;
 #[cfg(test)]
 mod keys_tests;
 #[cfg(test)]
+mod location_tests;
+#[cfg(test)]
 mod menu_actions_tests;
 #[cfg(test)]
 mod mtp_tests;
+#[cfg(test)]
+mod navigation_keys_tests;
 #[cfg(test)]
 mod open_with_tests;
 #[cfg(test)]

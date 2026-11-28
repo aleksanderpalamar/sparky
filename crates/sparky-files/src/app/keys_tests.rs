@@ -172,22 +172,3 @@ fn ctrl_d_marca_a_pasta_e_page_down_continua_descendo() {
     );
     assert_eq!(nomeada(Named::PageDown), Some(Command::PageDown));
 }
-
-#[test]
-fn alt_e_setas_navegam_no_historico_sem_mudar_backspace_e_espaco() {
-    let named = |key, modifiers| browse(&Key::Named(key), modifiers);
-    assert_eq!(named(Named::ArrowLeft, Modifiers::ALT), Some(Command::Back));
-    assert_eq!(
-        named(Named::ArrowRight, Modifiers::ALT),
-        Some(Command::Forward)
-    );
-    assert_eq!(
-        named(Named::ArrowLeft, Modifiers::empty()),
-        Some(Command::Left)
-    );
-    assert_eq!(
-        named(Named::Backspace, Modifiers::empty()),
-        Some(Command::Parent)
-    );
-    assert_eq!(named(Named::Space, Modifiers::empty()), Some(Command::Mark));
-}

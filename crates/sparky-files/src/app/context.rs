@@ -107,6 +107,7 @@ fn offered(files: &Files, target: Target, action: Action) -> bool {
 fn run(files: &mut Files, action: Action, path: PathBuf) -> Task<Message> {
     match action {
         Action::Rename => return files.start_rename(),
+        Action::EditLocation => return files.begin_location(),
         Action::NewFolder => return prompt::select(files.begin_new(Kind::Directory)),
         Action::NewFile => return prompt::select(files.begin_new(Kind::File)),
         Action::MoveTo => return destination(files, Clip::Cut),

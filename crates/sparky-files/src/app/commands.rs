@@ -23,6 +23,7 @@ pub(super) fn act(files: &mut Files, command: Command) {
         Command::Home => files.home(),
         Command::Back => files.back(),
         Command::Forward => files.forward(),
+        Command::Complete(forward) => files.complete_location(forward),
         Command::Place(index) => files.place(index),
         Command::ToggleHidden => files.listing.toggle_hidden(),
         Command::Mark => {
@@ -57,6 +58,7 @@ pub(super) fn act(files: &mut Files, command: Command) {
         | Command::Extract
         | Command::Search
         | Command::Undo
+        | Command::EditLocation
         | Command::Refresh => {}
     }
 }

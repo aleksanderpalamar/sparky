@@ -38,6 +38,7 @@ pub enum Action {
     RemoveBookmark,
     Back,
     Forward,
+    EditLocation,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -132,6 +133,7 @@ fn travel(offer: Offer) -> Vec<Row> {
     vec![
         item(Action::Back, offer.back),
         item(Action::Forward, offer.forward),
+        item(Action::EditLocation, true),
         Row::Separator,
     ]
 }
@@ -175,6 +177,7 @@ fn item(action: Action, enabled: bool) -> Row {
         Action::RemoveBookmark => ("menu-remove-bookmark", ""),
         Action::Back => ("menu-back", "Alt+←"),
         Action::Forward => ("menu-forward", "Alt+→"),
+        Action::EditLocation => ("menu-edit-location", "Ctrl+L"),
     };
     Row::Item {
         action,

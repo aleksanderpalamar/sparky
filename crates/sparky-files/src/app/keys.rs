@@ -47,6 +47,8 @@ pub enum Command {
     Bookmark,
     Back,
     Forward,
+    EditLocation,
+    Complete(bool),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -71,6 +73,13 @@ pub fn filtering(key: &Key) -> Option<Command> {
         Key::Named(Named::ArrowUp) => Some(Command::Up),
         Key::Named(Named::PageDown) => Some(Command::PageDown),
         Key::Named(Named::PageUp) => Some(Command::PageUp),
+        _ => None,
+    }
+}
+
+pub fn locating(key: &Key, modifiers: Modifiers) -> Option<Command> {
+    match key.as_ref() {
+        Key::Named(Named::Tab) => Some(Command::Complete(!modifiers.shift())),
         _ => None,
     }
 }
@@ -139,6 +148,7 @@ fn control_command(text: &str, modifiers: Modifiers) -> Option<Command> {
         "u" => Some(Command::PageUp),
         "q" => Some(Command::Quit),
         "z" => Some(Command::Undo),
+        "l" => Some(Command::EditLocation),
         "1" => Some(Command::View(ViewMode::Grid)),
         "2" => Some(Command::View(ViewMode::List)),
         _ => None,

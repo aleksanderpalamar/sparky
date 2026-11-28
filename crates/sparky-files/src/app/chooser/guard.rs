@@ -16,6 +16,7 @@ pub fn allowed(command: Command) -> bool {
             | Command::Home
             | Command::Back
             | Command::Forward
+            | Command::EditLocation
             | Command::Place(_)
             | Command::ToggleHidden
             | Command::Filter

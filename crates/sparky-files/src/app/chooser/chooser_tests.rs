@@ -130,3 +130,28 @@ fn seletor_volta_e_avanca_pelo_historico_com_alt_e_setas() {
     );
     assert_eq!(cena.files.location, fotos);
 }
+
+#[test]
+fn seletor_edita_o_caminho_com_ctrl_l() {
+    let (mut cena, _) = cena(abrir(), Vec::new());
+    mandar(
+        &mut cena,
+        Message::Key(Key::Character("l".into()), Modifiers::CTRL),
+    );
+    mandar(&mut cena, Message::Typed("Fotos".to_owned()));
+    mandar(&mut cena, Message::Submit);
+    assert_eq!(cena.files.location, cena.work().join("Fotos"));
+}
+
+#[test]
+fn seletor_nao_abre_uri_de_rede_digitada() {
+    let (mut cena, _) = cena(abrir(), Vec::new());
+    mandar(
+        &mut cena,
+        Message::Key(Key::Character("l".into()), Modifiers::CTRL),
+    );
+    mandar(&mut cena, Message::Typed("smb://nas/fotos".to_owned()));
+    mandar(&mut cena, Message::Submit);
+    assert_eq!(cena.files.network_pending, None);
+    assert!(cena.files.notice.is_some());
+}
