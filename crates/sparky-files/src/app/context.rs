@@ -7,7 +7,7 @@ use crate::app::message::Message;
 use crate::app::state::{ContextMenu, Files, Mode};
 use crate::domain::archive::extractable;
 use crate::domain::clip::Clip;
-use crate::domain::context::{self, Action, Target};
+use crate::domain::context::{self, Action, Offer, Row, Target};
 use crate::domain::entry::Kind;
 use crate::i18n;
 
@@ -80,13 +80,26 @@ pub fn properties(files: &mut Files, path: &Path) {
     }
 }
 
+impl Files {
+    pub fn menu_rows(&self, target: Target) -> Vec<Row> {
+        let entries = if target == Target::TrashBackground {
+            self.listing.total_len() > 0
+        } else {
+            !self.listing.is_empty()
+        };
+        let offer = Offer {
+            clip: self.clip.is_some(),
+            entries,
+            back: self.history.previous().is_some(),
+            forward: self.history.next().is_some(),
+        };
+        context::entries(target, offer)
+    }
+}
+
 fn offered(files: &Files, target: Target, action: Action) -> bool {
-    let has_entries = if target == Target::TrashBackground {
-        files.listing.total_len() > 0
-    } else {
-        !files.listing.is_empty()
-    };
-    context::entries(target, files.clip.is_some(), has_entries)
+    files
+        .menu_rows(target)
         .into_iter()
         .any(|row| row.offers(action))
 }
@@ -94,6 +107,7 @@ fn offered(files: &Files, target: Target, action: Action) -> bool {
 fn run(files: &mut Files, action: Action, path: PathBuf) -> Task<Message> {
     match action {
         Action::Rename => return files.start_rename(),
+        Action::EditLocation => return files.begin_location(),
         Action::NewFolder => return prompt::select(files.begin_new(Kind::Directory)),
         Action::NewFile => return prompt::select(files.begin_new(Kind::File)),
         Action::MoveTo => return destination(files, Clip::Cut),
@@ -117,6 +131,8 @@ fn run(files: &mut Files, action: Action, path: PathBuf) -> Task<Message> {
         Action::SelectAll => files.listing.select_all(),
         Action::Restore => files.restore_selected(),
         Action::RestoreAll => files.restore_all(),
+        Action::Back => files.back(),
+        Action::Forward => files.forward(),
         Action::Tag(_) | Action::RemoveBookmark => {}
     }
     Task::none()

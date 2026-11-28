@@ -22,9 +22,11 @@ mod empty_trash;
 pub mod events;
 pub mod extraction;
 mod handoff;
+mod history;
 mod job_report;
 pub mod jobs;
 pub mod keys;
+mod location;
 pub mod message;
 pub mod mode;
 pub mod navigation;
@@ -73,13 +75,19 @@ mod folder_change_tests;
 #[cfg(test)]
 mod handoff_tests;
 #[cfg(test)]
+mod history_tests;
+#[cfg(test)]
 mod jobs_tests;
 #[cfg(test)]
 mod keys_tests;
 #[cfg(test)]
+mod location_tests;
+#[cfg(test)]
 mod menu_actions_tests;
 #[cfg(test)]
 mod mtp_tests;
+#[cfg(test)]
+mod navigation_keys_tests;
 #[cfg(test)]
 mod open_with_tests;
 #[cfg(test)]

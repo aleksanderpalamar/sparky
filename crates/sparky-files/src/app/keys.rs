@@ -45,6 +45,10 @@ pub enum Command {
     Volume(usize),
     UnmountCurrent,
     Bookmark,
+    Back,
+    Forward,
+    EditLocation,
+    Complete(bool),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -73,6 +77,13 @@ pub fn filtering(key: &Key) -> Option<Command> {
     }
 }
 
+pub fn locating(key: &Key, modifiers: Modifiers) -> Option<Command> {
+    match key.as_ref() {
+        Key::Named(Named::Tab) => Some(Command::Complete(!modifiers.shift())),
+        _ => None,
+    }
+}
+
 pub fn confirm(key: &Key) -> Option<Answer> {
     match key.as_ref() {
         Key::Named(Named::Enter) => Some(Answer::Yes),
@@ -94,6 +105,8 @@ pub fn conflict(key: &Key) -> Option<Conflict> {
 fn named_command(named: Named, modifiers: Modifiers) -> Option<Command> {
     match named {
         Named::ArrowUp if modifiers.alt() => Some(Command::Parent),
+        Named::ArrowLeft if modifiers.alt() => Some(Command::Back),
+        Named::ArrowRight if modifiers.alt() => Some(Command::Forward),
         Named::Home if modifiers.alt() => Some(Command::Home),
         Named::Enter if modifiers.alt() => Some(Command::Properties),
         Named::Tab if modifiers.control() && modifiers.shift() => Some(Command::PreviousTab),
@@ -135,6 +148,7 @@ fn control_command(text: &str, modifiers: Modifiers) -> Option<Command> {
         "u" => Some(Command::PageUp),
         "q" => Some(Command::Quit),
         "z" => Some(Command::Undo),
+        "l" => Some(Command::EditLocation),
         "1" => Some(Command::View(ViewMode::Grid)),
         "2" => Some(Command::View(ViewMode::List)),
         _ => None,

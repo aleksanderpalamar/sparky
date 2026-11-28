@@ -17,10 +17,16 @@ pub mod destination;
 pub mod drop;
 pub mod entry;
 pub mod grid;
+pub mod history;
+#[cfg(test)]
+mod history_tests;
 pub mod icons;
 pub mod image;
 pub mod launch;
 pub mod listing;
+pub mod location_input;
+#[cfg(test)]
+mod location_input_tests;
 pub mod naming;
 pub mod order;
 pub mod places;

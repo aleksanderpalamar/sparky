@@ -74,6 +74,7 @@ impl Files {
             }
             Mode::Destination(clip) => return self.finish_destination(clip, &input),
             Mode::Search => return self.start_search(&input),
+            Mode::Location(_) => return self.finish_location(&input),
             Mode::Compress(paths) => return self.start_archive(paths, &input),
             Mode::ConfirmDelete(names) => self.mode = Mode::ConfirmDelete(names),
             Mode::ConfirmEmptyTrash(count) => self.mode = Mode::ConfirmEmptyTrash(count),
@@ -113,6 +114,7 @@ impl Files {
             | Mode::New(_)
             | Mode::Destination(_)
             | Mode::Compress(_)
+            | Mode::Location(_)
             | Mode::ConfirmDelete(_)
             | Mode::ConfirmEmptyTrash(_)
             | Mode::Conflict(_) => {}

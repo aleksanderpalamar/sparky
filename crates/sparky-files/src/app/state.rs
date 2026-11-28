@@ -22,6 +22,7 @@ use crate::app::tabs::Tab;
 use crate::domain::clip::Clip;
 use crate::domain::drop::Override;
 use crate::domain::grid::{Layout, ViewMode};
+use crate::domain::history::{History, Visit};
 use crate::domain::icons::Icons;
 use crate::domain::listing::Listing;
 use crate::domain::places::Place;
@@ -64,6 +65,7 @@ pub struct Files {
     pub job: Option<Job>,
     pub search: Option<Search>,
     pub tabs: Tabs<Tab>,
+    pub history: History<Visit>,
     pub gesture: Gesture,
     pub held: Override,
     pub journal: Journal,
@@ -116,6 +118,7 @@ impl Files {
             job: None,
             search: None,
             tabs: Tabs::default(),
+            history: History::default(),
             gesture: Gesture::Idle,
             held: Override::None,
             journal: Journal::default(),

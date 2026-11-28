@@ -16,6 +16,10 @@ pub(super) fn virtual_command(files: &mut Files, command: Command) -> Task<Messa
         Command::Parent if files.network_uri.is_some() => return files.network_parent(),
         Command::Parent => files.parent(),
         Command::Home => files.home(),
+        Command::Back => files.back(),
+        Command::Forward => files.forward(),
+        Command::Complete(forward) => files.complete_location(forward),
+        Command::EditLocation => return files.begin_location(),
         Command::Place(index) => files.place(index),
         Command::Volume(index) => {
             let device = files.volumes.get(index).map(|volume| volume.path.clone());
