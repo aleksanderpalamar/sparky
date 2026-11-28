@@ -113,3 +113,20 @@ fn cancelar_ou_esc_nao_devolvem_nada() {
     mandar(&mut cena, Message::Chooser(ChooserEvent::Cancel));
     assert!(caminhos(&respostas).is_empty());
 }
+
+#[test]
+fn seletor_volta_e_avanca_pelo_historico_com_alt_e_setas() {
+    let (mut cena, _) = cena(abrir(), Vec::new());
+    let fotos = cena.work().join("Fotos");
+    cena.files.go(fotos.clone());
+    mandar(
+        &mut cena,
+        Message::Key(Key::Named(Named::ArrowLeft), Modifiers::ALT),
+    );
+    assert_eq!(cena.files.location, cena.work());
+    mandar(
+        &mut cena,
+        Message::Key(Key::Named(Named::ArrowRight), Modifiers::ALT),
+    );
+    assert_eq!(cena.files.location, fotos);
+}

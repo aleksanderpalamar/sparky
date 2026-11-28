@@ -14,6 +14,8 @@ pub fn allowed(command: Command) -> bool {
             | Command::Last
             | Command::Parent
             | Command::Home
+            | Command::Back
+            | Command::Forward
             | Command::Place(_)
             | Command::ToggleHidden
             | Command::Filter

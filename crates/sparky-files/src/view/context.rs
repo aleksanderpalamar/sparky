@@ -27,11 +27,6 @@ impl Menu {
 
 pub fn menu(files: &Files) -> Option<Menu> {
     let menu = files.context.as_ref()?;
-    let has_entries = if menu.target == context::Target::TrashBackground {
-        files.listing.total_len() > 0
-    } else {
-        !files.listing.is_empty()
-    };
     let tag = match menu.target {
         context::Target::Bookmark(index) => files
             .bookmarks
@@ -41,7 +36,7 @@ pub fn menu(files: &Files) -> Option<Menu> {
         _ => None,
     };
     Some(Menu {
-        entries: context::entries(menu.target, files.clip.is_some(), has_entries),
+        entries: files.menu_rows(menu.target),
         tag,
     })
 }

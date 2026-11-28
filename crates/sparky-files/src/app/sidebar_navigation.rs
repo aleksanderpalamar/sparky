@@ -9,6 +9,13 @@ use crate::domain::sidebar_location::{SidebarItem, SidebarLocation, SidebarTarge
 
 impl Files {
     pub fn open_sidebar(&mut self, page: SidebarLocation) {
+        let left = self.here();
+        if self.show_sidebar(page) {
+            self.remember(left);
+        }
+    }
+
+    pub(super) fn show_sidebar(&mut self, page: SidebarLocation) -> bool {
         match self.services.sidebar.list(page) {
             Ok(items) => {
                 self.sidebar_items = items;
@@ -17,8 +24,12 @@ impl Files {
                 self.network_pending = None;
                 self.sidebar_cursor = 0;
                 self.mode = Mode::Browse;
+                true
             }
-            Err(error) => self.fail(error),
+            Err(error) => {
+                self.fail(error);
+                false
+            }
         }
     }
 

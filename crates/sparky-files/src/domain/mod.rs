@@ -17,6 +17,9 @@ pub mod destination;
 pub mod drop;
 pub mod entry;
 pub mod grid;
+pub mod history;
+#[cfg(test)]
+mod history_tests;
 pub mod icons;
 pub mod image;
 pub mod launch;

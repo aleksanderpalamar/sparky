@@ -21,6 +21,8 @@ pub(super) fn act(files: &mut Files, command: Command) {
         Command::Open => files.open_selected(),
         Command::Parent => files.parent(),
         Command::Home => files.home(),
+        Command::Back => files.back(),
+        Command::Forward => files.forward(),
         Command::Place(index) => files.place(index),
         Command::ToggleHidden => files.listing.toggle_hidden(),
         Command::Mark => {
