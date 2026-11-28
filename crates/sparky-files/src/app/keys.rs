@@ -45,6 +45,8 @@ pub enum Command {
     Volume(usize),
     UnmountCurrent,
     Bookmark,
+    Back,
+    Forward,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -94,6 +96,8 @@ pub fn conflict(key: &Key) -> Option<Conflict> {
 fn named_command(named: Named, modifiers: Modifiers) -> Option<Command> {
     match named {
         Named::ArrowUp if modifiers.alt() => Some(Command::Parent),
+        Named::ArrowLeft if modifiers.alt() => Some(Command::Back),
+        Named::ArrowRight if modifiers.alt() => Some(Command::Forward),
         Named::Home if modifiers.alt() => Some(Command::Home),
         Named::Enter if modifiers.alt() => Some(Command::Properties),
         Named::Tab if modifiers.control() && modifiers.shift() => Some(Command::PreviousTab),

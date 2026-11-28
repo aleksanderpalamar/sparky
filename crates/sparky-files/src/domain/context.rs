@@ -36,6 +36,8 @@ pub enum Action {
     RestoreAll,
     Tag(Option<TagColor>),
     RemoveBookmark,
+    Back,
+    Forward,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -73,7 +75,15 @@ impl Row {
     }
 }
 
-pub fn entries(target: Target, has_clip: bool, has_entries: bool) -> Vec<Row> {
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct Offer {
+    pub clip: bool,
+    pub entries: bool,
+    pub back: bool,
+    pub forward: bool,
+}
+
+pub fn entries(target: Target, offer: Offer) -> Vec<Row> {
     if let Target::Bookmark(_) = target {
         return vec![
             Row::Palette,
@@ -86,10 +96,14 @@ pub fn entries(target: Target, has_clip: bool, has_entries: bool) -> Vec<Row> {
         return vec![item(Action::Restore, true), item(Action::Properties, true)];
     }
     if target == Target::TrashBackground {
-        return vec![item(Action::RestoreAll, has_entries)];
+        let mut rows = travel(offer);
+        rows.push(item(Action::RestoreAll, offer.entries));
+        return rows;
     }
     if target == Target::Background {
-        return background(has_clip, has_entries);
+        let mut rows = travel(offer);
+        rows.extend(background(offer));
+        return rows;
     }
     let mut rows = vec![
         item(Action::Open, true),
@@ -114,14 +128,22 @@ pub fn entries(target: Target, has_clip: bool, has_entries: bool) -> Vec<Row> {
     rows
 }
 
-fn background(has_clip: bool, has_entries: bool) -> Vec<Row> {
+fn travel(offer: Offer) -> Vec<Row> {
+    vec![
+        item(Action::Back, offer.back),
+        item(Action::Forward, offer.forward),
+        Row::Separator,
+    ]
+}
+
+fn background(offer: Offer) -> Vec<Row> {
     vec![
         item(Action::NewFolder, true),
         item(Action::NewFile, true),
         item(Action::OpenWith, true),
         Row::Separator,
-        item(Action::Paste, has_clip),
-        item(Action::SelectAll, has_entries),
+        item(Action::Paste, offer.clip),
+        item(Action::SelectAll, offer.entries),
         Row::Separator,
         item(Action::Properties, true),
     ]
@@ -151,6 +173,8 @@ fn item(action: Action, enabled: bool) -> Row {
         Action::Tag(Some(color)) => (color.label(), ""),
         Action::Tag(None) => ("menu-no-color", ""),
         Action::RemoveBookmark => ("menu-remove-bookmark", ""),
+        Action::Back => ("menu-back", "Alt+←"),
+        Action::Forward => ("menu-forward", "Alt+→"),
     };
     Row::Item {
         action,

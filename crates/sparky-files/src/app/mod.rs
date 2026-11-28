@@ -22,6 +22,7 @@ mod empty_trash;
 pub mod events;
 pub mod extraction;
 mod handoff;
+mod history;
 mod job_report;
 pub mod jobs;
 pub mod keys;
@@ -72,6 +73,8 @@ mod files_tests;
 mod folder_change_tests;
 #[cfg(test)]
 mod handoff_tests;
+#[cfg(test)]
+mod history_tests;
 #[cfg(test)]
 mod jobs_tests;
 #[cfg(test)]

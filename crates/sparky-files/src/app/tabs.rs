@@ -7,6 +7,7 @@ use sparky_ui::viewport::Viewport;
 use crate::app::search::Search;
 use crate::app::sorting::detailed;
 use crate::app::state::{Files, Mode};
+use crate::domain::history::{History, Visit};
 use crate::domain::listing::Listing;
 use crate::domain::search::SearchEvent;
 use crate::domain::sidebar_location::{SidebarItem, SidebarLocation};
@@ -23,6 +24,7 @@ pub struct Tab {
     pub sidebar_items: Vec<SidebarItem>,
     pub sidebar_cursor: usize,
     pub search: Option<Search>,
+    pub history: History<Visit>,
 }
 
 impl Files {
@@ -98,6 +100,7 @@ impl Files {
             sidebar_items: mem::take(&mut self.sidebar_items),
             sidebar_cursor: mem::take(&mut self.sidebar_cursor),
             search: self.search.take(),
+            history: mem::take(&mut self.history),
         }
     }
 
@@ -112,6 +115,7 @@ impl Files {
         self.sidebar_items = tab.sidebar_items;
         self.sidebar_cursor = tab.sidebar_cursor;
         self.search = tab.search;
+        self.history = tab.history;
     }
 
     fn load_tab(&mut self, tab: Tab) {

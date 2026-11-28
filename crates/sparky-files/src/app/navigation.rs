@@ -8,6 +8,15 @@ use crate::domain::listing::Listing;
 
 impl Files {
     pub fn go(&mut self, path: PathBuf) -> bool {
+        let left = self.here();
+        let moved = self.enter(path);
+        if moved {
+            self.remember(left);
+        }
+        moved
+    }
+
+    pub(super) fn enter(&mut self, path: PathBuf) -> bool {
         match self.listed(&path) {
             Ok(entries) => {
                 self.stop_search();
